@@ -1,46 +1,43 @@
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "accounting_periods") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'accounting_periods') }}
+        select
+            {{ dbt_utils.surrogate_key(["accounting_period_id", "full_name"]) }}
+            as accounting_period_unique_id,
+            -- Primary Key
+            accounting_period_id::float as accounting_period_id,
 
-), renamed AS (
+            -- Foreign Keys
+            parent_id::float as parent_id,
+            year_id::float as year_id,
 
-    SELECT
-      {{ dbt_utils.surrogate_key(['accounting_period_id', 'full_name']) }}
-                                                    AS accounting_period_unique_id,
-      --Primary Key
-      accounting_period_id::FLOAT                   AS accounting_period_id,
+            -- Info
+            name::varchar as accounting_period_name,
+            full_name::varchar as accounting_period_full_name,
+            fiscal_calendar_id::float as fiscal_calendar_id,
+            closed_on::timestamp_tz as accounting_period_close_date,
+            ending::timestamp_tz as accounting_period_end_date,
+            starting::timestamp_tz as accounting_period_starting_date,
 
-      --Foreign Keys
-      parent_id::FLOAT                              AS parent_id,
-      year_id::FLOAT                                AS year_id,
+            -- Meta
+            locked_accounts_payable::boolean as is_accounts_payable_locked,
+            locked_accounts_receivable::boolean as is_accounts_receivables_locked,
+            locked_all::boolean as is_all_locked,
+            locked_payroll::boolean as is_payroll_locked,
+            closed::boolean as is_accouting_period_closed,
+            closed_accounts_payable::boolean as is_accounts_payable_closed,
+            closed_accounts_receivable::boolean as is_accounts_receivables_closed,
+            closed_all::boolean as is_all_closed,
+            closed_payroll::boolean as is_payroll_closed,
+            isinactive::boolean as is_accounting_period_inactive,
+            is_adjustment::boolean as is_accounting_period_adjustment,
+            quarter::boolean as is_quarter,
+            year_0::boolean as is_year
 
-      --Info
-      name::VARCHAR                                 AS accounting_period_name,
-      full_name::VARCHAR                            AS accounting_period_full_name,
-      fiscal_calendar_id::FLOAT                     AS fiscal_calendar_id,
-      closed_on::TIMESTAMP_TZ                       AS accounting_period_close_date,
-      ending::TIMESTAMP_TZ                          AS accounting_period_end_date,
-      starting::TIMESTAMP_TZ                        AS accounting_period_starting_date,
+        from source
 
-      --Meta
-      locked_accounts_payable::BOOLEAN              AS is_accounts_payable_locked,
-      locked_accounts_receivable::BOOLEAN           AS is_accounts_receivables_locked,
-      locked_all::BOOLEAN                           AS is_all_locked,
-      locked_payroll::BOOLEAN                       AS is_payroll_locked,
-      closed::BOOLEAN                               AS is_accouting_period_closed,
-      closed_accounts_payable::BOOLEAN              AS is_accounts_payable_closed,
-      closed_accounts_receivable::BOOLEAN           AS is_accounts_receivables_closed,
-      closed_all::BOOLEAN                           AS is_all_closed,
-      closed_payroll::BOOLEAN                       AS is_payroll_closed,
-      isinactive::BOOLEAN                           AS is_accounting_period_inactive,
-      is_adjustment::BOOLEAN                        AS is_accounting_period_adjustment,
-      quarter::BOOLEAN                              AS is_quarter,
-      year_0::BOOLEAN                               AS is_year
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

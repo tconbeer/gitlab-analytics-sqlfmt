@@ -1,18 +1,13 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "applications_jobs") }}),
+    renamed as (
 
-	SELECT *
-  	FROM {{ source('greenhouse', 'applications_jobs') }}
+        -- keys
+        select application_id::number as application_id, job_id::number as job_id
 
-), renamed as (
+        from source
 
-	SELECT
-			--keys
-    		application_id::NUMBER		AS application_id,
-    		job_id::NUMBER				AS job_id
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

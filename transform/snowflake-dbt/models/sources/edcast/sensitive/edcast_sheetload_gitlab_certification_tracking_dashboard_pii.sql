@@ -1,10 +1,16 @@
 
-WITH source AS (
+with
+    source as (
 
-  SELECT {{ nohash_sensitive_columns('edcast_sheetload_gitlab_certification_tracking_dashboard','user') }}
-  FROM {{ref('edcast_sheetload_gitlab_certification_tracking_dashboard')}}
+        select
+            {{
+                nohash_sensitive_columns(
+                    "edcast_sheetload_gitlab_certification_tracking_dashboard", "user"
+                )
+            }}
+        from {{ ref("edcast_sheetload_gitlab_certification_tracking_dashboard") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

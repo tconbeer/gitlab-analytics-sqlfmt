@@ -1,136 +1,120 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-WITH customers AS (
-  
-  SELECT * 
-  FROM {{ ref('customers_db_customers_source')}}
-  
-)
+with
+    customers as (select * from {{ ref("customers_db_customers_source") }})
 
-, namespaces AS (
-  
-  SELECT * 
-  FROM {{ ref('gitlab_dotcom_namespaces')}}
-  
-)
- 
-, orders_snapshots AS (
-  
-  SELECT * 
-  FROM {{ ref('customers_db_orders_snapshots_base')}}
-  
-)
+    ,
+    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }})
 
-, users AS (
- 
- SELECT * 
- FROM {{ ref('gitlab_dotcom_users')}}
- 
-)
+    ,
+    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }})
 
-, zuora_rate_plan AS (
- 
- SELECT * 
- FROM {{ ref('zuora_rate_plan')}}
- 
-)
+    ,
+    users as (select * from {{ ref("gitlab_dotcom_users") }})
 
-, zuora_base_mrr AS (
- 
- SELECT * 
- FROM {{ ref('zuora_base_mrr')}}
- 
-)
+    ,
+    zuora_rate_plan as (select * from {{ ref("zuora_rate_plan") }})
 
-, zuora_subscription_with_positive_mrr_tcv AS (
-  
-  SELECT DISTINCT
-    subscription_name_slugify,
-    subscription_start_date
-  FROM zuora_base_mrr 
-  
-)
+    ,
+    zuora_base_mrr as (select * from {{ ref("zuora_base_mrr") }})
 
-, ci_minutes_charges AS (
-  
-  SELECT *
-  FROM zuora_rate_plan
-  WHERE rate_plan_name = '1,000 CI Minutes'
-  
-)
+    ,
+    zuora_subscription_with_positive_mrr_tcv as (
 
-,  orders_shapshots_excluding_ci_minutes AS (
+        select distinct subscription_name_slugify, subscription_start_date
+        from zuora_base_mrr
 
-  SELECT orders_snapshots.*,
-     FIRST_VALUE(subscription_name_slugify) IGNORE NULLS
-      OVER (PARTITION BY order_id ORDER BY order_updated_at ASC) AS first_subscription_name_slugify
-  FROM orders_snapshots
-  LEFT JOIN ci_minutes_charges
-    ON orders_snapshots.subscription_id = ci_minutes_charges.subscription_id
-    AND orders_snapshots.product_rate_plan_id = ci_minutes_charges.product_rate_plan_id
-  WHERE ci_minutes_charges.subscription_id IS NULL
+    )
 
-)
-  , trials AS (
+    ,
+    ci_minutes_charges as (
 
-  SELECT
-    *,
-    FIRST_VALUE(customer_id)
-      OVER (PARTITION BY order_id ORDER BY order_updated_at DESC) AS latest_customer_id,
-    FIRST_VALUE(gitlab_namespace_id)
-      OVER (PARTITION BY order_id ORDER BY order_updated_at DESC) AS latest_namespace_id
-  FROM orders_snapshots
-  WHERE order_is_trial = TRUE
+        select * from zuora_rate_plan where rate_plan_name = '1,000 CI Minutes'
 
-), converted_trials AS (
+    )
 
-  SELECT DISTINCT
-    trials.order_id,
-    orders_shapshots_excluding_ci_minutes.first_subscription_name_slugify AS subscription_name_slugify
-  FROM trials
-  INNER JOIN orders_shapshots_excluding_ci_minutes
-    ON trials.order_id = orders_shapshots_excluding_ci_minutes.order_id
-  INNER JOIN zuora_subscription_with_positive_mrr_tcv AS subscription
-    ON orders_shapshots_excluding_ci_minutes.first_subscription_name_slugify = subscription.subscription_name_slugify
-      AND trials.order_start_date <= subscription.subscription_start_date
-  WHERE orders_shapshots_excluding_ci_minutes.subscription_name_slugify IS NOT NULL
+    ,
+    orders_shapshots_excluding_ci_minutes as (
 
-)
-, joined AS (
-  
-  SELECT
-    trials.order_id, 
-    trials.latest_namespace_id                              AS gitlab_namespace_id,
-    customers.customer_id,
-    
-      
-    users.user_id                                           AS gitlab_user_id,
-    IFF(users.user_id IS NOT NULL, TRUE, FALSE)             AS is_gitlab_user,
-    users.created_at                                        AS user_created_at,
-    
-    
-    namespaces.created_at                                   AS namespace_created_at,
-    namespaces.namespace_type,
-    
-    IFF(converted_trials.order_id IS NOT NULL, TRUE, FALSE) AS is_converted,
-    converted_trials.subscription_name_slugify,
-    
-    MIN(order_created_at)                                   AS order_created_at,
-    MIN(trials.order_start_date)::DATE                      AS trial_start_date, 
-    MAX(trials.order_end_date)::DATE                        AS trial_end_date
-    
-    
-  FROM trials
-    INNER JOIN customers ON trials.latest_customer_id = customers.customer_id
-    LEFT JOIN namespaces ON trials.latest_namespace_id = namespaces.namespace_id
-    LEFT JOIN users ON customers.customer_provider_user_id = users.user_id
-    LEFT JOIN converted_trials ON trials.order_id = converted_trials.order_id
-  WHERE trials.order_start_date >= '2019-09-01'
-  {{dbt_utils.group_by(10)}}
-  
-)
+        select
+            orders_snapshots.*,
+            first_value(subscription_name_slugify) ignore nulls over (
+                partition by order_id order by order_updated_at asc
+            ) as first_subscription_name_slugify
+        from orders_snapshots
+        left join
+            ci_minutes_charges
+            on orders_snapshots.subscription_id = ci_minutes_charges.subscription_id
+            and orders_snapshots.product_rate_plan_id
+            = ci_minutes_charges.product_rate_plan_id
+        where ci_minutes_charges.subscription_id is null
 
-SELECT * 
-FROM joined
+    ),
+    trials as (
+
+        select
+            *,
+            first_value(customer_id) over (
+                partition by order_id order by order_updated_at desc
+            ) as latest_customer_id,
+            first_value(gitlab_namespace_id) over (
+                partition by order_id order by order_updated_at desc
+            ) as latest_namespace_id
+        from orders_snapshots
+        where order_is_trial = true
+
+    ),
+    converted_trials as (
+
+        select distinct
+            trials.order_id,
+            orders_shapshots_excluding_ci_minutes.first_subscription_name_slugify
+            as subscription_name_slugify
+        from trials
+        inner join
+            orders_shapshots_excluding_ci_minutes
+            on trials.order_id = orders_shapshots_excluding_ci_minutes.order_id
+        inner join
+            zuora_subscription_with_positive_mrr_tcv as subscription
+            on orders_shapshots_excluding_ci_minutes.first_subscription_name_slugify
+            = subscription.subscription_name_slugify
+            and trials.order_start_date <= subscription.subscription_start_date
+        where
+            orders_shapshots_excluding_ci_minutes.subscription_name_slugify is not null
+
+    ),
+    joined as (
+
+        select
+            trials.order_id,
+            trials.latest_namespace_id as gitlab_namespace_id,
+            customers.customer_id,
+
+
+            users.user_id as gitlab_user_id,
+            iff(users.user_id is not null, true, false) as is_gitlab_user,
+            users.created_at as user_created_at,
+
+
+            namespaces.created_at as namespace_created_at,
+            namespaces.namespace_type,
+
+            iff(converted_trials.order_id is not null, true, false) as is_converted,
+            converted_trials.subscription_name_slugify,
+
+            min(order_created_at) as order_created_at,
+            min(trials.order_start_date)::date as trial_start_date,
+            max(trials.order_end_date)::date as trial_end_date
+
+
+        from trials
+        inner join customers on trials.latest_customer_id = customers.customer_id
+        left join namespaces on trials.latest_namespace_id = namespaces.namespace_id
+        left join users on customers.customer_provider_user_id = users.user_id
+        left join converted_trials on trials.order_id = converted_trials.order_id
+        where trials.order_start_date >= '2019-09-01' {{ dbt_utils.group_by(10) }}
+
+    )
+
+select *
+from joined

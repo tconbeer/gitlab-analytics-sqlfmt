@@ -1,111 +1,202 @@
-{{ simple_cte([
-    ('dim_crm_user_hierarchy_live', 'dim_crm_user_hierarchy_live'),
-    ('dim_order_type','dim_order_type'),
-    ('fct_sales_funnel_target', 'fct_sales_funnel_partner_alliance_target'),
-    ('dim_sales_qualified_source', 'dim_sales_qualified_source'),
-    ('dim_alliance_type', 'dim_alliance_type'),
-    ('dim_channel_type', 'dim_channel_type'),
-    ('dim_date','dim_date'),
-    ('dim_crm_user_hierarchy_stamped', 'dim_crm_user_hierarchy_stamped')
-]) }}
+{{
+    simple_cte(
+        [
+            ("dim_crm_user_hierarchy_live", "dim_crm_user_hierarchy_live"),
+            ("dim_order_type", "dim_order_type"),
+            ("fct_sales_funnel_target", "fct_sales_funnel_partner_alliance_target"),
+            ("dim_sales_qualified_source", "dim_sales_qualified_source"),
+            ("dim_alliance_type", "dim_alliance_type"),
+            ("dim_channel_type", "dim_channel_type"),
+            ("dim_date", "dim_date"),
+            ("dim_crm_user_hierarchy_stamped", "dim_crm_user_hierarchy_stamped"),
+        ]
+    )
+}}
 
-, monthly_targets AS (
+,
+monthly_targets as (
 
-    SELECT
-      fct_sales_funnel_target.sales_funnel_partner_alliance_target_id,
-      fct_sales_funnel_target.first_day_of_month      AS target_month,
-      fct_sales_funnel_target.kpi_name,
-      COALESCE(dim_crm_user_hierarchy_stamped.crm_opp_owner_sales_segment_stamped,dim_crm_user_hierarchy_live.crm_user_sales_segment)                                      AS crm_user_sales_segment,
-      COALESCE(dim_crm_user_hierarchy_stamped.crm_opp_owner_sales_segment_stamped_grouped,dim_crm_user_hierarchy_live.crm_user_sales_segment_grouped)                      AS crm_user_sales_segment_grouped,
-      COALESCE(dim_crm_user_hierarchy_stamped.crm_opp_owner_geo_stamped,dim_crm_user_hierarchy_live.crm_user_geo)                                                          AS crm_user_geo,
-      COALESCE(dim_crm_user_hierarchy_stamped.crm_opp_owner_region_stamped,dim_crm_user_hierarchy_live.crm_user_region)                                                    AS crm_user_region,
-      COALESCE(dim_crm_user_hierarchy_stamped.crm_opp_owner_area_stamped,dim_crm_user_hierarchy_live.crm_user_area)                                                        AS crm_user_area,
-      COALESCE(dim_crm_user_hierarchy_stamped.crm_opp_owner_sales_segment_region_stamped_grouped,dim_crm_user_hierarchy_live.crm_user_sales_segment_region_grouped)        AS crm_user_sales_segment_region_grouped,
-      dim_order_type.order_type_name,
-      dim_order_type.order_type_grouped,
-      dim_sales_qualified_source.sales_qualified_source_name,
-      dim_sales_qualified_source.sqs_bucket_engagement,
-      dim_channel_type.channel_type_name,
-      dim_alliance_type.alliance_type_name,
-      dim_alliance_type.alliance_type_short_name,
-      fct_sales_funnel_target.allocated_target
-    FROM fct_sales_funnel_target
-    LEFT JOIN dim_alliance_type
-      ON fct_sales_funnel_target.dim_alliance_type_id = dim_alliance_type.dim_alliance_type_id
-    LEFT JOIN dim_sales_qualified_source
-      ON fct_sales_funnel_target.dim_sales_qualified_source_id = dim_sales_qualified_source.dim_sales_qualified_source_id
-    LEFT JOIN dim_channel_type
-      ON fct_sales_funnel_target.dim_channel_type_id = dim_channel_type.dim_channel_type_id
-    LEFT JOIN dim_order_type
-      ON fct_sales_funnel_target.dim_order_type_id = dim_order_type.dim_order_type_id
-    LEFT JOIN dim_crm_user_hierarchy_stamped
-     ON fct_sales_funnel_target.crm_user_sales_segment_geo_region_area = dim_crm_user_hierarchy_stamped.crm_opp_owner_sales_segment_geo_region_area_stamped
-        AND fct_sales_funnel_target.fiscal_year = dim_crm_user_hierarchy_stamped.fiscal_year
-    LEFT JOIN dim_crm_user_hierarchy_live
-      ON fct_sales_funnel_target.crm_user_sales_segment_geo_region_area = dim_crm_user_hierarchy_live.crm_user_sales_segment_geo_region_area
+    select
+        fct_sales_funnel_target.sales_funnel_partner_alliance_target_id,
+        fct_sales_funnel_target.first_day_of_month as target_month,
+        fct_sales_funnel_target.kpi_name,
+        coalesce(
+            dim_crm_user_hierarchy_stamped.crm_opp_owner_sales_segment_stamped,
+            dim_crm_user_hierarchy_live.crm_user_sales_segment
+        ) as crm_user_sales_segment,
+        coalesce(
+            dim_crm_user_hierarchy_stamped.crm_opp_owner_sales_segment_stamped_grouped,
+            dim_crm_user_hierarchy_live.crm_user_sales_segment_grouped
+        ) as crm_user_sales_segment_grouped,
+        coalesce(
+            dim_crm_user_hierarchy_stamped.crm_opp_owner_geo_stamped,
+            dim_crm_user_hierarchy_live.crm_user_geo
+        ) as crm_user_geo,
+        coalesce(
+            dim_crm_user_hierarchy_stamped.crm_opp_owner_region_stamped,
+            dim_crm_user_hierarchy_live.crm_user_region
+        ) as crm_user_region,
+        coalesce(
+            dim_crm_user_hierarchy_stamped.crm_opp_owner_area_stamped,
+            dim_crm_user_hierarchy_live.crm_user_area
+        ) as crm_user_area,
+        coalesce(
+            dim_crm_user_hierarchy_stamped.crm_opp_owner_sales_segment_region_stamped_grouped,
+            dim_crm_user_hierarchy_live.crm_user_sales_segment_region_grouped
+        ) as crm_user_sales_segment_region_grouped,
+        dim_order_type.order_type_name,
+        dim_order_type.order_type_grouped,
+        dim_sales_qualified_source.sales_qualified_source_name,
+        dim_sales_qualified_source.sqs_bucket_engagement,
+        dim_channel_type.channel_type_name,
+        dim_alliance_type.alliance_type_name,
+        dim_alliance_type.alliance_type_short_name,
+        fct_sales_funnel_target.allocated_target
+    from fct_sales_funnel_target
+    left join
+        dim_alliance_type
+        on fct_sales_funnel_target.dim_alliance_type_id
+        = dim_alliance_type.dim_alliance_type_id
+    left join
+        dim_sales_qualified_source
+        on fct_sales_funnel_target.dim_sales_qualified_source_id
+        = dim_sales_qualified_source.dim_sales_qualified_source_id
+    left join
+        dim_channel_type
+        on fct_sales_funnel_target.dim_channel_type_id
+        = dim_channel_type.dim_channel_type_id
+    left join
+        dim_order_type
+        on fct_sales_funnel_target.dim_order_type_id = dim_order_type.dim_order_type_id
+    left join
+        dim_crm_user_hierarchy_stamped
+        on fct_sales_funnel_target.crm_user_sales_segment_geo_region_area
+        = dim_crm_user_hierarchy_stamped.crm_opp_owner_sales_segment_geo_region_area_stamped
+        and fct_sales_funnel_target.fiscal_year
+        = dim_crm_user_hierarchy_stamped.fiscal_year
+    left join
+        dim_crm_user_hierarchy_live
+        on fct_sales_funnel_target.crm_user_sales_segment_geo_region_area
+        = dim_crm_user_hierarchy_live.crm_user_sales_segment_geo_region_area
 
-), monthly_targets_daily AS (
+),
+monthly_targets_daily as (
 
-    SELECT
-      date_day,
-      monthly_targets.*,
-      DATEDIFF('day', first_day_of_month, last_day_of_month) + 1  AS days_of_month,
-      first_day_of_week,
-      fiscal_quarter_name,
-      fiscal_year,
-      allocated_target / days_of_month                            AS daily_allocated_target
-    FROM monthly_targets
-    INNER JOIN dim_date
-      ON monthly_targets.target_month = dim_date.first_day_of_month
+    select
+        date_day,
+        monthly_targets.*,
+        datediff('day', first_day_of_month, last_day_of_month) + 1 as days_of_month,
+        first_day_of_week,
+        fiscal_quarter_name,
+        fiscal_year,
+        allocated_target / days_of_month as daily_allocated_target
+    from monthly_targets
+    inner join dim_date on monthly_targets.target_month = dim_date.first_day_of_month
 
-), qtd_mtd_target AS (
+),
+qtd_mtd_target as (
 
-    SELECT
-      {{ dbt_utils.surrogate_key(['date_day', 'kpi_name', 'crm_user_sales_segment', 'crm_user_geo', 'crm_user_region',
-        'crm_user_area', 'order_type_name', 'alliance_type_name', 'sales_qualified_source_name']) }}                              AS primary_key,
-      date_day                                                                                                                    AS target_date,
-      DATEADD('day', 1, target_date)                                                                                              AS report_target_date,
-      first_day_of_week,
-      target_month,
-      fiscal_quarter_name,
-      fiscal_year,
-      kpi_name,
-      crm_user_sales_segment,
-      crm_user_sales_segment_grouped,
-      crm_user_geo,
-      crm_user_region,
-      crm_user_area,
-      crm_user_sales_segment_region_grouped,
-      order_type_name,
-      order_type_grouped,
-      alliance_type_name,
-      alliance_type_short_name,
-      sales_qualified_source_name,
-      sqs_bucket_engagement,
-      channel_type_name,
-      allocated_target                                                                                                            AS monthly_allocated_target,
-      daily_allocated_target,
-      SUM(daily_allocated_target) OVER(PARTITION BY kpi_name, crm_user_sales_segment, crm_user_geo, crm_user_region,
-                             crm_user_area, order_type_name, alliance_type_name, sales_qualified_source_name, first_day_of_week ORDER BY date_day)
-                                                                                                                                  AS wtd_allocated_target,
-      SUM(daily_allocated_target) OVER(PARTITION BY kpi_name, crm_user_sales_segment, crm_user_geo, crm_user_region,
-                             crm_user_area, order_type_name, alliance_type_name, sales_qualified_source_name, target_month ORDER BY date_day)
-                                                                                                                                  AS mtd_allocated_target,
-      SUM(daily_allocated_target) OVER(PARTITION BY kpi_name, crm_user_sales_segment, crm_user_geo, crm_user_region,
-                             crm_user_area, order_type_name, alliance_type_name, sales_qualified_source_name, fiscal_quarter_name ORDER BY date_day)
-                                                                                                                                  AS qtd_allocated_target,
-      SUM(daily_allocated_target) OVER(PARTITION BY kpi_name, crm_user_sales_segment, crm_user_geo, crm_user_region,
-                             crm_user_area, order_type_name, alliance_type_name, sales_qualified_source_name, fiscal_year ORDER BY date_day)
-                                                                                                                                  AS ytd_allocated_target
+    select
+        {{
+            dbt_utils.surrogate_key(
+                [
+                    "date_day",
+                    "kpi_name",
+                    "crm_user_sales_segment",
+                    "crm_user_geo",
+                    "crm_user_region",
+                    "crm_user_area",
+                    "order_type_name",
+                    "alliance_type_name",
+                    "sales_qualified_source_name",
+                ]
+            )
+        }} as primary_key,
+        date_day as target_date,
+        dateadd('day', 1, target_date) as report_target_date,
+        first_day_of_week,
+        target_month,
+        fiscal_quarter_name,
+        fiscal_year,
+        kpi_name,
+        crm_user_sales_segment,
+        crm_user_sales_segment_grouped,
+        crm_user_geo,
+        crm_user_region,
+        crm_user_area,
+        crm_user_sales_segment_region_grouped,
+        order_type_name,
+        order_type_grouped,
+        alliance_type_name,
+        alliance_type_short_name,
+        sales_qualified_source_name,
+        sqs_bucket_engagement,
+        channel_type_name,
+        allocated_target as monthly_allocated_target,
+        daily_allocated_target,
+        sum(daily_allocated_target) over (
+            partition by
+                kpi_name,
+                crm_user_sales_segment,
+                crm_user_geo,
+                crm_user_region,
+                crm_user_area,
+                order_type_name,
+                alliance_type_name,
+                sales_qualified_source_name,
+                first_day_of_week
+            order by date_day
+        ) as wtd_allocated_target,
+        sum(daily_allocated_target) over (
+            partition by
+                kpi_name,
+                crm_user_sales_segment,
+                crm_user_geo,
+                crm_user_region,
+                crm_user_area,
+                order_type_name,
+                alliance_type_name,
+                sales_qualified_source_name,
+                target_month
+            order by date_day
+        ) as mtd_allocated_target,
+        sum(daily_allocated_target) over (
+            partition by
+                kpi_name,
+                crm_user_sales_segment,
+                crm_user_geo,
+                crm_user_region,
+                crm_user_area,
+                order_type_name,
+                alliance_type_name,
+                sales_qualified_source_name,
+                fiscal_quarter_name
+            order by date_day
+        ) as qtd_allocated_target,
+        sum(daily_allocated_target) over (
+            partition by
+                kpi_name,
+                crm_user_sales_segment,
+                crm_user_geo,
+                crm_user_region,
+                crm_user_area,
+                order_type_name,
+                alliance_type_name,
+                sales_qualified_source_name,
+                fiscal_year
+            order by date_day
+        ) as ytd_allocated_target
 
-    FROM monthly_targets_daily
+    from monthly_targets_daily
 
 )
 
-{{ dbt_audit(
-    cte_ref="qtd_mtd_target",
-    created_by="@jpeguero",
-    updated_by="@michellecooper",
-    created_date="2021-04-08",
-    updated_date="2022-03-07",
-  ) }}
+{{
+    dbt_audit(
+        cte_ref="qtd_mtd_target",
+        created_by="@jpeguero",
+        updated_by="@michellecooper",
+        created_date="2021-04-08",
+        updated_date="2022-03-07",
+    )
+}}

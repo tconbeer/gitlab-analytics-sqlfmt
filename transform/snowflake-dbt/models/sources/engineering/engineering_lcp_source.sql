@@ -1,32 +1,38 @@
-WITH source AS (
-  
-    SELECT * 
-    FROM {{ source('engineering', 'lcp') }}
-    
-), metric_per_row AS (
+with
+    source as (select * from {{ source("engineering", "lcp") }}),
+    metric_per_row as (
 
-    SELECT 
-      data_by_row.value['datapoints']::ARRAY                       AS datapoints,
-      data_by_row.value['target']::VARCHAR                         AS metric_name,
-      IFF(SPLIT_PART(metric_name, '.', 3) = 'gitlab', 1, 0)        AS version_offset,
-      uploaded_at
-    FROM source,
-    LATERAL FLATTEN(input => PARSE_JSON(jsontext), OUTER => True) data_by_row
+        select
+            data_by_row.value['datapoints']::array as datapoints,
+            data_by_row.value['target']::varchar as metric_name,
+            iff(split_part(metric_name, '.', 3) = 'gitlab', 1, 0) as version_offset,
+            uploaded_at
+        from
+            source,
+            lateral flatten(input => parse_json(jsontext), outer => true) data_by_row
 
-), data_points_flushed_out AS (
+    ),
+    data_points_flushed_out as (
 
-    SELECT
-      SPLIT_PART(metric_name, '.', 13 + version_offset)::VARCHAR  AS aggregation_name,
-      SPLIT_PART(metric_name, '.', 5 + version_offset)::VARCHAR   AS metric_name,        
-      data_by_row.value[0]::FLOAT                                 AS metric_value,
-      data_by_row.value[1]::TIMESTAMP                             AS metric_reported_at
-    FROM metric_per_row,
-    LATERAL FLATTEN(input => datapoints, OUTER => True) data_by_row
-    WHERE NULLIF(metric_value::VARCHAR, 'null') IS NOT NULL
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY metric_name, aggregation_name, metric_reported_at ORDER BY uploaded_at DESC) = 1
+        select
+            split_part(
+                metric_name, '.', 13 + version_offset
+            )::varchar as aggregation_name,
+            split_part(metric_name, '.', 5 + version_offset)::varchar as metric_name,
+            data_by_row.value[0]::float as metric_value,
+            data_by_row.value[1]::timestamp as metric_reported_at
+        from
+            metric_per_row,
+            lateral flatten(input => datapoints, outer => true) data_by_row
+        where nullif(metric_value::varchar, 'null') is not null
+        qualify
+            row_number() over (
+                partition by metric_name, aggregation_name, metric_reported_at
+                order by uploaded_at desc
+            ) = 1
 
-)
+    )
 
-SELECT *
-FROM data_points_flushed_out
-ORDER BY metric_reported_at
+select *
+from data_points_flushed_out
+order by metric_reported_at

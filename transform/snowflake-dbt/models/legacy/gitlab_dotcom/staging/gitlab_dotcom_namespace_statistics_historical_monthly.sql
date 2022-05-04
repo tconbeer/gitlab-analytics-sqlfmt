@@ -1,31 +1,35 @@
-{{ config(materialized='view') }}
+{{ config(materialized="view") }}
 
-WITH date_details AS (
-  
-    SELECT *
-    FROM {{ ref("date_details") }}
-    WHERE last_day_of_month = date_actual
-     
-), namespace_statistics_snapshots AS (
+with
+    date_details as (
 
-   SELECT
-     *,
-     IFNULL(valid_to, CURRENT_TIMESTAMP)             AS valid_to_
-   FROM {{ ref('gitlab_dotcom_namespace_statistics_snapshots_base') }}
+        select * from {{ ref("date_details") }} where last_day_of_month = date_actual
 
-), namespace_statistics_snapshots_monthly AS (
-  
-    SELECT
-      DATE_TRUNC('month', date_details.date_actual) AS snapshot_month,
-      namespace_statistics_snapshots.namespace_id,
-      namespace_statistics_snapshots.shared_runners_seconds,
-      namespace_statistics_snapshots.shared_runners_seconds_last_reset
-    FROM namespace_statistics_snapshots
-    INNER JOIN date_details
-      ON date_details.date_actual BETWEEN namespace_statistics_snapshots.valid_from AND namespace_statistics_snapshots.valid_to_
-    QUALIFY ROW_NUMBER() OVER(PARTITION BY snapshot_month, namespace_id ORDER BY valid_to_ DESC) = 1
-  
-)
+    ),
+    namespace_statistics_snapshots as (
 
-SELECT *
-FROM namespace_statistics_snapshots_monthly
+        select *, ifnull(valid_to, current_timestamp) as valid_to_
+        from {{ ref("gitlab_dotcom_namespace_statistics_snapshots_base") }}
+
+    ),
+    namespace_statistics_snapshots_monthly as (
+
+        select
+            date_trunc('month', date_details.date_actual) as snapshot_month,
+            namespace_statistics_snapshots.namespace_id,
+            namespace_statistics_snapshots.shared_runners_seconds,
+            namespace_statistics_snapshots.shared_runners_seconds_last_reset
+        from namespace_statistics_snapshots
+        inner join
+            date_details
+            on date_details.date_actual
+            between namespace_statistics_snapshots.valid_from and namespace_statistics_snapshots.valid_to_
+        qualify
+            row_number() over (
+                partition by snapshot_month, namespace_id order by valid_to_ desc
+            ) = 1
+
+    )
+
+select *
+from namespace_statistics_snapshots_monthly

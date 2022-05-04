@@ -1,28 +1,25 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_pos_title_assignment") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('xactly', 'xc_pos_title_assignment') }}
+        select
 
-), renamed AS (
+            created_by_id::float as created_by_id,
+            created_by_name::varchar as created_by_name,
+            created_date::varchar as created_date,
+            is_active::varchar as is_active,
+            modified_by_id::float as modified_by_id,
+            modified_by_name::varchar as modified_by_name,
+            modified_date::varchar as modified_date,
+            pos_title_assignment_id::float as pos_title_assignment_id,
+            position_id::float as position_id,
+            position_name::varchar as position_name,
+            title_id::float as title_id,
+            title_name::varchar as title_name
 
-    SELECT
+        from source
 
-      created_by_id::FLOAT                  AS created_by_id,
-      created_by_name::VARCHAR              AS created_by_name,
-      created_date::VARCHAR                 AS created_date,
-      is_active::VARCHAR                    AS is_active,
-      modified_by_id::FLOAT                 AS modified_by_id,
-      modified_by_name::VARCHAR             AS modified_by_name,
-      modified_date::VARCHAR                AS modified_date,
-      pos_title_assignment_id::FLOAT        AS pos_title_assignment_id,
-      position_id::FLOAT                    AS position_id,
-      position_name::VARCHAR                AS position_name,
-      title_id::FLOAT                       AS title_id,
-      title_name::VARCHAR AS title_name
+    )
 
-    FROM source
-    
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

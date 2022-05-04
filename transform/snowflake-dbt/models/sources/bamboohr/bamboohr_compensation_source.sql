@@ -1,41 +1,43 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('bamboohr', 'compensation') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
+        select *
+        from {{ source("bamboohr", "compensation") }}
+        order by uploaded_at desc
+        limit 1
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-    SELECT 
-      d.value as data_by_row, 
-      uploaded_at
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), outer => true) d
+        select d.value as data_by_row, uploaded_at
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      data_by_row['id']::NUMBER                AS compensation_update_id,
-      data_by_row['employeeId']::NUMBER        AS employee_id,
-      data_by_row['startDate']::DATE           AS effective_date,
-      data_by_row['type']::VARCHAR             AS compensation_type,
-      data_by_row['reason']::VARCHAR           AS compensation_change_reason,
-      data_by_row['paidPer']::VARCHAR          AS pay_rate,   
-      data_by_row['rate']['value']::FLOAT      AS compensation_value,
-      data_by_row['rate']['currency']::VARCHAR AS compensation_currency,
-      uploaded_at 
-    FROM intermediate
-      
-)
+        select
+            data_by_row['id']::number as compensation_update_id,
+            data_by_row['employeeId']::number as employee_id,
+            data_by_row['startDate']::date as effective_date,
+            data_by_row['type']::varchar as compensation_type,
+            data_by_row['reason']::varchar as compensation_change_reason,
+            data_by_row['paidPer']::varchar as pay_rate,
+            data_by_row['rate'] ['value']::float as compensation_value,
+            data_by_row['rate'] ['currency']::varchar as compensation_currency,
+            uploaded_at
+        from intermediate
 
-SELECT
-  compensation_update_id,
-  employee_id,
-  effective_date,
-  compensation_type,
-  compensation_change_reason,
-  pay_rate,
-  IFF(compensation_type = 'Hourly', compensation_value * 80, compensation_value) AS compensation_value,
-  compensation_currency
-FROM renamed
+    )
+
+select
+    compensation_update_id,
+    employee_id,
+    effective_date,
+    compensation_type,
+    compensation_change_reason,
+    pay_rate,
+    iff(
+        compensation_type = 'Hourly', compensation_value * 80, compensation_value
+    ) as compensation_value,
+    compensation_currency
+from renamed

@@ -1,43 +1,55 @@
-{{ config({
-    "schema": "legacy",
-    "database": env_var('SNOWFLAKE_PROD_DATABASE'),
-    })
+{{
+    config(
+        {
+            "schema": "legacy",
+            "database": env_var("SNOWFLAKE_PROD_DATABASE"),
+        }
+    )
 }}
 
-WITH employees as (
+with
+    employees as (
 
-    SELECT *
-    FROM {{ ref ('employee_directory') }}
-    WHERE termination_date IS NULL
-      AND hire_date <= CURRENT_DATE()
+        select *
+        from {{ ref("employee_directory") }}
+        where termination_date is null and hire_date <= current_date()
 
-), contacts AS (
+    ),
+    contacts as (select * from {{ ref("bamboohr_emergency_contacts_source") }}),
+    contacts_aggregated as (
 
-    SELECT *
-    FROM {{ ref ('bamboohr_emergency_contacts_source') }}
+        select
+            employee_id,
+            sum(
+                iff(
+                    home_phone is not null
+                    or mobile_phone is not null
+                    or work_phone is not null,
+                    1,
+                    0
+                )
+            ) as total_emergency_contact_numbers
+        from contacts
+        group by 1
 
-), contacts_aggregated AS (
+    ),
+    final as (
 
-    SELECT
-      employee_id, 
-      SUM(IFF(home_phone IS NOT NULL OR mobile_phone IS NOT NULL OR work_phone IS NOT NULL,1,0)) AS total_emergency_contact_numbers
-    FROM contacts
-    GROUP BY 1
+        select
+            employees.employee_id,
+            employees.full_name,
+            employees.hire_date,
+            employees.last_work_email,
+            coalesce(
+                contacts_aggregated.total_emergency_contact_numbers, 0
+            ) as total_emergency_contacts
+        from employees
+        left join
+            contacts_aggregated
+            on employees.employee_id = contacts_aggregated.employee_id
 
-), final AS (
+    )
 
-    SELECT 
-      employees.employee_id,
-      employees.full_name,
-      employees.hire_date,
-      employees.last_work_email,
-      COALESCE(contacts_aggregated.total_emergency_contact_numbers,0) AS total_emergency_contacts
-    FROM employees
-    LEFT JOIN contacts_aggregated
-      ON employees.employee_id = contacts_aggregated.employee_id
-
-)
-
-SELECT *
-FROM final
-WHERE total_emergency_contacts = 0
+select *
+from final
+where total_emergency_contacts = 0

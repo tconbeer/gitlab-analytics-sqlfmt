@@ -1,33 +1,34 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-WITH sfdc_opportunity_source AS (
+with
+    sfdc_opportunity_source as (
 
-    SELECT *
-    FROM {{ ref('sfdc_opportunity_source') }}
-    WHERE NOT is_deleted
-      AND channel_type IS NOT NULL
+        select *
+        from {{ ref("sfdc_opportunity_source") }}
+        where not is_deleted and channel_type is not null
 
-), final AS (
+    ),
+    final as (
 
-    SELECT DISTINCT
-      {{ dbt_utils.surrogate_key(['channel_type']) }}   AS dim_channel_type_id,
-      channel_type                                      AS channel_type_name
-    FROM sfdc_opportunity_source
+        select distinct
+            {{ dbt_utils.surrogate_key(["channel_type"]) }} as dim_channel_type_id,
+            channel_type as channel_type_name
+        from sfdc_opportunity_source
 
-    UNION ALL
+        union all
 
-    SELECT
-      MD5('-1')                                         AS dim_channel_type_id,
-      'Missing channel_type_name'                       AS channel_type_name
+        select
+            md5('-1') as dim_channel_type_id,
+            'Missing channel_type_name' as channel_type_name
 
-)
+    )
 
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@jpeguero",
-    updated_by="@jpeguero",
-    created_date="2021-04-07",
-    updated_date="2021-04-28"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@jpeguero",
+            updated_by="@jpeguero",
+            created_date="2021-04-07",
+            updated_date="2021-04-28",
+        )
+    }}

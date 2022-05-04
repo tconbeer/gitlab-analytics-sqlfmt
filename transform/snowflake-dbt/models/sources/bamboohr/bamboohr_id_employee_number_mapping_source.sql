@@ -1,73 +1,100 @@
-WITH source AS (
-    
-    SELECT *
-    FROM {{ source('bamboohr', 'id_employee_number_mapping') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY DATE_TRUNC(day, uploaded_at) ORDER BY uploaded_at DESC) = 1 
+with
+    source as (
 
-), intermediate AS (
+        select *
+        from {{ source("bamboohr", "id_employee_number_mapping") }}
+        qualify
+            row_number() over (
+                partition by date_trunc(day, uploaded_at) order by uploaded_at desc
+            ) = 1
 
-    SELECT 
-      NULLIF(d.value['employeeNumber'],'')::NUMBER                    AS employee_number,
-      d.value['id']::NUMBER                                           AS employee_id,
-      d.value['firstName']::VARCHAR                                   AS first_name,
-      d.value['lastName']::VARCHAR                                    AS last_name,
-      (CASE WHEN d.value['hireDate']=''
-            THEN NULL
-           WHEN d.value['hireDate']= '0000-00-00'
-            THEN NULL
-           ELSE d.value['hireDate']::VARCHAR END)::DATE               AS hire_date,
-      (CASE WHEN d.value['terminationDate']=''
-            THEN NULL
-           WHEN d.value['terminationDate']= '0000-00-00'
-            THEN NULL
-           ELSE d.value['terminationDate']::VARCHAR END)::DATE        AS termination_date,
-      d.value['customCandidateID']::NUMBER                            AS greenhouse_candidate_id,
-      d.value['customCostCenter']::VARCHAR                            AS cost_center,
-      d.value['customGitLabUsername']::VARCHAR                        AS gitlab_username,
-      d.value['customJobTitleSpeciality']::VARCHAR                    AS jobtitle_speciality_single_select,
-      d.value['customJobTitleSpecialty(Multi-Select)']::VARCHAR       AS jobtitle_speciality_multi_select,
-      -- requiers cleaning becase of an error in the snapshoted source data
-      CASE d.value['customLocality']::VARCHAR
-        WHEN 'Canberra, Australia Capital Territory, Australia'
-            THEN 'Canberra, Australian Capital Territory, Australia'
-        ELSE d.value['customLocality']::VARCHAR
-      END                                                             AS locality,
-      d.value['customNationality']::VARCHAR                           AS nationality,
-      d.value['customOtherGenderOptions']::VARCHAR                    AS gender_dropdown, 
-      d.value['customRegion']::VARCHAR                                AS region,
-      d.value['customRole']::VARCHAR                                  AS job_role,
-      d.value['customSalesGeoDifferential']::VARCHAR                  AS sales_geo_differential,
-      d.value['dateofBirth']::VARCHAR                                 AS date_of_birth,
-      d.value['employeeStatusDate']::VARCHAR                          AS employee_status_date,
-      d.value['employmentHistoryStatus']::VARCHAR                     AS employment_history_status,
-      d.value['ethnicity']::VARCHAR                                   AS ethnicity,
-      d.value['gender']::VARCHAR                                      AS gender, 
-      TRIM(d.value['country']::VARCHAR)                               AS country,
-      d.value['age']::NUMBER                                          AS age,
-      COALESCE(d.value['customJobGrade']::VARCHAR,
-                d.value['4659.0']::VARCHAR)                           AS job_grade,
-      COALESCE(d.value['customPayFrequency']::VARCHAR,
-               d.value['4657.0']::VARCHAR)                            AS pay_frequency,
-      uploaded_at::TIMESTAMP                                          AS uploaded_at
-    FROM source,
-    LATERAL FLATTEN(INPUT => PARSE_JSON(jsontext['employees']), OUTER => true) d
+    ),
+    intermediate as (
 
-), final AS (
+        select
+            nullif(d.value['employeeNumber'], '')::number as employee_number,
+            d.value['id']::number as employee_id,
+            d.value['firstName']::varchar as first_name,
+            d.value['lastName']::varchar as last_name,
+            (
+                case
+                    when d.value['hireDate'] = ''
+                    then null
+                    when d.value['hireDate'] = '0000-00-00'
+                    then null
+                    else d.value['hireDate']::varchar
+                end
+            )::date as hire_date,
+            (
+                case
+                    when d.value['terminationDate'] = ''
+                    then null
+                    when d.value['terminationDate'] = '0000-00-00'
+                    then null
+                    else d.value['terminationDate']::varchar
+                end
+            )::date as termination_date,
+            d.value['customCandidateID']::number as greenhouse_candidate_id,
+            d.value['customCostCenter']::varchar as cost_center,
+            d.value['customGitLabUsername']::varchar as gitlab_username,
+            d.value[
+                'customJobTitleSpeciality'
+            ]::varchar as jobtitle_speciality_single_select,
+            d.value[
+                'customJobTitleSpecialty(Multi-Select)'
+            ]::varchar as jobtitle_speciality_multi_select,
+            -- requiers cleaning becase of an error in the snapshoted source data
+            case
+                d.value['customLocality']::varchar
+                when 'Canberra, Australia Capital Territory, Australia'
+                then 'Canberra, Australian Capital Territory, Australia'
+                else d.value['customLocality']::varchar
+            end as locality,
+            d.value['customNationality']::varchar as nationality,
+            d.value['customOtherGenderOptions']::varchar as gender_dropdown,
+            d.value['customRegion']::varchar as region,
+            d.value['customRole']::varchar as job_role,
+            d.value['customSalesGeoDifferential']::varchar as sales_geo_differential,
+            d.value['dateofBirth']::varchar as date_of_birth,
+            d.value['employeeStatusDate']::varchar as employee_status_date,
+            d.value['employmentHistoryStatus']::varchar as employment_history_status,
+            d.value['ethnicity']::varchar as ethnicity,
+            d.value['gender']::varchar as gender,
+            trim(d.value['country']::varchar) as country,
+            d.value['age']::number as age,
+            coalesce(
+                d.value['customJobGrade']::varchar, d.value['4659.0']::varchar
+            ) as job_grade,
+            coalesce(
+                d.value['customPayFrequency']::varchar, d.value['4657.0']::varchar
+            ) as pay_frequency,
+            uploaded_at::timestamp as uploaded_at
+        from
+            source,
+            lateral flatten(input => parse_json(jsontext['employees']), outer => true) d
 
-    SELECT *,
-      DENSE_RANK() OVER (ORDER BY uploaded_at DESC)                   AS uploaded_row_number_desc
-    FROM intermediate 
-    WHERE hire_date IS NOT NULL
-      AND (LOWER(first_name) NOT LIKE '%greenhouse test%'
-      AND LOWER(last_name) NOT LIKE '%test profile%'
-      AND LOWER(last_name) != 'test-gitlab')
-      AND employee_id != 42039
-    -- The same emplpyee can appear more than once in the same upload.
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY employee_number, DATE_TRUNC(day, uploaded_at) ORDER BY uploaded_at DESC) = 1
+    ),
+    final as (
 
-) 
+        select
+            *, dense_rank() over (order by uploaded_at desc) as uploaded_row_number_desc
+        from intermediate
+        where
+            hire_date is not null and (
+                lower(first_name) not like '%greenhouse test%' and lower(
+                    last_name
+                ) not like '%test profile%' and lower(last_name) != 'test-gitlab'
+            ) and employee_id != 42039
+        -- The same emplpyee can appear more than once in the same upload.
+        qualify
+            row_number() over (
+                partition by employee_number, date_trunc(day, uploaded_at)
+                order by uploaded_at desc
+            ) = 1
+
+    )
 
 
 
-SELECT * 
-FROM final
+select *
+from final

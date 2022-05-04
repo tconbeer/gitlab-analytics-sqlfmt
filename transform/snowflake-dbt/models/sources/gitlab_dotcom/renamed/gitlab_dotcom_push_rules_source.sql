@@ -1,29 +1,26 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_push_rules_dedupe_source") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_push_rules_dedupe_source') }}
-    
-), renamed AS (
-  
-    SELECT
-      id::NUMBER                           AS push_rule_id,
-      force_push_regex::VARCHAR             AS force_push_regex,
-      delete_branch_regex::VARCHAR          AS delete_branch_regex,
-      commit_message_regex::VARCHAR         AS commit_message_regex,
-      deny_delete_tag::BOOLEAN              AS deny_delete_tag,
-      project_id::NUMBER                   AS project_id,
-      created_at::TIMESTAMP                 AS created_at,
-      updated_at::TIMESTAMP                 AS updated_at,
-      author_email_regex::VARCHAR           AS author_email_regex,
-      member_check::BOOLEAN                 AS has_member_check,
-      file_name_regex::VARCHAR              AS file_name_regex,
-      is_sample::BOOLEAN                    AS is_sample,
-      max_file_size::NUMBER                AS max_file_size,
-      branch_name_regex::VARCHAR            AS branch_name_regex,
-      commit_message_negative_regex::VARCHAR AS commit_message_negative_regex
-    FROM source
-    
-)
+        select
+            id::number as push_rule_id,
+            force_push_regex::varchar as force_push_regex,
+            delete_branch_regex::varchar as delete_branch_regex,
+            commit_message_regex::varchar as commit_message_regex,
+            deny_delete_tag::boolean as deny_delete_tag,
+            project_id::number as project_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            author_email_regex::varchar as author_email_regex,
+            member_check::boolean as has_member_check,
+            file_name_regex::varchar as file_name_regex,
+            is_sample::boolean as is_sample,
+            max_file_size::number as max_file_size,
+            branch_name_regex::varchar as branch_name_regex,
+            commit_message_negative_regex::varchar as commit_message_negative_regex
+        from source
 
-SELECT * 
-FROM renamed
+    )
+
+select *
+from renamed

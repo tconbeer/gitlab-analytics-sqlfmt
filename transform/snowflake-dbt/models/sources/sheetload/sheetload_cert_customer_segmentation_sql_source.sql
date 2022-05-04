@@ -1,11 +1,10 @@
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'cert_customer_segmentation_sql') }}
+        select * from {{ source("sheetload", "cert_customer_segmentation_sql") }}
 
-)
+    )
 
-SELECT *
-FROM source
-
+select *
+from source
