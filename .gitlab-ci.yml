@@ -1,0 +1,315 @@
+# ======
+# Globals
+# ======
+
+variables:
+  PYTHONPATH: "$CI_PROJECT_DIR/orchestration/:$CI_PROJECT_DIR/extract/:$CI_PROJECT_DIR/extract/shared_modules/:$PYTHONPATH"
+  BRANCH_NAME: "$CI_COMMIT_REF_NAME"
+
+# ======
+# CI Stages
+# ======
+stages:
+  - ❄️ Snowflake
+  - 🚂 Extract   # extract/extract-ci.yml
+  - ⚙️ dbt Run    # transform/snowflake-dbt/snowflake-dbt-ci.yml
+  - 🛠 dbt Misc  # transform/snowflake-dbt/snowflake-dbt-ci.yml
+  - 📚 dbt Docs
+  - 🐍 Python
+  - 🛑 Snowflake Stop
+  - triage
+  - triage run
+
+include:
+  - "extract/extract-ci.yml"
+  - "transform/snowflake-dbt/snowflake-dbt-ci.yml"
+
+
+# ======
+# Snowflake Database Clones
+# ======
+
+# Template for cloning databases in Snowflake for use in MRs
+.snowflake_clone_template: &snowflake_clone_template
+  image: registry.gitlab.com/gitlab-data/data-image/data-image:v0.0.13
+  tags:
+    - analytics
+  before_script:
+    - export PATH="$CI_PROJECT_DIR/orchestration/:$PATH"
+  only:
+    refs:
+      - merge_requests
+    variables:
+      - $SNOWFLAKE_SYSADMIN_ROLE
+      - $SNOWFLAKE_LOAD_WAREHOUSE
+      - $SNOWFLAKE_LOAD_DATABASE  # make sure the guard works
+      - $SNOWFLAKE_PREP_DATABASE  # make sure the guard works
+      - $SNOWFLAKE_PROD_DATABASE  # make sure the guard works
+  except:
+    refs:
+      - master
+    variables:
+      - $BRANCH_NAME == $SNOWFLAKE_LOAD_DATABASE
+      - $BRANCH_NAME == $SNOWFLAKE_PREP_DATABASE
+      - $BRANCH_NAME == $SNOWFLAKE_PROD_DATABASE
+      - $TEST_PIPELINE
+  when: manual  
+
+.snowflake_start_clone: &snowflake_start_clone
+  <<: *snowflake_clone_template
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    on_stop: clone_stop
+  stage: ❄️ Snowflake
+  variables:
+    GIT_STRATEGY: clone
+
+# Clone Jobs
+📈clone_prod:
+  <<: *snowflake_start_clone
+  script:
+    - manage_snowflake.py manage_clones --database prod --empty
+    - manage_snowflake.py manage_clones --database prep --empty
+  when: always
+
+📈❗️clone_prod_real:
+  <<: *snowflake_start_clone
+  script:
+    - manage_snowflake.py manage_clones --force --database prod
+    - manage_snowflake.py manage_clones --force --database prep
+
+📈⚙clone_prep_specific_schema:
+  <<: *snowflake_start_clone
+  script:
+    - manage_snowflake.py manage_clones --database prep --schema $SCHEMA_NAME
+
+📈⚙clone_prod_specific_schema:
+  <<: *snowflake_start_clone
+  script:
+    - manage_snowflake.py manage_clones --database prod --schema $SCHEMA_NAME
+
+🥩clone_raw_full:
+  <<: *snowflake_start_clone
+  script:
+    - manage_snowflake.py manage_clones --database raw --include_stages
+
+🥩📜clone_raw_sheetload:
+  <<: *snowflake_start_clone
+  script:
+    - manage_snowflake.py manage_clones --database raw --schema sheetload
+
+🥩🛢clone_raw_postgres_pipeline:
+  <<: *snowflake_start_clone
+  script:
+    - manage_snowflake.py manage_clones --database raw --schema tap_postgres
+
+🥩⚙clone_raw_specific_schema:
+  <<: *snowflake_start_clone
+  script:
+    - manage_snowflake.py manage_clones --database raw --schema $SCHEMA_NAME --include_stages
+
+👥force_clone_both:
+  <<: *snowflake_start_clone
+  script:
+    - manage_snowflake.py manage_clones --force --database prep --empty
+    - manage_snowflake.py manage_clones --force --database prod --empty
+    - manage_snowflake.py manage_clones --force --database raw --include_stages
+
+clone_stop:
+  <<: *snowflake_clone_template
+  stage: 🛑 Snowflake Stop
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - git clone $CI_REPOSITORY_URL
+    - analytics/orchestration/manage_snowflake.py delete_clones
+
+
+# ======
+# Python Code Checks
+# ======
+
+.python_check: &python_check
+  stage: 🐍 Python
+  image: registry.gitlab.com/gitlab-data/data-image/data-image:v0.0.20
+  tags:
+    - analytics
+  only:
+    changes:
+      - "**/*.py"
+    refs:
+      - merge_requests
+  allow_failure: true
+
+python_black:
+  <<: *python_check
+  script:
+    - pip install black==22.1.0
+    - black --check .
+
+python_mypy:
+  <<: *python_check
+  script:
+    - pip install mypy
+    - python3 -m pip install types-python-dateutil
+    - python3 -m pip install types-PyYAML
+    - python3 -m pip install types-requests
+    - mypy extract/ --ignore-missing-imports
+
+python_pylint:
+  <<: *python_check
+  script:
+    - pylint ../analytics/ --ignore=dags --disable=C --disable=W1203 --disable=W1202 --reports=y --exit-zero
+  when: manual
+
+python_complexity:
+  <<: *python_check
+  script:
+    -  xenon --max-absolute B --max-modules B --max-average A . -i transform,shared_modules
+
+python_pytest:
+  <<: *python_check
+  script:
+    - python -m pytest -vv -x --no-print-logs --junitxml=report.xml
+  artifacts:
+      reports:
+          junit: ${CI_PROJECT_DIR}/report.xml
+      paths:
+          - ${CI_PROJECT_DIR}/.coverage.${CI_JOB_ID}
+      expire_in: 1 day
+      when: on_success
+
+
+# ======
+# Snowflake Permissions Validator
+# ======
+
+.yaml_validate: &yaml_validate
+  stage: 🐍 Python
+  image: registry.gitlab.com/gitlab-data/data-image/data-image:v0.0.13
+  tags:
+    - analytics
+  only:
+    changes:
+      - "permissions/snowflake/roles.yml"
+    refs:
+      - merge_request
+  allow_failure: true
+
+yaml_validation:
+  <<: *yaml_validate
+  script:
+    - python -c 'import yaml, sys; print(yaml.safe_load(sys.stdin))' < permissions/snowflake/roles.yml
+
+.permifrost: &permifrost
+  stage: 🐍 Python
+  image: registry.gitlab.com/gitlab-data/permifrost:v0.13.1
+  tags:
+    - analytics
+  only:
+    refs:
+      - merge_requests
+  allow_failure: true
+
+🧊⚙permifrost_run:
+  <<: *permifrost
+  script:
+    - permifrost run permissions/snowflake/roles.yml --diff --dry
+  when: manual
+
+🧊permifrost_spec_test:
+  <<: *permifrost
+  script:
+    - permifrost spec-test permissions/snowflake/roles.yml
+  when: manual
+
+# ======
+# dbt docs to GitLab Pages
+# ======
+
+.pages_job_template: &pages_job_template
+  stage: 📚 dbt Docs
+  image: registry.gitlab.com/gitlab-data/data-image/dbt-image:v0.0.15
+  variables:
+    SNOWFLAKE_ROLE: $SNOWFLAKE_TRANSFORM_ROLE
+    SNOWFLAKE_WAREHOUSE: $SNOWFLAKE_TRANSFORM_WAREHOUSE
+  before_script:
+    - export PATH="$CI_PROJECT_DIR/orchestration/:$PATH"
+  script:
+    - export SNOWFLAKE_SNAPSHOT_DATABASE="SNOWFLAKE"
+    - echo $SNOWFLAKE_SNAPSHOT_DATABASE
+    - mkdir -p ~/.ssh
+    - touch ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh
+    - echo "$GIT_DATA_TESTS_SSH_PRIVATE_KEY" | base64 --decode > ~/.ssh/id_rsa # decodes key from base64
+    - chmod 0400 ~/.ssh/id_rsa # Makes key read only
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config # Adds gitlab.com as known host
+    - cd $CI_PROJECT_DIR/transform/snowflake-dbt/
+    - rm packages.yml
+    - mv docs-packages.yml packages.yml
+    - dbt deps --profiles-dir profile --target prod
+    - dbt docs generate --profiles-dir profile --target prod
+    - mkdir -p $CI_PROJECT_DIR/public/
+    - python $CI_PROJECT_DIR/orchestration/upload_dbt_file_to_snowflake.py manifest
+    - cd target
+    - | # remove row counts
+      sed -i 's/"Row Count", "value": [0-9]*.0/"Row Count", "value": -1.0/g' catalog.json
+    - cp *.json graph.gpickle $CI_PROJECT_DIR/public/
+    - cd $CI_PROJECT_DIR/transform/snowflake-dbt/docs/
+    - cp index.html gitlab.css $CI_PROJECT_DIR/public/
+  tags:
+    - analytics
+  artifacts:
+    name: "dbt Docs Files"
+    paths:
+      - public
+    expire_in: 1 week
+
+
+# Run the script to generate the dbt docs and stand them up in gitlab pages
+pages:
+  <<: *pages_job_template
+  only:
+    changes:
+      - "transform/snowflake-dbt/*"
+    refs:
+      - master
+    variables:
+      - $DEPLOY_DBT_PAGES
+
+dry-run:triage:
+    image: ruby:2.4
+    stage: triage
+    script:
+      - gem install gitlab-triage
+      - gitlab-triage --help
+      - gitlab-triage --dry-run --token $ANALYTICS_API_TOKEN --source projects --source-id $CI_PROJECT_PATH
+    when: manual
+    except:
+      - schedules
+
+policy:run-triage:
+    image: ruby:2.4
+    stage: triage run
+    script:
+      - gem install gitlab-triage
+      - gitlab-triage --token $ANALYTICS_API_TOKEN --source projects --source-id $CI_PROJECT_PATH
+    only:
+      refs:
+        - master
+    when: manual
+    except:
+      - schedules
+
+schedule:run-triage:
+    image: ruby:2.4
+    stage: triage run
+    script:
+      - gem install gitlab-triage
+      - gitlab-triage --token $ANALYTICS_API_TOKEN --source projects --source-id $CI_PROJECT_PATH
+    only:
+      variables:
+        - $RUN_GITLAB_TRIAGE

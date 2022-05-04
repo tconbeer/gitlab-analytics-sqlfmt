@@ -1,0 +1,159 @@
+version: 2
+
+models:
+  - name: customers_db_customers_source
+    description: '{{ doc("customers_db_customers_source") }}'
+    columns:
+      - name: customer_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+          - unique
+      - name: customer_first_name
+        meta:
+          sensitive: true
+      - name: customer_last_name
+        meta:
+          sensitive: true
+      - name: customer_email
+        meta:
+          sensitive: true
+      - name: customer_created_at
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+      - name: customer_updated_at
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+      - name: current_sign_in_at
+      - name: last_sign_in_at
+      - name: zuora_account_id
+      - name: salesforce_account_id
+      - name: billable
+  - name: customers_db_eula_requests_source
+    description: '{{ doc("customers_db_eula_requests_source") }}' 
+    columns:
+      - name: eula_request_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+      - name: eula_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+  - name: customers_db_eulas_source
+    description: '{{ doc("customers_db_eulas_source") }}'  
+    columns:
+      - name: eula_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+  - name: customers_db_leads_source
+    description: '{{ doc("customers_db_leads_source") }}'  
+    columns:
+      - name: leads_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+      - name: first_name
+        meta:
+          sensitive: true
+      - name: last_name
+        meta:
+          sensitive: true
+      - name: email
+        meta:
+          sensitive: true
+      - name: phone
+        meta:
+          sensitive: true
+      - name: company_name
+        meta:
+          sensitive: true          
+  - name: customers_db_license_seat_links_source
+    description: '{{ doc("customers_db_license_seat_links_source") }}' 
+    columns:
+      - name: zuora_subscription_id
+      - name: order_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+      - name: report_timestamp
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+  - name: customers_db_licenses_source
+    description: This table contains data from licenses in customers portal.
+    columns:
+      - name: license_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+          - unique
+  - name: customers_db_orders_source
+    description: '{{ doc("customers_db_orders_source") }}'  
+    columns:
+      - name: order_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+      - name: product_rate_plan_id
+      - name: subscription_id
+        description: This column references a Zuora subscription and can be joined with Zuora tables to get more information about the order.
+      - name: subscription_name
+      - name: order_start_date
+      - name: order_end_date
+      - name: order_quanity
+      - name: order_created_at
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+      - name: order_updated_at
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+      - name: order_source
+  - name: customers_db_trial_histories_source
+    description: '{{ doc("customers_db_trial_histories_source") }}'  
+    columns:
+      - name: gl_namespace_id
+        tags:
+          - tdf
+          - customers_db
+        tests:
+          - not_null
+          - unique

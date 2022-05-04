@@ -1,0 +1,74 @@
+# Job definitions
+#
+.job_template: &extract_definition
+  image: registry.gitlab.com/gitlab-data/data-image/data-image:v0.0.15
+  stage: 🚂 Extract
+  before_script:
+    - export PATH="$CI_PROJECT_DIR/orchestration/:$PATH"
+    - echo $BRANCH_NAME
+    - if [ $BRANCH_NAME = "master" ]; then export SNOWFLAKE_LOAD_DATABASE="RAW"; else export SNOWFLAKE_LOAD_DATABASE="${CI_COMMIT_REF_NAME^^}_RAW"; fi
+    - echo $SNOWFLAKE_LOAD_DATABASE
+    - echo $BRANCH_NAME
+    - if [ $BRANCH_NAME = "master" ]; then export SNOWFLAKE_PREP_DATABASE="PREP"; else export SNOWFLAKE_PREP_DATABASE="${CI_COMMIT_REF_NAME^^}_PREP"; fi
+    - if [ $BRANCH_NAME = "master" ]; then export SNOWFLAKE_PROD_DATABASE="PROD"; else export SNOWFLAKE_PROD_DATABASE="${CI_COMMIT_REF_NAME^^}_PROD"; fi
+    - echo $SNOWFLAKE_PREP_DATABASE
+    - echo $SNOWFLAKE_PROD_DATABASE
+  tags:
+    - analytics
+
+💀boneyard_sheetload:
+  <<: *extract_definition
+  script:
+    - cd extract/sheetload/
+    - python3 sheetload.py sheets --sheet_file boneyard/sheets.yml --schema boneyard --database PROD
+  only:
+    - merge_requests
+  when: manual
+
+📜sheetload:
+  <<: *extract_definition
+  script:
+    - cd extract/sheetload/
+    - python3 sheetload.py sheets --sheet_file sheets.yml
+  only:
+    - merge_requests
+  when: manual
+
+📜driveload:
+  <<: *extract_definition
+  script:
+    - cd extract/sheetload/
+    - python3 sheetload.py drive --drive_file drives.yml
+  only:
+    - merge_requests
+  when: manual
+
+qualtrics_sheetload:
+  <<: *extract_definition
+  script:
+    - cd extract/sheetload/
+    - python3 sheetload.py qualtrics --load_type test
+  only:
+    - merge_requests
+  when: manual
+    
+
+🛢pgp_test:
+  <<: *extract_definition
+  script:
+    - echo $MANIFEST_NAME
+    - cd extract/postgres_pipeline/postgres_pipeline/
+    - python main.py tap ../manifests_decomposed/${MANIFEST_NAME}_db_manifest.yaml --load_type test
+  only:
+    - merge_requests
+    - $MANIFEST_NAME
+  when: manual
+
+🛢gitlab_ops_pgp_test:
+  <<: *extract_definition
+  script:
+    - cd orchestration
+    - python ci_helpers.py use_proxy --instance_name ops-db-restore --command "python ../extract/postgres_pipeline/postgres_pipeline/main.py tap ../extract/postgres_pipeline/manifests/gitlab_ops_db_manifest.yaml --load_type test"
+  only:
+    - merge_requests
+  when: manual

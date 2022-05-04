@@ -1,0 +1,89 @@
+import time
+import random
+from logging import error, info, basicConfig, getLogger
+from os import environ as env
+from typing import List
+from yaml import load, FullLoader
+
+import gspread
+import pandas as pd
+from gspread.exceptions import APIError
+from oauth2client.service_account import ServiceAccountCredentials
+
+
+class GoogleSheetsClient:
+    def load_google_sheet(
+        self,
+        key_file,
+        file_name: str,
+        worksheet_name: str,
+        maximum_backoff_sec: int = 600,
+    ) -> pd.DataFrame:
+        """
+        Loads the google sheet into a dataframe with column names loaded from the sheet.
+        If API Rate Limit has been reached use [Truncated exponential backoff](https://cloud.google.com/storage/docs/exponential-backoff) strategy to retry
+        Returns the dataframe.
+        """
+        n = 0
+        while maximum_backoff_sec > (2**n):
+            try:
+                sheets_client = self.get_client(key_file)
+                sheet = (
+                    sheets_client.open(file_name)
+                    .worksheet(worksheet_name)
+                    .get_all_values()
+                )
+                sheet_df = pd.DataFrame(sheet[1:], columns=sheet[0])
+                return sheet_df
+            except APIError as gspread_error:
+                if gspread_error.response.status_code in (429, 500, 502, 503):
+                    self.wait_exponential_backoff(n)
+                    n = n + 1
+                else:
+                    raise
+        else:
+            error(f"Max retries exceeded, giving up on {file_name}")
+
+    def get_client(self, gapi_keyfile) -> gspread.Client:
+        """
+        Initialized and returns a google spreadsheet client.
+        """
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/drive",
+        ]
+        keyfile = load(gapi_keyfile or env["GCP_SERVICE_CREDS"], Loader=FullLoader)
+        return gspread.authorize(
+            ServiceAccountCredentials.from_json_keyfile_dict(keyfile, scope)
+        )
+
+    def get_visible_files(self, client=None) -> List[gspread.Spreadsheet]:
+        """
+        Returns a list of all sheets that the client can see.
+        """
+        if not client:
+            client = self.get_client(None)
+        return [file for file in client.openall()]
+
+    def rename_sheet(self, file, sheet_id, target_name) -> None:
+        """
+        Renames a google sheets file
+        """
+        file.batch_update(
+            {
+                "requests": {
+                    "updateSheetProperties": {
+                        "properties": {"sheetId": sheet_id, "title": target_name},
+                        "fields": "title",
+                    }
+                }
+            }
+        )
+
+    def wait_exponential_backoff(self, n):
+        # Start for waiting at least
+        wait_sec = (2**n) + (random.randint(0, 1000) / 1000)
+        info(
+            f"Received API rate limit error. Wait for {wait_sec} seconds before trying again."
+        )
+        time.sleep(wait_sec)

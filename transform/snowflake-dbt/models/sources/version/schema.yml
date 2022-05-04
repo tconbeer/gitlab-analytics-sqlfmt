@@ -1,0 +1,83 @@
+version: 2
+
+models:
+    
+    - name: version_conversational_development_indices_source
+      description: Conversational development index information by usage data id.
+      columns:
+        - name: id
+          tags:
+            - tdf
+            - version_db
+          tests: 
+            - not_null
+        - name: usage_data_id
+          tags:
+            - tdf
+            - version_db
+          tests:
+            - not_null    
+
+    - name: version_hosts_source
+      description: Basic information for self-managed instances.
+      columns:
+        - name: host_id
+          tags:
+            - tdf
+            - version_db
+          tests:
+            - not_null
+            - unique
+    - name: version_raw_usage_data_source
+      description: data source for usage ping https://docs.gitlab.com/ee/development/telemetry/usage_ping.html contains full unprocessed usage ping payloads 
+      columns:
+        - name: raw_usage_data_id
+          tags:
+            - tdf
+            - version_db
+          tests:
+            - not_null
+            - unique
+
+    - name: version_usage_data_source
+      description: Primary data source for usage ping https://docs.gitlab.com/ee/development/telemetry/usage_ping.html.
+      columns:
+        - name: id
+          tags:
+            - tdf
+            - version_db
+          tests:
+            - not_null
+            - unique
+        - name: uuid
+        - name: source_ip
+          meta:
+            sensitive: true
+
+    - name: version_version_checks_source
+      description: Version check data from self-managed instances.
+      columns:
+        - name: id
+          tags:
+            - tdf
+            - version_db
+          tests:
+            - not_null
+            - unique
+        - name: host_id
+          tags:
+            - tdf
+            - version_db
+          tests:
+            - not_null
+
+    - name: version_versions_source
+      description: Vulnerability information by version number.
+      columns:
+        - name: id
+          tags:
+            - tdf
+            - version_db
+          tests:
+            - not_null
+            - unique            

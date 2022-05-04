@@ -1,0 +1,96 @@
+version: 2
+macros:
+  - name: arr_buckets
+    description: This macro calculates buckets of values for ARR.
+    arguments:
+      - name: arr
+        type: number
+        description: ARR for the specified row.
+  - name: days_buckets
+    description: This macro creates grouping of number of days to be used in the `mart_marketing_contact` model.
+    arguments:
+      - name: day_field
+        type: number
+        description: Day field to be grouped into bucket of days.
+  - name: number_of_seats_buckets
+    description: This macro calculates buckets of values for number of seats.
+    arguments:
+      - name: number_of_seats
+        type: number
+        description: Number of seats for the specified row.
+  - name: map_marketing_channel_path
+    description: '{{ doc("map_marketing_channel_path") }}'
+    arguments:
+      - name: channel_path_column
+        type: string
+        description: Name of the column which has channel path data in it.
+  - name: sales_segment_region_grouped
+    description: This macro creates a custom grouping for sales segment and sales geo.
+    arguments:
+      - name: segment
+        type: string
+        description: Sales segment field to use for grouping
+      - name: sales_geo
+        type: string
+        description: Sales geo field to use for grouping
+      - name: sales_region
+        type: string
+        description: Sales region field to use for grouping
+  - name: alliance_type
+    description: This macro applies business logic to identify alliance partners in the Channel business. The Macro uses the same names that are found in the source data.
+    arguments:
+      - name: fulfillment_partner_name
+        type: string
+        description: Fulfillment / Resale Partner account name fetched from joining the account and opportunity objects.
+      - name: fulfillment_partner
+        type: string
+        description: Fulfillment / Resale Partner account id from the opportunity object.
+  - name: alliance_type_short
+    description: This macro applies business logic to identify alliance partners in the Channel business. The Macro abbreviates the source names to shorter names selected by the business that will be used in reporting.
+    arguments:
+      - name: partner_account_name
+        type: string
+        description: Abbreviated partner account name fetched from joining the account and opportunity objects.
+      - name: influence_account_name
+        type: string
+        description: Abbreviated influence partner account name fetched from joining the account and opportunity objects.
+      - name: partner_account
+        type: string
+        description: Abbreviated partner account id from the opportunity object.
+      - name: influence_account
+        type: string
+        description: Abbreviated influence partner account id from the opportunity object.
+  - name: channel_type
+    description: This macro applies business logic to bucket sqs_bucket_engagement, which is a grouping of sales_qualified_source, and order_type into the respective channel type. Partner Sourced and Co-sell by order type.
+    arguments:
+      - name: sqs_bucket_engagement
+        type: string
+      - name: order_type
+        type: string
+  - name: email_domain_type
+    description: '{{ doc("email_domain_type") }}'
+    arguments:
+      - name: email_domain
+        type: string
+      - name: lead_source
+        type: string
+  - name: get_personal_email_domain_list
+    description: Returns a list of the personal email domains contained in the personal_email_domains dbt seed csv file.
+    arguments:
+      - name: type_of_match
+        type: string
+        description: The type of match that is used to detect the personal email domains.
+  - name: it_job_title_hierarchy
+    description: '{{ doc("it_job_title_hierarchy") }}'
+    arguments:
+      - name: job_title
+        type: string
+  - name: pad_column
+    description: This macro adds a string to the left and to the right of a column.
+    arguments:
+      - name: column
+        type: string
+        description: Column to add the string to.
+      - name: string
+        type: string
+        description: String to add to the left and the right of the column.

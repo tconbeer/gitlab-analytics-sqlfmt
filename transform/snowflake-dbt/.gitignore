@@ -1,0 +1,6 @@
+
+target/
+dbt_modules/
+logs/
+to_check.txt
+sisense_elements.json

@@ -1,0 +1,91 @@
+version: 2
+
+sources:
+  - name: version
+    tags: ["tdf","version_db"]
+    database: '{{ env_var("SNOWFLAKE_LOAD_DATABASE") }}'
+    schema: version_db
+    loaded_at_field: updated_at::TIMESTAMP
+
+    quoting:
+      database: true
+      schema: false
+      identifier: false
+
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+
+    tables:
+      - name: conversational_development_indices
+        columns:
+          - name: id
+            tests:
+              - not_null
+          - name: created_at
+            tests:
+              - not_null
+          - name: updated_at
+            tests:
+              - not_null
+          - name: usage_data_id
+            tests:
+              - not_null              
+      - name: fortune_companies
+        freshness: null
+      - name: hosts
+        columns:
+          - name: id
+            tests:
+              - not_null
+          - name: created_at
+            tests:
+              - not_null
+          - name: updated_at
+            tests:
+              - not_null
+      - name: raw_usage_data
+        loaded_at_field: created_at::TIMESTAMP
+        columns:
+          - name: id
+            tests:
+              - not_null
+      - name: usage_data
+        columns:
+          - name: id
+            tests:
+              - not_null
+          - name: created_at
+            tests:
+              - not_null
+          - name: updated_at
+            tests:
+              - not_null
+      - name: version_checks
+        freshness:
+          warn_after: {count: 2, period: day}
+          error_after: {count: 4, period: day}
+        columns:
+          - name: id
+            tests:
+              - not_null
+          - name: created_at
+            tests:
+              - not_null
+          - name: updated_at
+            tests:
+              - not_null
+      - name: versions
+        freshness:
+          warn_after: {count: 14, period: day}
+          error_after: {count: 21, period: day}
+        columns:
+          - name: id
+            tests:
+              - not_null
+          - name: created_at
+            tests:
+              - not_null
+          - name: updated_at
+            tests:
+              - not_null            

@@ -1,0 +1,26 @@
+version: 2
+
+macros:
+  - name: action_type
+    description: '{{ doc("action_type") }}'
+  - name: filter_out_active_users
+    description: '{{ doc("filter_out_active_users") }}'
+    arguments:
+      - name: table_to_filter
+        type: string
+        description: Name of the table to filter
+      - name: user_id_column_name
+        type: string
+        description: The column name representing the user id
+  - name: filter_out_blocked_users
+    description: '{{ doc("filter_out_blocked_users") }}'
+  - name: get_internal_parent_namespaces
+    description: '{{ doc("get_internal_parent_namespaces") }}'
+  - name: map_state_id
+    description: '{{ doc("map_state_id") }}'
+  - name: resource_event_action_type
+    description: '{{ doc("resource_event_action_type") }}'
+  - name: transform_clusters_applications
+    description: '{{ doc("transform_clusters_applications") }}'
+  - name: user_role_mapping
+    description: '{{ doc("user_role_mapping") }}'

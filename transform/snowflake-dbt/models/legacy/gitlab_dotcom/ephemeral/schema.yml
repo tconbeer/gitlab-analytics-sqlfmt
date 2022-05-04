@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: gitlab_dotcom_issues_and_epics_linked_to_sfdc_account_id
+    description: '{{ doc("gitlab_dotcom_issues_linked_to_sfdc_account_id") }}'
+    columns:
+      - name: noteable_id
+        tests:
+          - not_null
+      - name: link_id
+        tests:
+          - not_null
+
+  - name: gitlab_dotcom_notes_linked_to_sfdc_account_id
+    description: '{{ doc("gitlab_dotcom_notes_linked_to_sfdc_account_id") }}'
+    columns:
+      - name: noteable_id
+        tests:
+          - not_null
+      - name: link_id
+        tests:
+          - not_null

@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: dim_subscription_snapshot_model
+    description: '{{ doc("dim_subscription_snapshot_model") }}'

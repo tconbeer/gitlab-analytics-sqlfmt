@@ -1,0 +1,66 @@
+version: 2
+
+sources:
+  - name: license
+    tags: ["tdf","license_db"]
+    database: '{{ env_var("SNOWFLAKE_LOAD_DATABASE") }}'
+    schema: license_db
+    loaded_at_field: updated_at::TIMESTAMP
+
+    quoting:
+      database: true
+      schema: false
+      identifier: false
+
+    freshness: null
+    tables:
+      - name: add_ons
+        identifier: add_ons
+        freshness: null
+        columns:
+          - name: id
+            tests:
+              - not_null
+          - name: created_at
+            tests:
+              - not_null
+          - name: updated_at
+            tests:
+              - not_null
+
+      - name: granted_add_ons
+        identifier: granted_add_ons
+        freshness: null
+        columns:
+          - name: id
+            tests:
+              - not_null
+          - name: license_id
+            tests:
+              - not_null
+          - name: add_on_id
+            tests:
+              - not_null
+          - name: created_at
+            tests:
+              - not_null
+          - name: updated_at
+            tests:
+              - not_null
+
+      - name: licenses
+        identifier: licenses
+        freshness: null
+        columns:
+          - name: id
+            tests:
+              - not_null
+          - name: created_at
+            tests:
+              - not_null
+          - name: updated_at
+            tests:
+              - not_null
+    
+      - name: users
+        identifier: users

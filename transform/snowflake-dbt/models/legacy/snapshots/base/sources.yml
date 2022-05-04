@@ -1,0 +1,54 @@
+version: 2
+
+sources:
+  - name: snapshots
+    database: '{{ env_var("SNOWFLAKE_LOAD_DATABASE") }}'
+    schema: snapshots
+    loader: dbt
+    loaded_at_field: dbt_updated_at
+    
+    quoting:
+      database: true
+      schema: false
+      identifier: false
+
+    tables:
+      - name: customers_db_customers_snapshots
+      - name: customers_db_orders_snapshots
+      - name: dim_subscription_snapshot
+      - name: fct_mrr_snapshot
+      - name: fct_retention_parent_account_snapshot
+      - name: gitlab_dotcom_application_settings_snapshots
+      - name: gitlab_dotcom_gitlab_subscriptions_namespace_id_snapshots
+      - name: gitlab_dotcom_gitlab_subscriptions_snapshots
+      - name: gitlab_dotcom_members_snapshots
+      - name: gitlab_dotcom_namespaces_snapshots
+      - name: gitlab_dotcom_namespace_statistics_snapshots
+      - name: gitlab_dotcom_namespace_root_storage_statistics_snapshots
+      - name: gitlab_dotcom_projects_snapshots
+      - name: gitlab_dotcom_project_statistics_snapshots
+      - name: mart_arr_snapshot
+      - name: mart_retention_parent_account_snapshot
+      - name: license_db_licenses_snapshots
+      - name: customers_db_licenses_snapshots
+      - name: sfdc_account_snapshots
+      - name: sfdc_opportunity_snapshots
+      - name: sfdc_user_snapshots
+      - name: sheetload_comp_band_snapshots
+      - name: sheetload_employee_location_factor_snapshots
+        loaded_at_field: DATEADD(sec, dbt_updated_at, '1970-01-01')
+      - name: zuora_account_snapshots
+      - name: zuora_amendment_snapshots
+      - name: zuora_contact_snapshots
+      - name: zuora_invoice_snapshots
+      - name: zuora_invoiceitem_snapshots
+      - name: zuora_product_rate_plan_charge_snapshots
+      - name: zuora_product_rate_plan_charge_tier_snapshots
+      - name: zuora_product_rate_plan_snapshots
+      - name: zuora_product_snapshots
+      - name: zuora_rateplan_snapshots
+      - name: zuora_rateplancharge_snapshots
+      - name: zuora_refund_snapshots
+      - name: zuora_revenue_schedule_item_snapshots
+      - name: zuora_subscription_snapshots
+      - name: mart_available_to_renew_snapshot
