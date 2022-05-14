@@ -1,73 +1,80 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "note_id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "note_id"}) }}
 
 
-{% set fields_to_mask = ['note'] %}
+{% set fields_to_mask = ["note"] %}
 
-WITH base AS (
+with
+    base as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_notes') }}
-    {% if is_incremental() %}
+        select *
+        from {{ ref("gitlab_dotcom_notes") }}
+        {% if is_incremental() %}
 
-      WHERE updated_at >= (SELECT MAX(updated_at) FROM {{this}})
+        where updated_at >= (select max(updated_at) from {{ this }})
 
-    {% endif %}
-)
+        {% endif %}
+    )
 
-, projects AS (
+    ,
+    projects as (select * from {{ ref("gitlab_dotcom_projects_xf") }})
 
-    SELECT * 
-    FROM {{ ref('gitlab_dotcom_projects_xf') }}
-)
+    ,
+    internal_namespaces as (
 
-, internal_namespaces AS (
-  
-    SELECT 
-      namespace_id,
-      namespace_ultimate_parent_id,
-      (namespace_ultimate_parent_id IN {{ get_internal_parent_namespaces() }}) AS namespace_is_internal
-    FROM {{ ref('gitlab_dotcom_namespaces_xf') }}
+        select
+            namespace_id,
+            namespace_ultimate_parent_id,
+            (
+                namespace_ultimate_parent_id in {{ get_internal_parent_namespaces() }}
+            ) as namespace_is_internal
+        from {{ ref("gitlab_dotcom_namespaces_xf") }}
 
-)
+    )
 
-, system_note_metadata AS (
-  
-    SELECT 
-      note_id,
-      ARRAY_AGG(action_type) WITHIN GROUP (ORDER BY action_type ASC) AS action_type_array
-    FROM {{ ref('gitlab_dotcom_system_note_metadata') }}
-    GROUP BY 1
+    ,
+    system_note_metadata as (
 
-)
+        select
+            note_id,
+            array_agg(action_type) within group(
+                order by action_type asc
+            ) as action_type_array
+        from {{ ref("gitlab_dotcom_system_note_metadata") }}
+        group by 1
 
-,  anonymised AS (
-    
-    SELECT
-      {{ dbt_utils.star(from=ref('gitlab_dotcom_notes'), except=fields_to_mask|upper, relation_alias='base') }},
-      {% for field in fields_to_mask %}
-        CASE
-          WHEN TRUE 
-            AND projects.visibility_level != 'public'
-            AND NOT internal_namespaces.namespace_is_internal
-            THEN 'confidential - masked'
-          ELSE {{field}}
-        END                                                    AS {{field}},
-      {% endfor %}
-      projects.ultimate_parent_id,
-      action_type_array
-    FROM base
-      LEFT JOIN projects 
-        ON base.project_id = projects.project_id
-      LEFT JOIN internal_namespaces
-        ON projects.namespace_id = internal_namespaces.namespace_id
-      LEFT JOIN system_note_metadata
-        ON base.note_id = system_note_metadata.note_id
+    )
 
-)
+    ,
+    anonymised as (
 
-SELECT * 
-FROM anonymised
+        select
+            {{
+                dbt_utils.star(
+                    from=ref("gitlab_dotcom_notes"),
+                    except=fields_to_mask | upper,
+                    relation_alias="base",
+                )
+            }},
+            {% for field in fields_to_mask %}
+            case
+                when
+                    true
+                    and projects.visibility_level != 'public'
+                    and not internal_namespaces.namespace_is_internal
+                then 'confidential - masked'
+                else {{ field }}
+            end as {{ field }},
+            {% endfor %}
+            projects.ultimate_parent_id,
+            action_type_array
+        from base
+        left join projects on base.project_id = projects.project_id
+        left join
+            internal_namespaces
+            on projects.namespace_id = internal_namespaces.namespace_id
+        left join system_note_metadata on base.note_id = system_note_metadata.note_id
+
+    )
+
+select *
+from anonymised

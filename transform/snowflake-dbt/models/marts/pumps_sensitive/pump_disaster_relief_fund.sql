@@ -1,66 +1,65 @@
-WITH current_employees AS (
+with
+    current_employees as (select * from {{ ref("employee_directory") }}),
+    hires as (
 
-    SELECT *
-    FROM {{ ref('employee_directory') }}
+        select
+            first_name,
+            last_name,
+            employee_number,
+            last_work_email,
+            'A' as action,
+            hire_date as event_date
+        from current_employees
+        where hire_date is not null
 
-), hires AS (
+    ),
+    terminations as (
 
-    SELECT 
-      first_name,
-      last_name,
-      employee_number,
-      last_work_email,
-      'A' AS action,
-      hire_date as event_date
-    FROM current_employees
-    WHERE hire_date IS NOT NULL
+        select
+            first_name,
+            last_name,
+            employee_number,
+            last_work_email,
+            'D' as action,
+            termination_date as event_date
+        from current_employees
+        where termination_date is not null
 
-), terminations AS (
+    ),
+    unioned as (select * from hires union all select * from terminations),
+    report_table as (
 
-    SELECT 
-      first_name,
-      last_name,
-      employee_number,
-      last_work_email,
-      'D' AS action,
-      termination_date as event_date
-    FROM current_employees
-    WHERE termination_date IS NOT NULL
+        select
+            '3936' as "Fund",
+            first_name as "First Name",
+            last_name as "Last Name",
+            employee_number as "Employee ID",
+            last_work_email as "Email",
+            action as "Action",
+            current_date() as report_date
+        from unioned
+        where
+            (
+                case
+                    when
+                        dayofmonth(report_date) <= 15 and dayofmonth(
+                            event_date
+                        ) > 15 and date_trunc(
+                            'month', dateadd('month', -1, report_date)
+                        ) = date_trunc('month', event_date)
+                    then true
+                    when
+                        dayofmonth(report_date) > 15 and dayofmonth(
+                            event_date
+                        ) <= 15 and date_trunc('month', report_date) = date_trunc(
+                            'month', event_date
+                        )
+                    then true
+                    else false
+                end
+            ) = true
 
-), unioned AS (
+    )
 
-    SELECT *
-    FROM hires
-
-    UNION ALL
-
-    SELECT *
-    FROM terminations
-
-), report_table AS (
-
-    SELECT 
-      '3936'          AS "Fund",
-      first_name      AS "First Name",
-      last_name       AS "Last Name",
-      employee_number AS "Employee ID",
-      last_work_email AS "Email",
-      action          AS "Action",
-      CURRENT_DATE()  AS report_date
-    FROM unioned
-    WHERE  (CASE
-             WHEN DAYOFMONTH(report_date) <= 15
-               AND DAYOFMONTH(event_date) > 15
-               AND DATE_TRUNC('month', DATEADD('month', -1, report_date)) = DATE_TRUNC('month', event_date) 
-             THEN TRUE
-             WHEN DAYOFMONTH(report_date) > 15
-               AND DAYOFMONTH(event_date) <= 15
-               AND DATE_TRUNC('month', report_date) = DATE_TRUNC('month', event_date) 
-             THEN TRUE
-             ELSE FALSE
-           END) = TRUE
-
-)
-
-SELECT *
-FROM report_table
+select *
+from report_table

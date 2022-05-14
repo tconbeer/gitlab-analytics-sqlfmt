@@ -1,23 +1,25 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_ci_namespace_monthly_usages_dedupe_source') }}
-      
-)
+        select *
+        from {{ ref("gitlab_dotcom_ci_namespace_monthly_usages_dedupe_source") }}
 
-, renamed AS (
-    SELECT
-    id::NUMBER                                  AS ci_namespace_monthly_usages_id,
-    namespace_id::NUMBER                        AS namespace_id,
-    date::TIMESTAMP                             AS date,
-    additional_amount_available::NUMBER         AS additional_amount_available,     
-    amount_used::NUMBER                         AS amount_used,
-    notification_level::NUMBER                  AS notification_level,
-    shared_runners_duration::NUMBER             AS shared_runners_duration,
-    created_at::TIMESTAMP                       AS created_at
-    FROM source
-  
-)
+    )
 
-SELECT * 
-FROM renamed
+    ,
+    renamed as (
+        select
+            id::number as ci_namespace_monthly_usages_id,
+            namespace_id::number as namespace_id,
+            date::timestamp as date,
+            additional_amount_available::number as additional_amount_available,
+            amount_used::number as amount_used,
+            notification_level::number as notification_level,
+            shared_runners_duration::number as shared_runners_duration,
+            created_at::timestamp as created_at
+        from source
+
+    )
+
+select *
+from renamed

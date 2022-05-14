@@ -1,27 +1,21 @@
-WITH resource_weight_events AS (
-  
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_resource_weight_events') }}
-  
-)
+with
+    resource_weight_events as (
 
-, issues AS (
+        select * from {{ ref("gitlab_dotcom_resource_weight_events") }}
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_issues') }} 
-    
-)
+    )
 
-, joined AS (
+    ,
+    issues as (select * from {{ ref("gitlab_dotcom_issues") }})
 
-    SELECT 
-      resource_weight_events.*,
-      issues.project_id
-    FROM resource_weight_events
-    LEFT JOIN issues
-      ON resource_weight_events.issue_id = issues.issue_id
+    ,
+    joined as (
 
-)
+        select resource_weight_events.*, issues.project_id
+        from resource_weight_events
+        left join issues on resource_weight_events.issue_id = issues.issue_id
 
-SELECT *
-FROM joined
+    )
+
+select *
+from joined

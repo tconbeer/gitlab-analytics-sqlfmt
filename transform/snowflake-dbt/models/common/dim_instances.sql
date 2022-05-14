@@ -1,42 +1,34 @@
-{{config({
-    "schema": "legacy"
-  })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH usage_ping AS (
+with
+    usage_ping as (select * from {{ ref("version_usage_data_source") }}),
+    instances as (
 
-    SELECT *
-    FROM {{ ref('version_usage_data_source') }}
+        select
+            uuid as instance_id,
+            min(recorded_at) as recorded_first_usage_ping_time_stamp,
+            max(recorded_at) as recorded_most_recent_usage_ping_time_stamp,
+            min(instance_user_count) as recorded_minimum_instance_user_count,
+            max(instance_user_count) as recorded_maximum_instance_user_count,
+            count(distinct version) as recorded_total_version_count,
+            count(distinct edition) as recorded_total_edition_count,
+            count(distinct hostname) as recorded_total_hostname_count,
+            count(distinct host_id) as recorded_total_host_id_count,
+            count(distinct installation_type) as recorded_total_installation_type_count
 
-), instances AS (
+        from usage_ping
+        group by uuid
 
-    SELECT
-      uuid                                AS instance_id,
-      MIN(recorded_at)                    AS recorded_first_usage_ping_time_stamp,  
-      MAX(recorded_at)                    AS recorded_most_recent_usage_ping_time_stamp, 
-      MIN(instance_user_count)            AS recorded_minimum_instance_user_count,
-      MAX(instance_user_count)            AS recorded_maximum_instance_user_count,
-      COUNT(DISTINCT version)             AS recorded_total_version_count, 
-      COUNT(DISTINCT edition)             AS recorded_total_edition_count, 
-      COUNT(DISTINCT hostname)            AS recorded_total_hostname_count, 
-      COUNT(DISTINCT host_id)             AS recorded_total_host_id_count, 
-      COUNT(DISTINCT installation_type)   AS recorded_total_installation_type_count
-        
-    FROM usage_ping
-    GROUP BY uuid 
-
-), renamed AS (
-
-    SELECT * 
-    FROM instances 
-
-)
+    ),
+    renamed as (select * from instances)
 
 
-{{ dbt_audit(
-    cte_ref="renamed",
-    created_by="@kathleentam",
-    updated_by="@mpeychet",
-    created_date="2020-10-11",
-    updated_date="2020-11-24"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="renamed",
+            created_by="@kathleentam",
+            updated_by="@mpeychet",
+            created_date="2020-10-11",
+            updated_date="2020-11-24",
+        )
+    }}

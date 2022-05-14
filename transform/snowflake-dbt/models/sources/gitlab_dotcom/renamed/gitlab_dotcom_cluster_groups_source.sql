@@ -1,21 +1,18 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_cluster_groups_dedupe_source") }})
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_cluster_groups_dedupe_source') }}
-      
-)
+    ,
+    renamed as (
 
-, renamed AS (
-  
-    SELECT
-    
-      id::NUMBER           AS cluster_group_id,
-      cluster_id::NUMBER   AS cluster_id,
-      group_id::NUMBER     AS group_id
+        select
 
-    FROM source
-  
-)
+            id::number as cluster_group_id,
+            cluster_id::number as cluster_id,
+            group_id::number as group_id
 
-SELECT * 
-FROM renamed
+        from source
+
+    )
+
+select *
+from renamed

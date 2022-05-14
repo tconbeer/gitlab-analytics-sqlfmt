@@ -1,21 +1,25 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT
-    *,
-    ROW_NUMBER() OVER (PARTITION BY epic_id ORDER BY updated_at DESC) AS rank_in_key
-  FROM {{ ref('gitlab_dotcom_epic_metrics_dedupe_source') }}
+        select
+            *,
+            row_number() over (
+                partition by epic_id order by updated_at desc
+            ) as rank_in_key
+        from {{ ref("gitlab_dotcom_epic_metrics_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      epic_id::NUMBER                    AS epic_id,
-      created_at::TIMESTAMP               AS created_at,
-      updated_at::TIMESTAMP               AS updated_at
+        select
+            epic_id::number as epic_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-    FROM source
+        from source
 
-)
+    )
 
 
-SELECT *
-FROM renamed
+select *
+from renamed

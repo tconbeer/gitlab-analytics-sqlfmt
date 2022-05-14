@@ -1,28 +1,25 @@
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "budget") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'budget') }}
+        select
+            -- Primary Key
+            budget_id::float as budget_id,
 
-), renamed AS (
+            -- Foreign Keys
+            accounting_period_id::float as accounting_period_id,
+            account_id::float as account_id,
+            department_id::float as department_id,
+            subsidiary_id::float as subsidiary_id,
+            category_id::float as category_id,
 
-    SELECT
-      --Primary Key
-      budget_id::FLOAT             AS budget_id,
+            -- Info
+            amount::float as budget_amount,
+            _fivetran_deleted::boolean as is_fivetran_deleted
 
-      --Foreign Keys
-      accounting_period_id::FLOAT  AS accounting_period_id,
-      account_id::FLOAT            AS account_id,
-      department_id::FLOAT         AS department_id,
-      subsidiary_id::FLOAT         AS subsidiary_id,
-      category_id::FLOAT           AS category_id,
+        from source
 
-      --Info
-      amount::FLOAT                AS budget_amount,
-      _fivetran_deleted::BOOLEAN   AS is_fivetran_deleted
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

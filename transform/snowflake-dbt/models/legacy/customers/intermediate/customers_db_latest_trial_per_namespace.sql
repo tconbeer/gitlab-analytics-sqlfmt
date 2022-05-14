@@ -1,25 +1,21 @@
-WITH orders_snapshots AS (
-  
-  SELECT * 
-  FROM {{ ref('customers_db_orders_snapshots_base')}}
-  
-)
+with
+    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }})
 
-, trials_snapshots AS (
-  
-  SELECT *
-  FROM orders_snapshots
-  WHERE order_is_trial = TRUE
-  
-)
+    ,
+    trials_snapshots as (select * from orders_snapshots where order_is_trial = true)
 
-, latest_trials_from_trials_snapshot AS (
-  
-    SELECT *
-    FROM trials_snapshots
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY TRY_TO_NUMBER(gitlab_namespace_id) ORDER BY valid_from DESC, order_id DESC) = 1
+    ,
+    latest_trials_from_trials_snapshot as (
 
-)  
+        select *
+        from trials_snapshots
+        qualify
+            row_number() over (
+                partition by try_to_number(gitlab_namespace_id)
+                order by valid_from desc, order_id desc
+            ) = 1
 
-SELECT * 
-FROM latest_trials_from_trials_snapshot
+    )
+
+select *
+from latest_trials_from_trials_snapshot

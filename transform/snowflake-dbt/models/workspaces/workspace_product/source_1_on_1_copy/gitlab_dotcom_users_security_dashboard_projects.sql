@@ -1,9 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_users_security_dashboard_projects_source') }}
+        select *
+        from {{ ref("gitlab_dotcom_users_security_dashboard_projects_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source
