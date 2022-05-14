@@ -6,9 +6,20 @@ with
     users as (
 
         select
-            {{ dbt_utils.star(from=ref('gitlab_dotcom_users'), except=["created_at", "first_name", "last_name", "notification_email", "public_email", "updated_at", "users_name"]) }},
-            created_at as user_created_at,
-            updated_at as user_updated_at
+            {{
+                dbt_utils.star(
+                    from=ref("gitlab_dotcom_users"),
+                    except=[
+                        "created_at",
+                        "first_name",
+                        "last_name",
+                        "notification_email",
+                        "public_email",
+                        "updated_at",
+                        "users_name",
+                    ],
+                )
+            }}, created_at as user_created_at, updated_at as user_updated_at
         from {{ ref("gitlab_dotcom_users") }}
 
     ),

@@ -34,7 +34,12 @@ usage_data as (
         ping_created_at as ping_created_at,
         source_ip_hash as ip_address_hash,
         edition as original_edition,
-        {{ dbt_utils.star(from=ref('version_usage_data_source'), except=['EDITION', 'CREATED_AT', 'SOURCE_IP']) }}
+        {{
+            dbt_utils.star(
+                from=ref("version_usage_data_source"),
+                except=["EDITION", "CREATED_AT", "SOURCE_IP"],
+            )
+        }}
     from source
     where uuid is not null and version not like ('%VERSION%')
 
@@ -50,7 +55,13 @@ joined_ping as (
         ping_created_at as ping_created_at,
         ip_address_hash as ip_address_hash,
         original_edition as original_edition,
-        {{ dbt_utils.star(from=ref('version_usage_data_source'), relation_alias='usage_data', except=['EDITION', 'CREATED_AT', 'SOURCE_IP']) }},
+        {{
+            dbt_utils.star(
+                from=ref("version_usage_data_source"),
+                relation_alias="usage_data",
+                except=["EDITION", "CREATED_AT", "SOURCE_IP"],
+            )
+        }},
         iff(original_edition = 'CE', 'CE', 'EE') as main_edition,
         case
             when original_edition = 'CE'

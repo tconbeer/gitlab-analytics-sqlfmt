@@ -16,7 +16,19 @@
 final as (
 
     select
-        {{ dbt_utils.star(from=ref('mart_service_ping_instance_metric'), except=['CREATED_BY', 'UPDATED_BY', 'MODEL_CREATED_DATE', 'MODEL_UPDATED_DATE', 'DBT_CREATED_AT', 'DBT_UPDATED_AT']) }}
+        {{
+            dbt_utils.star(
+                from=ref("mart_service_ping_instance_metric"),
+                except=[
+                    "CREATED_BY",
+                    "UPDATED_BY",
+                    "MODEL_CREATED_DATE",
+                    "MODEL_UPDATED_DATE",
+                    "DBT_CREATED_AT",
+                    "DBT_UPDATED_AT",
+                ],
+            )
+        }}
     from mart_service_ping_instance_metric
     where
         time_frame = '7d'

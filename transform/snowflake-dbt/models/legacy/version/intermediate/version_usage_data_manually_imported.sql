@@ -5,7 +5,12 @@ with
     usage_data as (
 
         select
-            {{ dbt_utils.star(from=ref('snowflake_imports_usage_ping_payloads_source'), except=['EDITION']) }},
+            {{
+                dbt_utils.star(
+                    from=ref("snowflake_imports_usage_ping_payloads_source"),
+                    except=["EDITION"],
+                )
+            }},
             iff(
                 license_expires_at >= recorded_at or license_expires_at is null,
                 edition,

@@ -2,7 +2,12 @@ with
     notes as (
 
         select
-            {{ dbt_utils.star(from=ref('gitlab_dotcom_notes'), except=["created_at", "updated_at"]) }},
+            {{
+                dbt_utils.star(
+                    from=ref("gitlab_dotcom_notes"),
+                    except=["created_at", "updated_at"],
+                )
+            }},
             created_at as note_created_at,
             updated_at as note_updated_at,
             "{{this.database}}".{{ target.schema }}.regexp_to_array(

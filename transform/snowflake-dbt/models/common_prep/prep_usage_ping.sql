@@ -25,7 +25,12 @@ with
             uuid as dim_instance_id,
             ping_created_at,
             source_ip_hash as ip_address_hash,
-            {{ dbt_utils.star(from=ref('version_usage_data_source'), except=['EDITION', 'CREATED_AT', 'SOURCE_IP']) }},
+            {{
+                dbt_utils.star(
+                    from=ref("version_usage_data_source"),
+                    except=["EDITION", "CREATED_AT", "SOURCE_IP"],
+                )
+            }},
             edition as original_edition,
             iff(
                 license_expires_at >= ping_created_at or license_expires_at is null,
@@ -50,7 +55,13 @@ with
             usage_data.dim_instance_id,
             ping_created_at,
             ip_address_hash,
-            {{ dbt_utils.star(from=ref('version_usage_data_source'), relation_alias='usage_data', except=['EDITION', 'CREATED_AT', 'SOURCE_IP']) }},
+            {{
+                dbt_utils.star(
+                    from=ref("version_usage_data_source"),
+                    relation_alias="usage_data",
+                    except=["EDITION", "CREATED_AT", "SOURCE_IP"],
+                )
+            }},
             original_edition,
             cleaned_edition as edition,
             iff(original_edition = 'CE', 'CE', 'EE') as main_edition,

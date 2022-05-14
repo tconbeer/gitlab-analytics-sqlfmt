@@ -2,7 +2,12 @@ with
     sfdc_contact as (
 
         select
-            {{ dbt_utils.star(from=ref('sfdc_contact'), except=["CONTACT_EMAIL", "CONTACT_NAME"]) }}
+            {{
+                dbt_utils.star(
+                    from=ref("sfdc_contact"),
+                    except=["CONTACT_EMAIL", "CONTACT_NAME"],
+                )
+            }}
         from {{ ref("sfdc_contact") }}
 
     ),

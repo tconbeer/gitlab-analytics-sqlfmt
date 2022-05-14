@@ -25,7 +25,22 @@ final as (
                 ["reporting_month", "metrics_path", "estimation_grain"]
             )
         }} as rpt_service_ping_instance_metric_adoption_monthly_all_id,
-        {{ dbt_utils.star(from=ref('rpt_service_ping_instance_metric_adoption_subscription_monthly'), except=['RPT_SERVICE_PING_INSTANCE_METRIC_ADOPTION_SUBSCRIPTION_MONTHLY_ID', 'CREATED_BY', 'UPDATED_BY', 'MODEL_CREATED_DATE', 'MODEL_UPDATED_DATE', 'DBT_CREATED_AT', 'DBT_UPDATED_AT']) }}
+        {{
+            dbt_utils.star(
+                from=ref(
+                    "rpt_service_ping_instance_metric_adoption_subscription_monthly"
+                ),
+                except=[
+                    "RPT_SERVICE_PING_INSTANCE_METRIC_ADOPTION_SUBSCRIPTION_MONTHLY_ID",
+                    "CREATED_BY",
+                    "UPDATED_BY",
+                    "MODEL_CREATED_DATE",
+                    "MODEL_UPDATED_DATE",
+                    "DBT_CREATED_AT",
+                    "DBT_UPDATED_AT",
+                ],
+            )
+        }}
     from rpt_service_ping_instance_metric_adoption_subscription_monthly
 
     union all
@@ -36,7 +51,22 @@ final as (
                 ["reporting_month", "metrics_path", "estimation_grain"]
             )
         }} as rpt_service_ping_instance_metric_adoption_monthly_all_id,
-        {{ dbt_utils.star(from=ref('rpt_service_ping_instance_metric_adoption_subscription_metric_monthly'), except=['RPT_SERVICE_PING_INSTANCE_METRIC_ADOPTION_SUBSCRIPTION_METRIC_MONTHLY_ID', 'CREATED_BY', 'UPDATED_BY', 'MODEL_CREATED_DATE', 'MODEL_UPDATED_DATE', 'DBT_CREATED_AT', 'DBT_UPDATED_AT']) }}
+        {{
+            dbt_utils.star(
+                from=ref(
+                    "rpt_service_ping_instance_metric_adoption_subscription_metric_monthly"
+                ),
+                except=[
+                    "RPT_SERVICE_PING_INSTANCE_METRIC_ADOPTION_SUBSCRIPTION_METRIC_MONTHLY_ID",
+                    "CREATED_BY",
+                    "UPDATED_BY",
+                    "MODEL_CREATED_DATE",
+                    "MODEL_UPDATED_DATE",
+                    "DBT_CREATED_AT",
+                    "DBT_UPDATED_AT",
+                ],
+            )
+        }}
     from rpt_service_ping_instance_metric_adoption_subscription_metric_monthly
 
 )

@@ -16,7 +16,12 @@
 usage_data as (
 
     select
-        {{ dbt_utils.star(from=ref('version_usage_data'), except=["LICENSE_STARTS_AT", "LICENSE_EXPIRES_AT"]) }}
+        {{
+            dbt_utils.star(
+                from=ref("version_usage_data"),
+                except=["LICENSE_STARTS_AT", "LICENSE_EXPIRES_AT"],
+            )
+        }}
     from {{ ref("version_usage_data") }}
 
 ),

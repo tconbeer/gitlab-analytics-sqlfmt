@@ -2,7 +2,11 @@ with
     sfdc_lead as (
 
         select
-            {{ dbt_utils.star(from=ref('sfdc_lead'), except=["LEAD_EMAIL", "LEAD_NAME"]) }}
+            {{
+                dbt_utils.star(
+                    from=ref("sfdc_lead"), except=["LEAD_EMAIL", "LEAD_NAME"]
+                )
+            }}
         from {{ ref("sfdc_lead") }}
 
     ),

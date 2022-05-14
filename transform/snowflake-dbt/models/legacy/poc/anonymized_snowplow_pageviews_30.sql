@@ -22,8 +22,10 @@ with
 
         select
             {{
-                dbt_utils.star(from=ref('snowplow_page_views_30'), 
-                                           except=fields_to_exclude|upper)
+                dbt_utils.star(
+                    from=ref("snowplow_page_views_30"),
+                    except=fields_to_exclude | upper,
+                )
             }}
         from {{ ref("snowplow_page_views_30") }}
 

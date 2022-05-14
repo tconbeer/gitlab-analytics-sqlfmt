@@ -5,7 +5,12 @@ with recursive
     flattening as (
 
         select
-            {{ dbt_utils.star(from=ref('zuora_subscription_intermediate'), except=["ZUORA_RENEWAL_SUBSCRIPTION_NAME_SLUGIFY"]) }},
+            {{
+                dbt_utils.star(
+                    from=ref("zuora_subscription_intermediate"),
+                    except=["ZUORA_RENEWAL_SUBSCRIPTION_NAME_SLUGIFY"],
+                )
+            }},
 
             iff(
                 array_to_string(zuora_renewal_subscription_name_slugify, ',') is null,

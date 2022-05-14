@@ -27,7 +27,13 @@
 joined as (
 
     select
-        {{ dbt_utils.star(from=ref('prep_usage_ping'), relation_alias='prep_usage_ping', except=['EDITION', 'CREATED_AT', 'SOURCE_IP']) }},
+        {{
+            dbt_utils.star(
+                from=ref("prep_usage_ping"),
+                relation_alias="prep_usage_ping",
+                except=["EDITION", "CREATED_AT", "SOURCE_IP"],
+            )
+        }},
         main_edition as edition,
         main_edition_product_tier as edition_product_tier,
         ping_source as usage_ping_delivery_type,

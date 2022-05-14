@@ -40,7 +40,12 @@ select
 
     sub_months.*,
     charges.service_month,
-    {{ dbt_utils.star(from=ref('zuora_invoice_item'), except=["SUBSCRIPTION_NAME", "SUBSCRIPTION_NAME_SLUGIFY"]) }}
+    {{
+        dbt_utils.star(
+            from=ref("zuora_invoice_item"),
+            except=["SUBSCRIPTION_NAME", "SUBSCRIPTION_NAME_SLUGIFY"],
+        )
+    }}
 from charges
 left join
     sub_months

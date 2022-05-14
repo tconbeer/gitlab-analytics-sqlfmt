@@ -7,7 +7,12 @@ with
     usage_data as (
 
         select
-            {{ dbt_utils.star(from=ref('version_usage_data_source'), except=['EDITION', 'RAW_USAGE_DATA_PAYLOAD_RECONSTRUCTED']) }},
+            {{
+                dbt_utils.star(
+                    from=ref("version_usage_data_source"),
+                    except=["EDITION", "RAW_USAGE_DATA_PAYLOAD_RECONSTRUCTED"],
+                )
+            }},
             iff(
                 license_expires_at >= created_at or license_expires_at is null,
                 edition,
@@ -36,7 +41,13 @@ with
     joined as (
 
         select
-            {{ dbt_utils.star(from=ref('version_usage_data_source'), relation_alias='usage_data', except=['EDITION']) }},
+            {{
+                dbt_utils.star(
+                    from=ref("version_usage_data_source"),
+                    relation_alias="usage_data",
+                    except=["EDITION"],
+                )
+            }},
             cleaned_edition as edition,
             cleaned_version,
             version_is_prerelease,

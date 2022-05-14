@@ -3,15 +3,22 @@ with
     groups_exploded as (
 
         select
-            {{ dbt_utils.star(from=ref('stages_yaml_source'), except=["STAGE_GROUPS"]) }},
-            d.value as data_by_row
+            {{
+                dbt_utils.star(
+                    from=ref("stages_yaml_source"), except=["STAGE_GROUPS"]
+                )
+            }}, d.value as data_by_row
         from source, lateral flatten(input => parse_json(stage_groups::variant) [0]) d
 
     ),
     groups_parsed_out as (
 
         select
-            {{ dbt_utils.star(from=ref('stages_yaml_source'), except=["STAGE_GROUPS"]) }},
+            {{
+                dbt_utils.star(
+                    from=ref("stages_yaml_source"), except=["STAGE_GROUPS"]
+                )
+            }},
             data_by_row['name']::varchar as group_name,
             data_by_row['sets']::array as group_sets,
             data_by_row['pm']::varchar as group_project_manager,

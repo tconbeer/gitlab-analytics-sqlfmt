@@ -6,8 +6,22 @@ with
         select
             {{ hash_of_column("EMAIL_ADDRESS") }}
             {{
-                dbt_utils.star(from=ref('dim_marketing_contact'), except=['EMAIL_ADDRESS', 'FIRST_NAME', 'LAST_NAME', 'GITLAB_USER_NAME',
-                      'MOBILE_PHONE', 'CREATED_BY', 'UPDATED_BY', 'MODEL_CREATED_DATE', 'MODEL_UPDATED_DATE', 'DBT_UPDATED_AT', 'DBT_CREATED_AT'])
+                dbt_utils.star(
+                    from=ref("dim_marketing_contact"),
+                    except=[
+                        "EMAIL_ADDRESS",
+                        "FIRST_NAME",
+                        "LAST_NAME",
+                        "GITLAB_USER_NAME",
+                        "MOBILE_PHONE",
+                        "CREATED_BY",
+                        "UPDATED_BY",
+                        "MODEL_CREATED_DATE",
+                        "MODEL_UPDATED_DATE",
+                        "DBT_UPDATED_AT",
+                        "DBT_CREATED_AT",
+                    ],
+                )
             }}
         from {{ ref("dim_marketing_contact") }}
 

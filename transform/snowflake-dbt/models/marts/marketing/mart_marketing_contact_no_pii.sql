@@ -7,8 +7,24 @@ with
 
         select
             {{
-                dbt_utils.star(from=ref('mart_marketing_contact'), except=['EMAIL_ADDRESS', 'FIRST_NAME', 'LAST_NAME', 'GITLAB_USER_NAME', 'GITLAB_DOTCOM_USER_ID',
-                      'MOBILE_PHONE', 'PQL_NAMESPACE_NAME', 'CREATED_BY', 'UPDATED_BY', 'MODEL_CREATED_DATE', 'MODEL_UPDATED_DATE', 'DBT_UPDATED_AT', 'DBT_CREATED_AT'])
+                dbt_utils.star(
+                    from=ref("mart_marketing_contact"),
+                    except=[
+                        "EMAIL_ADDRESS",
+                        "FIRST_NAME",
+                        "LAST_NAME",
+                        "GITLAB_USER_NAME",
+                        "GITLAB_DOTCOM_USER_ID",
+                        "MOBILE_PHONE",
+                        "PQL_NAMESPACE_NAME",
+                        "CREATED_BY",
+                        "UPDATED_BY",
+                        "MODEL_CREATED_DATE",
+                        "MODEL_UPDATED_DATE",
+                        "DBT_UPDATED_AT",
+                        "DBT_CREATED_AT",
+                    ],
+                )
             }}
         from {{ ref("mart_marketing_contact") }}
 

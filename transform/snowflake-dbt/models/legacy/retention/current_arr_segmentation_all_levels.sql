@@ -7,8 +7,14 @@ with
             dim_parent_crm_account_id as parent_account_id,
             dim_crm_account_id as sfdc_account_id,
             {{
-                dbt_utils.star(from=ref('mart_arr'), 
-                            except=["oldest_subscription_in_cohort", "dim_parent_crm_account_id", "dim_crm_account_id"])
+                dbt_utils.star(
+                    from=ref("mart_arr"),
+                    except=[
+                        "oldest_subscription_in_cohort",
+                        "dim_parent_crm_account_id",
+                        "dim_crm_account_id",
+                    ],
+                )
             }}
         from {{ ref("mart_arr") }}
 

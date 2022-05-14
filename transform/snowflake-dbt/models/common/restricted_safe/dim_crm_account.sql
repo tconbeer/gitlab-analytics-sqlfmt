@@ -13,9 +13,16 @@ with
         select
             {{
                 dbt_utils.star(
-                           from=ref('prep_crm_account'), 
-                           except=['CREATED_BY','UPDATED_BY','MODEL_CREATED_DATE','MODEL_UPDATED_DATE','DBT_UPDATED_AT','DBT_CREATED_AT']
-                           )
+                    from=ref("prep_crm_account"),
+                    except=[
+                        "CREATED_BY",
+                        "UPDATED_BY",
+                        "MODEL_CREATED_DATE",
+                        "MODEL_UPDATED_DATE",
+                        "DBT_UPDATED_AT",
+                        "DBT_CREATED_AT",
+                    ],
+                )
             }}
         from {{ ref("prep_crm_account") }}
 

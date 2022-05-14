@@ -2,7 +2,11 @@ with
     zendesk_tickets as (
 
         select
-            {{ dbt_utils.star(from=ref('zendesk_tickets_source'), except=['custom_fields']) }}
+            {{
+                dbt_utils.star(
+                    from=ref("zendesk_tickets_source"), except=["custom_fields"]
+                )
+            }}
         from {{ ref("zendesk_tickets_source") }}
 
     ),

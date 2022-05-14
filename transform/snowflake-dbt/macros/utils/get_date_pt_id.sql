@@ -1,11 +1,8 @@
 {% macro get_date_pt_id(column) %}
 
-  TO_NUMBER(
-    TO_CHAR(
-      CONVERT_TIMEZONE('America/Los_Angeles', {{ column }})::DATE
-      ,'YYYYMMDD'
-      )
-    ,'99999999'
-    )
+to_number(
+    to_char(convert_timezone('America/Los_Angeles', {{ column }})::date, 'YYYYMMDD'),
+    '99999999'
+)
 
 {% endmacro %}

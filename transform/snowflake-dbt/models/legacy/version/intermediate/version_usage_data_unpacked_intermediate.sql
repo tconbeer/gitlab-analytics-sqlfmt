@@ -45,8 +45,19 @@ with
     final as (
 
         select
-            {{ dbt_utils.star(from=ref('version_usage_data_with_metadata'), except=["ID", "STATS_USED", "COUNTS", "USAGE_ACTIVITY_BY_STAGE", "ANALYTICS_UNIQUE_VISIT"], relation_alias='usage_data') }},
-            pivoted.*
+            {{
+                dbt_utils.star(
+                    from=ref("version_usage_data_with_metadata"),
+                    except=[
+                        "ID",
+                        "STATS_USED",
+                        "COUNTS",
+                        "USAGE_ACTIVITY_BY_STAGE",
+                        "ANALYTICS_UNIQUE_VISIT",
+                    ],
+                    relation_alias="usage_data",
+                )
+            }}, pivoted.*
 
         from usage_data
         left join pivoted on usage_data.id = pivoted.id
