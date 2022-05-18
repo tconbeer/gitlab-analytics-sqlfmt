@@ -1,21 +1,18 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "social_marketing_metrics") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'social_marketing_metrics') }}
+        select
+            month::date as month_date,
+            channel::varchar as channel,
+            brand::varchar as brand,
+            metric::varchar as metric,
+            is_organic::boolean as is_organic,
+            value::float as value,
+            source::varchar as source,
+            source_details::varchar as source_details
+        from source
+    )
 
-), renamed as (
-
-    SELECT
-      month::DATE                                 AS month_date,
-      channel::VARCHAR                            AS channel,
-      brand::VARCHAR                              AS brand,
-      metric::VARCHAR                             AS metric,
-      is_organic::BOOLEAN                         AS is_organic,
-      value::FLOAT                                AS value,
-      source::VARCHAR                             AS source,
-      source_details::VARCHAR                     AS source_details
-    FROM source
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

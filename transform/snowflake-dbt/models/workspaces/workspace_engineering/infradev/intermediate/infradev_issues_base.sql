@@ -1,14 +1,15 @@
-{{ config(
-    materialized='ephemeral'
-) }}
+{{ config(materialized="ephemeral") }}
 
-WITH source AS (
-    
-    SELECT *
-    FROM {{ ref('dim_issue') }} 
-    WHERE ultimate_parent_namespace_id IN (6543, 9970)
-      AND ARRAY_CONTAINS('infradev'::VARIANT, labels)
-)
+with
+    source as (
 
-SELECT *
-FROM source
+        select *
+        from {{ ref("dim_issue") }}
+        where
+            ultimate_parent_namespace_id in (6543, 9970) and array_contains(
+                'infradev'::variant, labels
+            )
+    )
+
+select *
+from source

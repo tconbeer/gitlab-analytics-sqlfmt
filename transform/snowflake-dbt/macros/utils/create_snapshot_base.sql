@@ -1,37 +1,46 @@
-{%- macro create_snapshot_base(source, primary_key, date_start, date_part, snapshot_id_name) -%}
+{%- macro create_snapshot_base(
+    source, primary_key, date_start, date_part, snapshot_id_name
+) -%}
 
-WITH date_spine AS (
+with
+    date_spine as (
 
-    SELECT DISTINCT
-      DATE_TRUNC({{ date_part }}, date_day) AS date_actual
-    FROM {{ref("date_details")}}
-    WHERE date_day >= '{{ date_start }}'::DATE
-      AND date_day <= CURRENT_DATE   
+        select distinct date_trunc({{ date_part }}, date_day) as date_actual
+        from {{ ref("date_details") }}
+        where date_day >= '{{ date_start }}'::date and date_day <= current_date
 
-), base AS (
+    ),
+    base as (
 
-    SELECT *
-    FROM {{ source }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY {{ primary_key }}, DATE_TRUNC({{ date_part }}, dbt_valid_from)
-                               ORDER BY dbt_valid_from DESC) = 1
+        select *
+        from {{ source }}
+        qualify
+            row_number() over (
+                partition by
+                    {{ primary_key }}, date_trunc({{ date_part }}, dbt_valid_from)
+                order by dbt_valid_from desc
+            ) = 1
 
-), final AS (
+    ),
+    final as (
 
-    SELECT
-      {{ dbt_utils.surrogate_key([primary_key, 'date_actual']) }}       AS unique_key,
-      dbt_scd_id                                                        AS {{ snapshot_id_name }},
-      date_actual,
-      dbt_valid_from                                                    AS valid_from,
-      dbt_valid_to                                                      AS valid_to,
-      IFF(dbt_valid_to IS NULL, TRUE, FALSE)                            AS is_currently_valid,
-      base.*
-    FROM base
-    INNER JOIN date_spine
-      ON base.dbt_valid_from::DATE <= date_spine.date_actual
-      AND (base.dbt_valid_to::DATE > date_spine.date_actual OR base.dbt_valid_to IS NULL)
-    ORDER BY 2,3      
-      
+        select
+            {{ dbt_utils.surrogate_key([primary_key, "date_actual"]) }} as unique_key,
+            dbt_scd_id as {{ snapshot_id_name }},
+            date_actual,
+            dbt_valid_from as valid_from,
+            dbt_valid_to as valid_to,
+            iff(dbt_valid_to is null, true, false) as is_currently_valid,
+            base.*
+        from base
+        inner join
+            date_spine on base.dbt_valid_from::date <= date_spine.date_actual and (
+                base.dbt_valid_to::date > date_spine.date_actual
+                or base.dbt_valid_to is null
+            )
+        order by 2, 3
 
-)
+
+    )
 
 {%- endmacro -%}

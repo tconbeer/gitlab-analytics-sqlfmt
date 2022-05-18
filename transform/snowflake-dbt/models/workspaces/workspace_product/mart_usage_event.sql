@@ -1,68 +1,64 @@
-{{ config(
-    materialized='table',
-    tags=["mnpi_exception"]
-) }}
+{{ config(materialized="table", tags=["mnpi_exception"]) }}
 
-{{ simple_cte([
-    ('dim_namespace', 'dim_namespace'),
-    ('fct_usage_event', 'fct_usage_event'),
-    ('xmau_metrics', 'gitlab_dotcom_xmau_metrics'),
-    ])
+{{
+    simple_cte(
+        [
+            ("dim_namespace", "dim_namespace"),
+            ("fct_usage_event", "fct_usage_event"),
+            ("xmau_metrics", "gitlab_dotcom_xmau_metrics"),
+        ]
+    )
 }}
 
-, fact_with_date AS (
+,
+fact_with_date as (
 
-    SELECT
-      event_id,
-      TO_DATE(event_created_at)                                    AS event_date,
-      dim_user_id,
-      event_name,
-      dim_product_tier_id,
-      dim_subscription_id,
-      dim_crm_account_id,
-      dim_billing_account_id,
-      stage_name,
-      section_name,
-      group_name,
-      data_source,
-      plan_id_at_event_date,
-      plan_name_at_event_date,
-      plan_was_paid_at_event_date,
-      dim_namespace_id,
-      dim_instance_id
-    FROM fct_usage_event
+    select
+        event_id,
+        to_date(event_created_at) as event_date,
+        dim_user_id,
+        event_name,
+        dim_product_tier_id,
+        dim_subscription_id,
+        dim_crm_account_id,
+        dim_billing_account_id,
+        stage_name,
+        section_name,
+        group_name,
+        data_source,
+        plan_id_at_event_date,
+        plan_name_at_event_date,
+        plan_was_paid_at_event_date,
+        dim_namespace_id,
+        dim_instance_id
+    from fct_usage_event
 
-), fact_with_namespace AS (
+),
+fact_with_namespace as (
 
-    SELECT
+    select
         fact.*,
-        TO_DATE(namespace.created_at)                              AS namespace_created_at,
-        DATEDIFF(day, namespace_created_at,GETDATE())              AS days_since_namespace_created
-    FROM fact_with_date as fact
-    LEFT JOIN dim_namespace as namespace
-        ON fact.dim_namespace_id = namespace.dim_namespace_id
+        to_date(namespace.created_at) as namespace_created_at,
+        datediff(day, namespace_created_at, getdate()) as days_since_namespace_created
+    from fact_with_date as fact
+    left join
+        dim_namespace as namespace on fact.dim_namespace_id = namespace.dim_namespace_id
 
-), fact_with_xmau_flags AS (
-    SELECT
-        fact.*,
-        xmau.smau                                                  AS is_smau,
-        xmau.gmau                                                  AS is_gmau,
-        xmau.is_umau                                               AS is_umau
-    FROM fact_with_namespace AS fact
-    LEFT JOIN xmau_metrics AS xmau
-        ON fact.event_name = xmau.events_to_include
+),
+fact_with_xmau_flags as (
+    select fact.*, xmau.smau as is_smau, xmau.gmau as is_gmau, xmau.is_umau as is_umau
+    from fact_with_namespace as fact
+    left join xmau_metrics as xmau on fact.event_name = xmau.events_to_include
 
-), results AS (
+),
+results as (select * from fact_with_xmau_flags)
 
-    SELECT *
-    FROM fact_with_xmau_flags
-
-)
-
-{{ dbt_audit(
-    cte_ref="results",
-    created_by="@dihle",
-    updated_by="@dihle",
-    created_date="2022-01-28",
-    updated_date="2022-02-09"
-) }}
+{{
+    dbt_audit(
+        cte_ref="results",
+        created_by="@dihle",
+        updated_by="@dihle",
+        created_date="2022-01-28",
+        updated_date="2022-02-09",
+    )
+}}

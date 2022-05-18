@@ -1,36 +1,32 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zendesk", "satisfaction_ratings") }}),
 
-    SELECT *
-    FROM {{ source('zendesk', 'satisfaction_ratings') }}
+    renamed as (
 
-),
+        select
 
-renamed AS (
+            -- ids
+            id as satisfaction_rating_id,
+            assignee_id as assignee_id,
+            group_id as group_id,
+            reason_id as reason_id,
+            requester_id as requester_id,
+            ticket_id as ticket_id,
 
-    SELECT
-
-        --ids
-        id                                                  AS satisfaction_rating_id,
-        assignee_id                                         AS assignee_id,
-        group_id                                            AS group_id,
-        reason_id                                           AS reason_id,
-        requester_id                                        AS requester_id,
-        ticket_id                                           AS ticket_id,
-
-        --field
-        comment                                             AS comment,
-        reason                                              AS reason,
-        score,
-        url                                                 AS satisfaction_rating_url,
+            -- field
+            comment as comment,
+            reason as reason,
+            score,
+            url as satisfaction_rating_url,
 
 
-        --dates
-        created_at,
-        updated_at
+            -- dates
+            created_at,
+            updated_at
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

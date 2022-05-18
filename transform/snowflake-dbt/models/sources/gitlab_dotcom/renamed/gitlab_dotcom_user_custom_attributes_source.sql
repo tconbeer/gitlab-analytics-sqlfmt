@@ -1,21 +1,22 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_user_custom_attributes_dedupe_source') }}
+        select * from {{ ref("gitlab_dotcom_user_custom_attributes_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-  SELECT
-    user_id::NUMBER       AS user_id,
-    created_at::TIMESTAMP AS created_at,
-    updated_at::TIMESTAMP AS updated_at,
-    key::VARCHAR          AS user_custom_key,
-    value::VARCHAR        AS user_custom_value
-  FROM source
-  QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+        select
+            user_id::number as user_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            key::varchar as user_custom_key,
+            value::varchar as user_custom_value
+        from source
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

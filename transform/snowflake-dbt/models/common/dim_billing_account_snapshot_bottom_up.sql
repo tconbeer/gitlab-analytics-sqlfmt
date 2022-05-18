@@ -1,71 +1,84 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-{{ simple_cte([
-    ('map_merged_crm_account','map_merged_crm_account'),
-    ('zuora_contact','zuora_contact_source')
-]) }}
+{{
+    simple_cte(
+        [
+            ("map_merged_crm_account", "map_merged_crm_account"),
+            ("zuora_contact", "zuora_contact_source"),
+        ]
+    )
+}}
 
-, snapshot_dates AS (
+,
+snapshot_dates as (
 
-   SELECT *
-   FROM {{ ref('dim_date') }}
-   WHERE date_actual >= '2020-03-01' and date_actual <= CURRENT_DATE
+    select *
+    from {{ ref("dim_date") }}
+    where date_actual >= '2020-03-01' and date_actual <= current_date
 
-), zuora_account AS (
+),
+zuora_account as (
 
-    SELECT *
-    FROM {{ ref('zuora_account_snapshots_source') }}
-    WHERE is_deleted = FALSE
-      AND LOWER(live_batch) != 'batch20'
+    select *
+    from {{ ref("zuora_account_snapshots_source") }}
+    where is_deleted = false and lower(live_batch) != 'batch20'
 
-), zuora_account_spined AS (
+),
+zuora_account_spined as (
 
-    SELECT
-      snapshot_dates.date_id AS snapshot_id,
-      zuora_account.*
-    FROM zuora_account
-    INNER JOIN snapshot_dates
-      ON snapshot_dates.date_actual >= zuora_account.dbt_valid_from
-      AND snapshot_dates.date_actual < {{ coalesce_to_infinity('zuora_account.dbt_valid_to') }}
+    select snapshot_dates.date_id as snapshot_id, zuora_account.*
+    from zuora_account
+    inner join
+        snapshot_dates
+        on snapshot_dates.date_actual >= zuora_account.dbt_valid_from
+        and snapshot_dates.date_actual
+        < {{ coalesce_to_infinity("zuora_account.dbt_valid_to") }}
 
-), joined AS (
+),
+joined as (
 
-    SELECT
-      zuora_account_spined.snapshot_id,
-      zuora_account_spined.account_id                              AS dim_billing_account_id,
-      map_merged_crm_account.dim_crm_account_id,
-      zuora_account_spined.account_number                          AS billing_account_number,
-      zuora_account_spined.account_name                            AS billing_account_name,
-      zuora_account_spined.status                                  AS account_status,
-      zuora_account_spined.parent_id,
-      zuora_account_spined.sfdc_account_code,
-      zuora_account_spined.currency                                AS account_currency,
-      zuora_contact.country                                        AS sold_to_country,
-      zuora_account_spined.ssp_channel,
-      zuora_account_spined.po_required,
-      zuora_account_spined.is_deleted,
-      zuora_account_spined.batch
-    FROM zuora_account_spined
-    LEFT JOIN zuora_contact
-      ON COALESCE(zuora_account_spined.sold_to_contact_id, zuora_account_spined.bill_to_contact_id) = zuora_contact.contact_id
-    LEFT JOIN map_merged_crm_account
-      ON zuora_account_spined.crm_id = map_merged_crm_account.sfdc_account_id
+    select
+        zuora_account_spined.snapshot_id,
+        zuora_account_spined.account_id as dim_billing_account_id,
+        map_merged_crm_account.dim_crm_account_id,
+        zuora_account_spined.account_number as billing_account_number,
+        zuora_account_spined.account_name as billing_account_name,
+        zuora_account_spined.status as account_status,
+        zuora_account_spined.parent_id,
+        zuora_account_spined.sfdc_account_code,
+        zuora_account_spined.currency as account_currency,
+        zuora_contact.country as sold_to_country,
+        zuora_account_spined.ssp_channel,
+        zuora_account_spined.po_required,
+        zuora_account_spined.is_deleted,
+        zuora_account_spined.batch
+    from zuora_account_spined
+    left join
+        zuora_contact on coalesce(
+            zuora_account_spined.sold_to_contact_id,
+            zuora_account_spined.bill_to_contact_id
+        ) = zuora_contact.contact_id
+    left join
+        map_merged_crm_account
+        on zuora_account_spined.crm_id = map_merged_crm_account.sfdc_account_id
 
-), final AS (
+),
+final as (
 
-    SELECT
-        {{ dbt_utils.surrogate_key(['snapshot_id', 'dim_billing_account_id']) }}   AS billing_account_snapshot_id,
+    select
+        {{ dbt_utils.surrogate_key(["snapshot_id", "dim_billing_account_id"]) }}
+        as billing_account_snapshot_id,
         joined.*
-    FROM joined
+    from joined
 
 )
 
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@iweeks",
-    updated_by="@jpeguero",
-    created_date="2021-08-09",
-    updated_date="2021-10-21"
-) }}
+{{
+    dbt_audit(
+        cte_ref="final",
+        created_by="@iweeks",
+        updated_by="@jpeguero",
+        created_date="2021-08-09",
+        updated_date="2021-10-21",
+    )
+}}

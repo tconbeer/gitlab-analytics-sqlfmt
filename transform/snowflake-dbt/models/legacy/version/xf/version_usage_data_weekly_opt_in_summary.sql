@@ -1,68 +1,74 @@
-{{ config({
-    "materialized": "table"
-    })
-}}
+{{ config({"materialized": "table"}) }}
 
 
-WITH licenses AS (
- 
-  SELECT *
-  FROM {{ ref('customers_db_licenses_source') }}
-  WHERE license_md5 IS NOT NULL
-    AND is_trial = False
-    -- Remove internal test licenses
-    AND NOT (email LIKE '%@gitlab.com' AND LOWER(company) LIKE '%gitlab%')
-    
-), usage_data AS (
+with
+    licenses as (
 
-  SELECT *
-  FROM {{ ref('version_usage_data_unpacked') }}
-  WHERE license_md5 IS NOT NULL
+        select *
+        from {{ ref("customers_db_licenses_source") }}
+        where
+            -- Remove internal test licenses
+            license_md5 is not null and is_trial = false and not (
+                email like '%@gitlab.com' and lower(company) like '%gitlab%'
+            )
 
-), week_spine AS (
+    ),
+    usage_data as (
 
-  SELECT DISTINCT
-    DATE_TRUNC('week', date_actual) AS week
-  FROM {{ ref('date_details') }}
-  WHERE date_details.date_actual BETWEEN '2017-04-01' AND CURRENT_DATE
+        select *
+        from {{ ref("version_usage_data_unpacked") }}
+        where license_md5 is not null
 
-), grouped AS (
+    ),
+    week_spine as (
 
-  SELECT
-    week_spine.week,
-    licenses.license_id,
-    licenses.license_md5,
-    licenses.zuora_subscription_id,
-    licenses.plan_code                                           AS product_category,
-    MAX(IFF(usage_data.id IS NOT NULL, 1, 0))                    AS did_send_usage_data,
-    COUNT(DISTINCT usage_data.id)                                AS count_usage_data_pings,
-    MIN(usage_data.created_at)                                   AS min_usage_data_created_at,
-    MAX(usage_data.created_at)                                   AS max_usage_data_created_at
-  FROM week_spine
-    LEFT JOIN licenses
-      ON week_spine.week BETWEEN licenses.license_start_date AND {{ coalesce_to_infinity("licenses.license_expire_date") }}
-    LEFT JOIN usage_data
-      ON licenses.license_md5 = usage_data.license_md5
-      AND week_spine.week = DATE_TRUNC('week', usage_data.created_at)
-  {{ dbt_utils.group_by(n=5) }}
+        select distinct date_trunc('week', date_actual) as week
+        from {{ ref("date_details") }}
+        where date_details.date_actual between '2017-04-01' and current_date
 
-), alphabetized AS (
+    ),
+    grouped as (
 
-    SELECT
-      week,
-      license_id,
-      license_md5,
-      product_category,
-      zuora_subscription_id,
+        select
+            week_spine.week,
+            licenses.license_id,
+            licenses.license_md5,
+            licenses.zuora_subscription_id,
+            licenses.plan_code as product_category,
+            max(iff(usage_data.id is not null, 1, 0)) as did_send_usage_data,
+            count(distinct usage_data.id) as count_usage_data_pings,
+            min(usage_data.created_at) as min_usage_data_created_at,
+            max(usage_data.created_at) as max_usage_data_created_at
+        from week_spine
+        left join licenses on week_spine.week between licenses.license_start_date and {{
+                coalesce_to_infinity(
+                    "licenses.license_expire_date"
+                )
+            }}
+        left join
+            usage_data
+            on licenses.license_md5 = usage_data.license_md5
+            and week_spine.week = date_trunc('week', usage_data.created_at)
+            {{ dbt_utils.group_by(n=5) }}
 
-      --metadata
-      count_usage_data_pings,
-      did_send_usage_data::BOOLEAN AS did_send_usage_data,
-      min_usage_data_created_at,
-      max_usage_data_created_at
-    FROM grouped
+    ),
+    alphabetized as (
 
-)
+        select
+            week,
+            license_id,
+            license_md5,
+            product_category,
+            zuora_subscription_id,
 
-SELECT *
-FROM alphabetized
+            -- metadata
+            count_usage_data_pings,
+            did_send_usage_data::boolean as did_send_usage_data,
+            min_usage_data_created_at,
+            max_usage_data_created_at
+        from grouped
+
+    )
+
+select *
+from alphabetized

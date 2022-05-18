@@ -1,47 +1,55 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *,
-      RANK() OVER (PARTITION BY DATE_TRUNC('day', uploaded_at) ORDER BY uploaded_at DESC) AS rank
-    FROM {{ source('gitlab_data_yaml', 'feature_flags') }}
-    ORDER BY uploaded_at DESC
+        select
+            *,
+            rank() over (
+                partition by date_trunc('day', uploaded_at) order by uploaded_at desc
+            ) as rank
+        from {{ source("gitlab_data_yaml", "feature_flags") }}
+        order by uploaded_at desc
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-    SELECT d.value                          AS data_by_row,
-    date_trunc('day', uploaded_at)::date    AS snapshot_date,
-    rank
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), OUTER => TRUE) d
+        select
+            d.value as data_by_row,
+            date_trunc('day', uploaded_at)::date as snapshot_date,
+            rank
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      data_by_row['name']::VARCHAR              AS name,
-      data_by_row['type']::VARCHAR              AS type,
-      data_by_row['milestone']::VARCHAR         AS milestone,
-      data_by_row['default_enabled']::VARCHAR   AS is_default_enabled,
-      data_by_row['group']::VARCHAR             AS gitlab_group,
-      data_by_row['introduced_by_url']::VARCHAR AS introduced_by_merge_request_url,
-      data_by_row['rollout_issue_url']::VARCHAR AS rollout_issue_url,
-      snapshot_date,
-      rank
-    FROM intermediate
+        select
+            data_by_row['name']::varchar as name,
+            data_by_row['type']::varchar as type,
+            data_by_row['milestone']::varchar as milestone,
+            data_by_row['default_enabled']::varchar as is_default_enabled,
+            data_by_row['group']::varchar as gitlab_group,
+            data_by_row[
+                'introduced_by_url'
+            ]::varchar as introduced_by_merge_request_url,
+            data_by_row['rollout_issue_url']::varchar as rollout_issue_url,
+            snapshot_date,
+            rank
+        from intermediate
 
-), casting AS (
+    ),
+    casting as (
 
-    SELECT
-      name,
-      type,
-      milestone,
-      TRY_TO_BOOLEAN(is_default_enabled) AS is_default_enabled,
-      gitlab_group,
-      introduced_by_merge_request_url,
-      rollout_issue_url,
-      snapshot_date,
-      rank
-    FROM renamed
-)
+        select
+            name,
+            type,
+            milestone,
+            try_to_boolean(is_default_enabled) as is_default_enabled,
+            gitlab_group,
+            introduced_by_merge_request_url,
+            rollout_issue_url,
+            snapshot_date,
+            rank
+        from renamed
+    )
 
-SELECT *
-FROM casting
-
+select *
+from casting

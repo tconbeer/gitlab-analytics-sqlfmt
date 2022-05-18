@@ -1,33 +1,31 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "departments") }}),
+    renamed as (
 
-    SELECT *
+        select
 
-      FROM {{ source('greenhouse', 'departments') }}
+            -- keys
+            id::number as department_id,
+            organization_id::number as organization_id,
+            parent_id::number as parent_id,
 
-), renamed as (
-
-    SELECT
-
-                --keys
-                id::NUMBER                  AS department_id,
-                organization_id::NUMBER     AS organization_id,
-                parent_id::NUMBER           AS parent_id,
-
-                --info
-                name::VARCHAR(100)          AS department_name,
-                created_at::timestamp       AS department_created_at,
-                updated_at::timestamp       AS department_updated_at
+            -- info
+            name::varchar(100) as department_name,
+            created_at::timestamp as department_created_at,
+            updated_at::timestamp as department_updated_at
 
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT 
-  department_id,
-  organization_id,
-  parent_id,
-  replace(replace(department_name,')',''),'(','')::VARCHAR(100) AS department_name,
-  department_created_at,
-  department_updated_at
-FROM renamed
+select
+    department_id,
+    organization_id,
+    parent_id,
+    replace(replace(department_name, ')', ''), '(', '')::varchar(
+        100
+    ) as department_name,
+    department_created_at,
+    department_updated_at
+from renamed
