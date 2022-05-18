@@ -6,7 +6,7 @@
 
 {% set meta_columns = [] %}
 
-{% set fqname = node_type ~ '.' ~ project ~ '.' ~ model_name %}
+{% set fqname = node_type ~ "." ~ project ~ "." ~ model_name %}
 {% set columns = graph.nodes[fqname]["columns"] %}
 
 {% for column in columns %}

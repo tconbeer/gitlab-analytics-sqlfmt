@@ -1,6 +1,8 @@
 -- > First date in dim_date, used to back-fill the initial default settings for CI
 -- minutes and storage limits.
-{%- set first_ = dbt_utils.get_query_results_as_dict("SELECT MIN(date_actual) AS date FROM " ~ ref('dim_date')) -%}
+{%- set first_ = dbt_utils.get_query_results_as_dict(
+    "SELECT MIN(date_actual) AS date FROM " ~ ref("dim_date")
+) -%}
 {%- set first_ci_minute_limit = 2000 -%}
 {%- set first_repository_storage_limit = 10737418240 -%}  -- > 1 GiB, in bytes.
 -- > Date that the default limit for CI minutes was updated from 2000 to 400.

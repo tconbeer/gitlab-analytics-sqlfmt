@@ -1,13 +1,10 @@
 {{ config(tags=["mnpi_exception"]) }}
 
 {%- set smau_metrics = dbt_utils.get_query_results_as_dict(
-    "SELECT
-       stage_name || '_' || sql_friendly_name   AS name,
-       sql_friendly_path                        AS path
-    FROM " ~ ref('dim_key_xmau_metric') ~
-    " WHERE is_smau
-    ORDER BY name"
-    ) -%}
+    "SELECT        stage_name || '_' || sql_friendly_name   AS name,        sql_friendly_path                        AS path     FROM "
+    ~ ref("dim_key_xmau_metric")
+    ~ " WHERE is_smau     ORDER BY name"
+) -%}
 
 with
     prep_usage_ping as (

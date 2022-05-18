@@ -4,7 +4,7 @@
     order_by_column="snapshot_month"
 ) -%}
 
-{%- set ping_over_ping_alias =  all_time_event_metric_column ~ '_since_last_ping' -%}
+{%- set ping_over_ping_alias = all_time_event_metric_column ~ "_since_last_ping" -%}
 
 {{ all_time_event_metric_column }},
 {{ all_time_event_metric_column }} - lag({{ all_time_event_metric_column }})

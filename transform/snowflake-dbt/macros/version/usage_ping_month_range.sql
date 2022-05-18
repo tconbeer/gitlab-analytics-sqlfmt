@@ -4,8 +4,8 @@
     partition_by_columns=["dim_subscription_id", "uuid", "hostname"]
 ) -%}
 
-{%- set first_month_alias =  all_time_event_metric_column ~ '_first_ping_month' -%}
-{%- set last_month_alias =  all_time_event_metric_column ~ '_last_ping_month' -%}
+{%- set first_month_alias = all_time_event_metric_column ~ "_first_ping_month" -%}
+{%- set last_month_alias = all_time_event_metric_column ~ "_last_ping_month" -%}
 
 min(
     iff({{ all_time_event_metric_column }} is not null, {{ month_column }}, null)

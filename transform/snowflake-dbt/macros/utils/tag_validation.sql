@@ -36,7 +36,11 @@
 {% for tag in project_tags %}
 
 {% if tag not in valid_tags %}
-{% set error_message.errors = error_message.errors + ["Tag '" ~ tag ~ "' is present in the project but not in the tag_validation seed file."] %}
+{% set error_message.errors = error_message.errors + [
+    "Tag '"
+    ~ tag
+    ~ "' is present in the project but not in the tag_validation seed file."
+] %}
 {% endif %}
 
 {% endfor %}
@@ -44,7 +48,11 @@
 {% for tag in valid_tags %}
 
 {% if tag not in project_tags %}
-{% set error_message.errors = error_message.errors + ["Tag '" ~ tag ~ "' is present in the tag_validation seed file but not in project."] %}
+{% set error_message.errors = error_message.errors + [
+    "Tag '"
+    ~ tag
+    ~ "' is present in the tag_validation seed file but not in project."
+] %}
 {% endif %}
 
 {% endfor %}
