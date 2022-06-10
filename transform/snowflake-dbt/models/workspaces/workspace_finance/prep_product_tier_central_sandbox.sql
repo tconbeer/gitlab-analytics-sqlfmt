@@ -1,79 +1,86 @@
-WITH product_tier_mapping AS (
+with
+    product_tier_mapping as (
 
-    SELECT *
-    FROM {{ ref('map_product_tier_central_sandbox') }}
+        select * from {{ ref("map_product_tier_central_sandbox") }}
 
-), mapping AS (
+    ),
+    mapping as (
 
-    SELECT DISTINCT 
-      product_tier_historical,
-      product_tier,
-      product_delivery_type,
-      product_ranking        
-    FROM product_tier_mapping
-    
-    UNION ALL
-    
-    SELECT
-      'SaaS - Free'                                                 AS product_tier_historical,
-      'SaaS - Free'                                                 AS product_tier,
-      'SaaS'                                                        AS product_delivery_type,
-      0                                                             AS product_ranking
-    
-    UNION ALL
-    
-    SELECT
-      'Self-Managed - Core'                                         AS product_tier_historical,
-      'Self-Managed - Free'                                         AS product_tier,
-      'Self-Managed'                                                AS product_delivery_type,
-      0                                                             AS product_ranking
-  
-    UNION ALL
-    
-    SELECT
-      'SaaS - Trial: Gold'                                          AS product_tier_historical,
-      'SaaS - Trial: Ultimate'                                      AS product_tier,
-      'SaaS'                                                        AS product_delivery_type,
-      0                                                             AS product_ranking
-  
-    UNION ALL
-    
-    SELECT
-      'Self-Managed - Trial: Ultimate'                              AS product_tier_historical,
-      'Self-Managed - Trial: Ultimate'                              AS product_tier,
-      'Self-Managed'                                                AS product_delivery_type,
-      0                                                             AS product_ranking
+        select distinct
+            product_tier_historical,
+            product_tier,
+            product_delivery_type,
+            product_ranking
+        from product_tier_mapping
 
-), final AS (
+        UNION ALL
 
-  SELECT
-    {{ dbt_utils.surrogate_key(['product_tier_historical']) }}      AS dim_product_tier_id,
-    product_tier_historical,
-    SPLIT_PART(product_tier_historical, ' - ', -1)                  AS product_tier_historical_short,
-    product_tier                                                    AS product_tier_name,
-    SPLIT_PART(product_tier, ' - ', -1)                             AS product_tier_name_short,
-    product_delivery_type,
-    product_ranking
-  FROM mapping
-  
-  UNION ALL
-  
-  SELECT
-    MD5('-1')                                                       AS dim_product_tier_id,
-    '(Unknown Historical Tier)'                                     AS product_tier_historical,
-    '(Unknown Historical Tier Name)'                                AS product_tier_historical_short,
-    '(Unknown Tier)'                                                AS product_tier_name,
-    '(Unknown Tier Name)'                                           AS product_tier_name_short,
-    '(Unknown Delivery Type)'                                       AS product_delivery_type,
-    -1                                                              AS product_ranking
+        select
+            'SaaS - Free' as product_tier_historical,
+            'SaaS - Free' as product_tier,
+            'SaaS' as product_delivery_type,
+            0 as product_ranking
 
-)
+        UNION ALL
+
+        select
+            'Self-Managed - Core' as product_tier_historical,
+            'Self-Managed - Free' as product_tier,
+            'Self-Managed' as product_delivery_type,
+            0 as product_ranking
+
+        UNION ALL
+
+        select
+            'SaaS - Trial: Gold' as product_tier_historical,
+            'SaaS - Trial: Ultimate' as product_tier,
+            'SaaS' as product_delivery_type,
+            0 as product_ranking
+
+        UNION ALL
+
+        select
+            'Self-Managed - Trial: Ultimate' as product_tier_historical,
+            'Self-Managed - Trial: Ultimate' as product_tier,
+            'Self-Managed' as product_delivery_type,
+            0 as product_ranking
+
+    ),
+    final as (
+
+        select
+            {{ dbt_utils.surrogate_key(["product_tier_historical"]) }}
+            as dim_product_tier_id,
+            product_tier_historical,
+            split_part(
+                product_tier_historical, ' - ', -1
+            ) as product_tier_historical_short,
+            product_tier as product_tier_name,
+            split_part(product_tier, ' - ', -1) as product_tier_name_short,
+            product_delivery_type,
+            product_ranking
+        from mapping
+
+        UNION ALL
+
+        select
+            md5('-1') as dim_product_tier_id,
+            '(Unknown Historical Tier)' as product_tier_historical,
+            '(Unknown Historical Tier Name)' as product_tier_historical_short,
+            '(Unknown Tier)' as product_tier_name,
+            '(Unknown Tier Name)' as product_tier_name_short,
+            '(Unknown Delivery Type)' as product_delivery_type,
+            -1 as product_ranking
+
+    )
 
 
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@michellecooper",
-    updated_by="@michellecooper",
-    created_date="2022-03-31",
-    updated_date="2022-03-31"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@michellecooper",
+            updated_by="@michellecooper",
+            created_date="2022-03-31",
+            updated_date="2022-03-31",
+        )
+    }}

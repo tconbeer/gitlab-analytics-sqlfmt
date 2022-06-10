@@ -1,38 +1,37 @@
-      
-{{ config(
-    materialized='ephemeral'
-) }}
 
-WITH source AS (
-  SELECT
-    *
-  FROM {{ ref('greenhouse_departments_source') }} 
-),
-  greenhouse_departments (department_name, department_id, hierarchy_id, hierarchy_name) AS (
-    SELECT
-      department_name,
-      department_id,
-      TO_ARRAY(department_id)   AS hierarchy_id,
-      TO_ARRAY(department_name) AS hierarchy_name
-    FROM source
-    WHERE parent_id IS NULL
-    UNION ALL
-    SELECT
-      iteration.department_name,
-      iteration.department_id,
-      ARRAY_APPEND(anchor.hierarchy_id, iteration.department_id)     AS hierarchy_id,
-      ARRAY_APPEND(anchor.hierarchy_name, iteration.department_name) AS hierarchy_name
-    FROM source iteration
-    INNER JOIN greenhouse_departments anchor
-      ON iteration.parent_id = anchor.department_id
-  )
-SELECT
-  department_name,
-  department_id,
-  ARRAY_SIZE(hierarchy_id)   AS hierarchy_level,
-  hierarchy_id,
-  hierarchy_name,
-  hierarchy_name[0]::VARCHAR AS level_1,
-  hierarchy_name[1]::VARCHAR AS level_2,
-  hierarchy_name[2]::VARCHAR AS level_3
-FROM greenhouse_departments
+{{ config(materialized="ephemeral") }}
+
+with
+    source as (select * from {{ ref("greenhouse_departments_source") }}),
+    greenhouse_departments(
+        department_name, department_id, hierarchy_id, hierarchy_name
+    ) as (
+        select
+            department_name,
+            department_id,
+            to_array(department_id) as hierarchy_id,
+            to_array(department_name) as hierarchy_name
+        from source
+        where parent_id is null
+        UNION ALL
+        select
+            iteration.department_name,
+            iteration.department_id,
+            array_append(anchor.hierarchy_id, iteration.department_id) as hierarchy_id,
+            array_append(
+                anchor.hierarchy_name, iteration.department_name
+            ) as hierarchy_name
+        from source iteration
+        inner join
+            greenhouse_departments anchor on iteration.parent_id = anchor.department_id
+    )
+select
+    department_name,
+    department_id,
+    array_size(hierarchy_id) as hierarchy_level,
+    hierarchy_id,
+    hierarchy_name,
+    hierarchy_name[0]::varchar as level_1,
+    hierarchy_name[1]::varchar as level_2,
+    hierarchy_name[2]::varchar as level_3
+from greenhouse_departments

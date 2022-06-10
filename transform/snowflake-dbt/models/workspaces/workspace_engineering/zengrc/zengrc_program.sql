@@ -1,56 +1,72 @@
-{{ simple_cte([
-    ('audits','zengrc_audit_source'),
-    ('issues','zengrc_issue_source'),
-    ('requests','zengrc_request_source')
-])}}
+{{
+    simple_cte(
+        [
+            ("audits", "zengrc_audit_source"),
+            ("issues", "zengrc_issue_source"),
+            ("requests", "zengrc_request_source"),
+        ]
+    )
+}}
 
-, audit_programs AS (
+,
+audit_programs as (
 
-    SELECT
-      audits.program_id,
-      audits.program_title,
-      audits.program_type AS zengrc_object_type
-    FROM audits
-    WHERE audits.program_id IS NOT NULL
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY audits.program_id ORDER BY audit_uploaded_at DESC ) = 1
+    select
+        audits.program_id,
+        audits.program_title,
+        audits.program_type as zengrc_object_type
+    from audits
+    where audits.program_id is not null
+    qualify
+        row_number() over (
+            partition by audits.program_id order by audit_uploaded_at desc
+        ) = 1
 
-), issue_programs AS (
+),
+issue_programs as (
 
-    SELECT
-      mapped_programs.value['id']::NUMBER     AS program_id,
-      mapped_programs.value['title']::VARCHAR AS program_title,
-      mapped_programs.value['type']::VARCHAR  AS zengrc_type
-    FROM issues
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(issues.mapped_programs)) mapped_programs
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY program_id ORDER BY issue_updated_at DESC ) = 1
+    select
+        mapped_programs.value['id']::number as program_id,
+        mapped_programs.value['title']::varchar as program_title,
+        mapped_programs.value['type']::varchar as zengrc_type
+    from issues
+    inner join
+        lateral flatten(input => try_parse_json(issues.mapped_programs)) mapped_programs
+    qualify
+        row_number() over (partition by program_id order by issue_updated_at desc) = 1
 
-), requests_programs AS (
+),
+requests_programs as (
 
-    SELECT
-      mapped_programs.value['id']::NUMBER     AS program_id,
-      mapped_programs.value['title']::VARCHAR AS program_title,
-      mapped_programs.value['type']::VARCHAR  AS zengrc_type
-    FROM requests
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(requests.mapped_programs)) mapped_programs
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY program_id ORDER BY request_updated_at DESC ) = 1
+    select
+        mapped_programs.value['id']::number as program_id,
+        mapped_programs.value['title']::varchar as program_title,
+        mapped_programs.value['type']::varchar as zengrc_type
+    from requests
+    inner join
+        lateral flatten(
+            input => try_parse_json(requests.mapped_programs)
+        ) mapped_programs
+    qualify
+        row_number() over (partition by program_id order by request_updated_at desc) = 1
 
-), unioned AS (
+),
+unioned as (
 
-    SELECT *
-    FROM audit_programs
+    select *
+    from audit_programs
 
-    UNION 
+    UNION
 
-    SELECT *
-    FROM issue_programs
+    select *
+    from issue_programs
 
-    UNION 
+    UNION
 
-    SELECT *
-    FROM requests_programs
+    select *
+    from requests_programs
 
 )
 
-SELECT *
-FROM unioned
-
+select *
+from unioned

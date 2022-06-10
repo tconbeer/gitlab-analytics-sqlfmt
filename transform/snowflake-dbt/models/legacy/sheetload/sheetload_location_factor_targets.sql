@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("sheetload_location_factor_targets_source") }})
 
-    SELECT *
-    FROM {{ ref('sheetload_location_factor_targets_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

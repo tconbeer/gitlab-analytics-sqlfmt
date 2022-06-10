@@ -1,28 +1,30 @@
 
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ source('sheetload', 'gitlab_certification_tracking_dashboard') }}
+        select *
+        from {{ source("sheetload", "gitlab_certification_tracking_dashboard") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-  SELECT
-    user::VARCHAR                                       AS user,
-    account::VARCHAR                                    AS account,
-    passed_datetime::TIMESTAMP                          AS passed_datetime,
-    certification::VARCHAR                              AS certification,
-    cert_date::DATE                                     AS cert_date,
-    partner_sfdc_id::VARCHAR                            AS partner_sfdc_id,
-    account_owner::VARCHAR                              AS account_owner,
-    region::VARCHAR                                     AS region,
-    track::VARCHAR                                      AS track,
-    pubsec_partner::BOOLEAN                             AS pubsec_partner,
-    cert_month::VARCHAR                                 AS cert_month,
-    cert_quarter::VARCHAR                               AS cert_quarter,
-    DATEADD('s', _updated_at, '1970-01-01')::TIMESTAMP  AS _updated_at
-  FROM source
+        select
+            user::varchar as user,
+            account::varchar as account,
+            passed_datetime::timestamp as passed_datetime,
+            certification::varchar as certification,
+            cert_date::date as cert_date,
+            partner_sfdc_id::varchar as partner_sfdc_id,
+            account_owner::varchar as account_owner,
+            region::varchar as region,
+            track::varchar as track,
+            pubsec_partner::boolean as pubsec_partner,
+            cert_month::varchar as cert_month,
+            cert_quarter::varchar as cert_quarter,
+            dateadd('s', _updated_at, '1970-01-01')::timestamp as _updated_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

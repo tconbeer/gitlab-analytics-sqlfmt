@@ -1,14 +1,9 @@
 -- depends_on: {{ ref('zuora_excluded_accounts') }}
+with source as (select * from {{ ref("zuora_subscription_source") }})
 
-WITH source AS (
-
-    SELECT *
-    FROM {{ ref('zuora_subscription_source') }}
-
-)
-
-SELECT *
-FROM source
-WHERE is_deleted = FALSE
-  AND exclude_from_analysis IN ('False', '')
-  AND account_id NOT IN ({{ zuora_excluded_accounts() }})
+select *
+from source
+where
+    is_deleted = false and exclude_from_analysis in (
+        'False', ''
+    ) and account_id not in ({{ zuora_excluded_accounts() }})

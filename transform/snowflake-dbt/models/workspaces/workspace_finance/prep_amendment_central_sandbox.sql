@@ -1,80 +1,84 @@
-WITH zuora_central_sandbox_amendment AS (
+with
+    zuora_central_sandbox_amendment as (
 
-  SELECT *
-  FROM {{ ref('zuora_central_sandbox_amendment_source') }}
-  WHERE is_deleted = FALSE
+        select *
+        from {{ ref("zuora_central_sandbox_amendment_source") }}
+        where is_deleted = false
 
-), base AS (
+    ),
+    base as (
 
-    SELECT
-      --Surrogate Key
-      amendment_id                         AS dim_amendment_id,
+        select
+            -- Surrogate Key
+            amendment_id as dim_amendment_id,
 
-      --Common Dimension keys
-      subscription_id                      AS dim_subscription_id,
+            -- Common Dimension keys
+            subscription_id as dim_subscription_id,
 
-      --Information
-      amendment_name,
-      amendment_type,
-      amendment_description,
-      auto_renew,
-      amendment_code,
-      amendment_status,
+            -- Information
+            amendment_name,
+            amendment_type,
+            amendment_description,
+            auto_renew,
+            amendment_code,
+            amendment_status,
 
-      --Term information
-      term_type,
-      current_term,
-      current_term_period_type,
-      renewal_term,
-      renewal_term_period_type,
-      renewal_setting,
+            -- Term information
+            term_type,
+            current_term,
+            current_term_period_type,
+            renewal_term,
+            renewal_term_period_type,
+            renewal_setting,
 
-      --Dates
-      term_start_date,
-      effective_date,
-      service_activation_date,
-      customer_acceptance_date,
-      contract_effective_date
-    FROM zuora_central_sandbox_amendment
+            -- Dates
+            term_start_date,
+            effective_date,
+            service_activation_date,
+            customer_acceptance_date,
+            contract_effective_date
+        from zuora_central_sandbox_amendment
 
-    UNION ALL
+        UNION ALL
 
-    SELECT
-      --Surrogate Keys
-      MD5('-1')                             AS dim_amendment_id,
+        select
+            -- Surrogate Keys
+            md5('-1') as dim_amendment_id,
 
-      --Common Dimension keys
-      MD5('-1')                             AS dim_subscription_id,
+            -- Common Dimension keys
+            md5('-1') as dim_subscription_id,
 
-      --Information
-      'Missing amendment_name'              AS amendment_name,
-      'Missing amendment_type'              AS amendment_type,
-      'Missing amendment_description'       AS amendment_description,
-      0                                     AS auto_renew,
-      'Missing amendment_code'              AS amendment_code,
-      'Missing amendment_status'            AS amendment_status,
+            -- Information
+            'Missing amendment_name' as amendment_name,
+            'Missing amendment_type' as amendment_type,
+            'Missing amendment_description' as amendment_description,
+            0 as auto_renew,
+            'Missing amendment_code' as amendment_code,
+            'Missing amendment_status' as amendment_status,
 
-      --Term information
-      'Missing term_type'                   AS term_type,
-      -1                                    AS current_term,
-      'Missing current_term_period_type'    AS current_term_period_type,
-      -1                                    AS renewal_term,
-      'Missing renewal_term_period_type'    AS renewal_term_period_type,
-      'Missing renewal_setting'             AS renewal_setting,
+            -- Term information
+            'Missing term_type' as term_type,
+            -1 as current_term,
+            'Missing current_term_period_type' as current_term_period_type,
+            -1 as renewal_term,
+            'Missing renewal_term_period_type' as renewal_term_period_type,
+            'Missing renewal_setting' as renewal_setting,
 
-      --Dates
-      '9999-12-31 00:00:00.000 +0000'       AS term_start_date,
-      '9999-12-31 00:00:00.000 +0000'       AS effective_date,
-      '9999-12-31 00:00:00.000 +0000'       AS service_activation_date,
-      '9999-12-31 00:00:00.000 +0000'       AS customer_acceptance_date,
-      '9999-12-31 00:00:00.000 +0000'       AS contract_effective_date
+            -- Dates
+            '9999-12-31 00:00:00.000 +0000' as term_start_date,
+            '9999-12-31 00:00:00.000 +0000' as effective_date,
+            '9999-12-31 00:00:00.000 +0000' as service_activation_date,
+            '9999-12-31 00:00:00.000 +0000' as customer_acceptance_date,
+            '9999-12-31 00:00:00.000 +0000' as contract_effective_date
 
-)
+    )
 
-{{ dbt_audit(
-    cte_ref="base",
-    created_by="@michellecooper",
-    updated_by="@michellecooper",
-    created_date="2022-03-31",
-    updated_date="2022-03-31"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="base",
+            created_by="@michellecooper",
+            updated_by="@michellecooper",
+            created_date="2022-03-31",
+            updated_date="2022-03-31",
+        )
+    }}

@@ -1,331 +1,380 @@
-WITH sfdc_lead AS (
+with
+    sfdc_lead as (select * from {{ ref("sfdc_lead_source") }}),
+    sfdc_contact as (select * from {{ ref("sfdc_contact_source") }}),
+    sfdc_account as (select * from {{ ref("sfdc_account_source") }}),
+    marketo as (select * from {{ ref("marketo_lead_source") }}),
+    crm_account as (select * from {{ ref("dim_crm_account") }}),
+    sales_segment as (select * from {{ ref("prep_sales_segment") }}),
+    crm_person as (select * from {{ ref("prep_crm_person") }}),
+    gitlab_users as (select * from {{ ref("gitlab_dotcom_users_source") }}),
+    customer_db_source as (select * from {{ ref("customers_db_customers_source") }}),
+    zuora_contact_source as (select * from {{ ref("zuora_contact_source") }}),
+    zuora_account_source as (select * from {{ ref("zuora_account_source") }}),
+    dnc_list as (
 
-    SELECT *
-    FROM {{ref('sfdc_lead_source') }}
+        select
+            *,
+            row_number() over (
+                partition by email_address
+                order by
+                    case
+                        when result in ('undeliverable', 'do_not_send') then 2 else 1
+                    end desc
+            ) as record_number
+        from {{ ref("dnc_list") }}
+        qualify record_number = 1
 
-), sfdc_contact AS (
+    ),
+    sfdc as (
 
-    SELECT *
-    FROM {{ref('sfdc_contact_source') }}
+        select
+            crm_person.sfdc_record_id,
+            crm_person.dim_crm_account_id,
+            case
+                when crm_person.sfdc_record_type = 'contact'
+                then sfdc_contact.contact_email
+                else sfdc_lead.lead_email
+            end as email_address,
+            crm_person.dim_crm_person_id as crm_person_id,
+            crm_person.sfdc_record_type as sfdc_lead_contact,
+            case
+                when sfdc_lead_contact = 'contact'
+                then sfdc_contact.contact_first_name
+                else sfdc_lead.lead_first_name
+            end as first_name,
+            case
+                when
+                    sfdc_lead_contact = 'contact'
+                    and sfdc_contact.contact_last_name = '[[unknown]]'
+                then null
+                when
+                    sfdc_lead_contact = 'contact'
+                    and sfdc_contact.contact_last_name <> '[[unknown]]'
+                then sfdc_contact.contact_last_name
+                when
+                    sfdc_lead_contact = 'lead'
+                    and sfdc_lead.lead_last_name = '[[unknown]]'
+                then null
+                when
+                    sfdc_lead_contact = 'lead'
+                    and sfdc_lead.lead_last_name <> '[[unknown]]'
+                then sfdc_lead.lead_last_name
+            end as last_name,
+            case
+                when
+                    sfdc_lead_contact = 'contact'
+                    and sfdc_account.account_name = '[[unknown]]'
+                then null
+                when
+                    sfdc_lead_contact = 'contact'
+                    and sfdc_account.account_name <> '[[unknown]]'
+                then sfdc_account.account_name
+                when sfdc_lead_contact = 'lead' and sfdc_lead.company = '[[unknown]]'
+                then null
+                when sfdc_lead_contact = 'lead' and sfdc_lead.company <> '[[unknown]]'
+                then sfdc_lead.company
+            end as company_name,
+            crm_person.title as job_title,
+            crm_person.it_job_title_hierarchy,
+            crm_account.parent_crm_account_sales_segment,
+            crm_account.parent_crm_account_tsp_region,
+            sfdc_account.tsp_region,
+            crm_person.account_demographics_geo as crm_person_region,
+            case
+                when sfdc_lead_contact = 'contact'
+                then sfdc_contact.mailing_country
+                else sfdc_lead.country
+            end as country,
+            sfdc_contact.mobile_phone,
+            case
+                when sfdc_lead_contact = 'contact'
+                then sfdc_contact.created_date
+                else sfdc_lead.created_date
+            end as sfdc_created_date,
+            crm_person.has_opted_out_email as opted_out_salesforce,
+            (
+                row_number() over (
+                    partition by email_address order by sfdc_created_date desc
+                )
+            ) as record_number
 
-), sfdc_account AS (
+        from crm_person
+        left join sfdc_contact on sfdc_contact.contact_id = crm_person.sfdc_record_id
+        left join sfdc_lead on sfdc_lead.lead_id = sfdc_record_id
+        left join sfdc_account on sfdc_account.account_id = sfdc_contact.account_id
+        left join
+            crm_account
+            on crm_account.dim_crm_account_id = crm_person.dim_crm_account_id
+        where email_address is not null and email_address <> ''
+        qualify record_number = 1
 
-    SELECT *
-    FROM {{ref('sfdc_account_source') }}
+    ),
+    marketo_lead as (
 
-), marketo AS (
+        select
+            marketo_lead_id,
+            email as email_address,
+            first_name,
+            last_name,
+            iff(company_name = '[[unknown]]', null, company_name) as company_name,
+            job_title,
+            it_job_title_hierarchy,
+            country,
+            mobile_phone,
+            is_lead_inactive,
+            is_contact_inactive,
+            iff(
+                sales_segmentation = 'Unknown', null, sales_segmentation
+            ) as sales_segmentation,
+            is_email_bounced as is_marketo_email_bounced,
+            email_bounced_date as marketo_email_bounced_date,
+            is_unsubscribed as is_marketo_unsubscribed,
+            compliance_segment_value as marketo_compliance_segment_value,
+            (
+                row_number() over (partition by email order by updated_at desc)
+            ) as record_number
 
-    SELECT *
-    FROM {{ref('marketo_lead_source') }}
-    
-), crm_account AS (
+        from marketo
+        where email is not null or email <> ''
+        qualify record_number = 1
 
-    SELECT *
-    FROM {{ref('dim_crm_account') }}
+    ),
+    gitlab_dotcom as (
 
-), sales_segment AS (
+        select
+            coalesce(notification_email, email) as email_address,
+            user_id as user_id,
+            split_part(users_name, ' ', 1) as first_name,
+            split_part(users_name, ' ', 2) as last_name,
+            user_name as user_name,
+            organization as company_name,
+            role as job_title,
+            it_job_title_hierarchy,
+            created_at as created_date,
+            confirmed_at as confirmed_date,
+            state as active_state,
+            last_sign_in_at as last_login_date,
+            is_email_opted_in as email_opted_in,
+            (
+                row_number() over (
+                    partition by email_address order by created_date desc
+                )
+            ) as record_number
+        from gitlab_users
+        where
+            email_address is not null
+            and email_address <> ''
+            and active_state = 'active'
+        qualify record_number = 1
 
-    SELECT *
-    FROM {{ref('prep_sales_segment') }}
+    ),
+    customer_db as (
 
-), crm_person AS (
+        select
+            customer_email as email_address,
+            customer_id as customer_id,
+            customer_first_name as first_name,
+            customer_last_name as last_name,
+            company as company_name,
+            country as country,
+            customer_created_at as created_date,
+            confirmed_at as confirmed_date,
+            company_size as market_segment,
+            last_sign_in_at as last_login_date,
+            (
+                row_number() over (
+                    partition by email_address order by created_date desc
+                )
+            ) as record_number
+        from customer_db_source
+        where
+            email_address is not null
+            and email_address <> ''
+            and confirmed_at is not null
+        qualify record_number = 1
 
-    SELECT *
-    FROM {{ref('prep_crm_person') }}
+    ),
+    zuora as (
 
-), gitlab_users AS (
+        select
+            zuora_contact_source.work_email as email_address,
+            zuora_contact_source.contact_id as contact_id,
+            zuora_contact_source.first_name as first_name,
+            zuora_contact_source.last_name as last_name,
+            zuora_account_source.account_name as company_name,
+            zuora_contact_source.country as country,
+            zuora_contact_source.created_date as created_date,
+            case
+                when zuora_contact_source.is_deleted = true
+                then 'Inactive'
+                else 'Active'
+            end as active_state,
+            (
+                row_number() over (
+                    partition by email_address
+                    order by zuora_contact_source.created_date desc
+                )
+            ) as record_number
+        from zuora_contact_source
+        inner join
+            zuora_account_source
+            on zuora_account_source.account_id = zuora_contact_source.account_id
+        where
+            email_address is not null
+            and email_address <> ''
+            and zuora_contact_source.is_deleted = false
+        qualify record_number = 1
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_users_source') }}
+    ),
+    emails as (
 
-), customer_db_source AS (
+        select email_address
+        from sfdc
 
-    SELECT *
-    FROM {{ref('customers_db_customers_source') }}
+        UNION
 
-), zuora_contact_source AS (
+        select email_address
+        from gitlab_dotcom
 
-    SELECT *
-    FROM {{ref('zuora_contact_source') }}
+        UNION
 
-), zuora_account_source AS (
+        select email_address
+        from customer_db
 
-    SELECT *
-    FROM {{ref('zuora_account_source') }}
+        UNION
 
-), dnc_list AS (
+        select email_address
+        from zuora
 
-    SELECT *,
-      ROW_NUMBER() OVER (PARTITION BY email_address ORDER BY CASE WHEN result IN ('undeliverable', 'do_not_send') THEN 2 ELSE 1 END DESC)                                                    AS record_number
-    FROM {{ref('dnc_list')}}
-    QUALIFY record_number = 1
+        UNION
 
-), sfdc AS (
+        select email_address
+        from marketo_lead
 
-    SELECT
-      crm_person.sfdc_record_id,
-      crm_person.dim_crm_account_id,
-      CASE WHEN crm_person.sfdc_record_type = 'contact' THEN sfdc_contact.contact_email ELSE sfdc_lead.lead_email END        AS email_address,
-      crm_person.dim_crm_person_id                                                                                           AS crm_person_id,
-      crm_person.sfdc_record_type                                                                                            AS sfdc_lead_contact,
-      CASE
-        WHEN sfdc_lead_contact = 'contact' THEN sfdc_contact.contact_first_name
-        ELSE sfdc_lead.lead_first_name
-      END                                                                                                                    AS first_name,
-      CASE
-        WHEN sfdc_lead_contact = 'contact' AND sfdc_contact.contact_last_name  = '[[unknown]]' THEN NULL
-        WHEN sfdc_lead_contact = 'contact' AND sfdc_contact.contact_last_name  <> '[[unknown]]' THEN sfdc_contact.contact_last_name
-        WHEN sfdc_lead_contact = 'lead' AND sfdc_lead.lead_last_name = '[[unknown]]' THEN NULL
-        WHEN sfdc_lead_contact = 'lead' AND sfdc_lead.lead_last_name <> '[[unknown]]' THEN sfdc_lead.lead_last_name
-      END                                                                                                                    AS last_name,
-      CASE
-        WHEN sfdc_lead_contact = 'contact' AND sfdc_account.account_name = '[[unknown]]' THEN NULL
-        WHEN sfdc_lead_contact = 'contact' AND sfdc_account.account_name <> '[[unknown]]' THEN sfdc_account.account_name
-        WHEN sfdc_lead_contact = 'lead' AND sfdc_lead.company =  '[[unknown]]' THEN NULL
-        WHEN sfdc_lead_contact = 'lead' AND sfdc_lead.company <>  '[[unknown]]' THEN sfdc_lead.company
-      END                                                                                                                   AS company_name,
-      crm_person.title                                                                                                      AS job_title,
-      crm_person.it_job_title_hierarchy,
-      crm_account.parent_crm_account_sales_segment,
-      crm_account.parent_crm_account_tsp_region,
-      sfdc_account.tsp_region,
-      crm_person.account_demographics_geo                                                                                                    AS crm_person_region,
-      CASE
-        WHEN sfdc_lead_contact = 'contact' THEN sfdc_contact.mailing_country
-        ELSE sfdc_lead.country
-      END                                                                                                                   AS country,
-      sfdc_contact.mobile_phone,
-      CASE
-        WHEN sfdc_lead_contact = 'contact' THEN sfdc_contact.created_date
-        ELSE sfdc_lead.created_date
-      END                                                                                                                   AS sfdc_created_date,
-      crm_person.has_opted_out_email                                                                                        AS opted_out_salesforce,
-      (ROW_NUMBER() OVER (PARTITION BY email_address ORDER BY sfdc_created_date DESC))                                      AS record_number
+    ),
+    final as (
 
-    FROM crm_person
-    LEFT JOIN sfdc_contact
-      ON sfdc_contact.contact_id = crm_person.sfdc_record_id
-    LEFT JOIN sfdc_lead
-      ON sfdc_lead.lead_id = sfdc_record_id
-    LEFT JOIN sfdc_account
-      ON sfdc_account.account_id = sfdc_contact.account_id
-    LEFT JOIN crm_account
-      ON crm_account.dim_crm_account_id = crm_person.dim_crm_account_id
-    WHERE  email_address IS NOT NULL
-      AND email_address <> ''
-    QUALIFY record_number = 1
+        select
+            {{ dbt_utils.surrogate_key(["emails.email_address"]) }}
+            as dim_marketing_contact_id,
+            emails.email_address,
+            coalesce(
+                zuora.first_name,
+                marketo_lead.first_name,
+                sfdc.first_name,
+                customer_db.first_name,
+                gitlab_dotcom.first_name
+            ) as first_name,
+            coalesce(
+                zuora.last_name,
+                marketo_lead.last_name,
+                sfdc.last_name,
+                customer_db.last_name,
+                gitlab_dotcom.last_name
+            ) as last_name,
+            gitlab_dotcom.user_name as gitlab_user_name,
+            coalesce(
+                zuora.company_name,
+                marketo_lead.company_name,
+                sfdc.company_name,
+                customer_db.company_name,
+                gitlab_dotcom.company_name
+            ) as company_name,
+            coalesce(
+                marketo_lead.job_title, sfdc.job_title, gitlab_dotcom.job_title
+            ) as job_title,
+            case
+                when marketo_lead.job_title is not null
+                then marketo_lead.it_job_title_hierarchy
+                when sfdc.job_title is not null
+                then sfdc.it_job_title_hierarchy
+                else gitlab_dotcom.it_job_title_hierarchy
+            end as it_job_title_hierarchy,
+            coalesce(
+                zuora.country, marketo_lead.country, sfdc.country, customer_db.country
+            ) as country,
+            sfdc.parent_crm_account_sales_segment as sfdc_parent_sales_segment,
+            coalesce(
+                sfdc.parent_crm_account_tsp_region,
+                sfdc.tsp_region,
+                sfdc.crm_person_region
+            ) as sfdc_parent_crm_account_tsp_region,
+            iff(marketo_lead.email_address is not null, true, false) as is_marketo_lead,
+            coalesce(
+                marketo_lead.is_marketo_email_bounced, false
+            ) as is_marketo_email_hard_bounced,
+            marketo_lead.marketo_email_bounced_date as marketo_email_hard_bounced_date,
+            coalesce(
+                marketo_lead.is_marketo_unsubscribed, false
+            ) as is_marketo_opted_out,
+            marketo_lead.marketo_compliance_segment_value
+            as marketo_compliance_segment_value,
+            case
+                when sfdc.email_address is not null then true else false
+            end as is_sfdc_lead_contact,
+            sfdc.sfdc_record_id,
+            sfdc.dim_crm_account_id,
+            sfdc.sfdc_lead_contact,
+            coalesce(marketo_lead.mobile_phone, sfdc.mobile_phone) as mobile_phone,
+            sfdc.sfdc_created_date as sfdc_created_date,
+            sfdc.opted_out_salesforce as is_sfdc_opted_out,
+            case
+                when gitlab_dotcom.email_address is not null then true else false
+            end as is_gitlab_dotcom_user,
+            gitlab_dotcom.user_id as gitlab_dotcom_user_id,
+            gitlab_dotcom.created_date as gitlab_dotcom_created_date,
+            gitlab_dotcom.confirmed_date as gitlab_dotcom_confirmed_date,
+            gitlab_dotcom.active_state as gitlab_dotcom_active_state,
+            gitlab_dotcom.last_login_date as gitlab_dotcom_last_login_date,
+            gitlab_dotcom.email_opted_in as gitlab_dotcom_email_opted_in,
+            datediff(
+                day, gitlab_dotcom.confirmed_date, getdate()
+            ) as days_since_saas_signup,
+            {{ days_buckets("days_since_saas_signup") }}
+            as days_since_saas_signup_bucket,
+            case
+                when customer_db.email_address is not null then true else false
+            end as is_customer_db_user,
+            customer_db.customer_id as customer_db_customer_id,
+            customer_db.created_date as customer_db_created_date,
+            customer_db.confirmed_date as customer_db_confirmed_date,
+            datediff(
+                day, customer_db.confirmed_date, getdate()
+            ) as days_since_self_managed_owner_signup,
+            {{ days_buckets("days_since_self_managed_owner_signup") }}
+            as days_since_self_managed_owner_signup_bucket,
+            case
+                when zuora.email_address is not null then true else false
+            end as is_zuora_billing_contact,
+            zuora.contact_id as zuora_contact_id,
+            zuora.created_date as zuora_created_date,
+            zuora.active_state as zuora_active_state,
+            dnc_list.result as dnc_list_result,
+            case
+                when dnc_list.result in ('undeliverable', 'do_not_send')
+                then false
+                else true
+            end as wip_is_valid_email_address,
+            case
+                when not wip_is_valid_email_address then dnc_list.result
+            end as wip_invalid_email_address_reason
 
-), marketo_lead AS (
+        from emails
+        left join sfdc on sfdc.email_address = emails.email_address
+        left join gitlab_dotcom on gitlab_dotcom.email_address = emails.email_address
+        left join customer_db on customer_db.email_address = emails.email_address
+        left join zuora on zuora.email_address = emails.email_address
+        left join marketo_lead on marketo_lead.email_address = emails.email_address
+        left join dnc_list on dnc_list.email_address = emails.email_address
 
-    SELECT
-      marketo_lead_id,
-      email                                                                             AS email_address,
-      first_name,
-      last_name,
-      IFF(company_name = '[[unknown]]', NULL, company_name)                             AS company_name,
-      job_title,
-      it_job_title_hierarchy,
-      country,
-      mobile_phone,
-      is_lead_inactive,
-      is_contact_inactive,
-      IFF(sales_segmentation = 'Unknown', NULL, sales_segmentation)                     AS sales_segmentation,
-      is_email_bounced                                                                  AS is_marketo_email_bounced,
-      email_bounced_date                                                                AS marketo_email_bounced_date,
-      is_unsubscribed                                                                   AS is_marketo_unsubscribed,
-      compliance_segment_value                                                          AS marketo_compliance_segment_value,
-      (ROW_NUMBER() OVER (PARTITION BY email ORDER BY updated_at DESC))                 AS record_number
+    )
 
-    FROM marketo
-    WHERE email IS NOT NULL
-      OR  email <> ''
-    QUALIFY record_number = 1
-  
-), gitlab_dotcom AS (
-
-    SELECT
-      COALESCE(notification_email, email)                                                                                   AS email_address,
-      user_id                                                                                                               AS user_id,
-      SPLIT_PART(users_name,' ',1)                                                                                          AS first_name,
-      SPLIT_PART(users_name,' ',2)                                                                                          AS last_name,
-      user_name                                                                                                             AS user_name,
-      organization                                                                                                          AS company_name,
-      role                                                                                                                  AS job_title,
-      it_job_title_hierarchy,
-      created_at                                                                                                            AS created_date,
-      confirmed_at                                                                                                          AS confirmed_date,
-      state                                                                                                                 AS active_state,
-      last_sign_in_at                                                                                                       AS last_login_date,
-      is_email_opted_in                                                                                                     AS email_opted_in,
-      (ROW_NUMBER() OVER (PARTITION BY email_address ORDER BY created_date DESC))                                           AS record_number
-    FROM gitlab_users
-    WHERE email_address IS NOT NULL
-      AND email_address <> ''
-      AND active_state = 'active'
-    QUALIFY record_number = 1
-
-), customer_db AS (
-
-    SELECT
-      customer_email                                                                                                        AS email_address,
-      customer_id                                                                                                           AS customer_id,
-      customer_first_name                                                                                                   AS first_name,
-      customer_last_name                                                                                                    AS last_name,
-      company                                                                                                               AS company_name,
-      country                                                                                                               AS country,
-      customer_created_at                                                                                                   AS created_date,
-      confirmed_at                                                                                                          AS confirmed_date,
-      company_size                                                                                                          AS market_segment,
-      last_sign_in_at                                                                                                       AS last_login_date,
-      (ROW_NUMBER() OVER (PARTITION BY email_address ORDER BY created_date DESC))                                           AS record_number
-    FROM customer_db_source
-    WHERE email_address IS NOT NULL
-      AND email_address <> ''
-      AND confirmed_at IS NOT NULL
-    QUALIFY record_number = 1
-
-), zuora AS (
-
-    SELECT
-      zuora_contact_source.work_email                                                                                       AS email_address,
-      zuora_contact_source.contact_id                                                                                       AS contact_id,
-      zuora_contact_source.first_name                                                                                       AS first_name,
-      zuora_contact_source.last_name                                                                                        AS last_name,
-      zuora_account_source.account_name                                                                                     AS company_name,
-      zuora_contact_source.country                                                                                          AS country,
-      zuora_contact_source.created_date                                                                                     AS created_date,
-      CASE
-        WHEN zuora_contact_source.is_deleted = TRUE THEN 'Inactive'
-        ELSE 'Active'
-      END                                                                                                                   AS active_state,
-      (ROW_NUMBER() OVER (PARTITION BY email_address ORDER BY zuora_contact_source.created_date DESC))                      AS record_number
-    FROM zuora_contact_source
-    INNER JOIN zuora_account_source
-      ON zuora_account_source.account_id = zuora_contact_source.account_id
-    WHERE email_address IS NOT NULL
-      AND email_address <> ''
-      AND zuora_contact_source.is_deleted = FALSE
-    QUALIFY record_number = 1
-
-), emails AS (
-
-    SELECT email_address
-    FROM sfdc
-
-    UNION
-
-    SELECT email_address
-    FROM gitlab_dotcom
-
-    UNION
-
-    SELECT email_address
-    FROM customer_db
-
-    UNION
-
-    SELECT email_address
-    FROM zuora
-
-    UNION
-
-    SELECT email_address
-    FROM marketo_lead
-
-), final AS (
-
-    SELECT
-      {{ dbt_utils.surrogate_key(['emails.email_address']) }}                                                            AS dim_marketing_contact_id,
-      emails.email_address,
-      COALESCE(zuora.first_name, marketo_lead.first_name, sfdc.first_name, customer_db.first_name, gitlab_dotcom.first_name) 
-                                                                                                                         AS first_name,
-      COALESCE(zuora.last_name, marketo_lead.last_name, sfdc.last_name, customer_db.last_name, gitlab_dotcom.last_name)  AS last_name,
-      gitlab_dotcom.user_name                                                                                            AS gitlab_user_name,
-      COALESCE(zuora.company_name,  marketo_lead.company_name, sfdc.company_name, customer_db.company_name, gitlab_dotcom.company_name)
-                                                                                                                         AS company_name,
-      COALESCE(marketo_lead.job_title, sfdc.job_title, gitlab_dotcom.job_title)                                          AS job_title,
-      CASE
-        WHEN marketo_lead.job_title IS NOT NULL THEN marketo_lead.it_job_title_hierarchy
-        WHEN sfdc.job_title IS NOT NULL THEN sfdc.it_job_title_hierarchy
-        ELSE gitlab_dotcom.it_job_title_hierarchy
-      END                                                                                                                AS it_job_title_hierarchy,
-      COALESCE(zuora.country, marketo_lead.country, sfdc.country, customer_db.country)                                   AS country,
-      sfdc.parent_crm_account_sales_segment                                                                              AS sfdc_parent_sales_segment,
-      COALESCE(sfdc.parent_crm_account_tsp_region, sfdc.tsp_region, sfdc.crm_person_region)                              AS sfdc_parent_crm_account_tsp_region,
-      IFF(marketo_lead.email_address IS NOT NULL, TRUE, FALSE)                                                           AS is_marketo_lead,
-      COALESCE(marketo_lead.is_marketo_email_bounced, FALSE)                                                             AS is_marketo_email_hard_bounced,
-      marketo_lead.marketo_email_bounced_date                                                                            AS marketo_email_hard_bounced_date,
-      COALESCE(marketo_lead.is_marketo_unsubscribed, FALSE)                                                              AS is_marketo_opted_out,
-      marketo_lead.marketo_compliance_segment_value                                                                      AS marketo_compliance_segment_value,
-      CASE
-        WHEN sfdc.email_address IS NOT NULL THEN TRUE
-        ELSE FALSE
-      END                                                                                                                AS is_sfdc_lead_contact,
-      sfdc.sfdc_record_id,
-      sfdc.dim_crm_account_id,
-      sfdc.sfdc_lead_contact,
-      COALESCE(marketo_lead.mobile_phone, sfdc.mobile_phone)                                                             AS mobile_phone,
-      sfdc.sfdc_created_date                                                                                             AS sfdc_created_date,
-      sfdc.opted_out_salesforce                                                                                          AS is_sfdc_opted_out,
-      CASE
-        WHEN gitlab_dotcom.email_address IS NOT NULL THEN TRUE
-        ELSE FALSE
-      END                                                                                                                AS is_gitlab_dotcom_user,
-      gitlab_dotcom.user_id                                                                                              AS gitlab_dotcom_user_id,
-      gitlab_dotcom.created_date                                                                                         AS gitlab_dotcom_created_date,
-      gitlab_dotcom.confirmed_date                                                                                       AS gitlab_dotcom_confirmed_date,
-      gitlab_dotcom.active_state                                                                                         AS gitlab_dotcom_active_state,
-      gitlab_dotcom.last_login_date                                                                                      AS gitlab_dotcom_last_login_date,
-      gitlab_dotcom.email_opted_in                                                                                       AS gitlab_dotcom_email_opted_in,
-      DATEDIFF(DAY, gitlab_dotcom.confirmed_date, GETDATE())                                                             AS days_since_saas_signup,
-      {{ days_buckets('days_since_saas_signup') }}                                                                       AS days_since_saas_signup_bucket,
-      CASE
-        WHEN customer_db.email_address IS NOT NULL THEN TRUE
-        ELSE FALSE
-      END                                                                                                                AS is_customer_db_user,
-      customer_db.customer_id                                                                                            AS customer_db_customer_id,
-      customer_db.created_date                                                                                           AS customer_db_created_date,
-      customer_db.confirmed_date                                                                                         AS customer_db_confirmed_date,
-      DATEDIFF(DAY, customer_db.confirmed_date, GETDATE())                                                               AS days_since_self_managed_owner_signup,
-      {{ days_buckets('days_since_self_managed_owner_signup') }}                                                         AS days_since_self_managed_owner_signup_bucket,
-      CASE
-        WHEN zuora.email_address IS NOT NULL THEN TRUE
-        ELSE FALSE
-      END                                                                                                                AS is_zuora_billing_contact,
-      zuora.contact_id                                                                                                   AS zuora_contact_id,
-      zuora.created_date                                                                                                 AS zuora_created_date,
-      zuora.active_state                                                                                                 AS zuora_active_state,
-      dnc_list.result                                                                                                    AS dnc_list_result,
-      CASE
-        WHEN dnc_list.result IN ('undeliverable', 'do_not_send')
-          THEN FALSE
-        ELSE TRUE
-      END                                                                                                                AS wip_is_valid_email_address,
-      CASE
-        WHEN NOT wip_is_valid_email_address
-          THEN dnc_list.result
-      END                                                                                                                AS wip_invalid_email_address_reason
-
-    FROM emails
-    LEFT JOIN sfdc
-      ON sfdc.email_address = emails.email_address
-    LEFT JOIN gitlab_dotcom
-      ON gitlab_dotcom.email_address = emails.email_address
-    LEFT JOIN customer_db
-      ON customer_db.email_address = emails.email_address
-    LEFT JOIN zuora
-      ON zuora.email_address = emails.email_address
-    LEFT JOIN marketo_lead
-      ON marketo_lead.email_address = emails.email_address
-    LEFT JOIN dnc_list
-      ON dnc_list.email_address = emails.email_address
-
-)
-
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@rmistry",
-    updated_by="@jpeguero",
-    created_date="2021-01-19",
-    updated_date="2022-04-07"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@rmistry",
+            updated_by="@jpeguero",
+            created_date="2021-01-19",
+            updated_date="2022-04-07",
+        )
+    }}

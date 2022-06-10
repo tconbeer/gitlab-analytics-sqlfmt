@@ -9,94 +9,112 @@
     GROUP BY 1,2,3,4
 {% endset %}
 
-WITH employee_directory_intermediate AS (
+with
+    employee_directory_intermediate as (
 
-   SELECT *
-   FROM {{ref('employee_directory_intermediate')}}
+        select * from {{ ref("employee_directory_intermediate") }}
 
- ), comp_band AS (
+    ),
+    comp_band as (select * from {{ ref("comp_band_deviation_snapshots") }}),
+    date_details as (
 
-   SELECT *
-   FROM {{ ref('comp_band_deviation_snapshots') }}
+        select distinct last_day_of_month
+        from {{ ref("dim_date") }}
+        where  -- last day we captured before transitioning to new report
+            (
+                -- started capturing again from new report
+                last_day_of_month < '2020-05-20' or last_day_of_month >= '2020-10-31'
+            ) and last_day_of_month <= current_date()
 
- ), date_details AS (
+    ),
+    joined as (
 
-    SELECT DISTINCT last_day_of_month
-    FROM {{ ref('dim_date') }}
-    WHERE (last_day_of_month < '2020-05-20' --last day we captured before transitioning to new report
-      OR last_day_of_month>='2020-10-31') -- started capturing again from new report
-      AND last_day_of_month<= CURRENT_DATE()
+        select
+            employee_directory_intermediate.*,
+            comp_band.deviation_from_comp_calc,
+            comp_band.original_value,
+            case
+                when lower(original_value) = 'exec'
+                then 0
+                when deviation_from_comp_calc <= 0.0001
+                then 0
+                when deviation_from_comp_calc <= 0.05
+                then 0.25
+                when deviation_from_comp_calc <= 0.1
+                then 0.5
+                when deviation_from_comp_calc <= 0.15
+                then 0.75
+                when deviation_from_comp_calc <= 1
+                then 1
+                else null
+            end as weighted_deviated_from_comp_calc
+        from employee_directory_intermediate
+        left join
+            comp_band
+            on employee_directory_intermediate.employee_number
+            = comp_band.employee_number
+            and valid_from <= date_actual
+            and coalesce(
+                valid_to::date, {{ max_date_in_bamboo_analyses() }}
+            ) > date_actual
 
-), joined AS (
+    ),
+    department_aggregated as (
 
-    SELECT 
-      employee_directory_intermediate.*,
-      comp_band.deviation_from_comp_calc,
-      comp_band.original_value,
-      CASE 
-        WHEN LOWER(original_value) = 'exec'           THEN 0
-        WHEN deviation_from_comp_calc <= 0.0001       THEN 0
-        WHEN deviation_from_comp_calc <= 0.05         THEN 0.25
-        WHEN deviation_from_comp_calc <= 0.1          THEN 0.5
-        WHEN deviation_from_comp_calc <= 0.15         THEN 0.75
-        WHEN deviation_from_comp_calc <= 1            THEN 1
-        ELSE NULL END                                      AS  weighted_deviated_from_comp_calc
-    FROM employee_directory_intermediate
-    LEFT JOIN comp_band
-        ON employee_directory_intermediate.employee_number = comp_band.employee_number
-        AND valid_from <= date_actual
-        AND COALESCE(valid_to::date, {{max_date_in_bamboo_analyses()}}) > date_actual
+        select
+            'department_breakout' as breakout_type,
+            division_mapped_current as division,
+            department,
+            {{ lines_to_repeat }}
 
-), department_aggregated AS (
+    ),
+    division_aggregated as (
 
-    SELECT
-      'department_breakout'                 AS breakout_type,
-      division_mapped_current               AS division,
-      department,
-      {{lines_to_repeat}}
+        select
+            'division_breakout' as breakout_type,
+            division_mapped_current as division,
+            'division_breakout' as department,
+            {{ lines_to_repeat }}
 
-), division_aggregated AS (
+    ),
+    company_aggregated as (
 
-    SELECT
-      'division_breakout'                   AS breakout_type,
-      division_mapped_current               AS division,
-      'division_breakout'                   AS department,
-      {{lines_to_repeat}}
+        select
+            'company_breakout' as breakout_type,
+            'Company - Overall' as division,
+            'company_breakout' as department,
+            {{ lines_to_repeat }}
 
-), company_aggregated AS (
+    ),
+    unioned as (
 
-    SELECT
-      'company_breakout'                    AS breakout_type,
-      'Company - Overall'                   AS division,
-      'company_breakout'                    AS department,
-      {{lines_to_repeat}}
+        select *
+        from department_aggregated
+        UNION ALL
 
-), unioned AS (
+        select *
+        from division_aggregated
 
-    SELECT * 
-    FROM department_aggregated
-    UNION ALL
+        UNION ALL
 
-    SELECT *
-    FROM division_aggregated
+        select *
+        from company_aggregated
 
-    UNION ALL
+    ),
+    final as (
 
-    SELECT * 
-    FROM company_aggregated
+        select
+            {{
+                dbt_utils.surrogate_key(
+                    ["date_actual", "breakout_type", "division", "department"]
+                )
+            }} as unique_key, unioned.*
+        from unioned
+        inner join date_details on unioned.date_actual = date_details.last_day_of_month
+        where date_actual > '2019-01-01'
 
-), final AS (
+    )
 
-    SELECT
-      {{ dbt_utils.surrogate_key(['date_actual', 'breakout_type', 'division', 'department']) }} AS unique_key,
-      unioned.*
-    FROM unioned
-    INNER JOIN date_details
-      ON unioned.date_actual = date_details.last_day_of_month
-    WHERE date_actual > '2019-01-01' 
-
-)
-
-SELECT *
-FROM final
-ORDER BY 1
+select *
+from final
+order by 1

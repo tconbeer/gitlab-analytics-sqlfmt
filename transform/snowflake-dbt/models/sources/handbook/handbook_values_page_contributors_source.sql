@@ -1,24 +1,26 @@
-WITH contributors AS (
+with
+    contributors as (
 
-    SELECT *
-    FROM {{ source('handbook', 'values_before_2020_06')}}
+        select *
+        from {{ source("handbook", "values_before_2020_06") }}
 
-    UNION ALL
+        UNION ALL
 
-    SELECT *
-    FROM {{ source('handbook', 'values_after_2020_06')}}
+        select *
+        from {{ source("handbook", "values_after_2020_06") }}
 
-), rename AS (
+    ),
+    rename as (
 
-    SELECT
-      name::VARCHAR     AS author_name,
-      sha::VARCHAR      AS git_sha,
-      email::VARCHAR    AS author_email,
-      date::TIMESTAMP   AS git_commit_at,
-      message::VARCHAR  AS git_message
-    FROM contributors
+        select
+            name::varchar as author_name,
+            sha::varchar as git_sha,
+            email::varchar as author_email,
+            date::timestamp as git_commit_at,
+            message::varchar as git_message
+        from contributors
 
-)
+    )
 
-SELECT *
-FROM rename
+select *
+from rename

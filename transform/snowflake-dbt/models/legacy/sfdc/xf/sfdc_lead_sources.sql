@@ -1,64 +1,94 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-{{config({
-    "schema": "legacy"
-  })
-}}
+{{ config({"schema": "legacy"}) }}
 
-with sfdc_opportunity as (
+with
+    sfdc_opportunity as (
 
-    SELECT distinct lead_source FROM {{ref('sfdc_opportunity')}}
+        select distinct lead_source from {{ ref("sfdc_opportunity") }}
 
-),sfdc_lead as (
+    ),
+    sfdc_lead as (select distinct lead_source from {{ ref("sfdc_lead") }}),
+    sfdc_contact as (select distinct lead_source from {{ ref("sfdc_contact") }}),
+    base as (
 
-    SELECT distinct lead_source FROM {{ref('sfdc_lead')}}
+        select *
+        from sfdc_opportunity
+        UNION ALL
+        select *
+        from sfdc_lead
+        UNION ALL
+        select *
+        from sfdc_contact
 
-), sfdc_contact as (
+    ),
+    lead_sources as (
 
-    SELECT distinct lead_source FROM {{ref('sfdc_contact')}}
+        select distinct lower(lead_source) as lead_source
+        from base
+        where lead_source is not null
 
-), base as (
+    )
 
-    SELECT * FROM sfdc_opportunity
-    UNION ALL
-    SELECT * FROM sfdc_lead
-    UNION ALL 
-    SELECT * FROM sfdc_contact
-
-), lead_sources as (
-
-    SELECT distinct lower(lead_source) AS lead_source
-    FROM base
-    WHERE lead_source IS NOT NULL
-
-)
-
-SELECT row_number() OVER (ORDER BY lead_source) AS lead_source_id,
-        lead_source as initial_source,
-        CASE WHEN lead_source IN('advertisement')
-            THEN 'Advertising'
-           WHEN lead_source LIKE '%email%' OR lead_source LIKE '%newsletter%'
-            THEN 'Email'
-           WHEN lead_source LIKE '%event%' 
-            OR lead_source LIKE '%conference%'
-            OR lead_source LIKE '%seminar%'
-            THEN 'Events'
-           WHEN lead_source IN ('Contact Request', 'Enterprise Trial', 'Development Request', 
-                                'Prof Serv Request', 'Web', 'Webcast', 'Web Chat', 'Web Direct', 
-                                'White Paper', 'Training Request', 'Consultancy Request', 
-                                'Public Relations')
-            THEN 'Marketing Site'
-           WHEN lead_source IN ('SDR Generated', 'Linkedin', 'LeadWare', 'AE Generated', 
-                                'Datanyze', 'DiscoverOrg', 'Clearbit')
-            THEN 'Prospecting'
-           WHEN lead_source IN ('Gitorious', 'GitLab Hosted', 'GitLab EE instance', 
-                                'GitLab.com', 'CE Download', 'CE Usage Ping')
-            THEN 'Product'
-           WHEN lead_source IN ('Word of Mouth', 'External Referral', 'Employee Referral', 
-                                'Partner', 'Existing Client')
-            THEN 'Referral'
-           ELSE 'Other'
-        END as initial_source_type  
-FROM lead_sources
+select
+    row_number() over (order by lead_source) as lead_source_id,
+    lead_source as initial_source,
+    case
+        when lead_source in ('advertisement')
+        then 'Advertising'
+        when lead_source like '%email%' or lead_source like '%newsletter%'
+        then 'Email'
+        when
+            lead_source like '%event%'
+            or lead_source like '%conference%'
+            or lead_source like '%seminar%'
+        then 'Events'
+        when
+            lead_source in (
+                'Contact Request',
+                'Enterprise Trial',
+                'Development Request',
+                'Prof Serv Request',
+                'Web',
+                'Webcast',
+                'Web Chat',
+                'Web Direct',
+                'White Paper',
+                'Training Request',
+                'Consultancy Request',
+                'Public Relations'
+            )
+        then 'Marketing Site'
+        when
+            lead_source in (
+                'SDR Generated',
+                'Linkedin',
+                'LeadWare',
+                'AE Generated',
+                'Datanyze',
+                'DiscoverOrg',
+                'Clearbit'
+            )
+        then 'Prospecting'
+        when
+            lead_source in (
+                'Gitorious',
+                'GitLab Hosted',
+                'GitLab EE instance',
+                'GitLab.com',
+                'CE Download',
+                'CE Usage Ping'
+            )
+        then 'Product'
+        when
+            lead_source in (
+                'Word of Mouth',
+                'External Referral',
+                'Employee Referral',
+                'Partner',
+                'Existing Client'
+            )
+        then 'Referral'
+        else 'Other'
+    end as initial_source_type
+from lead_sources

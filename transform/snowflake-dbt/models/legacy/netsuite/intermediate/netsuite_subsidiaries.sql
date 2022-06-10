@@ -1,9 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT  {{ hash_sensitive_columns('netsuite_subsidiaries_source') }}
-    FROM {{ ref('netsuite_subsidiaries_source') }}
+        select {{ hash_sensitive_columns("netsuite_subsidiaries_source") }}
+        from {{ ref("netsuite_subsidiaries_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

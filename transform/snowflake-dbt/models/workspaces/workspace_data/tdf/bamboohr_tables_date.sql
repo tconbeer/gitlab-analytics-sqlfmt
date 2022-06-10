@@ -1,22 +1,30 @@
-WITH bamboohr_date AS (
+with
+    bamboohr_date as (
 
-    {% set tables = ['compensation', 'custom_currency_conversion', 'custom_currency_conversion', 'directory', 'emergency_contacts', 'employment_status', 'employment_status', 'job_info', 'id_employee_number_mapping', 'meta_fields'] %}	
-                                                          
-    {% for table in tables %} 
-    SELECT '{{table}}'                                                            AS table_name,
-        MAX(uploaded_at)                                                          AS max_date 
-    FROM {{source('bamboohr', table)}}  
-  
-  
-    {% if not loop.last %}
-    UNION ALL
-    {% endif %}
+        {% set tables = [
+    "compensation",
+    "custom_currency_conversion",
+    "custom_currency_conversion",
+    "directory",
+    "emergency_contacts",
+    "employment_status",
+    "employment_status",
+    "job_info",
+    "id_employee_number_mapping",
+    "meta_fields",
+] %}
 
-{% endfor %} 
-  
-)
+        {% for table in tables %}
+        select '{{table}}' as table_name, max(uploaded_at) as max_date
+        from {{ source("bamboohr", table) }}
 
 
-  SELECT *
-  FROM bamboohr_date 
-  
+        {% if not loop.last %} UNION ALL {% endif %}
+
+        {% endfor %}
+
+    )
+
+
+select *
+from bamboohr_date

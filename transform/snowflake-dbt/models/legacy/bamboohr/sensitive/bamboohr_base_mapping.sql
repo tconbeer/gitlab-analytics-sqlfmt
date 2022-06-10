@@ -1,51 +1,58 @@
-WITH dates AS (
+with
+    dates as (
 
-    SELECT *,
-      'join' AS join_field
-    FROM  {{ ref('dim_date') }}
-    WHERE date_actual BETWEEN DATEADD(YEAR, -1, DATEADD(month, -1, DATE_TRUNC(month, CURRENT_DATE())))
-                          AND DATE_TRUNC(month, CURRENT_DATE())
-      AND day_of_month = 1
+        select *, 'join' as join_field
+        from {{ ref("dim_date") }}
+        where
+            date_actual between dateadd(
+                year, -1, dateadd(month, -1, date_trunc(month, current_date()))
+            ) and date_trunc(month, current_date()) and day_of_month = 1
 
-), division_department_mapping AS (
+    ),
+    division_department_mapping as (
 
-    SELECT *,
-      'join' AS join_field
-    FROM  {{ ref('bamboohr_job_info_current_division_base') }}
-    WHERE DATE_TRUNC(month, CURRENT_DATE()) BETWEEN effective_date AND COALESCE(effective_end_date, termination_date,CURRENT_DATE())
+        select *, 'join' as join_field
+        from {{ ref("bamboohr_job_info_current_division_base") }}
+        where
+            date_trunc(month, current_date()) between effective_date and coalesce(
+                effective_end_date, termination_date, current_date()
+            )
 
 
-), unioned AS (
+    ),
+    unioned as (
 
-    SELECT 
-      DISTINCT 
-      dates.date_actual,
-      'division_grouping_breakout'                   AS field_name,
-      division_grouping                              AS field_value
-    FROM dates
-    LEFT JOIN division_department_mapping
-      ON dates.join_field = division_department_mapping.join_field
-    
-    UNION ALL
+        select 
+      distinct
+            dates.date_actual,
+            'division_grouping_breakout' as field_name,
+            division_grouping as field_value
+        from dates
+        left join
+            division_department_mapping
+            on dates.join_field = division_department_mapping.join_field
 
-    SELECT 
-      DISTINCT 
-      dates.date_actual,
-      'department_grouping_breakout'          AS field_name,
-      department_grouping                     AS field_value
-    FROM dates
-    LEFT JOIN division_department_mapping
-      ON dates.join_field = division_department_mapping.join_field
+        UNION ALL
 
-    UNION ALL
+        select 
+      distinct
+            dates.date_actual,
+            'department_grouping_breakout' as field_name,
+            department_grouping as field_value
+        from dates
+        left join
+            division_department_mapping
+            on dates.join_field = division_department_mapping.join_field
 
-    SELECT
-      dates.date_actual,
-      'company_breakout'                    AS field_name,
-      'company_breakout'                    AS field_value
-    FROM dates     
+        UNION ALL
 
-)
+        select
+            dates.date_actual,
+            'company_breakout' as field_name,
+            'company_breakout' as field_value
+        from dates
 
-SELECT *
-FROM unioned
+    )
+
+select *
+from unioned

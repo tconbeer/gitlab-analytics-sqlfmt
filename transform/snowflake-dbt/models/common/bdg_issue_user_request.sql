@@ -1,62 +1,63 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-WITH prep_issue_user_request AS (
+with
+    prep_issue_user_request as (select * from {{ ref("prep_issue_user_request") }}),
+    prep_issue_user_request_collaboration_project as (
 
-    SELECT *
-    FROM {{ ref('prep_issue_user_request') }}
+        select * from {{ ref("prep_issue_user_request_collaboration_project") }}
 
-), prep_issue_user_request_collaboration_project AS (
+    ),
+    issue_request_collaboration_projects_filtered as (
 
-    SELECT *
-    FROM {{ ref('prep_issue_user_request_collaboration_project') }}
+        -- Issue request that are in the collaboration projects but are not in the
+        -- Gitlab-org issue descriptions or notes
+        select prep_issue_user_request_collaboration_project.*
+        from prep_issue_user_request_collaboration_project
+        left join
+            prep_issue_user_request
+            on prep_issue_user_request.dim_issue_id
+            = prep_issue_user_request_collaboration_project.dim_issue_id
+            and prep_issue_user_request.dim_crm_account_id
+            = prep_issue_user_request_collaboration_project.dim_crm_account_id
+        where prep_issue_user_request.dim_issue_id is null
 
-), issue_request_collaboration_projects_filtered AS (
+    ),
+    unioned as (
 
-    -- Issue request that are in the collaboration projects but are not in the Gitlab-org issue descriptions or notes
+        select
+            dim_issue_id,
+            link_type,
+            dim_crm_opportunity_id,
+            dim_crm_account_id,
+            dim_ticket_id,
+            request_priority,
+            is_request_priority_empty,
+            false as is_user_request_only_in_collaboration_project,
+            link_last_updated_at
+        from prep_issue_user_request
 
-    SELECT prep_issue_user_request_collaboration_project.*
-    FROM prep_issue_user_request_collaboration_project
-    LEFT JOIN prep_issue_user_request
-      ON prep_issue_user_request.dim_issue_id = prep_issue_user_request_collaboration_project.dim_issue_id
-      AND prep_issue_user_request.dim_crm_account_id = prep_issue_user_request_collaboration_project.dim_crm_account_id
-    WHERE prep_issue_user_request.dim_issue_id IS NULL
+        UNION
 
-), unioned AS (
+        select
+            dim_issue_id,
+            'Account' as link_type,
+            md5(-1) as dim_crm_opportunity_id,
+            dim_crm_account_id,
+            -1 as dim_ticket_id,
+            1::number as request_priority,
+            true as is_request_priority_empty,
+            true as is_user_request_only_in_collaboration_project,
+            link_last_updated_at
+        from issue_request_collaboration_projects_filtered
 
-    SELECT
-      dim_issue_id,
-      link_type,
-      dim_crm_opportunity_id,
-      dim_crm_account_id,
-      dim_ticket_id,
-      request_priority,
-      is_request_priority_empty,
-      FALSE                 AS is_user_request_only_in_collaboration_project,
-      link_last_updated_at
-    FROM prep_issue_user_request
+    )
 
-    UNION
-
-    SELECT
-      dim_issue_id,
-      'Account'             AS link_type,
-      MD5(-1)               AS dim_crm_opportunity_id,
-      dim_crm_account_id,
-      -1                    AS dim_ticket_id,
-      1::NUMBER             AS request_priority,
-      TRUE                  AS is_request_priority_empty,
-      TRUE                  AS is_user_request_only_in_collaboration_project,
-      link_last_updated_at
-    FROM issue_request_collaboration_projects_filtered
-
-)
-
-{{ dbt_audit(
-    cte_ref="unioned",
-    created_by="@jpeguero",
-    updated_by="@jpeguero",
-    created_date="2021-10-12",
-    updated_date="2021-11-16",
-) }}
+    {{
+        dbt_audit(
+            cte_ref="unioned",
+            created_by="@jpeguero",
+            updated_by="@jpeguero",
+            created_date="2021-10-12",
+            updated_date="2021-11-16",
+        )
+    }}

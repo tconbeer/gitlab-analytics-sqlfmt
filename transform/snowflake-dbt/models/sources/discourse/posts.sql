@@ -1,34 +1,32 @@
-WITH source AS (
+with
+    source as (select * from {{ source("discourse", "posts") }}),
+    parsed as (
 
-    SELECT *
-    FROM {{ source('discourse', 'posts') }}
+        select
+            json_value.value['start_date']::datetime as report_start_date,
+            json_value.value['title']::varchar as report_title,
+            json_value.value['type']::varchar as report_type,
+            json_value.value['total']::varchar as report_total,
+            data_level_one.value['x']::date as report_value_date,
+            data_level_one.value['y']::int as report_value,
+            uploaded_at as uploaded_at
+        from
+            source,
+            lateral flatten(input => parse_json(jsontext), outer => true) json_value,
+            lateral flatten(json_value.value:data, '') data_level_one
 
-), parsed AS (
+    ),
+    dedupe as (
 
-    SELECT
-      json_value.value['start_date']::DATETIME  AS report_start_date,
-      json_value.value['title']::VARCHAR        AS report_title,
-      json_value.value['type']::VARCHAR         AS report_type,
-      json_value.value['total']::VARCHAR        AS report_total,
-      data_level_one.value['x']::DATE           AS report_value_date,
-      data_level_one.value['y']::INT            AS report_value,
-      uploaded_at                               AS uploaded_at
-    FROM source,
-    LATERAL FLATTEN(INPUT => PARSE_JSON(jsontext), OUTER => TRUE) json_value,
-    LATERAL FLATTEN(json_value.value:data,'') data_level_one
+        select distinct
+            report_start_date,
+            report_title,
+            report_type,
+            report_value_date,
+            report_value,
+            max(uploaded_at) as last_uploaded_at
+        from parsed {{ dbt_utils.group_by(n=5) }}
+    )
 
-), dedupe AS (
-
-    SELECT DISTINCT
-      report_start_date,
-      report_title,
-      report_type,
-      report_value_date,
-      report_value,
-      MAX(uploaded_at)      AS last_uploaded_at
-    FROM parsed
-    {{ dbt_utils.group_by(n=5) }}
-)
-
-SELECT *
-FROM dedupe
+select *
+from dedupe
