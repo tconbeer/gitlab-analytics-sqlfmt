@@ -1,9 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT {{ hash_sensitive_columns('bizible_opp_stage_transitions_source') }}
-    FROM {{ ref('bizible_opp_stage_transitions_source') }}
+        select {{ hash_sensitive_columns("bizible_opp_stage_transitions_source") }}
+        from {{ ref("bizible_opp_stage_transitions_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

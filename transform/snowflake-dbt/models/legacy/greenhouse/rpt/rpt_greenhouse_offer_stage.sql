@@ -1,82 +1,101 @@
-WITH recruiting_xf AS (
-    
-    SELECT * 
-    FROM {{ref('greenhouse_recruiting_xf')}} 
-    WHERE offer_id IS NOT NULL
-    AND offer_status <>'rejected'
-  
-), greenhouse_offer_custom_fields as (
+with
+    recruiting_xf as (
 
-    SELECT 
-        offer_id, 
-        offer_custom_field,
-        offer_custom_field_display_value                                                    AS candidate_country
-    FROM {{ref('greenhouse_offer_custom_fields_source')}}
-    WHERE offer_custom_field = 'Candidate Country'
+        select *
+        from {{ ref("greenhouse_recruiting_xf") }}
+        where offer_id is not null and offer_status <> 'rejected'
 
-), zuora_regions AS (
+    ),
+    greenhouse_offer_custom_fields as (
 
-    SELECT *
-    FROM {{ref('zuora_country_geographic_region')}}
+        select
+            offer_id,
+            offer_custom_field,
+            offer_custom_field_display_value as candidate_country
+        from {{ ref("greenhouse_offer_custom_fields_source") }}
+        where offer_custom_field = 'Candidate Country'
 
-), bamboohr AS (
+    ),
+    zuora_regions as (select * from {{ ref("zuora_country_geographic_region") }}),
+    bamboohr as (
 
-    SELECT 
-      greenhouse_candidate_id, 
-      IFF(region = 'JAPAC','Asia Pacific', region) AS region
-    FROM  {{ref('bamboohr_id_employee_number_mapping')}} 
+        select
+            greenhouse_candidate_id,
+            iff(region = 'JAPAC', 'Asia Pacific', region) as region
+        from {{ ref("bamboohr_id_employee_number_mapping") }}
 
-), location_cleaned AS (
+    ),
+    location_cleaned as (
 
-    SELECT
-      offer_id,
-      candidate_country,
-      IFF(LOWER(LEFT(candidate_country,12))= 'united state', 
-          'North America',
-          COALESCE(z1.geographic_region,z2.geographic_region, z3.geographic_region, candidate_country))       AS geographic_region      
-    FROM greenhouse_offer_custom_fields
-    LEFT JOIN zuora_regions z1 
-      ON LOWER(z1.country_name_in_zuora) = LOWER(greenhouse_offer_custom_fields.candidate_country)
-    LEFT JOIN zuora_regions z2 
-      ON LOWER(z2.iso_alpha_2_code) = LOWER(greenhouse_offer_custom_fields.candidate_country)
-    LEFT JOIN zuora_regions z3 
-      ON LOWER(z3.iso_alpha_3_code) = LOWER(greenhouse_offer_custom_fields.candidate_country) 
+        select
+            offer_id,
+            candidate_country,
+            iff(
+                lower(left(candidate_country, 12)) = 'united state',
+                'North America',
+                coalesce(
+                    z1.geographic_region,
+                    z2.geographic_region,
+                    z3.geographic_region,
+                    candidate_country
+                )
+            ) as geographic_region
+        from greenhouse_offer_custom_fields
+        left join
+            zuora_regions z1 on lower(z1.country_name_in_zuora) = lower(
+                greenhouse_offer_custom_fields.candidate_country
+            )
+        left join
+            zuora_regions z2 on lower(z2.iso_alpha_2_code) = lower(
+                greenhouse_offer_custom_fields.candidate_country
+            )
+        left join
+            zuora_regions z3 on lower(z3.iso_alpha_3_code) = lower(
+                greenhouse_offer_custom_fields.candidate_country
+            )
 
-), data_set AS (
+    ),
+    data_set as (
 
-    SELECT 
-      recruiting_xf.offer_id,
-      application_status, 
-      current_stage_name                               AS stage_name, 
-      offer_status,
-      offer_sent_date,
-      offer_resolved_date,
-      candidate_target_hire_date                        AS start_date,
-      candidate_country,
-      geographic_region,
-      bamboohr.region as bh_region,
-      CASE WHEN geographic_region IN ('North America', 'South America') 
-            THEN geographic_region
-           ELSE COALESCE(bh_region, geographic_region) END AS region_final
-    FROM recruiting_xf
-    INNER JOIN bamboohr
-      ON recruiting_xf.candidate_id = bamboohr.greenhouse_candidate_id
-    INNER JOIN location_cleaned
-      ON location_cleaned.offer_id = recruiting_xf.offer_id  
+        select
+            recruiting_xf.offer_id,
+            application_status,
+            current_stage_name as stage_name,
+            offer_status,
+            offer_sent_date,
+            offer_resolved_date,
+            candidate_target_hire_date as start_date,
+            candidate_country,
+            geographic_region,
+            bamboohr.region as bh_region,
+            case
+                when geographic_region in ('North America', 'South America')
+                then geographic_region
+                else coalesce(bh_region, geographic_region)
+            end as region_final
+        from recruiting_xf
+        inner join
+            bamboohr on recruiting_xf.candidate_id = bamboohr.greenhouse_candidate_id
+        inner join
+            location_cleaned on location_cleaned.offer_id = recruiting_xf.offer_id
 
-), final AS (
+    ),
+    final as (
 
-    SELECT 
-      DATE_TRUNC(WEEK,start_date)                               AS start_week,
-      region_final                                              AS geographic_region,
-      COUNT(offer_id)                                           AS candidates_estimated_to_start,
-      SUM(IFF(offer_status = 'accepted',1,0))                   AS accepted_offers_to_start
-    FROM data_set
-    WHERE geographic_region IN ('North America', 'South America', 'EMEA','Asia Pacific', 'Americas')
-    GROUP BY 1,2
-    ORDER BY 1 DESC
+        select
+            date_trunc(week, start_date) as start_week,
+            region_final as geographic_region,
+            count(offer_id) as candidates_estimated_to_start,
+            sum(iff(offer_status = 'accepted', 1, 0)) as accepted_offers_to_start
+        from data_set
+        where
+            geographic_region in (
+                'North America', 'South America', 'EMEA', 'Asia Pacific', 'Americas'
+            )
+        group by 1, 2
+        order by 1 desc
 
-)
+    )
 
-SELECT * 
-FROM final
+select *
+from final

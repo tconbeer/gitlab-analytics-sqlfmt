@@ -1,26 +1,26 @@
 {{
-    config({
-      "schema": "sensitive",
-      "database": env_var('SNOWFLAKE_PREP_DATABASE'),
-    })
+    config(
+        {
+            "schema": "sensitive",
+            "database": env_var("SNOWFLAKE_PREP_DATABASE"),
+        }
+    )
 }}
 
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "communication_certificate") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'communication_certificate') }}
+        select
+            "Timestamp"::timestamp::date as completed_date,
+            "Score" as score,
+            "First_&_Last_Name" as submitter_name,
+            "Email_address_(GitLab_team_members,_please_use_your_GitLab_email_address)"::varchar
+            as submitter_email,
+            "_UPDATED_AT" as last_updated_at
+        from source
 
-), renamed as (
+    )
 
-    SELECT
-      "Timestamp"::TIMESTAMP::DATE                                                                 AS completed_date,
-      "Score"                                                                                      AS score,
-      "First_&_Last_Name"                                                                          AS submitter_name,
-      "Email_address_(GitLab_team_members,_please_use_your_GitLab_email_address)"::VARCHAR         AS submitter_email,
-      "_UPDATED_AT"                                                                                AS last_updated_at
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

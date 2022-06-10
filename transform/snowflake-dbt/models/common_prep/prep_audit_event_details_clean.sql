@@ -1,36 +1,25 @@
-WITH non_pii_details AS (
+with
+    non_pii_details as (
 
-    SELECT
-      audit_event_id,
-      key_name,
-      key_value,
-      created_at
-    FROM {{ ref('gitlab_dotcom_audit_event_details') }}
-    WHERE key_name != 'target_details'
+        select audit_event_id, key_name, key_value, created_at
+        from {{ ref("gitlab_dotcom_audit_event_details") }}
+        where key_name != 'target_details'
 
-), pii_details AS (
+    ),
+    pii_details as (
 
-    SELECT 
-      audit_event_id,
-      key_name,
-      key_value_hash AS key_value,
-      created_at
-    FROM {{ ref('gitlab_dotcom_audit_event_details_pii') }}
+        select audit_event_id, key_name, key_value_hash as key_value, created_at
+        from {{ ref("gitlab_dotcom_audit_event_details_pii") }}
 
-), unioned AS (
+    ),
+    unioned as (select * from non_pii_details union all select * from pii_details)
 
-    SELECT *
-    FROM non_pii_details
-    UNION ALL
-    SELECT *
-    FROM pii_details
-
-)
-
-{{ dbt_audit(
-    cte_ref="unioned",
-    created_by="@ischweickartDD",
-    updated_by="@ischweickartDD",
-    created_date="2021-06-16",
-    updated_date="2021-06-16"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="unioned",
+            created_by="@ischweickartDD",
+            updated_by="@ischweickartDD",
+            created_date="2021-06-16",
+            updated_date="2021-06-16",
+        )
+    }}
