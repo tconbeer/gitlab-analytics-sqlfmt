@@ -1,40 +1,48 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('engineering', 'development_team_members') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
+        select *
+        from {{ source("engineering", "development_team_members") }}
+        order by uploaded_at desc
+        limit 1
 
-), flattened AS (
+    ),
+    flattened as (
 
-    SELECT d.value as data_by_row
-    FROM source,
-    LATERAL FLATTEN(INPUT => PARSE_JSON(jsontext), outer => true) d
+        select d.value as data_by_row
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      data_by_row['country']::VARCHAR                       AS country,
-      data_by_row['gitlab']::VARCHAR                        AS gitlab_handle, 
-      data_by_row['gitlabId']::VARCHAR                      AS gitlab_id,
-      data_by_row['isBackendMaintainer']::BOOLEAN           AS is_backend_maintainer,
-      data_by_row['isBackendTraineeMaintainer']::BOOLEAN    AS is_backend_trainee_maintainer,
-      data_by_row['isDatabaseMaintainer']::BOOLEAN          AS is_database_maintainer,
-      data_by_row['isDatabaseTraineeMaintainer']::BOOLEAN   AS is_database_trainee_maintainer,
-      data_by_row['isFrontendMaintainer']::BOOLEAN          AS is_frontend_maintainer,
-      data_by_row['isFrontendTraineeMaintainer']::BOOLEAN   AS is_frontend_trainee_maintainer,
-      data_by_row['isManager']::BOOLEAN                     AS is_manager,
-      data_by_row['level']::VARCHAR                         AS team_member_level,
-      data_by_row['locality']::VARCHAR                      AS locality,
-      data_by_row['location_factor']::FLOAT                 AS location_factor,
-      data_by_row['matchName']::VARCHAR                     AS match_name,
-      data_by_row['name']::VARCHAR                          AS name,
-      data_by_row['section']::VARCHAR                       AS development_section,
-      data_by_row['start_date']::DATE                       AS start_date,
-      data_by_row['team']::VARCHAR                          AS team,
-      data_by_row['technology']::VARCHAR                    AS technology_group
-    FROM flattened
+        select
+            data_by_row['country']::varchar as country,
+            data_by_row['gitlab']::varchar as gitlab_handle,
+            data_by_row['gitlabId']::varchar as gitlab_id,
+            data_by_row['isBackendMaintainer']::boolean as is_backend_maintainer,
+            data_by_row[
+                'isBackendTraineeMaintainer'
+            ]::boolean as is_backend_trainee_maintainer,
+            data_by_row['isDatabaseMaintainer']::boolean as is_database_maintainer,
+            data_by_row[
+                'isDatabaseTraineeMaintainer'
+            ]::boolean as is_database_trainee_maintainer,
+            data_by_row['isFrontendMaintainer']::boolean as is_frontend_maintainer,
+            data_by_row[
+                'isFrontendTraineeMaintainer'
+            ]::boolean as is_frontend_trainee_maintainer,
+            data_by_row['isManager']::boolean as is_manager,
+            data_by_row['level']::varchar as team_member_level,
+            data_by_row['locality']::varchar as locality,
+            data_by_row['location_factor']::float as location_factor,
+            data_by_row['matchName']::varchar as match_name,
+            data_by_row['name']::varchar as name,
+            data_by_row['section']::varchar as development_section,
+            data_by_row['start_date']::date as start_date,
+            data_by_row['team']::varchar as team,
+            data_by_row['technology']::varchar as technology_group
+        from flattened
 
-)
-SELECT *
-FROM renamed
+    )
+select *
+from renamed

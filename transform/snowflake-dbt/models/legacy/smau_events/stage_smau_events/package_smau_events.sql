@@ -1,42 +1,45 @@
-WITH package_snowplow_smau_pageviews_events AS (
-  
-  SELECT
-    user_snowplow_domain_id,
-    user_custom_id       AS gitlab_user_id,
-    event_date,
-    event_type,
-    event_surrogate_key  AS event_surrogate_key,
-    'snowplow_pageviews' AS source_type
-  
-  FROM {{ ref('package_snowplow_smau_pageviews_events')}}
-  
-)
+with
+    package_snowplow_smau_pageviews_events as (
 
-, package_snowplow_smau_structured_events AS (
-  
-  SELECT
-    user_snowplow_domain_id,
-    user_custom_id               AS gitlab_user_id,
-    event_date,
-    event_type,
-    event_surrogate_key          AS event_surrogate_key,
-    'snowplow_structured_events' AS source_type
-  
-  FROM {{ ref('package_snowplow_smau_structured_events')}}
-  
-)
+        select
+            user_snowplow_domain_id,
+            user_custom_id as gitlab_user_id,
+            event_date,
+            event_type,
+            event_surrogate_key as event_surrogate_key,
+            'snowplow_pageviews' as source_type
 
-, unioned AS (
-  
-  SELECT *
-  FROM package_snowplow_smau_pageviews_events
-  
-  UNION
-  
-  SELECT *
-  FROM package_snowplow_smau_structured_events
-  
-)
+        from {{ ref("package_snowplow_smau_pageviews_events") }}
 
-SELECT * 
-FROM unioned
+    )
+
+    ,
+    package_snowplow_smau_structured_events as (
+
+        select
+            user_snowplow_domain_id,
+            user_custom_id as gitlab_user_id,
+            event_date,
+            event_type,
+            event_surrogate_key as event_surrogate_key,
+            'snowplow_structured_events' as source_type
+
+        from {{ ref("package_snowplow_smau_structured_events") }}
+
+    )
+
+    ,
+    unioned as (
+
+        select *
+        from package_snowplow_smau_pageviews_events
+
+        union
+
+        select *
+        from package_snowplow_smau_structured_events
+
+    )
+
+select *
+from unioned

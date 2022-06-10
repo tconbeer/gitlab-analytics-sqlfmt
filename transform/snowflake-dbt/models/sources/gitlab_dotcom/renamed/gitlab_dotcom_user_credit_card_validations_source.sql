@@ -1,16 +1,18 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_user_credit_card_validations_dedupe_source') }}
+        select *
+        from {{ ref("gitlab_dotcom_user_credit_card_validations_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      user_id::NUMBER                       AS user_id,
-      credit_card_validated_at::TIMESTAMP  AS credit_card_validated_at
-    FROM source
-    
-)
+        select
+            user_id::number as user_id,
+            credit_card_validated_at::timestamp as credit_card_validated_at
+        from source
 
-SELECT  *
-FROM renamed
+    )
+
+select *
+from renamed

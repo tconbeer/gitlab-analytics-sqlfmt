@@ -1,26 +1,25 @@
-WITH source AS (
-    
-    SELECT * 
-    FROM {{ source('sheetload','rfs_support_requests') }}
+with
+    source as (select * from {{ source("sheetload", "rfs_support_requests") }}),
+    final as (
 
-), final AS (
-    
-    SELECT 
-      NULLIF(customer_prospect_name, '')::VARCHAR                       AS customer_prospect_name,
-      NULLIF(request_type, '')::VARCHAR                                 AS request_type,
-      NULLIF(market_industry_vertical, '')::VARCHAR                     AS market_industry_vertical,
-      NULLIF(customer_prospect_size, '')::VARCHAR                       AS customer_prospect_size,
-      NULLIF(sfdc_link, '')::VARCHAR                                    AS sfdc_link,
-      NULLIF(iacv_impact, '')::VARCHAR                                  AS iacv_impact,
-      NULLIF(product_host, '')::VARCHAR                                 AS product_host,
-      NULLIF(due_date, '')::VARCHAR                                     AS due_date,
-      NULLIF(other, '')::VARCHAR                                        AS other,
-      NULLIF(requestor_name, '')::VARCHAR                               AS requestor_name,
-      NULLIF(additional_gitlab_team_members, '')::VARCHAR               AS additional_gitlab_team_members,
-      NULLIF(month,'')::DATE                                            AS date
-    FROM source
+        select
+            nullif(customer_prospect_name, '')::varchar as customer_prospect_name,
+            nullif(request_type, '')::varchar as request_type,
+            nullif(market_industry_vertical, '')::varchar as market_industry_vertical,
+            nullif(customer_prospect_size, '')::varchar as customer_prospect_size,
+            nullif(sfdc_link, '')::varchar as sfdc_link,
+            nullif(iacv_impact, '')::varchar as iacv_impact,
+            nullif(product_host, '')::varchar as product_host,
+            nullif(due_date, '')::varchar as due_date,
+            nullif(other, '')::varchar as other,
+            nullif(requestor_name, '')::varchar as requestor_name,
+            nullif(
+                additional_gitlab_team_members, ''
+            )::varchar as additional_gitlab_team_members,
+            nullif(month, '')::date as date
+        from source
 
-) 
+    )
 
-SELECT * 
-FROM final
+select *
+from final

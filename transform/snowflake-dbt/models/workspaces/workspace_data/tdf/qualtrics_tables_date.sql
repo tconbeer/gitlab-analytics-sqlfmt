@@ -1,24 +1,27 @@
-WITH qualtrics_date AS (
+with
+    qualtrics_date as (
 
-    {% set tables = [
-'contact','distribution','nps_survey_responses','post_purchase_survey_responses','survey','questions' ] %}
-        
-                                                          
-    {% for table in tables %} 
-    SELECT '{{table}}'                                                     AS table_name,
-        MAX(uploaded_at)                                                   AS max_date 
-    FROM {{source('qualtrics', table)}}  
-  
-  
-    {% if not loop.last %}
-    UNION ALL
-    {% endif %}
-
-{% endfor %} 
-  
-)
+        {% set tables = [
+    "contact",
+    "distribution",
+    "nps_survey_responses",
+    "post_purchase_survey_responses",
+    "survey",
+    "questions",
+] %}
 
 
-  SELECT *
-  FROM qualtrics_date 
-  
+        {% for table in tables %}
+        select '{{table}}' as table_name, max(uploaded_at) as max_date
+        from {{ source("qualtrics", table) }}
+
+
+        {% if not loop.last %} union all {% endif %}
+
+        {% endfor %}
+
+    )
+
+
+select *
+from qualtrics_date

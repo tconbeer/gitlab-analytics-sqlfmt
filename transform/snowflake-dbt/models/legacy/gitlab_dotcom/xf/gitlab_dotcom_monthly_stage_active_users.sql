@@ -1,88 +1,92 @@
-{{ config(
-    tags=["mnpi_exception"],
-    materialized="incremental",
-    unique_key="mau_id"
-) }}
+{{ config(tags=["mnpi_exception"], materialized="incremental", unique_key="mau_id") }}
 
 
-WITH date_details AS (
-  
-    SELECT *
-    FROM {{ ref('date_details') }}
-  
-)
+with
+    date_details as (select * from {{ ref("date_details") }})
 
-, gitlab_dotcom_usage_data_events AS (
-  
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_usage_data_events') }}
-    {% if is_incremental() %}
+    ,
+    gitlab_dotcom_usage_data_events as (
 
-      WHERE DATE_TRUNC('month', event_created_at) >= (SELECT DATEADD('days', -1, MAX(smau_month)) FROM {{this}})
+        select *
+        from {{ ref("gitlab_dotcom_usage_data_events") }}
+        {% if is_incremental() %}
 
-    {% endif %}
-      
-)
+        where
+            date_trunc('month', event_created_at) >= (
+                select dateadd('days', -1, max(smau_month)) from {{ this }}
+            )
 
-, gitlab_subscriptions AS (
+        {% endif %}
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base') }}
-)
+    )
 
-, plans AS (
+    ,
+    gitlab_subscriptions as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_plans') }}
+        select *
+        from {{ ref("gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base") }}
+    )
 
-)
+    ,
+    plans as (select * from {{ ref("gitlab_dotcom_plans") }})
 
-SELECT 
-  -- primary key
-  {{ dbt_utils.surrogate_key(['gitlab_dotcom_usage_data_events.namespace_id', 
-                              'user_id', 
-                              'event_name', 
-                              'DATEADD(month, -1, date_day)']) }}                      AS mau_id,
-  DATEADD('month', -1, date_day)                                                         AS smau_month,
-  
-  -- ids 
-  gitlab_dotcom_usage_data_events.user_id,
-  gitlab_dotcom_usage_data_events.namespace_id,
-  
-  
-  -- user dimensions
-  CASE
-    WHEN gitlab_subscriptions.is_trial
-      THEN 'trial'
-    ELSE COALESCE(gitlab_subscriptions.plan_id, 34)::VARCHAR
-  END                                                                                    AS plan_id_at_smau_month_end,
-  CASE
-    WHEN gitlab_subscriptions.is_trial
-      THEN 'trial'
-    ELSE COALESCE(plans.plan_name, 'free')
-  END                                                                                    AS plan_name_at_smau_month_end,
-  
-  -- event data
-  event_name,
-  stage_name,
-  is_representative_of_stage,
-  
-  --metadata
-  -- aggregating because user_created_at and namespace_created_at can be impacted by late arriving dimensions
-  MAX(DATEDIFF('day', user_created_at, date_day))                                        AS days_since_user_creation,
-  MAX(DATEDIFF('day', namespace_created_at, date_day))                                   AS days_since_namespace_creation,
-  
-  COUNT(*)                                                                               AS event_count,
-  COUNT(DISTINCT TO_DATE(event_created_at))                                              AS event_day_count
-FROM date_details
-INNER JOIN gitlab_dotcom_usage_data_events 
-  ON gitlab_dotcom_usage_data_events.event_created_at BETWEEN DATEADD('day', -28, date_details.date_day) AND date_day 
-LEFT JOIN gitlab_subscriptions
-  ON gitlab_dotcom_usage_data_events.namespace_id = gitlab_subscriptions.namespace_id
-  -- taking the last day of the month
-  AND DATEADD('day', -1, date_day) BETWEEN gitlab_subscriptions.valid_from
-    AND {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
-LEFT JOIN plans
-  ON gitlab_subscriptions.plan_id = plans.plan_id
-WHERE day_of_month = 1
-{{ dbt_utils.group_by(n=9) }}
+select
+    -- primary key
+    {{
+        dbt_utils.surrogate_key(
+            [
+                "gitlab_dotcom_usage_data_events.namespace_id",
+                "user_id",
+                "event_name",
+                "DATEADD(month, -1, date_day)",
+            ]
+        )
+    }} as mau_id,
+    dateadd('month', -1, date_day) as smau_month,
+
+    -- ids 
+    gitlab_dotcom_usage_data_events.user_id,
+    gitlab_dotcom_usage_data_events.namespace_id,
+
+
+    -- user dimensions
+    case
+        when gitlab_subscriptions.is_trial
+        then 'trial'
+        else coalesce(gitlab_subscriptions.plan_id, 34)::varchar
+    end as plan_id_at_smau_month_end,
+    case
+        when gitlab_subscriptions.is_trial
+        then 'trial'
+        else coalesce(plans.plan_name, 'free')
+    end as plan_name_at_smau_month_end,
+
+    -- event data
+    event_name,
+    stage_name,
+    is_representative_of_stage,
+
+    -- metadata
+    -- aggregating because user_created_at and namespace_created_at can be impacted by
+    -- late arriving dimensions
+    max(datediff('day', user_created_at, date_day)) as days_since_user_creation,
+    max(
+        datediff('day', namespace_created_at, date_day)
+    ) as days_since_namespace_creation,
+
+    count(*) as event_count,
+    count(distinct to_date(event_created_at)) as event_day_count
+from date_details
+inner join
+    gitlab_dotcom_usage_data_events
+    on gitlab_dotcom_usage_data_events.event_created_at between dateadd(
+        'day', -28, date_details.date_day
+    ) and date_day
+left join
+    gitlab_subscriptions
+    on gitlab_dotcom_usage_data_events.namespace_id = gitlab_subscriptions.namespace_id
+    -- taking the last day of the month
+    and dateadd('day', -1, date_day) between gitlab_subscriptions.valid_from
+    and {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
+left join plans on gitlab_subscriptions.plan_id = plans.plan_id
+where day_of_month = 1 {{ dbt_utils.group_by(n=9) }}

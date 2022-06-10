@@ -1,123 +1,154 @@
-WITH zuora_subscription_product_category AS (
+with
+    zuora_subscription_product_category as (
 
-  -- Return all the subscription information 
-  SELECT DISTINCT
-    mrr_month,
-    account_id,
-    account_number,
-    crm_id,
-    subscription_id,
-    product_category,
-    delivery 
-  FROM {{ ref('zuora_monthly_recurring_revenue') }}
+        -- Return all the subscription information 
+        select distinct
+            mrr_month,
+            account_id,
+            account_number,
+            crm_id,
+            subscription_id,
+            product_category,
+            delivery
+        from {{ ref("zuora_monthly_recurring_revenue") }}
 
-), zuora_contacts_information AS (
+    ),
+    zuora_contacts_information as (
 
-  -- Get the Zuora Contact information to check which columns are good 
-  SELECT DISTINCT
-    contact_id,
-    account_id,
-    first_name,
-    last_name,
-    work_email,
-    personal_email  
-  FROM {{ ref('zuora_contact') }} 
+        -- Get the Zuora Contact information to check which columns are good 
+        select distinct
+            contact_id, account_id, first_name, last_name, work_email, personal_email
+        from {{ ref("zuora_contact") }}
 
-), salesforce_contacts_information AS (
+    ),
+    salesforce_contacts_information as (
 
-  -- Get the Salesforce Contact information to check which columns are good 
-  SELECT DISTINCT
-      account_id,
-      contact_id                                                                                                                                                AS user_id, 
-      contact_name                                                                                                                                              AS full_name,
-      SPLIT_PART(TRIM(contact_name), ' ', 1)                                                                                                                    AS first_name,
-      ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(TRIM(contact_name), ' '), 1, 10), ' ')                                                                                  AS last_name,
-      contact_email                                                                                                                                             AS email, 
-      IFF(((inactive_contact = TRUE) OR (has_opted_out_email = TRUE) OR (invalid_email_address = TRUE) OR (email_is_bounced = TRUE)), 'Inactive', 'Active')     AS state 
-  FROM {{ ref('sfdc_contact_source') }}
+        -- Get the Salesforce Contact information to check which columns are good 
+        select distinct
+            account_id,
+            contact_id as user_id,
+            contact_name as full_name,
+            split_part(trim(contact_name), ' ', 1) as first_name,
+            array_to_string(
+                array_slice(split(trim(contact_name), ' '), 1, 10), ' '
+            ) as last_name,
+            contact_email as email,
+            iff(
+                (
+                    (inactive_contact = true) or (
+                        has_opted_out_email = true
+                    ) or (invalid_email_address = true) or (email_is_bounced = true)
+                ),
+                'Inactive',
+                'Active'
+            ) as state
+        from {{ ref("sfdc_contact_source") }}
 
-), zuora_subscription_product_category_self_managed_only AS (
+    ),
+    zuora_subscription_product_category_self_managed_only as (
 
-  -- Filter to Self-Managed subscriptions Only 
-  SELECT *
-  FROM zuora_subscription_product_category
-  WHERE delivery = 'Self-Managed'
+        -- Filter to Self-Managed subscriptions Only 
+        select *
+        from zuora_subscription_product_category
+        where delivery = 'Self-Managed'
 
-), zuora_subscription_product_category_self_managed_only_current_month AS (
+    ),
+    zuora_subscription_product_category_self_managed_only_current_month as (
 
-  SELECT *
-  FROM zuora_subscription_product_category_self_managed_only
-  WHERE mrr_month = DATE_TRUNC('month', CURRENT_DATE)
+        select *
+        from zuora_subscription_product_category_self_managed_only
+        where mrr_month = date_trunc('month', current_date)
 
-), zuora_subscription_product_category_self_managed_only_contacts AS (
+    ),
+    zuora_subscription_product_category_self_managed_only_contacts as (
 
-  -- Get contact information for self-managed subscriptions 
-  SELECT DISTINCT 
-    --contact_id                                                                 AS user_id, 
-    subscription.SUBSCRIPTION_ID,
-    subscriptioN.ACCOUNT_ID,
-    first_name || ' ' || last_name                                             AS full_name, 
-    first_name, 
-    last_name, 
-    work_email                                                                 AS email, 
-    subscription.product_category                                                                                              AS plan_title, 
-    IFF(subscription.account_id IN
-        (SELECT account_id
-         FROM zuora_subscription_product_category_self_managed_only_current_month),
-        'active', 'inactive')                                                  AS state, 
-    'Zuora Only'                                                               AS source
-  FROM zuora_contacts_information contacts
-  INNER JOIN zuora_subscription_product_category_self_managed_only subscription 
-    ON contacts.account_id = subscription.account_id
+        -- Get contact information for self-managed subscriptions 
+        select distinct
+            -- contact_id
+            --    AS user_id,
+            subscription.subscription_id,
+            subscription.account_id,
+            first_name || ' ' || last_name as full_name,
+            first_name,
+            last_name,
+            work_email as email,
+            subscription.product_category as plan_title,
+            iff(
+                subscription.account_id in (
+                    select account_id
+                    from
+                        zuora_subscription_product_category_self_managed_only_current_month
+                ),
+                'active',
+                'inactive'
+            ) as state,
+            'Zuora Only' as source
+        from zuora_contacts_information contacts
+        inner join
+            zuora_subscription_product_category_self_managed_only subscription
+            on contacts.account_id = subscription.account_id
 
-), zuora_salesforce_subscription_product_category_self_managed_only_contacts AS (
+    ),
+    zuora_salesforce_subscription_product_category_self_managed_only_contacts as (
 
-  -- Get contact information for self-managed subscriptions 
-  SELECT DISTINCT 
-    --contacts.user_id, 
-    subscription.SUBSCRIPTION_ID,
-    subscriptioN.ACCOUNT_ID,
-    contacts.full_name, 
-    contacts.first_name, 
-    contacts.last_name,
-    contacts.email,
-    subscription.product_category                 AS plan_title, 
+        -- Get contact information for self-managed subscriptions 
+        select distinct
+            -- contacts.user_id, 
+            subscription.subscription_id,
+            subscription.account_id,
+            contacts.full_name,
+            contacts.first_name,
+            contacts.last_name,
+            contacts.email,
+            subscription.product_category as plan_title,
 
-    IFF(contacts.state = 'inactive' OR
-        subscription.account_id NOT IN
-        (SELECT account_id
-         FROM zuora_subscription_product_category_self_managed_only_current_month),
-        'inactive', 'active')                     AS state,
-    'Zuora to Salesforce'                         AS source
-  
-  FROM salesforce_contacts_information contacts
-  INNER JOIN zuora_subscription_product_category_self_managed_only subscription 
-    ON contacts.account_id = subscription.crm_id
+            iff(
+                contacts.state = 'inactive' or subscription.account_id not in (
+                    select account_id
+                    from
+                        zuora_subscription_product_category_self_managed_only_current_month
+                ),
+                'inactive',
+                'active'
+            ) as state,
+            'Zuora to Salesforce' as source
 
-), unioned_data_set AS (
+        from salesforce_contacts_information contacts
+        inner join
+            zuora_subscription_product_category_self_managed_only subscription
+            on contacts.account_id = subscription.crm_id
 
-  SELECT *
-  FROM zuora_subscription_product_category_self_managed_only_contacts
+    ),
+    unioned_data_set as (
 
-  UNION ALL 
+        select *
+        from zuora_subscription_product_category_self_managed_only_contacts
 
-  SELECT *
-  FROM zuora_salesforce_subscription_product_category_self_managed_only_contacts
+        union all
 
-), final AS (
-    
-  SELECT DISTINCT
-    NULL      AS user_id,
-    full_name, 
-    first_name, 
-    last_name, 
-    email     AS notification_email, 
-    plan_title, 
-    state
-  FROM unioned_data_set
-  QUALIFY ROW_NUMBER() OVER(PARTITION BY full_name, email, plan_title ORDER BY state ASC) = 1   -- If user combination plan is active in one of the systems and inactive in another one, only consider where active
+        select *
+        from zuora_salesforce_subscription_product_category_self_managed_only_contacts
 
-)
+    ),
+    final as (
 
-SELECT *
-FROM final
+        select distinct
+            null as user_id,
+            full_name,
+            first_name,
+            last_name,
+            email as notification_email,
+            plan_title,
+            state
+        from unioned_data_set
+        -- If user combination plan is active in one of the systems and inactive in
+        -- another one, only consider where active
+        qualify
+            row_number() over (
+                partition by full_name, email, plan_title order by state asc
+            ) = 1
+
+    )
+
+select *
+from final

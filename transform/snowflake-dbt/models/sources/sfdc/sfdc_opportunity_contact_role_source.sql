@@ -1,28 +1,24 @@
-WITH source AS (
+with
+    source as (select * from {{ source("salesforce", "opportunity_contact_role") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('salesforce', 'opportunity_contact_role') }}
+        select
 
-), renamed AS (
+            -- keys
+            id as opportunity_contact_role_id,
+            contactid as contact_id,
+            opportunityid as opportunity_id,
+            createdbyid as created_by_id,
+            lastmodifiedbyid as last_modified_by_id,
 
-    SELECT
+            -- info
+            role as contact_role,
+            isprimary as is_primary_contact,
+            createddate as created_date,
+            lastmodifieddate as last_modified_date
 
-      -- keys
+        from source
+    )
 
-      id               AS opportunity_contact_role_id,
-      contactid        AS contact_id,
-      opportunityid    AS opportunity_id,
-      createdbyid      AS created_by_id,
-      lastmodifiedbyid AS last_modified_by_id, 
-
-      -- info
-      role             AS contact_role,
-      isprimary        AS is_primary_contact,
-      createddate      AS created_date,
-      lastmodifieddate AS last_modified_date
-
-    FROM source
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

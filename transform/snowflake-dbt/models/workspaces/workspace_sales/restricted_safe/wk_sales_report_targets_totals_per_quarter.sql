@@ -1,242 +1,300 @@
 
-{{ config(alias='report_targets_totals_per_quarter') }}
+{{ config(alias="report_targets_totals_per_quarter") }}
 
-WITH date_details AS (
-  
-  SELECT *
-  FROM  {{ ref('wk_sales_date_details') }} 
-  
-), agg_demo_keys AS (
--- keys used for aggregated historical analysis
+with
+    date_details as (select * from {{ ref("wk_sales_date_details") }}),
+    -- keys used for aggregated historical analysis
+    agg_demo_keys as (select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}),
+    sfdc_opportunity_snapshot_history_xf as (
 
-    SELECT *
-    FROM {{ ref('wk_sales_report_agg_demo_sqs_ot_keys') }} 
+        select *
+        from {{ ref("wk_sales_sfdc_opportunity_snapshot_history_xf") }}
+        where is_deleted = 0 and is_edu_oss = 0
 
-), sfdc_opportunity_snapshot_history_xf AS (
-  
-  SELECT *
-  FROM  {{ref('wk_sales_sfdc_opportunity_snapshot_history_xf')}}  
-  WHERE is_deleted = 0
-    AND is_edu_oss = 0
+    ),
+    mart_sales_funnel_target as (
 
-), mart_sales_funnel_target AS (
-  
-  SELECT *
-  FROM {{ref('wk_sales_mart_sales_funnel_target')}}
+        select * from {{ ref("wk_sales_mart_sales_funnel_target") }}
 
-), today_date AS (
+    ),
+    today_date as (
 
-   SELECT DISTINCT first_day_of_fiscal_quarter              AS current_fiscal_quarter_date,
-                   fiscal_quarter_name_fy                   AS current_fiscal_quarter_name,
-                   day_of_fiscal_quarter_normalised         AS current_day_of_fiscal_quarter_normalised
-   FROM date_details 
-   WHERE date_actual = CURRENT_DATE
+        select distinct
+            first_day_of_fiscal_quarter as current_fiscal_quarter_date,
+            fiscal_quarter_name_fy as current_fiscal_quarter_name,
+            day_of_fiscal_quarter_normalised as current_day_of_fiscal_quarter_normalised
+        from date_details
+        where date_actual = current_date
 
-), funnel_targets_per_quarter AS (
-  
-  SELECT 
-    target_fiscal_quarter_name,
-    target_fiscal_quarter_date,
-    -------------------------
-    -- keys
-    report_user_segment_geo_region_area_sqs_ot,
-    -------------------------  
-    
-    SUM(CASE 
-          WHEN kpi_name = 'Net ARR' 
-            THEN allocated_target
-           ELSE 0 
-        END)                        AS target_net_arr,
-    SUM(CASE 
-          WHEN kpi_name = 'Deals' 
-            THEN allocated_target
-           ELSE 0 
-        END)                        AS target_deal_count,
-    SUM(CASE 
-          WHEN kpi_name = 'Net ARR Pipeline Created' 
-            THEN allocated_target
-           ELSE 0 
-        END)                        AS target_pipe_generation_net_arr
-  FROM mart_sales_funnel_target
-  GROUP BY 1,2,3
+    ),
+    funnel_targets_per_quarter as (
 
-), totals_per_quarter AS (
-  
- SELECT 
-        opp_snapshot.snapshot_fiscal_quarter_name   AS close_fiscal_quarter_name,
-        opp_snapshot.snapshot_fiscal_quarter_date   AS close_fiscal_quarter_date,
-        -------------------------
-        -- keys
-        opp_snapshot.report_user_segment_geo_region_area_sqs_ot,
-        -------------------------
+        select
+            target_fiscal_quarter_name,
+            target_fiscal_quarter_date,
+            -- -----------------------
+            -- keys
+            report_user_segment_geo_region_area_sqs_ot,
+            -- -----------------------  
+            sum(
+                case when kpi_name = 'Net ARR' then allocated_target else 0 end
+            ) as target_net_arr,
+            sum(
+                case when kpi_name = 'Deals' then allocated_target else 0 end
+            ) as target_deal_count,
+            sum(
+                case
+                    when kpi_name = 'Net ARR Pipeline Created'
+                    then allocated_target
+                    else 0
+                end
+            ) as target_pipe_generation_net_arr
+        from mart_sales_funnel_target
+        group by 1, 2, 3
 
-        SUM(CASE 
-                WHEN opp_snapshot.close_fiscal_quarter_date = opp_snapshot.snapshot_fiscal_quarter_date
-                    THEN opp_snapshot.booked_net_arr
-                ELSE 0
-             END)                                               AS total_booked_net_arr,
-        SUM(CASE 
-                WHEN opp_snapshot.close_fiscal_quarter_date = opp_snapshot.snapshot_fiscal_quarter_date
-                    THEN opp_snapshot.churned_contraction_net_arr
-                ELSE 0
-             END)                                               AS total_churned_contraction_net_arr,       
-        SUM(CASE 
-                WHEN opp_snapshot.close_fiscal_quarter_date = opp_snapshot.snapshot_fiscal_quarter_date
-                    THEN opp_snapshot.booked_deal_count
-                ELSE 0
-             END)                                               AS total_booked_deal_count,
-        SUM(CASE 
-                WHEN opp_snapshot.close_fiscal_quarter_date = opp_snapshot.snapshot_fiscal_quarter_date
-                    THEN opp_snapshot.churned_contraction_deal_count
-                ELSE 0
-        END)                                                    AS total_churned_contraction_deal_count,   
-        
-        -- Pipe gen totals
-        SUM(CASE 
-                WHEN opp_snapshot.pipeline_created_fiscal_quarter_date = opp_snapshot.snapshot_fiscal_quarter_date
-                  AND opp_snapshot.is_eligible_created_pipeline_flag = 1
-                    THEN opp_snapshot.created_in_snapshot_quarter_net_arr
-                ELSE 0
-             END )                                              AS total_pipe_generation_net_arr,
-        SUM(CASE 
-                WHEN opp_snapshot.pipeline_created_fiscal_quarter_date = opp_snapshot.snapshot_fiscal_quarter_date
-                  AND opp_snapshot.is_eligible_created_pipeline_flag = 1
-                    THEN opp_snapshot.created_in_snapshot_quarter_deal_count
-                ELSE 0
-             END )                                              AS total_pipe_generation_deal_count,
-        
-        -- SAO totals per quarter
-        SUM(CASE 
-                WHEN opp_snapshot.sales_accepted_fiscal_quarter_date = opp_snapshot.snapshot_fiscal_quarter_date
-                  AND opp_snapshot.is_eligible_sao_flag = 1
-                    THEN opp_snapshot.net_arr
-                ELSE 0
-             END )                                              AS total_sao_generation_net_arr,
-        SUM(CASE 
-                WHEN opp_snapshot.sales_accepted_fiscal_quarter_date = opp_snapshot.snapshot_fiscal_quarter_date
-                  AND opp_snapshot.is_eligible_sao_flag = 1
-                    THEN opp_snapshot.calculated_deal_count
-                ELSE 0
-             END )                                              AS total_sao_generation_deal_count,
-        
-        -- Created & Landed totals
-        SUM(CASE 
-                WHEN opp_snapshot.close_fiscal_quarter_date = opp_snapshot.snapshot_fiscal_quarter_date
-                    THEN opp_snapshot.created_and_won_same_quarter_net_arr
-                ELSE 0
-             END)                                               AS total_created_and_booked_same_quarter_net_arr
-   FROM sfdc_opportunity_snapshot_history_xf opp_snapshot
-   WHERE opp_snapshot.is_excluded_flag = 0
-     AND opp_snapshot.is_deleted = 0
-     AND opp_snapshot.snapshot_day_of_fiscal_quarter_normalised = 90
-   GROUP BY 1,2,3
+    ),
+    totals_per_quarter as (
 
-), base_fields AS (
+        select
+            opp_snapshot.snapshot_fiscal_quarter_name as close_fiscal_quarter_name,
+            opp_snapshot.snapshot_fiscal_quarter_date as close_fiscal_quarter_date,
+            -- -----------------------
+            -- keys
+            opp_snapshot.report_user_segment_geo_region_area_sqs_ot,
+            -- -----------------------
+            sum(
+                case
+                    when
+                        opp_snapshot.close_fiscal_quarter_date
+                        = opp_snapshot.snapshot_fiscal_quarter_date
+                    then opp_snapshot.booked_net_arr
+                    else 0
+                end
+            ) as total_booked_net_arr,
+            sum(
+                case
+                    when
+                        opp_snapshot.close_fiscal_quarter_date
+                        = opp_snapshot.snapshot_fiscal_quarter_date
+                    then opp_snapshot.churned_contraction_net_arr
+                    else 0
+                end
+            ) as total_churned_contraction_net_arr,
+            sum(
+                case
+                    when
+                        opp_snapshot.close_fiscal_quarter_date
+                        = opp_snapshot.snapshot_fiscal_quarter_date
+                    then opp_snapshot.booked_deal_count
+                    else 0
+                end
+            ) as total_booked_deal_count,
+            sum(
+                case
+                    when
+                        opp_snapshot.close_fiscal_quarter_date
+                        = opp_snapshot.snapshot_fiscal_quarter_date
+                    then opp_snapshot.churned_contraction_deal_count
+                    else 0
+                end
+            ) as total_churned_contraction_deal_count,
 
-  SELECT 
-        target_fiscal_quarter_name       AS close_fiscal_quarter_name,
-        target_fiscal_quarter_date       AS close_fiscal_quarter_date,
-        report_user_segment_geo_region_area_sqs_ot
-  FROM funnel_targets_per_quarter
-  UNION
-  SELECT 
-        close_fiscal_quarter_name,
-        close_fiscal_quarter_date,
-        report_user_segment_geo_region_area_sqs_ot
-  FROM totals_per_quarter
-  
-), consolidated_targets_totals AS (
-  
-  SELECT
-    --------
-    -- Keys
-    base.close_fiscal_quarter_name,
-    base.close_fiscal_quarter_date,
-    base.report_user_segment_geo_region_area_sqs_ot,
-    -----
-    
-    report_date.fiscal_year    AS close_fiscal_year,
+            -- Pipe gen totals
+            sum(
+                case
+                    when
+                        opp_snapshot.pipeline_created_fiscal_quarter_date
+                        = opp_snapshot.snapshot_fiscal_quarter_date
+                        and opp_snapshot.is_eligible_created_pipeline_flag = 1
+                    then opp_snapshot.created_in_snapshot_quarter_net_arr
+                    else 0
+                end
+            ) as total_pipe_generation_net_arr,
+            sum(
+                case
+                    when
+                        opp_snapshot.pipeline_created_fiscal_quarter_date
+                        = opp_snapshot.snapshot_fiscal_quarter_date
+                        and opp_snapshot.is_eligible_created_pipeline_flag = 1
+                    then opp_snapshot.created_in_snapshot_quarter_deal_count
+                    else 0
+                end
+            ) as total_pipe_generation_deal_count,
 
-    --------------------------------------------------    
+            -- SAO totals per quarter
+            sum(
+                case
+                    when
+                        opp_snapshot.sales_accepted_fiscal_quarter_date
+                        = opp_snapshot.snapshot_fiscal_quarter_date
+                        and opp_snapshot.is_eligible_sao_flag = 1
+                    then opp_snapshot.net_arr
+                    else 0
+                end
+            ) as total_sao_generation_net_arr,
+            sum(
+                case
+                    when
+                        opp_snapshot.sales_accepted_fiscal_quarter_date
+                        = opp_snapshot.snapshot_fiscal_quarter_date
+                        and opp_snapshot.is_eligible_sao_flag = 1
+                    then opp_snapshot.calculated_deal_count
+                    else 0
+                end
+            ) as total_sao_generation_deal_count,
 
-    agg_demo_keys.sales_team_cro_level,
-    agg_demo_keys.sales_team_vp_level,
-    agg_demo_keys.sales_team_avp_rd_level,
-    agg_demo_keys.sales_team_asm_level,
-    agg_demo_keys.deal_category,
-    agg_demo_keys.deal_group,
-    agg_demo_keys.sales_qualified_source,
-    agg_demo_keys.sales_team_rd_asm_level,
+            -- Created & Landed totals
+            sum(
+                case
+                    when
+                        opp_snapshot.close_fiscal_quarter_date
+                        = opp_snapshot.snapshot_fiscal_quarter_date
+                    then opp_snapshot.created_and_won_same_quarter_net_arr
+                    else 0
+                end
+            ) as total_created_and_booked_same_quarter_net_arr
+        from sfdc_opportunity_snapshot_history_xf opp_snapshot
+        where
+            opp_snapshot.is_excluded_flag = 0
+            and opp_snapshot.is_deleted = 0
+            and opp_snapshot.snapshot_day_of_fiscal_quarter_normalised = 90
+        group by 1, 2, 3
 
-    agg_demo_keys.key_sqs,
-    agg_demo_keys.key_ot,
+    ),
+    base_fields as (
 
-    agg_demo_keys.key_segment,
-    agg_demo_keys.key_segment_sqs,                 
-    agg_demo_keys.key_segment_ot,   
+        select
+            target_fiscal_quarter_name as close_fiscal_quarter_name,
+            target_fiscal_quarter_date as close_fiscal_quarter_date,
+            report_user_segment_geo_region_area_sqs_ot
+        from funnel_targets_per_quarter
+        union
+        select
+            close_fiscal_quarter_name,
+            close_fiscal_quarter_date,
+            report_user_segment_geo_region_area_sqs_ot
+        from totals_per_quarter
 
-    agg_demo_keys.key_segment_geo,
-    agg_demo_keys.key_segment_geo_sqs,
-    agg_demo_keys.key_segment_geo_ot,      
+    ),
+    consolidated_targets_totals as (
 
-    agg_demo_keys.key_segment_geo_region,
-    agg_demo_keys.key_segment_geo_region_sqs,
-    agg_demo_keys.key_segment_geo_region_ot,   
+        select
+            -- ------
+            -- Keys
+            base.close_fiscal_quarter_name,
+            base.close_fiscal_quarter_date,
+            base.report_user_segment_geo_region_area_sqs_ot,
+            -- ---
+            report_date.fiscal_year as close_fiscal_year,
 
-    agg_demo_keys.key_segment_geo_region_area,
-    agg_demo_keys.key_segment_geo_region_area_sqs,
-    agg_demo_keys.key_segment_geo_region_area_ot,
+            -- ------------------------------------------------    
+            agg_demo_keys.sales_team_cro_level,
+            agg_demo_keys.sales_team_vp_level,
+            agg_demo_keys.sales_team_avp_rd_level,
+            agg_demo_keys.sales_team_asm_level,
+            agg_demo_keys.deal_category,
+            agg_demo_keys.deal_group,
+            agg_demo_keys.sales_qualified_source,
+            agg_demo_keys.sales_team_rd_asm_level,
 
-    agg_demo_keys.report_user_segment_geo_region_area,
+            agg_demo_keys.key_sqs,
+            agg_demo_keys.key_ot,
 
-    --------------------------------------------------
-   
-    COALESCE(target.target_net_arr,0)                      AS target_net_arr,
-    COALESCE(target.target_deal_count,0)                   AS target_deal_count,
-    COALESCE(target.target_pipe_generation_net_arr,0)      AS target_pipe_generation_net_arr, 
-  
-    COALESCE(total.total_booked_net_arr,0)                    AS total_booked_net_arr,
-    COALESCE(total.total_churned_contraction_net_arr,0)       AS total_churned_contraction_net_arr,
-    COALESCE(total.total_booked_deal_count,0)                 AS total_booked_deal_count,
-    COALESCE(total.total_churned_contraction_deal_count,0)    AS total_churned_contraction_deal_count,     
-    COALESCE(total.total_pipe_generation_net_arr,0)           AS total_pipe_generation_net_arr,
-    COALESCE(total.total_pipe_generation_deal_count,0)        AS total_pipe_generation_deal_count,
+            agg_demo_keys.key_segment,
+            agg_demo_keys.key_segment_sqs,
+            agg_demo_keys.key_segment_ot,
 
-    COALESCE(total.total_sao_generation_net_arr,0)             AS total_sao_generation_net_arr,
-    COALESCE(total.total_sao_generation_deal_count,0)          AS total_sao_generation_deal_count,
+            agg_demo_keys.key_segment_geo,
+            agg_demo_keys.key_segment_geo_sqs,
+            agg_demo_keys.key_segment_geo_ot,
 
-    COALESCE(total.total_created_and_booked_same_quarter_net_arr,0)  AS total_created_and_booked_same_quarter_net_arr,
-  
-    -- check if we are in the current quarter or not. If not, use total, if we are use taret
-    CASE
-      WHEN today_date.current_fiscal_quarter_date <= base.close_fiscal_quarter_date
-        THEN target.target_net_arr
-      ELSE total.total_booked_net_arr
-     END                  AS calculated_target_net_arr, 
-     CASE
-      WHEN today_date.current_fiscal_quarter_date <= base.close_fiscal_quarter_date
-        THEN target.target_deal_count
-      ELSE total.total_booked_deal_count
-     END                  AS calculated_target_deal_count,  
-     CASE
-      WHEN today_date.current_fiscal_quarter_date <= base.close_fiscal_quarter_date
-        THEN target.target_pipe_generation_net_arr
-      ELSE total.total_pipe_generation_net_arr
-    END                  AS calculated_target_pipe_generation
-  FROM base_fields base
-  CROSS JOIN today_date
-  INNER JOIN date_details report_date
-    ON report_date.date_actual = base.close_fiscal_quarter_date
-  LEFT JOIN agg_demo_keys
-    ON base.report_user_segment_geo_region_area_sqs_ot = agg_demo_keys.report_user_segment_geo_region_area_sqs_ot
-  LEFT JOIN funnel_targets_per_quarter target
-     ON target.target_fiscal_quarter_date = base.close_fiscal_quarter_date
-      AND target.report_user_segment_geo_region_area_sqs_ot = base.report_user_segment_geo_region_area_sqs_ot
-  -- quarterly total
-  LEFT JOIN totals_per_quarter total
-     ON total.close_fiscal_quarter_date = base.close_fiscal_quarter_date
-      AND total.report_user_segment_geo_region_area_sqs_ot = base.report_user_segment_geo_region_area_sqs_ot
-  
-)
-SELECT * 
-FROM consolidated_targets_totals
+            agg_demo_keys.key_segment_geo_region,
+            agg_demo_keys.key_segment_geo_region_sqs,
+            agg_demo_keys.key_segment_geo_region_ot,
+
+            agg_demo_keys.key_segment_geo_region_area,
+            agg_demo_keys.key_segment_geo_region_area_sqs,
+            agg_demo_keys.key_segment_geo_region_area_ot,
+
+            agg_demo_keys.report_user_segment_geo_region_area,
+
+            -- ------------------------------------------------
+            coalesce(target.target_net_arr, 0) as target_net_arr,
+            coalesce(target.target_deal_count, 0) as target_deal_count,
+            coalesce(
+                target.target_pipe_generation_net_arr, 0
+            ) as target_pipe_generation_net_arr,
+
+            coalesce(total.total_booked_net_arr, 0) as total_booked_net_arr,
+            coalesce(
+                total.total_churned_contraction_net_arr, 0
+            ) as total_churned_contraction_net_arr,
+            coalesce(total.total_booked_deal_count, 0) as total_booked_deal_count,
+            coalesce(
+                total.total_churned_contraction_deal_count, 0
+            ) as total_churned_contraction_deal_count,
+            coalesce(
+                total.total_pipe_generation_net_arr, 0
+            ) as total_pipe_generation_net_arr,
+            coalesce(
+                total.total_pipe_generation_deal_count, 0
+            ) as total_pipe_generation_deal_count,
+
+            coalesce(
+                total.total_sao_generation_net_arr, 0
+            ) as total_sao_generation_net_arr,
+            coalesce(
+                total.total_sao_generation_deal_count, 0
+            ) as total_sao_generation_deal_count,
+
+            coalesce(
+                total.total_created_and_booked_same_quarter_net_arr, 0
+            ) as total_created_and_booked_same_quarter_net_arr,
+
+            -- check if we are in the current quarter or not. If not, use total, if we
+            -- are use taret
+            case
+                when
+                    today_date.current_fiscal_quarter_date
+                    <= base.close_fiscal_quarter_date
+                then target.target_net_arr
+                else total.total_booked_net_arr
+            end as calculated_target_net_arr,
+            case
+                when
+                    today_date.current_fiscal_quarter_date
+                    <= base.close_fiscal_quarter_date
+                then target.target_deal_count
+                else total.total_booked_deal_count
+            end as calculated_target_deal_count,
+            case
+                when
+                    today_date.current_fiscal_quarter_date
+                    <= base.close_fiscal_quarter_date
+                then target.target_pipe_generation_net_arr
+                else total.total_pipe_generation_net_arr
+            end as calculated_target_pipe_generation
+        from base_fields base
+        cross join today_date
+        inner join
+            date_details report_date
+            on report_date.date_actual = base.close_fiscal_quarter_date
+        left join
+            agg_demo_keys
+            on base.report_user_segment_geo_region_area_sqs_ot
+            = agg_demo_keys.report_user_segment_geo_region_area_sqs_ot
+        left join
+            funnel_targets_per_quarter target
+            on target.target_fiscal_quarter_date = base.close_fiscal_quarter_date
+            and target.report_user_segment_geo_region_area_sqs_ot
+            = base.report_user_segment_geo_region_area_sqs_ot
+        -- quarterly total
+        left join
+            totals_per_quarter total
+            on total.close_fiscal_quarter_date = base.close_fiscal_quarter_date
+            and total.report_user_segment_geo_region_area_sqs_ot
+            = base.report_user_segment_geo_region_area_sqs_ot
+
+    )
+select *
+from consolidated_targets_totals
