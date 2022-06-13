@@ -113,7 +113,13 @@ with
     ,
     final as (
 
-        select * from unpacked_stage_metrics union select * from unpacked_other_metrics
+        select *
+        from unpacked_stage_metrics
+
+        union
+
+        select *
+        from unpacked_other_metrics
 
     )
 select *

@@ -230,7 +230,9 @@ data as (
     {% endif %}
 
 
-    {% if not loop.last %} union {% endif %}
+    {% if not loop.last %}
+    union
+    {% endif %}
     {% endfor -%}
 
 )

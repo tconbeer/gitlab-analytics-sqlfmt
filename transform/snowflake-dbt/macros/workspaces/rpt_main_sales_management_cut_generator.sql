@@ -651,7 +651,10 @@ final as (
     {% for select_column in select_columns %}
     {% if select_column == "segment_region_grouped" %}
 
-    union select * from large_subtotal
+    union
+
+    select *
+    from large_subtotal
 
     {% endif %}
     {% endfor %}

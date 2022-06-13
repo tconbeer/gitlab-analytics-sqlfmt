@@ -146,7 +146,9 @@ with
         qualify row_number() over (partition by id order by updated_date desc) = 1
 
 
-        {% if not loop.last %} union all {% endif %}
+        {% if not loop.last %}
+        union all
+        {% endif %}
 
         {% endfor %}
 
@@ -174,7 +176,9 @@ with
         qualify row_number() over (partition by id order by updated_date desc) = 1
 
 
-        {% if not loop.last %} union all {% endif %}
+        {% if not loop.last %}
+        union all
+        {% endif %}
 
         {% endfor %}
 

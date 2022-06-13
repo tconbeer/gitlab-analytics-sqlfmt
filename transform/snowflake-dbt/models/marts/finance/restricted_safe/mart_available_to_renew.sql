@@ -1168,7 +1168,9 @@ unioned as (
         opportunity_term_group,
         arr
     from renewal_report_{{ renewal_fiscal_year }}
-    {%- if not loop.last %} union all {%- endif %}
+    {%- if not loop.last %}
+    union all
+    {%- endif %}
 
     {% endfor -%}
 

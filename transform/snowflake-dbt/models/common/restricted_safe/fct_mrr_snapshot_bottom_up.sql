@@ -181,7 +181,13 @@ with
     ),
     combined_charges as (
 
-        select * from manual_charges union all select * from non_manual_charges
+        select *
+        from manual_charges
+
+        union all
+
+        select *
+        from non_manual_charges
 
     ),
     mrr_month_by_month as (

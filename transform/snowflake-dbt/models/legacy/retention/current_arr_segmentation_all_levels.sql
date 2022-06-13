@@ -85,7 +85,9 @@ with
 
         select *
         from {{ level }}_get_segmentation
-        {%- if not loop.last %} union all {%- endif %}
+        {%- if not loop.last %}
+        union all
+        {%- endif %}
 
         {% endfor -%}
     )

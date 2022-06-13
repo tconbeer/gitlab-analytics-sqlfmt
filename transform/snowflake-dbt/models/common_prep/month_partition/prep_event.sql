@@ -663,7 +663,9 @@ data as (
         ) = {{ year_value }} and date_part(
             'month', {{ event_cte.source_cte_name }}.created_at
         ) = {{ month_value }}
-    {% if not loop.last %} union all {% endif %}
+    {% if not loop.last %}
+    union all
+    {% endif %}
     {%- endfor %}
 
 )

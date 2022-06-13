@@ -54,7 +54,12 @@ with
     unioned as (
         {% for event_cte in event_ctes %}
 
-        select * from {{ event_cte }} {%- if not loop.last %} union {%- endif %}
+        select *
+        from {{ event_cte }}
+
+        {%- if not loop.last %}
+        union
+        {%- endif %}
 
         {% endfor -%}
 

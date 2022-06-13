@@ -29,7 +29,9 @@ with
         from {{ source("salesforce", table) }}
 
 
-        {% if not loop.last %} union all {% endif %}
+        {% if not loop.last %}
+        union all
+        {% endif %}
 
         {% endfor %}
 
@@ -48,7 +50,9 @@ with
         from {{ source("salesforce", table) }}
 
 
-        {% if not loop.last %} union all {% endif %}
+        {% if not loop.last %}
+        union all
+        {% endif %}
 
         {% endfor %}
 

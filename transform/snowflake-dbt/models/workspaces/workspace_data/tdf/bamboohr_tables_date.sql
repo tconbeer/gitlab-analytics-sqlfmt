@@ -19,7 +19,9 @@ with
         from {{ source("bamboohr", table) }}
 
 
-        {% if not loop.last %} union all {% endif %}
+        {% if not loop.last %}
+        union all
+        {% endif %}
 
         {% endfor %}
 

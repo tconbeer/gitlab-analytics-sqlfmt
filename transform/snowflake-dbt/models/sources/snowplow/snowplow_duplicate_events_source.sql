@@ -15,7 +15,17 @@ with
 
     ),
     gitlab as (select event_id from {{ ref("snowplow_gitlab_good_events_source") }}),
-    unioned as (select event_id from fishtown union all select event_id from gitlab),
+    unioned as (
+
+        select event_id
+        from fishtown
+
+        union all
+
+        select event_id
+        from gitlab
+
+    ),
     counts as (
 
         select event_id, count(event_id) as event_count

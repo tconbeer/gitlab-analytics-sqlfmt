@@ -26,7 +26,17 @@ with
         where termination_date is not null
 
     ),
-    unioned as (select * from hires union all select * from terminations),
+    unioned as (
+
+        select *
+        from hires
+
+        union all
+
+        select *
+        from terminations
+
+    ),
     report_table as (
 
         select

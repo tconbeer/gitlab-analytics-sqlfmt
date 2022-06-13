@@ -186,7 +186,13 @@ records_to_insert as (
 ),
 unioned_waterfall as (
 
-    select * from waterfall union all select * from records_to_insert
+    select *
+    from waterfall
+
+    union all
+
+    select *
+    from records_to_insert
 
 ),
 previous_revenue_base as (

@@ -38,7 +38,13 @@ with
     ),
     gitlab_issues_and_epics as (
 
-        select * from gitlab_issues union select * from gitlab_epics
+        select *
+        from gitlab_issues
+
+        union
+
+        select *
+        from gitlab_epics
 
     ),
     sfdc_accounts as (select * from {{ ref("sfdc_accounts_xf") }}),

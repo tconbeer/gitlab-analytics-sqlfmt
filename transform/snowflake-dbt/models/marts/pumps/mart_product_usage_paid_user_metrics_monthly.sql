@@ -420,7 +420,13 @@ saas_paid_user_metrics as (
 ),
 unioned as (
 
-    select * from sm_paid_user_metrics union all select * from saas_paid_user_metrics
+    select *
+    from sm_paid_user_metrics
+
+    union all
+
+    select *
+    from saas_paid_user_metrics
 
 ),
 final as (

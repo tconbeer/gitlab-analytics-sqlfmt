@@ -19,7 +19,9 @@ with
         from {{ source("demandbase", table) }}
 
 
-        {% if not loop.last %} union all {% endif %}
+        {% if not loop.last %}
+        union all
+        {% endif %}
 
         {% endfor %}
 

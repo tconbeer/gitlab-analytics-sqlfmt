@@ -26,7 +26,9 @@ order by 1 {%- endcall -%} {%- set value_list = load_result("get_schemata") -%}
 select *
 from "{{ database }}".{{ schematable }}
 
-{%- if not loop.last %} union all {% endif -%}
+{%- if not loop.last %}
+union all
+{% endif -%}
 
 {% endfor -%}
 

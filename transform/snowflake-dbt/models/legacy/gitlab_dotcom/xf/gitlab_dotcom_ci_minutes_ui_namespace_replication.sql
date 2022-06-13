@@ -111,7 +111,13 @@ with
     ),
     project_snapshot_monthly_all as (
 
-        select * from project_snapshot_monthly union select * from project_current
+        select *
+        from project_snapshot_monthly
+
+        union
+
+        select *
+        from project_current
 
     ),
     namespace_lineage_monthly_all as (
@@ -127,7 +133,13 @@ with
     ),
     namespace_snapshots_monthly_all as (
 
-        select * from namespace_snapshots_monthly union select * from namespace_current
+        select *
+        from namespace_snapshots_monthly
+
+        union
+
+        select *
+        from namespace_current
 
     ),
     namespace_statistic_monthly_all as (

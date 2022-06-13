@@ -163,7 +163,17 @@ snapshot_model as (
     order by 1 desc
 
 ),
-combined as (select * from snapshot_model union all select * from phase_one),
+combined as (
+
+    select *
+    from snapshot_model
+
+    union all
+
+    select *
+    from phase_one
+
+),
 parent_arr as (
 
     select arr_month, dim_parent_crm_account_id, sum(arr) as arr

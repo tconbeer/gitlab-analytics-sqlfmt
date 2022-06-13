@@ -12,7 +12,15 @@ with
         from {{ ref("gitlab_dotcom_audit_event_details_pii") }}
 
     ),
-    unioned as (select * from non_pii_details union all select * from pii_details)
+    unioned as (
+
+        select *
+        from non_pii_details
+        union all
+        select *
+        from pii_details
+
+    )
 
     {{
         dbt_audit(

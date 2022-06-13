@@ -42,7 +42,12 @@ with
 
         {% for table_to_import in tables_to_import %}
 
-        select * from {{ table_to_import }} {%- if not loop.last %} union {%- endif %}
+        select *
+        from {{ table_to_import }}
+
+        {%- if not loop.last %}
+        union
+        {%- endif %}
 
         {% endfor -%}
 

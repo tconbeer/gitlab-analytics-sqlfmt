@@ -20,7 +20,9 @@ with
         from {{ source("netsuite", table) }}
 
 
-        {% if not loop.last %} union all {% endif %}
+        {% if not loop.last %}
+        union all
+        {% endif %}
 
         {% endfor %}
 

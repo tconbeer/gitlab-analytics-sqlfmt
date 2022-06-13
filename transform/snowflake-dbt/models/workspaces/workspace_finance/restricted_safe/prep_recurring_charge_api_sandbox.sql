@@ -116,7 +116,13 @@ with
     ),
     combined_rate_plans as (
 
-        select * from rate_plan_charge_filtered union select * from manual_charges
+        select *
+        from rate_plan_charge_filtered
+
+        union
+
+        select *
+        from manual_charges
 
     ),
     mrr_month_by_month as (

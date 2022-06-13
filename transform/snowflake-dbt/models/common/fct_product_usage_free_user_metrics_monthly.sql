@@ -456,7 +456,13 @@ saas_free_user_metrics as (
 ),
 unioned as (
 
-    select * from sm_free_user_metrics union all select * from saas_free_user_metrics
+    select *
+    from sm_free_user_metrics
+
+    union all
+
+    select *
+    from saas_free_user_metrics
 
 )
 

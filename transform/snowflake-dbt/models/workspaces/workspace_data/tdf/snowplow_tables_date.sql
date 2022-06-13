@@ -8,7 +8,9 @@ with
         from {{ source("gitlab_snowplow", table) }}
 
 
-        {% if not loop.last %} union all {% endif %}
+        {% if not loop.last %}
+        union all
+        {% endif %}
 
         {% endfor %}
 

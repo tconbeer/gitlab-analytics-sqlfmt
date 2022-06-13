@@ -149,7 +149,9 @@ with
         select *
         from {{ event_cte.event_name }}
 
-        {%- if not loop.last %} union {%- endif %}
+        {%- if not loop.last %}
+        union
+        {%- endif %}
 
         {% endfor -%}
 
@@ -162,7 +164,9 @@ with
         select *
         from {{ event_cte.event_name }}
 
-        {%- if not loop.last %} union {%- endif %}
+        {%- if not loop.last %}
+        union
+        {%- endif %}
 
         {% endfor -%}
 

@@ -122,7 +122,9 @@ with
         from {{ source("gitlab_dotcom", table) }}
 
 
-        {% if not loop.last %} union all {% endif %}
+        {% if not loop.last %}
+        union all
+        {% endif %}
 
         {% endfor %}
 

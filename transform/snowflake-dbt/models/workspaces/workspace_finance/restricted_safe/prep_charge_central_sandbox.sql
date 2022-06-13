@@ -431,7 +431,13 @@ with
     ),
     combined_charges as (
 
-        select * from non_manual_charges union select * from manual_charges
+        select *
+        from non_manual_charges
+
+        union
+
+        select *
+        from manual_charges
 
     ),
     arr_analysis_framework as (
