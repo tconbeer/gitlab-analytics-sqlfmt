@@ -1,16 +1,12 @@
 
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "issue_id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "issue_id"}) }}
 
 
-SELECT *
-FROM {{ source('gitlab_dotcom', 'issues_prometheus_alert_events') }}
+select *
+from {{ source("gitlab_dotcom", "issues_prometheus_alert_events") }}
 {% if is_incremental() %}
 
-WHERE updated_at >= (SELECT MAX(updated_at) FROM {{this}})
+where updated_at >= (select max(updated_at) from {{ this }})
 
 {% endif %}
-QUALIFY ROW_NUMBER() OVER (PARTITION BY issue_id ORDER BY updated_at DESC) = 1
+qualify row_number() over (partition by issue_id order by updated_at desc) = 1

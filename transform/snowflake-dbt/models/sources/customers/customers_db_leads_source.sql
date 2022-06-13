@@ -1,43 +1,45 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('customers', 'customers_db_leads') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY UPDATED_AT DESC) = 1
+        select *
+        from {{ source("customers", "customers_db_leads") }}
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
+        select
 
-      id::NUMBER                      AS leads_id,
-      created_at::TIMESTAMP           AS created_at,
-      updated_at::TIMESTAMP           AS updated_at,
-      trial_start_date::TIMESTAMP     AS trial_start_date,
-      namespace_id::NUMBER            AS namespace_id,
-      user_id::NUMBER                 AS user_id,
-      opt_in::BOOLEAN                 AS opt_in,
-      currently_in_trial::BOOLEAN     AS currently_in_trial,
-      is_for_business_use::BOOLEAN    AS is_for_business_use,
-      first_name::VARCHAR             AS first_name,
-      last_name::VARCHAR              AS last_name,
-      email::VARCHAR                  AS email,
-      phone::VARCHAR                  AS phone,
-      company_name::VARCHAR           AS company_name,
-      employees_bucket::VARCHAR       AS employees_bucket,
-      country::VARCHAR                AS country,
-      state::VARCHAR                  AS state,
-      product_interaction::VARCHAR    AS product_interaction,
-      provider::VARCHAR               AS provider,
-      comment_capture::VARCHAR        AS comment_capture,
-      glm_content::VARCHAR            AS glm_content,
-      glm_source::VARCHAR             AS glm_source,
-      sent_at::TIMESTAMP              AS sent_at,
-      website_url::VARCHAR            AS website_url,
-      role::VARCHAR                   AS role,
-      jtbd::VARCHAR                   AS jtbd      
+            id::number as leads_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            trial_start_date::timestamp as trial_start_date,
+            namespace_id::number as namespace_id,
+            user_id::number as user_id,
+            opt_in::boolean as opt_in,
+            currently_in_trial::boolean as currently_in_trial,
+            is_for_business_use::boolean as is_for_business_use,
+            first_name::varchar as first_name,
+            last_name::varchar as last_name,
+            email::varchar as email,
+            phone::varchar as phone,
+            company_name::varchar as company_name,
+            employees_bucket::varchar as employees_bucket,
+            country::varchar as country,
+            state::varchar as state,
+            product_interaction::varchar as product_interaction,
+            provider::varchar as provider,
+            comment_capture::varchar as comment_capture,
+            glm_content::varchar as glm_content,
+            glm_source::varchar as glm_source,
+            sent_at::timestamp as sent_at,
+            website_url::varchar as website_url,
+            role::varchar as role,
+            jtbd::varchar as jtbd
 
-    FROM source  
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,50 +1,54 @@
-{{ config({
-    "materialized": "table"
-    })
-}}
+{{ config({"materialized": "table"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('bamboohr', 'custom_on_target_earnings') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
+        select *
+        from {{ source("bamboohr", "custom_on_target_earnings") }}
+        order by uploaded_at desc
+        limit 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT 
-      data_by_row.value['id']::NUMBER                       AS target_earnings_update_id,
-      data_by_row.value['employeeId']::NUMBER               AS employee_id,
-      data_by_row.value['customDate']::DATE                 AS effective_date,
-      data_by_row.value['customAnnualAmountLocal']::VARCHAR AS annual_amount_local,
-      data_by_row.value['customAnnualAmountUSD']::VARCHAR   AS annual_amount_usd,
-      data_by_row.value['customOTELocal']::VARCHAR          AS ote_local,
-      data_by_row.value['customOTEUSD']::VARCHAR            AS ote_usd,
-      data_by_row.value['customType']::VARCHAR              AS ote_type,
-      data_by_row.value['customVariablePay']::VARCHAR       AS variable_pay
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), OUTER => true) data_by_row
+        select
+            data_by_row.value['id']::number as target_earnings_update_id,
+            data_by_row.value['employeeId']::number as employee_id,
+            data_by_row.value['customDate']::date as effective_date,
+            data_by_row.value[
+                'customAnnualAmountLocal'
+            ]::varchar as annual_amount_local,
+            data_by_row.value['customAnnualAmountUSD']::varchar as annual_amount_usd,
+            data_by_row.value['customOTELocal']::varchar as ote_local,
+            data_by_row.value['customOTEUSD']::varchar as ote_usd,
+            data_by_row.value['customType']::varchar as ote_type,
+            data_by_row.value['customVariablePay']::varchar as variable_pay
+        from
+            source,
+            lateral flatten(input => parse_json(jsontext), outer => true) data_by_row
 
-), final AS (
+    ),
+    final as (
 
-    SELECT 
-      target_earnings_update_id,
-      employee_id,
-      effective_date,
-      variable_pay,
-      annual_amount_local,
-      SPLIT_PART(annual_amount_usd,' ',1)   AS annual_amount_usd_value,
-      ote_local,
-      SPLIT_PART(ote_usd,' ',1)             AS ote_usd,
-      ote_type
-    FROM renamed
+        select
+            target_earnings_update_id,
+            employee_id,
+            effective_date,
+            variable_pay,
+            annual_amount_local,
+            split_part(annual_amount_usd, ' ', 1) as annual_amount_usd_value,
+            ote_local,
+            split_part(ote_usd, ' ', 1) as ote_usd,
+            ote_type
+        from renamed
 
-)
+    )
 
-SELECT *,
-  LAG(COALESCE(annual_amount_usd_value,0)) OVER (PARTITION BY employee_id 
-                                            ORDER BY target_earnings_update_id)                 AS prior_annual_amount_usd,
-  annual_amount_usd_value - prior_annual_amount_usd                                             AS change_in_annual_amount_usd
-FROM final
-WHERE target_earnings_update_id != 23721 --incorrect order
-
+select
+    *,
+    lag(coalesce(annual_amount_usd_value, 0)) over (
+        partition by employee_id order by target_earnings_update_id
+    ) as prior_annual_amount_usd,
+    annual_amount_usd_value - prior_annual_amount_usd as change_in_annual_amount_usd
+from final
+where target_earnings_update_id != 23721  -- incorrect order

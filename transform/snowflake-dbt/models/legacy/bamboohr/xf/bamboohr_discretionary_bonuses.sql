@@ -1,33 +1,35 @@
-{{ config({
-    "schema": "legacy",
-    "database": env_var('SNOWFLAKE_PROD_DATABASE'),
-    })
+{{
+    config(
+        {
+            "schema": "legacy",
+            "database": env_var("SNOWFLAKE_PROD_DATABASE"),
+        }
+    )
 }}
 
-WITH source AS (
+with
+    source as (select * from {{ ref("bamboohr_custom_bonus_source") }}),
+    current_division_department_mapping as (
 
-  SELECT *
-  FROM {{ ref('bamboohr_custom_bonus_source') }}
+        select * from {{ ref("bamboohr_job_info_current_division_base") }}
 
-), current_division_department_mapping AS (
+    ),
+    filtered as (
 
-    SELECT * 
-    FROM {{ ref('bamboohr_job_info_current_division_base') }}
+        select source.*, department, division_mapped_current as division
+        from source
+        left join
+            current_division_department_mapping
+            on source.employee_id = current_division_department_mapping.employee_id
+            and source.bonus_date
+            between current_division_department_mapping.effective_date
+            and coalesce(
+                current_division_department_mapping.effective_end_date::date,
+                {{ max_date_in_bamboo_analyses() }}
+            )
+        where source.bonus_type = 'Discretionary Bonus'
 
-), filtered AS (
+    )
 
-    SELECT
-      source.*,
-      department,
-      division_mapped_current AS division
-    FROM source
-    LEFT JOIN current_division_department_mapping
-      ON source.employee_id = current_division_department_mapping.employee_id
-      AND source.bonus_date BETWEEN current_division_department_mapping.effective_date 
-                            AND COALESCE(current_division_department_mapping.effective_end_date::DATE, {{max_date_in_bamboo_analyses()}})
-    WHERE source.bonus_type = 'Discretionary Bonus'
-
-)
-
-SELECT *
-FROM filtered
+select *
+from filtered

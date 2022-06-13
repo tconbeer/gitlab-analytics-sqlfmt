@@ -1,158 +1,181 @@
 /* grain: one record per subscription per month */
-WITH dim_date AS (
+with
+    dim_date as (select * from {{ ref("dim_date") }}),
+    map_merged_crm_account as (select * from {{ ref("map_merged_crm_account") }}),
+    zuora_api_sandbox_account as (
 
-    SELECT *
-    FROM {{ ref('dim_date') }}
+        select *
+        from {{ ref("zuora_api_sandbox_account_source") }}
+        where is_deleted = false
+    -- Keep the Batch20 test accounts since they would be in scope for this sandbox
+    -- model.
+    -- AND LOWER(batch) != 'batch20'
+    ),
+    zuora_api_sandbox_rate_plan as (
 
-), map_merged_crm_account AS (
+        select * from {{ ref("zuora_api_sandbox_rate_plan_source") }}
 
-    SELECT *
-    FROM {{ ref('map_merged_crm_account') }}
+    ),
+    zuora_api_sandbox_rate_plan_charge as (
 
-), zuora_api_sandbox_account AS (
+        select *
+        from {{ ref("zuora_api_sandbox_rate_plan_charge_source") }}
+        where charge_type = 'Recurring'
 
-    SELECT *
-    FROM {{ ref('zuora_api_sandbox_account_source') }}
-    WHERE is_deleted = FALSE
-    --Keep the Batch20 test accounts since they would be in scope for this sandbox model.
-      --AND LOWER(batch) != 'batch20'
+    ),
+    zuora_api_sandbox_subscription as (
 
-), zuora_api_sandbox_rate_plan AS (
+        select *
+        from {{ ref("zuora_api_sandbox_subscription_source") }}
+        where
+            is_deleted = false and exclude_from_analysis in (
+                'False', ''
+            ) and subscription_status not in ('Draft')
 
-    SELECT *
-    FROM {{ ref('zuora_api_sandbox_rate_plan_source') }}
+    ),
+    active_zuora_subscription as (
 
-), zuora_api_sandbox_rate_plan_charge AS (
+        select *
+        from zuora_api_sandbox_subscription
+        where subscription_status in ('Active', 'Cancelled')
 
-    SELECT *
-    FROM {{ ref('zuora_api_sandbox_rate_plan_charge_source') }}
-    WHERE charge_type = 'Recurring'
+    ),
+    manual_arr_true_up_allocation as (
 
-), zuora_api_sandbox_subscription AS (
+        select * from {{ ref("sheetload_manual_arr_true_up_allocation_source") }}
 
-    SELECT *
-    FROM {{ ref('zuora_api_sandbox_subscription_source') }}
-    WHERE is_deleted = FALSE
-      AND exclude_from_analysis IN ('False', '')
-      AND subscription_status NOT IN ('Draft')
+    -- added as a work around until there is an automated method for adding true-up
+    -- adjustments to Zuora Revenue/Zuora Billing
+    ),
+    manual_charges as (
 
-), active_zuora_subscription AS (
+        select
+            manual_arr_true_up_allocation.account_id as billing_account_id,
+            map_merged_crm_account.dim_crm_account_id as crm_account_id,
+            md5(
+                manual_arr_true_up_allocation.rate_plan_charge_id
+            ) as rate_plan_charge_id,
+            active_zuora_subscription.subscription_id as subscription_id,
+            active_zuora_subscription.subscription_name as subscription_name,
+            active_zuora_subscription.subscription_status as subscription_status,
+            manual_arr_true_up_allocation.dim_product_detail_id as product_details_id,
+            manual_arr_true_up_allocation.mrr as mrr,
+            null as delta_tcv,
+            manual_arr_true_up_allocation.unit_of_measure as unit_of_measure,
+            0 as quantity,
+            date_trunc('month', effective_start_date) as effective_start_month,
+            date_trunc('month', effective_end_date) as effective_end_month
+        from manual_arr_true_up_allocation
+        inner join
+            active_zuora_subscription
+            on manual_arr_true_up_allocation.subscription_name
+            = active_zuora_subscription.subscription_name
+        inner join
+            zuora_api_sandbox_account
+            on active_zuora_subscription.account_id
+            = zuora_api_sandbox_account.account_id
+        left join
+            map_merged_crm_account
+            on zuora_api_sandbox_account.crm_id = map_merged_crm_account.sfdc_account_id
 
-    SELECT *
-    FROM zuora_api_sandbox_subscription
-    WHERE subscription_status IN ('Active', 'Cancelled')
+    ),
+    rate_plan_charge_filtered as (
 
-), manual_arr_true_up_allocation AS (
+        select
+            zuora_api_sandbox_account.account_id as billing_account_id,
+            map_merged_crm_account.dim_crm_account_id as crm_account_id,
+            zuora_api_sandbox_rate_plan_charge.rate_plan_charge_id,
+            zuora_api_sandbox_subscription.subscription_id,
+            zuora_api_sandbox_subscription.subscription_name,
+            zuora_api_sandbox_subscription.subscription_status,
+            zuora_api_sandbox_rate_plan_charge.product_rate_plan_charge_id
+            as product_details_id,
+            zuora_api_sandbox_rate_plan_charge.mrr,
+            zuora_api_sandbox_rate_plan_charge.delta_tcv,
+            zuora_api_sandbox_rate_plan_charge.unit_of_measure,
+            zuora_api_sandbox_rate_plan_charge.quantity,
+            zuora_api_sandbox_rate_plan_charge.effective_start_month,
+            zuora_api_sandbox_rate_plan_charge.effective_end_month
+        from zuora_api_sandbox_rate_plan_charge
+        inner join
+            zuora_api_sandbox_rate_plan
+            on zuora_api_sandbox_rate_plan.rate_plan_id
+            = zuora_api_sandbox_rate_plan_charge.rate_plan_id
+        inner join
+            zuora_api_sandbox_subscription
+            on zuora_api_sandbox_rate_plan.subscription_id
+            = zuora_api_sandbox_subscription.subscription_id
+        inner join
+            zuora_api_sandbox_account
+            on zuora_api_sandbox_account.account_id
+            = zuora_api_sandbox_subscription.account_id
+        left join
+            map_merged_crm_account
+            on zuora_api_sandbox_account.crm_id = map_merged_crm_account.sfdc_account_id
 
-    SELECT *
-    FROM {{ ref('sheetload_manual_arr_true_up_allocation_source') }}
+    ),
+    combined_rate_plans as (
 
-), manual_charges AS ( -- added as a work around until there is an automated method for adding true-up adjustments to Zuora Revenue/Zuora Billing
+        select *
+        from rate_plan_charge_filtered
 
-    SELECT
-      manual_arr_true_up_allocation.account_id                                    AS billing_account_id,
-      map_merged_crm_account.dim_crm_account_id                                   AS crm_account_id,
-      MD5(manual_arr_true_up_allocation.rate_plan_charge_id)                      AS rate_plan_charge_id,
-      active_zuora_subscription.subscription_id                                   AS subscription_id,
-      active_zuora_subscription.subscription_name                                 AS subscription_name,
-      active_zuora_subscription.subscription_status                               AS subscription_status,
-      manual_arr_true_up_allocation.dim_product_detail_id                         AS product_details_id,
-      manual_arr_true_up_allocation.mrr                                           AS mrr,
-      NULL                                                                        AS delta_tcv,
-      manual_arr_true_up_allocation.unit_of_measure                               AS unit_of_measure,
-      0                                                                           AS quantity,
-      DATE_TRUNC('month', effective_start_date)                                   AS effective_start_month,
-      DATE_TRUNC('month', effective_end_date)                                     AS effective_end_month
-    FROM manual_arr_true_up_allocation
-    INNER JOIN active_zuora_subscription
-      ON manual_arr_true_up_allocation.subscription_name = active_zuora_subscription.subscription_name
-    INNER JOIN zuora_api_sandbox_account
-      ON active_zuora_subscription.account_id = zuora_api_sandbox_account.account_id
-    LEFT JOIN map_merged_crm_account
-      ON zuora_api_sandbox_account.crm_id = map_merged_crm_account.sfdc_account_id
+        union
 
-), rate_plan_charge_filtered AS (
+        select *
+        from manual_charges
 
-    SELECT
-      zuora_api_sandbox_account.account_id                                        AS billing_account_id,
-      map_merged_crm_account.dim_crm_account_id                                   AS crm_account_id,
-      zuora_api_sandbox_rate_plan_charge.rate_plan_charge_id,
-      zuora_api_sandbox_subscription.subscription_id,
-      zuora_api_sandbox_subscription.subscription_name,
-      zuora_api_sandbox_subscription.subscription_status,
-      zuora_api_sandbox_rate_plan_charge.product_rate_plan_charge_id              AS product_details_id,
-      zuora_api_sandbox_rate_plan_charge.mrr,
-      zuora_api_sandbox_rate_plan_charge.delta_tcv,
-      zuora_api_sandbox_rate_plan_charge.unit_of_measure,
-      zuora_api_sandbox_rate_plan_charge.quantity,
-      zuora_api_sandbox_rate_plan_charge.effective_start_month,
-      zuora_api_sandbox_rate_plan_charge.effective_end_month
-    FROM zuora_api_sandbox_rate_plan_charge
-    INNER JOIN zuora_api_sandbox_rate_plan
-      ON zuora_api_sandbox_rate_plan.rate_plan_id = zuora_api_sandbox_rate_plan_charge.rate_plan_id
-    INNER JOIN zuora_api_sandbox_subscription
-      ON zuora_api_sandbox_rate_plan.subscription_id = zuora_api_sandbox_subscription.subscription_id
-    INNER JOIN zuora_api_sandbox_account
-      ON zuora_api_sandbox_account.account_id = zuora_api_sandbox_subscription.account_id
-    LEFT JOIN map_merged_crm_account
-      ON zuora_api_sandbox_account.crm_id = map_merged_crm_account.sfdc_account_id
+    ),
+    mrr_month_by_month as (
 
-), combined_rate_plans AS (
+        select
+            dim_date.date_id,
+            billing_account_id,
+            crm_account_id,
+            subscription_id,
+            subscription_name,
+            subscription_status,
+            product_details_id,
+            rate_plan_charge_id,
+            sum(mrr) as mrr,
+            sum(mrr) * 12 as arr,
+            sum(quantity) as quantity,
+            array_agg(combined_rate_plans.unit_of_measure) as unit_of_measure
+        from combined_rate_plans
+        inner join
+            dim_date
+            on combined_rate_plans.effective_start_month <= dim_date.date_actual
+            and (
+                combined_rate_plans.effective_end_month > dim_date.date_actual
+                or combined_rate_plans.effective_end_month is null
+            ) and dim_date.day_of_month = 1
+            {{ dbt_utils.group_by(n=8) }}
 
-    SELECT *
-    FROM rate_plan_charge_filtered
+    ),
+    final as (
 
-    UNION
+        select
+            {{ dbt_utils.surrogate_key(["date_id", "rate_plan_charge_id"]) }} as mrr_id,
+            date_id as dim_date_id,
+            billing_account_id as dim_billing_account_id,
+            crm_account_id as dim_crm_account_id,
+            subscription_id as dim_subscription_id,
+            product_details_id as dim_product_detail_id,
+            rate_plan_charge_id as dim_charge_id,
+            subscription_status,
+            mrr,
+            arr,
+            quantity,
+            unit_of_measure
+        from mrr_month_by_month
 
-    SELECT *
-    FROM manual_charges
+    )
 
-), mrr_month_by_month AS (
-
-    SELECT
-      dim_date.date_id,
-      billing_account_id,
-      crm_account_id,
-      subscription_id,
-      subscription_name,
-      subscription_status,
-      product_details_id,
-      rate_plan_charge_id,
-      SUM(mrr)                                                           AS mrr,
-      SUM(mrr)* 12                                                       AS arr,
-      SUM(quantity)                                                      AS quantity,
-      ARRAY_AGG(combined_rate_plans.unit_of_measure)                     AS unit_of_measure
-    FROM combined_rate_plans
-    INNER JOIN dim_date
-      ON combined_rate_plans.effective_start_month <= dim_date.date_actual
-      AND (combined_rate_plans.effective_end_month > dim_date.date_actual
-        OR combined_rate_plans.effective_end_month IS NULL)
-      AND dim_date.day_of_month = 1
-    {{ dbt_utils.group_by(n=8) }}
-
-), final AS (
-
-  SELECT
-    {{ dbt_utils.surrogate_key(['date_id','rate_plan_charge_id']) }}     AS mrr_id,
-    date_id                                                              AS dim_date_id,
-    billing_account_id                                                   AS dim_billing_account_id,
-    crm_account_id                                                       AS dim_crm_account_id,
-    subscription_id                                                      AS dim_subscription_id,
-    product_details_id                                                   AS dim_product_detail_id,
-    rate_plan_charge_id                                                  AS dim_charge_id,
-    subscription_status,
-    mrr,
-    arr,
-    quantity,
-    unit_of_measure
-  FROM mrr_month_by_month
-
-)
-
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@ken_aguilar",
-    updated_by="@ken_aguilar",
-    created_date="2021-09-02",
-    updated_date="2021-09-02",
-) }}
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@ken_aguilar",
+            updated_by="@ken_aguilar",
+            created_date="2021-09-02",
+            updated_date="2021-09-02",
+        )
+    }}

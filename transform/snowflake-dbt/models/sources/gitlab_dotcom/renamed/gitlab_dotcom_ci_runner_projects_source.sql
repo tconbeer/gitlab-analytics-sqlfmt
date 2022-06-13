@@ -1,24 +1,25 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_ci_runner_projects_dedupe_source') }}
-      
-)
+        select * from {{ ref("gitlab_dotcom_ci_runner_projects_dedupe_source") }}
 
-, renamed AS (
-  
-    SELECT
-    
-      id::NUMBER           AS ci_runner_project_id,
-      runner_id::NUMBER    AS runner_id,
-      project_id::NUMBER   AS project_id,
-      created_at::TIMESTAMP AS created_at,
-      updated_at::TIMESTAMP AS updated_at
+    )
 
-    FROM source
-    WHERE project_id IS NOT NULL
-  
-)
+    ,
+    renamed as (
 
-SELECT * 
-FROM renamed
+        select
+
+            id::number as ci_runner_project_id,
+            runner_id::number as runner_id,
+            project_id::number as project_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
+
+        from source
+        where project_id is not null
+
+    )
+
+select *
+from renamed

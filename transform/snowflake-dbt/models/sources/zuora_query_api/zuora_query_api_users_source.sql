@@ -1,21 +1,20 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_query_api", "users") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_query_api', 'users') }}
+        select
+            "Id"::text as zuora_user_id,
+            "Email"::text as email,
+            "FirstName"::text as first_name,
+            "LastName"::text as last_name,
+            "Username"::text as user_name,
+            to_timestamp(
+                convert_timezone('UTC', "CreatedDate")
+            )::timestamp as created_date,
+            to_timestamp_ntz(cast(_uploaded_at as int))::timestamp as uploaded_at
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      "Id"::TEXT                                                           AS zuora_user_id,
-      "Email"::TEXT                                                        AS email,
-      "FirstName"::TEXT                                                    AS first_name,
-      "LastName"::TEXT                                                     AS last_name,
-      "Username"::TEXT                                                     AS user_name,
-      TO_TIMESTAMP(CONVERT_TIMEZONE('UTC', "CreatedDate"))::TIMESTAMP      AS created_date,
-      TO_TIMESTAMP_NTZ(CAST(_uploaded_at AS INT))::TIMESTAMP               AS uploaded_at
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

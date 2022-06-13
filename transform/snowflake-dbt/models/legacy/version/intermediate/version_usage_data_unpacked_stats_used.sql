@@ -1,29 +1,32 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "id_full_ping_name"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "id_full_ping_name"}) }}
 
-WITH usage_data AS (
+with
+    usage_data as (
 
-    SELECT {{ dbt_utils.star(from=ref('version_usage_data'), except=["LICENSE_STARTS_AT", "LICENSE_EXPIRES_AT"]) }}
-    FROM {{ ref('version_usage_data') }}
+        select
+            {{
+                dbt_utils.star(
+                    from=ref("version_usage_data"),
+                    except=["LICENSE_STARTS_AT", "LICENSE_EXPIRES_AT"],
+                )
+            }}
+        from {{ ref("version_usage_data") }}
 
-)
+    )
 
-SELECT
-  {{ dbt_utils.surrogate_key(['id', 'path']) }}                                    AS id_full_ping_name,
-  id,
-  f.path                                                                          AS ping_name,
-  created_at,
-  REPLACE(f.path, '.', '_')                                                        AS full_ping_name,
-  f.value                                                                         AS ping_value
+select
+    {{ dbt_utils.surrogate_key(["id", "path"]) }} as id_full_ping_name,
+    id,
+    f.path as ping_name,
+    created_at,
+    replace(f.path, '.', '_') as full_ping_name,
+    f.value as ping_value
 
-FROM usage_data,
-    lateral flatten(input => usage_data.stats_used, recursive => True) f
-WHERE IS_OBJECT(f.value) = FALSE
-    AND stats_used IS NOT NULL
-    AND full_ping_name IN (SELECT full_ping_name FROM {{ ref('version_usage_stats_list') }})
-{% if is_incremental() %}
-    AND created_at >= (SELECT MAX(created_at) FROM {{ this }})
-{% endif %}
+from usage_data, lateral flatten(input => usage_data.stats_used, recursive => true) f
+where
+    is_object(f.value) = false and stats_used is not null and full_ping_name in (
+        select full_ping_name from {{ ref("version_usage_stats_list") }}
+    )
+    {% if is_incremental() %}
+    and created_at >= (select max(created_at) from {{ this }})
+    {% endif %}

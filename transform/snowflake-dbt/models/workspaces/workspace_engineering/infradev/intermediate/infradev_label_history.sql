@@ -1,66 +1,69 @@
-{{ config(
-    materialized='ephemeral'
-) }}
+{{ config(materialized="ephemeral") }}
 
-WITH labels AS (
+with
+    labels as (select * from {{ ref("prep_labels") }}),
+    label_links as (select * from {{ ref("gitlab_dotcom_label_links_source") }}),
+    label_type as (
 
-    SELECT *
-    FROM {{ ref('prep_labels') }} 
+        select
+            dim_label_id,
+            label_title,
+            case
+                when
+                    lower(label_title) in (
+                        'severity::1', 'severity::2', 'severity::3', 'severity::4'
+                    )
+                then 'severity'
+                when lower(label_title) like 'team%'
+                then 'team'
+                when lower(label_title) like 'group%'
+                then 'team'
+                else 'other'
+            end as label_type
+        from labels
 
-), label_links AS (
+    ),
+    base_labels as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_label_links_source') }} 
+        select
+            label_links.label_link_id as dim_issue_id,
+            label_type.label_title,
+            label_type.label_type,
+            label_links.label_link_created_at as label_added_at,
+            label_links.label_link_created_at as label_valid_from,
+            lead(label_links.label_link_created_at, 1, current_date()) over (
+                partition by label_links.label_link_id, label_type.label_type
+                order by label_links.label_link_created_at
+            ) as label_valid_to
+        from label_type
+        left join
+            label_links
+            on label_type.dim_label_id = label_links.target_id
+            and label_links.target_type = 'Issue'
+        where label_type.label_type != 'other' and label_links.label_link_id is not null
 
-), label_type AS (
+    ),
+    label_groups as (
 
-    SELECT
-      dim_label_id,
-      label_title,
-      CASE
-        WHEN LOWER(label_title) IN ('severity::1', 'severity::2', 'severity::3', 'severity::4') THEN 'severity'
-        WHEN LOWER(label_title) LIKE 'team%' THEN 'team'
-        WHEN LOWER(label_title) LIKE 'group%' THEN 'team'
-        ELSE 'other'
-      END AS label_type
-    FROM labels
+        select
+            severity.dim_issue_id,
+            severity.label_title as severity_label,
+            team.label_title as team_label,
+            'S' || right(severity_label, 1) as severity,
+            split(team_label, '::') [
+                array_size(split(team_label, '::')) - 1
+            ]::varchar as assigned_team,
+            severity.label_added_at as severity_label_added_at,
+            team.label_added_at as team_label_added_at,
+            greatest(
+                severity.label_valid_from, team.label_valid_from
+            ) as label_group_valid_from,
+            least(severity.label_valid_to, team.label_valid_to) as label_group_valid_to
+        from base_labels as severity
+        inner join base_labels as team on severity.dim_issue_id = team.dim_issue_id
+        where severity.label_type = 'severity' and team.label_type = 'team'
 
-),  base_labels AS (
+    )
 
-    SELECT
-      label_links.label_link_id                                                                                           AS dim_issue_id,
-      label_type.label_title,
-      label_type.label_type,
-      label_links.label_link_created_at                                                                                   AS label_added_at,
-      label_links.label_link_created_at                                                                                   AS label_valid_from,
-      LEAD(label_links.label_link_created_at, 1, CURRENT_DATE())
-           OVER (PARTITION BY label_links.label_link_id,label_type.label_type ORDER BY label_links.label_link_created_at) AS label_valid_to
-    FROM label_type
-    LEFT JOIN label_links
-      ON label_type.dim_label_id = label_links.target_id
-      AND label_links.target_type = 'Issue'
-    WHERE label_type.label_type != 'other'
-      AND label_links.label_link_id IS NOT NULL
-
-),  label_groups AS (
-
-    SELECT
-      severity.dim_issue_id,
-      severity.label_title                                                      AS severity_label,
-      team.label_title                                                          AS team_label,
-      'S' || RIGHT(severity_label, 1)                                           AS severity,
-      SPLIT(team_label, '::')[ARRAY_SIZE(SPLIT(team_label, '::')) - 1]::VARCHAR AS assigned_team,
-      severity.label_added_at                                                   AS severity_label_added_at,
-      team.label_added_at                                                       AS team_label_added_at,
-      GREATEST(severity.label_valid_from, team.label_valid_from)                AS label_group_valid_from,
-      LEAST(severity.label_valid_to, team.label_valid_to)                       AS label_group_valid_to
-    FROM base_labels AS severity
-    INNER JOIN base_labels AS team
-      ON severity.dim_issue_id = team.dim_issue_id
-    WHERE severity.label_type = 'severity'
-      AND team.label_type = 'team'
-      
-)
-
-SELECT *
-FROM label_groups
+select *
+from label_groups

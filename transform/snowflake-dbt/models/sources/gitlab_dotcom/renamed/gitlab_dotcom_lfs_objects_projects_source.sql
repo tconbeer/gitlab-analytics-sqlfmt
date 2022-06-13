@@ -1,23 +1,24 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_lfs_objects_projects_dedupe_source') }}
-      
-)
+        select * from {{ ref("gitlab_dotcom_lfs_objects_projects_dedupe_source") }}
 
-, renamed AS (
-  
-    SELECT 
-      id::NUMBER              AS lfs_object_project_id,
-      lfs_object_id::NUMBER   AS lfs_object_id,
-      project_id::NUMBER      AS project_id,
-      created_at::TIMESTAMP    AS created_at,
-      updated_at::TIMESTAMP    AS updated_at,
-      repository_type::VARCHAR AS repository_type
-      
-    FROM source
-  
-)
+    )
 
-SELECT * 
-FROM renamed
+    ,
+    renamed as (
+
+        select
+            id::number as lfs_object_project_id,
+            lfs_object_id::number as lfs_object_id,
+            project_id::number as project_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            repository_type::varchar as repository_type
+
+        from source
+
+    )
+
+select *
+from renamed

@@ -1,23 +1,20 @@
-    
-WITH source AS (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_environments_dedupe_source') }}
-    
-), renamed AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_environments_dedupe_source") }}),
+    renamed as (
 
-    SELECT
-      id::NUMBER                                      AS environment_id,
-      project_id::NUMBER                              AS project_id,
-      name::VARCHAR                                    AS environment_name,
-      created_at::TIMESTAMP                            AS created_at,
-      updated_at::TIMESTAMP                            AS updated_at,
-      external_url::VARCHAR                            AS external_url,
-      environment_type::VARCHAR                        AS environment_type,
-      state::VARCHAR                                   AS state,
-      slug::VARCHAR                                    AS slug
-    FROM source
+        select
+            id::number as environment_id,
+            project_id::number as project_id,
+            name::varchar as environment_name,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            external_url::varchar as external_url,
+            environment_type::varchar as environment_type,
+            state::varchar as state,
+            slug::varchar as slug
+        from source
 
-)
-SELECT *
-FROM renamed
+    )
+select *
+from renamed
