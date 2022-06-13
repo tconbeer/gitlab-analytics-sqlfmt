@@ -35,7 +35,7 @@ with
 
         union all
 
-            {% set tables = [
+        {% set tables = [
     "account_history",
     "contact_history",
     "lead_history",

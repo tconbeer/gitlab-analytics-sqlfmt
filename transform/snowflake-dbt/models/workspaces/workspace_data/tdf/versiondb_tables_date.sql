@@ -17,7 +17,9 @@ with
 
         {% endfor %}
 
-        union all {% set tables = ["raw_usage_data", "versions", "version_checks"] %}
+        union all
+
+        {% set tables = ["raw_usage_data", "versions", "version_checks"] %}
 
         {% for table in tables %}
         select '{{table}}' as table_name, max(created_at) as max_date

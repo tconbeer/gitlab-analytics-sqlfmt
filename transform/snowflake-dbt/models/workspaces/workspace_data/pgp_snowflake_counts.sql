@@ -152,7 +152,7 @@ with
 
         union all
 
-            {% set tables = [
+        {% set tables = [
     "labels",
     "merge_request_metrics",
     "projects",
