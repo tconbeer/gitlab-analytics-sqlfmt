@@ -1,30 +1,25 @@
-WITH source AS (
+with
+    source as (select * from {{ source("data_science", "pte_scores") }}),
+    intermediate as (
 
-    SELECT *
-    FROM {{ source('data_science', 'pte_scores') }}
+        select d.value as data_by_row, uploaded_at
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), intermediate AS (
+    ),
+    parsed as (
 
-    SELECT
-      d.value as data_by_row,
-      uploaded_at
-    FROM source,
-    LATERAL FLATTEN(INPUT => PARSE_JSON(jsontext), outer => true) d
+        select
 
-), parsed AS (
+            data_by_row['crm_account_id']::varchar as crm_account_id,
+            data_by_row['decile']::int as decile,
+            data_by_row['grouping']::int as score_group,
+            data_by_row['importance']::int as importance,
+            data_by_row['score']::number(38, 4) as score,
+            data_by_row['insights']::varchar as insights,
+            uploaded_at::timestamp as uploaded_at
 
-    SELECT
+        from intermediate
 
-      data_by_row['crm_account_id']::VARCHAR                AS crm_account_id,
-      data_by_row['decile']::INT                            AS decile,
-      data_by_row['grouping']::INT                          AS score_group,
-      data_by_row['importance']::INT                        AS importance,
-      data_by_row['score']::NUMBER(38,4)                    AS score,
-      data_by_row['insights']::VARCHAR                      AS insights,
-      uploaded_at::TIMESTAMP                                AS uploaded_at
-
-    FROM intermediate
-
-)
-SELECT * 
-FROM parsed
+    )
+select *
+from parsed

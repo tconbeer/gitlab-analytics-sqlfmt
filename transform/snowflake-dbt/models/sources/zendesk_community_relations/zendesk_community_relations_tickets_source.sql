@@ -1,39 +1,36 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zendesk_community_relations", "tickets") }}),
 
-    SELECT *
-    FROM {{ source('zendesk_community_relations', 'tickets') }}
-),
+    renamed as (
 
-renamed AS (
+        select
+            id as ticket_id,
+            created_at as ticket_created_at,
+            -- ids
+            organization_id,
+            assignee_id,
+            brand_id,
+            group_id,
+            requester_id,
+            submitter_id,
 
-    SELECT
-      id                                      AS ticket_id,
-      created_at                              AS ticket_created_at,
-      --ids
-      organization_id,
-      assignee_id,
-      brand_id,
-      group_id,
-      requester_id,
-      submitter_id,
+            -- fields
+            status as ticket_status,
+            lower(priority) as ticket_priority,
+            md5(subject) as ticket_subject,
+            md5(recipient) as ticket_recipient,
+            url as ticket_url,
+            tags as ticket_tags,
+            -- added ':score'
+            -- satisfaction_rating['score']::VARCHAR   AS satisfaction_rating_score,
+            via__channel::varchar as submission_channel,
 
-      --fields
-      status                                  AS ticket_status,
-      lower(priority)                         AS ticket_priority,
-      md5(subject)                            AS ticket_subject,
-      md5(recipient)                          AS ticket_recipient,
-      url                                     AS ticket_url,
-      tags                                    AS ticket_tags,
-      -- added ':score'
-      -- satisfaction_rating['score']::VARCHAR   AS satisfaction_rating_score,
-      via__channel::VARCHAR                 AS submission_channel,
+            -- dates
+            updated_at::date as date_updated
 
-      --dates
-      updated_at::DATE                        AS date_updated
+        from source
 
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

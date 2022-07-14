@@ -1,24 +1,25 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      id                        AS stage_definition_id,
-      modified_date             AS modified_date,
-      stage_name                AS stage_name,
-      is_inactive               AS is_inactive,
-      is_in_custom_model        AS is_in_custom_model,
-      is_boomerang              AS is_boomerang,
-      is_transition_tracking    AS is_transition_tracking,
-      stage_status              AS stage_status,
-      is_from_salesforce        AS is_from_salesforce,
-      is_default                AS is_default,
-      rank                      AS rank,
-      is_deleted                AS is_deleted,
-      _created_date             AS _created_date,
-      _modified_date            AS _modified_date,
-      _deleted_date             AS _deleted_date
-    FROM {{ source('bizible', 'biz_stage_definitions') }}
- 
-)
+        select
+            id as stage_definition_id,
+            modified_date as modified_date,
+            stage_name as stage_name,
+            is_inactive as is_inactive,
+            is_in_custom_model as is_in_custom_model,
+            is_boomerang as is_boomerang,
+            is_transition_tracking as is_transition_tracking,
+            stage_status as stage_status,
+            is_from_salesforce as is_from_salesforce,
+            is_default as is_default,
+            rank as rank,
+            is_deleted as is_deleted,
+            _created_date as _created_date,
+            _modified_date as _modified_date,
+            _deleted_date as _deleted_date
+        from {{ source("bizible", "biz_stage_definitions") }}
 
-SELECT *
-FROM source
+    )
+
+select *
+from source

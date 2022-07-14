@@ -1,21 +1,17 @@
-WITH monthly_usage_data_all_time AS (
+with
+    monthly_usage_data_all_time as (
 
-    SELECT *
-     FROM {{ ref('monthly_usage_data_all_time') }}
+        select * from {{ ref("monthly_usage_data_all_time") }}),
+    monthly_usage_data_28_days as (
 
-)
+        select * from {{ ref("monthly_usage_data_28_days") }}
 
-, monthly_usage_data_28_days AS (
+    )
 
-    SELECT *
-    FROM {{ ref('monthly_usage_data_28_days') }}
+select *
+from monthly_usage_data_all_time
 
-)
+union
 
-SELECT *
-FROM monthly_usage_data_all_time
-
-UNION 
-
-SELECT *
-FROM monthly_usage_data_28_days
+select *
+from monthly_usage_data_28_days

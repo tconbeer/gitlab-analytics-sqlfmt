@@ -1,25 +1,22 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "jobs_departments") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'jobs_departments') }}
+        select
 
-), renamed as (
+            -- keys
+            id::number as job_department_id,
+            job_id::number as job_id,
+            department_id::number as department_id,
 
-	SELECT
-
-			--keys
-    		id::NUMBER				      AS job_department_id,
-    		job_id::NUMBER			    AS job_id,
-    		department_id::NUMBER	  AS department_id,
-
-    		--info
-    		created_at::timestamp 	AS job_department_created_at,
-    		updated_at::timestamp 	AS job_department_updated_at
+            -- info
+            created_at::timestamp as job_department_created_at,
+            updated_at::timestamp as job_department_updated_at
 
 
-	FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

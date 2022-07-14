@@ -1,40 +1,36 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_period") }}),
 
-  SELECT *
-  FROM {{ source('xactly', 'xc_period') }}
+    renamed as (
 
-),
+        select
 
-renamed AS (
+            period_id::float as period_id,
+            version::float as version,
+            name::varchar as name,
+            start_date::varchar as start_date,
+            end_date::varchar as end_date,
+            is_active::varchar as is_active,
+            is_open::varchar as is_open,
+            parent_period_id::float as parent_period_id,
+            period_type_id_fk::float as period_type_id_fk,
+            calendar_id::float as calendar_id,
+            order_number::float as order_number,
+            created_date::varchar as created_date,
+            created_by_id::float as created_by_id,
+            created_by_name::varchar as created_by_name,
+            modified_date::varchar as modified_date,
+            modified_by_id::float as modified_by_id,
+            modified_by_name::varchar as modified_by_name,
+            is_published::varchar as is_published,
+            is_visible::varchar as is_visible,
+            is_etl_excluded::varchar as is_etl_excluded,
+            is_hidden::varchar as is_hidden,
+            is_calc_period::varchar as is_calc_period
 
-  SELECT
+        from source
 
-    period_id::FLOAT AS period_id,
-    version::FLOAT AS version,
-    name::VARCHAR AS name,
-    start_date::VARCHAR AS start_date,
-    end_date::VARCHAR AS end_date,
-    is_active::VARCHAR AS is_active,
-    is_open::VARCHAR AS is_open,
-    parent_period_id::FLOAT AS parent_period_id,
-    period_type_id_fk::FLOAT AS period_type_id_fk,
-    calendar_id::FLOAT AS calendar_id,
-    order_number::FLOAT AS order_number,
-    created_date::VARCHAR AS created_date,
-    created_by_id::FLOAT AS created_by_id,
-    created_by_name::VARCHAR AS created_by_name,
-    modified_date::VARCHAR AS modified_date,
-    modified_by_id::FLOAT AS modified_by_id,
-    modified_by_name::VARCHAR AS modified_by_name,
-    is_published::VARCHAR AS is_published,
-    is_visible::VARCHAR AS is_visible,
-    is_etl_excluded::VARCHAR AS is_etl_excluded,
-    is_hidden::VARCHAR AS is_hidden,
-    is_calc_period::VARCHAR AS is_calc_period
+    )
 
-  FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

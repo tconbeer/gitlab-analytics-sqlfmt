@@ -1,19 +1,20 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_pipeline_chat_data_dedupe_source') }}
+        select * from {{ ref("gitlab_dotcom_ci_pipeline_chat_data_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT 
-      pipeline_id::NUMBER  AS ci_pipeline_id,
-      chat_name_id::NUMBER AS chat_name_id,
-      response_url          AS response_url
+        select
+            pipeline_id::number as ci_pipeline_id,
+            chat_name_id::number as chat_name_id,
+            response_url as response_url
 
-    FROM source
+        from source
 
-)
+    )
 
 
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,18 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "sales_capacity_kpi") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'sales_capacity_kpi') }}
+        select
+            month::date as month,
+            ifnull(target, 0) as target,
+            ifnull(actual, 0) as actual,
+            to_timestamp(to_numeric("_UPDATED_AT"))::timestamp as last_updated_at
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-        month::DATE                                         AS month,
-        IFNULL(target, 0)                                   AS target,
-        IFNULL(actual, 0)                                   AS actual,      
-        TO_TIMESTAMP(TO_NUMERIC("_UPDATED_AT"))::TIMESTAMP  AS last_updated_at
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed
