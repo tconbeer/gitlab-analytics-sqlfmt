@@ -1,79 +1,88 @@
 
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ source('edcast', 'glue_groups_g3_group_performance_data_explorer') }}
+        select *
+        from {{ source("edcast", "glue_groups_g3_group_performance_data_explorer") }}
 
-), deduplicated AS (
+    ),
+    deduplicated as (
 
-  SELECT *
-  FROM source
-  QUALIFY ROW_NUMBER() OVER (PARTITION BY ecl_id,
-    time,
-    group_name,
-    card_resource_url,
-    assigned_content,
-    event,
-    card_author_full_name,
-    follower_user_full_name_,
-    following_user_full_name_,
-    user_full_name,
-    __loaded_at ORDER BY __loaded_at DESC) = 1
+        select *
+        from source
+        qualify
+            row_number() OVER (
+                partition by
+                    ecl_id,
+                    time,
+                    group_name,
+                    card_resource_url,
+                    assigned_content,
+                    event,
+                    card_author_full_name,
+                    follower_user_full_name_,
+                    following_user_full_name_,
+                    user_full_name,
+                    __loaded_at
+                order by __loaded_at desc
+            )
+            = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-  SELECT
-    assigned_content::BOOLEAN                       AS assigned_content,
-    NULLIF(card_author_full_name,'')::VARCHAR       AS card_author_full_name,
-    NULLIF(card_resource_url,'')::VARCHAR           AS card_resource_url,
-    NULLIF(card_state,'')::VARCHAR                  AS card_state,
-    NULLIF(card_subtype,'')::VARCHAR                AS card_subtype,
-    NULLIF(card_title,'')::VARCHAR                  AS card_title,
-    NULLIF(card_type,'')::VARCHAR                   AS card_type,
-    NULLIF(comment_message,'')::VARCHAR             AS comment_message,
-    NULLIF(comment_status,'')::VARCHAR              AS comment_status,
-    NULLIF(content_status,'')::VARCHAR              AS content_status,
-    NULLIF(content_structure,'')::VARCHAR           AS content_structure,
-    NULLIF(country,'')::VARCHAR                     AS country,
-    NULLIF(department,'')::VARCHAR                  AS department,
-    NULLIF(division,'')::VARCHAR                    AS division,
-    NULLIF(duration_hh_mm_,'')::VARCHAR             AS duration_hh_mm,
-    NULLIF(ecl_id,'')::VARCHAR                      AS ecl_id,
-    NULLIF(ecl_source_name,'')::VARCHAR             AS ecl_source_name,
-    NULLIF(email,'')::VARCHAR                       AS email,
-    NULLIF(event,'')::VARCHAR                       AS event,
-    excluded_from_leaderboard::BOOLEAN              AS excluded_from_leaderboard,
-    NULLIF(follower_user_full_name_,'')::VARCHAR    AS follower_user_full_name,
-    NULLIF(following_user_full_name_,'')::VARCHAR   AS following_user_full_name,
-    NULLIF(gitlab_internal,'')::BOOLEAN             AS gitlab_internal,
-    NULLIF(group_name,'')::VARCHAR                  AS group_name,
-    NULLIF(group_status,'')::VARCHAR                AS group_status,
-    NULLIF(hire_date,'')::DATE                      AS hire_date,
-    NULLIF(impartner_account,'')::VARCHAR           AS impartner_account,
-    NULLIF(is_card_promoted,'')::BOOLEAN            AS is_card_promoted,
-    NULLIF(is_live_stream,'')::BOOLEAN              AS is_live_stream,
-    NULLIF(is_manager,'')::BOOLEAN                  AS is_manager,
-    NULLIF(is_public_,'')::BOOLEAN                  AS is_public,
-    NULLIF(job_groups,'')::VARCHAR                  AS job_groups,
-    NULLIF(performance_metric,'')::VARCHAR          AS performance_metric,
-    NULLIF(platform,'')::VARCHAR                    AS platform,
-    NULLIF(region,'')::VARCHAR                      AS region,
-    NULLIF(role,'')::VARCHAR                        AS role_name,
-    NULLIF(shared_to_group_name,'')::VARCHAR        AS shared_to_group_name,
-    NULLIF(shared_to_user_full_name,'')::VARCHAR    AS shared_to_user_full_name,
-    sign_in_count::NUMBER                           AS sign_in_count,
-    NULLIF(standard_card_type,'')::VARCHAR          AS standard_card_type,
-    NULLIF(supervisor,'')::VARCHAR                  AS supervisor,
-    NULLIF(supervisor_email,'')::VARCHAR            AS supervisor_email,
-    time::TIMESTAMP                                 AS time,
-    time_account_created::TIMESTAMP                 AS time_account_created,
-    NULLIF(title,'')::VARCHAR                       AS title,
-    NULLIF(user_account_status,'')::VARCHAR         AS user_account_status,
-    NULLIF(user_full_name,'')::VARCHAR              AS user_full_name,
-    __loaded_at::TIMESTAMP                          AS __loaded_at
-  FROM deduplicated
+        select
+            assigned_content::boolean as assigned_content,
+            nullif(card_author_full_name, '')::varchar as card_author_full_name,
+            nullif(card_resource_url, '')::varchar as card_resource_url,
+            nullif(card_state, '')::varchar as card_state,
+            nullif(card_subtype, '')::varchar as card_subtype,
+            nullif(card_title, '')::varchar as card_title,
+            nullif(card_type, '')::varchar as card_type,
+            nullif(comment_message, '')::varchar as comment_message,
+            nullif(comment_status, '')::varchar as comment_status,
+            nullif(content_status, '')::varchar as content_status,
+            nullif(content_structure, '')::varchar as content_structure,
+            nullif(country, '')::varchar as country,
+            nullif(department, '')::varchar as department,
+            nullif(division, '')::varchar as division,
+            nullif(duration_hh_mm_, '')::varchar as duration_hh_mm,
+            nullif(ecl_id, '')::varchar as ecl_id,
+            nullif(ecl_source_name, '')::varchar as ecl_source_name,
+            nullif(email, '')::varchar as email,
+            nullif(event, '')::varchar as event,
+            excluded_from_leaderboard::boolean as excluded_from_leaderboard,
+            nullif(follower_user_full_name_, '')::varchar as follower_user_full_name,
+            nullif(following_user_full_name_, '')::varchar as following_user_full_name,
+            nullif(gitlab_internal, '')::boolean as gitlab_internal,
+            nullif(group_name, '')::varchar as group_name,
+            nullif(group_status, '')::varchar as group_status,
+            nullif(hire_date, '')::date as hire_date,
+            nullif(impartner_account, '')::varchar as impartner_account,
+            nullif(is_card_promoted, '')::boolean as is_card_promoted,
+            nullif(is_live_stream, '')::boolean as is_live_stream,
+            nullif(is_manager, '')::boolean as is_manager,
+            nullif(is_public_, '')::boolean as is_public,
+            nullif(job_groups, '')::varchar as job_groups,
+            nullif(performance_metric, '')::varchar as performance_metric,
+            nullif(platform, '')::varchar as platform,
+            nullif(region, '')::varchar as region,
+            nullif(role, '')::varchar as role_name,
+            nullif(shared_to_group_name, '')::varchar as shared_to_group_name,
+            nullif(shared_to_user_full_name, '')::varchar as shared_to_user_full_name,
+            sign_in_count::number as sign_in_count,
+            nullif(standard_card_type, '')::varchar as standard_card_type,
+            nullif(supervisor, '')::varchar as supervisor,
+            nullif(supervisor_email, '')::varchar as supervisor_email,
+            time::timestamp as time,
+            time_account_created::timestamp as time_account_created,
+            nullif(title, '')::varchar as title,
+            nullif(user_account_status, '')::varchar as user_account_status,
+            nullif(user_full_name, '')::varchar as user_full_name,
+            __loaded_at::timestamp as __loaded_at
+        from deduplicated
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

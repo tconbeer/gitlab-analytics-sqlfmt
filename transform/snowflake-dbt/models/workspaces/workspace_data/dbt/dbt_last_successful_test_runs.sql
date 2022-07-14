@@ -1,22 +1,22 @@
-WITH passing_tests AS (
-    
-    SELECT *
-    FROM {{ ref('dbt_test_results_source') }}
-    WHERE status = 'pass'
-    QUALIFY row_number() OVER (PARTITION BY test_unique_id ORDER BY generated_at DESC) = 1
+with
+    passing_tests as (
 
-), failing_tests AS (
+        select *
+        from {{ ref("dbt_test_results_source") }}
+        where status = 'pass'
+        qualify
+            row_number() OVER (partition by test_unique_id order by generated_at desc)
+            = 1
 
-    SELECT test_unique_id
-    FROM {{ ref('dbt_failing_tests') }}
+    ),
+    failing_tests as (select test_unique_id from {{ ref("dbt_failing_tests") }}),
+    last_successful_run as (
 
-), last_successful_run AS (
+        select *
+        from passing_tests
+        where test_unique_id in (select test_unique_id from failing_tests)
 
-    SELECT *
-    FROM passing_tests
-    WHERE test_unique_id in (SELECT test_unique_id FROM failing_tests)
+    )
 
-)
-
-SELECT *
-FROM last_successful_run
+select *
+from last_successful_run

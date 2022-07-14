@@ -1,121 +1,153 @@
 {% macro gdpr_delete(email_sha, run_queries=False) %}
 
-
-        {% set data_types = ('BOOLEAN', 'TIMESTAMP_TZ', 'TIMESTAMP_NTZ', 'FLOAT', 'DATE', 'NUMBER') %}
-        {% set exclude_columns = ('dbt_scd_id', 'dbt_updated_at', 'dbt_valid_from', 'dbt_valid_to', '_task_instance', '_uploaded_at', '_sdc_batched_at', '_sdc_extracted_at',
-           '_sdc_received_at', '_sdc_sequence', '_sdc_table_version') %}
+{% set data_types = (
+    "BOOLEAN",
+    "TIMESTAMP_TZ",
+    "TIMESTAMP_NTZ",
+    "FLOAT",
+    "DATE",
+    "NUMBER",
+) %}
+{% set exclude_columns = (
+    "dbt_scd_id",
+    "dbt_updated_at",
+    "dbt_valid_from",
+    "dbt_valid_to",
+    "_task_instance",
+    "_uploaded_at",
+    "_sdc_batched_at",
+    "_sdc_extracted_at",
+    "_sdc_received_at",
+    "_sdc_sequence",
+    "_sdc_table_version",
+) %}
 
         {% set set_sql %}
         SET email_sha = '{{email_sha}}';
         {% endset %}
-        {{ log(set_sql, info = True) }}
+{{ log(set_sql, info=True) }}
 
 {# DELETE FROM EVERYTHING THAT'S NOT SNAPSHOTS#}
-    {%- call statement('gdpr_deletions', fetch_result=True) %}
+{%- call statement('gdpr_deletions', fetch_result=True) %}
 
-        WITH email_columns AS (
-        
-            SELECT 
-                LOWER(table_catalog)||'.'||LOWER(table_schema)||'.'||LOWER(table_name) AS fqd_name,
-                LISTAGG(column_name,',') AS email_column_names
-            FROM "RAW"."INFORMATION_SCHEMA"."COLUMNS"
-            WHERE LOWER(column_name) LIKE '%email%'
-                AND table_schema NOT IN ('SNAPSHOTS','SHEETLOAD')
-                AND data_type NOT IN {{data_types}}
-            GROUP BY 1
-        
-        )
+with
+    email_columns as (
 
-        SELECT
-          fqd_name, 
-          email_column_names
-        FROM email_columns;
+        select
+            lower(table_catalog)
+            || '.'
+            || lower(table_schema)
+            || '.'
+            || lower(table_name) as fqd_name,
+            listagg(column_name, ',') as email_column_names
+        from "RAW"."INFORMATION_SCHEMA"."COLUMNS"
+        where
+            lower(column_name) like '%email%'
+            and table_schema not in ('SNAPSHOTS', 'SHEETLOAD')
+            and data_type not in {{ data_types }}
+        group by 1
 
-    {%- endcall -%}
+    )
 
-    {%- set value_list = load_result('gdpr_deletions') -%}
+select fqd_name, email_column_names
+from email_columns
+;
 
-    {%- if value_list and value_list['data'] -%}
+{%- endcall -%}
 
-      {%- set values = value_list['data'] %}
+{%- set value_list = load_result("gdpr_deletions") -%}
 
-      {% for data_row in values %}
+{%- if value_list and value_list["data"] -%}
 
-        {% set fqd_name = data_row[0] %}
-        {% set email_column_list = data_row[1].split(',') %}
-      
-        {% for email_column in email_column_list %}
+{%- set values = value_list["data"] %}
+
+{% for data_row in values %}
+
+{% set fqd_name = data_row[0] %}
+{% set email_column_list = data_row[1].split(",") %}
+
+{% for email_column in email_column_list %}
 
             {% set delete_sql %}
                 DELETE FROM {{fqd_name}} WHERE SHA2(TRIM(LOWER("{{email_column}}"))) =  '{{email_sha}}';
             {% endset %}
-            {{ log(delete_sql, info = True) }}
+{{ log(delete_sql, info=True) }}
 
-            {% if run_queries %}
-                {% set results = run_query(delete_sql) %}
-                {% set rows_deleted = results.print_table() %}
-            {% endif %}
+{% if run_queries %}
+{% set results = run_query(delete_sql) %}
+{% set rows_deleted = results.print_table() %}
+{% endif %}
 
-        {% endfor %}
+{% endfor %}
 
-      {% endfor %}
-    
-    {%- endif -%}
+{% endfor %}
+
+{%- endif -%}
 
 
 {# UPDATE SNAPSHOTS #}
-    {%- call statement('update_snapshots', fetch_result=True) %}
+{%- call statement('update_snapshots', fetch_result=True) %}
 
-        WITH email_columns AS (
-        
-            SELECT 
-                LOWER(table_catalog)||'.'||LOWER(table_schema)||'.'||LOWER(table_name) AS fqd_name,
-                LISTAGG(column_name,',') AS email_column_names
-            FROM "RAW"."INFORMATION_SCHEMA"."COLUMNS"
-            WHERE LOWER(column_name) LIKE '%email%'
-                AND table_schema IN ('SNAPSHOTS')
-                AND data_type NOT IN {{data_types}}
-                AND LOWER(column_name) NOT IN {{exclude_columns}}
-            GROUP BY 1
-        
-        ), non_email_columns AS (
+with
+    email_columns as (
 
-            SELECT 
-              LOWER(table_catalog)||'.'||LOWER(table_schema)||'.'||LOWER(table_name) AS fqd_name,
-              LISTAGG(column_name,',') AS non_email_column_names
-            FROM "RAW"."INFORMATION_SCHEMA"."COLUMNS" AS a
-            WHERE LOWER(column_name) NOT LIKE '%email%'
-              AND table_schema IN ('SNAPSHOTS')
-              AND data_type NOT IN {{data_types}}
-              AND LOWER(column_name) NOT IN {{exclude_columns}}
-              AND LOWER(column_name) NOT LIKE '%id%'
-              AND LOWER(column_name) NOT IN {{exclude_columns}}
-            GROUP BY 1
+        select
+            lower(table_catalog)
+            || '.'
+            || lower(table_schema)
+            || '.'
+            || lower(table_name) as fqd_name,
+            listagg(column_name, ',') as email_column_names
+        from "RAW"."INFORMATION_SCHEMA"."COLUMNS"
+        where
+            lower(column_name) like '%email%'
+            and table_schema in ('SNAPSHOTS')
+            and data_type not in {{ data_types }}
+            and lower(column_name) not in {{ exclude_columns }}
+        group by 1
 
-        )
+    ),
+    non_email_columns as (
 
-        SELECT
-          a.fqd_name, 
-          a.email_column_names, 
-          b.non_email_column_names
-        FROM email_columns a
-        LEFT JOIN non_email_columns b ON a.fqd_name = b.fqd_name;
+        select
+            lower(table_catalog)
+            || '.'
+            || lower(table_schema)
+            || '.'
+            || lower(table_name) as fqd_name,
+            listagg(column_name, ',') as non_email_column_names
+        from "RAW"."INFORMATION_SCHEMA"."COLUMNS" as a
+        where
+            lower(column_name) not like '%email%'
+            and table_schema in ('SNAPSHOTS')
+            and data_type not in {{ data_types }}
+            and lower(column_name) not in {{ exclude_columns }}
+            and lower(column_name) not like '%id%'
+            and lower(column_name) not in {{ exclude_columns }}
+        group by 1
 
-    {%- endcall -%}
+    )
 
-    {%- set value_list = load_result('update_snapshots') -%}
+select a.fqd_name, a.email_column_names, b.non_email_column_names
+from email_columns a
+left join non_email_columns b on a.fqd_name = b.fqd_name
+;
 
-    {%- if value_list and value_list['data'] -%}
+{%- endcall -%}
 
-      {%- set values = value_list['data'] %}
+{%- set value_list = load_result("update_snapshots") -%}
 
-      {% for data_row in values %}
+{%- if value_list and value_list["data"] -%}
 
-        {% set fqd_name = data_row[0] %}
-        {% set email_column_list = data_row[1].split(',') %}
-        {% set non_email_column_list = data_row[2].split(',') %}
-      
-        {% for email_column in email_column_list %}
+{%- set values = value_list["data"] %}
+
+{% for data_row in values %}
+
+{% set fqd_name = data_row[0] %}
+{% set email_column_list = data_row[1].split(",") %}
+{% set non_email_column_list = data_row[2].split(",") %}
+
+{% for email_column in email_column_list %}
 
             {% set sql %}
                 UPDATE {{fqd_name}} SET
@@ -125,16 +157,16 @@
                 WHERE SHA2(TRIM(LOWER("{{email_column}}"))) =  '{{email_sha}}';
 
             {% endset %}
-            {{ log(sql, info = True) }}
+{{ log(sql, info=True) }}
 
-            {% if run_queries %}
-                {% set results = run_query(sql) %}
-                {% set rows_updated = results.print_table() %}
-            {% endif %}
+{% if run_queries %}
+{% set results = run_query(sql) %}
+{% set rows_updated = results.print_table() %}
+{% endif %}
 
-        {% endfor %}
+{% endfor %}
 
-        {% for email_column in email_column_list %}
+{% for email_column in email_column_list %}
 
             {% set email_sql %}
                 UPDATE {{fqd_name}} SET
@@ -144,19 +176,19 @@
                 WHERE SHA2(TRIM(LOWER("{{email_column}}"))) =  '{{email_sha}}';
 
             {% endset %}
-            {{ log(email_sql, info = True) }}
+{{ log(email_sql, info=True) }}
 
-            {% if email_sql %}
-                {% set results = run_query(email_sql) %}
-                {% set rows_updated = results.print_table() %}
-            {% endif %}
+{% if email_sql %}
+{% set results = run_query(email_sql) %}
+{% set rows_updated = results.print_table() %}
+{% endif %}
 
-        {% endfor %}
+{% endfor %}
 
-      {% endfor %}
-    
-    {%- endif -%}
+{% endfor %}
 
-    {{ log("Removal Complete!", info = True) }}
+{%- endif -%}
+
+{{ log("Removal Complete!", info=True) }}
 
 {%- endmacro -%}

@@ -1,57 +1,54 @@
-{{ config(
-    materialized='table'
-) }}
+{{ config(materialized="table") }}
 
-{{ simple_cte([
-    ('users','gitlab_dotcom_users_source'),
-    ('users_enhance','gitlab_contact_enhance_source')
-]) }},
+{{
+    simple_cte(
+        [
+            ("users", "gitlab_dotcom_users_source"),
+            ("users_enhance", "gitlab_contact_enhance_source"),
+        ]
+    )
+}},
 
-sf_leads AS (
+sf_leads as (
 
-  SELECT
-    zoominfo_company_id,
-    lead_email
-  FROM {{ ref('sfdc_lead_source') }}
-  WHERE zoominfo_company_id IS NOT NULL
-  -- email is not unique, use the record created most recently
-  QUALIFY ROW_NUMBER() OVER (PARTITION BY lead_email ORDER BY created_date DESC ) = 1
+    select zoominfo_company_id, lead_email
+    from {{ ref("sfdc_lead_source") }}
+    where zoominfo_company_id is not null
+    -- email is not unique, use the record created most recently
+    qualify row_number() OVER (partition by lead_email order by created_date desc) = 1
 ),
 
-sf_contacts AS (
+sf_contacts as (
 
-  SELECT
-    zoominfo_company_id,
-    contact_email
-  FROM {{ ref('sfdc_contact_source') }}
-  WHERE zoominfo_company_id IS NOT NULL
-  -- email is not unique, use the record created most recently
-  QUALIFY ROW_NUMBER() OVER (PARTITION BY contact_email ORDER BY created_date DESC ) = 1
+    select zoominfo_company_id, contact_email
+    from {{ ref("sfdc_contact_source") }}
+    where zoominfo_company_id is not null
+    -- email is not unique, use the record created most recently
+    qualify
+        row_number() OVER (partition by contact_email order by created_date desc) = 1
 ),
 
-rpt AS (
+rpt as (
 
-  SELECT DISTINCT
-    users.user_id AS gitlab_dotcom_user_id,
-    COALESCE(
-      sf_leads.zoominfo_company_id,
-      sf_contacts.zoominfo_company_id,
-      users_enhance.zoominfo_company_id
-    ) AS company_id,
-    sf_leads.zoominfo_company_id AS sf_lead_company_id,
-    sf_contacts.zoominfo_company_id AS sf_contact_company_id,
-    users_enhance.zoominfo_company_id AS gitlab_user_enhance_company_id,
-    {{ dbt_utils.surrogate_key(['users.user_id']) }} AS dim_user_id,
-    {{ dbt_utils.surrogate_key(['company_id']) }} AS dim_company_id
-  FROM users
-  LEFT JOIN sf_leads
-    ON users.email = sf_leads.lead_email
-  LEFT JOIN sf_contacts
-    ON users.email = sf_contacts.contact_email
-  LEFT JOIN users_enhance
-    ON users.user_id = users_enhance.user_id
-  WHERE company_id IS NOT NULL
+    select distinct
+        users.user_id as gitlab_dotcom_user_id,
+        coalesce(
+            sf_leads.zoominfo_company_id,
+            sf_contacts.zoominfo_company_id,
+            users_enhance.zoominfo_company_id
+        ) as company_id,
+        sf_leads.zoominfo_company_id as sf_lead_company_id,
+        sf_contacts.zoominfo_company_id as sf_contact_company_id,
+        users_enhance.zoominfo_company_id as gitlab_user_enhance_company_id,
+        {{ dbt_utils.surrogate_key(["users.user_id"]) }} as dim_user_id,
+        {{ dbt_utils.surrogate_key(["company_id"]) }} as dim_company_id
+    from users
+    left join sf_leads on users.email = sf_leads.lead_email
+    left join sf_contacts on users.email = sf_contacts.contact_email
+    left join users_enhance on users.user_id = users_enhance.user_id
+    where company_id is not null
 
 )
 
-SELECT * FROM rpt
+select *
+from rpt

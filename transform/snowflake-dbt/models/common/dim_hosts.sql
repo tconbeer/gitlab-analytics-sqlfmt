@@ -1,52 +1,41 @@
-{{config({
-    "schema": "legacy"
-  })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH usage_ping AS (
+with
+    usage_ping as (
 
-    SELECT {{ hash_sensitive_columns('version_usage_data_source') }}
-    FROM {{ ref('version_usage_data_source') }}
+        select {{ hash_sensitive_columns("version_usage_data_source") }}
+        from {{ ref("version_usage_data_source") }}
 
-), hosts AS (
+    ),
+    hosts as (
 
-    SELECT DISTINCT
-      host_id                             AS host_id,
-      FIRST_VALUE(hostname) OVER (
-          PARTITION BY host_id
-          ORDER BY hostname IS NOT NULL DESC, 
-                   created_at DESC
-      )                                   AS host_name,
-      uuid                                AS instance_id,
-      source_ip_hash
-    FROM usage_ping
+        select distinct
+            host_id as host_id,
+            first_value(hostname) OVER (
+                partition by host_id order by hostname is not null desc, created_at desc
+            ) as host_name,
+            uuid as instance_id,
+            source_ip_hash
+        from usage_ping
 
-), ip_to_country AS (
+    ),
+    ip_to_country as (select * from {{ ref("map_ip_to_country") }}),
+    usage_with_ip as (
 
-    SELECT *
-    FROM {{ ref('map_ip_to_country') }}
+        select hosts.*, ip_to_country.dim_location_country_id as location_id
+        from hosts
+        left join ip_to_country on hosts.source_ip_hash = ip_to_country.ip_address_hash
 
-), usage_with_ip AS (
-
-    SELECT 
-      hosts.*,
-      ip_to_country.dim_location_country_id   AS location_id
-    FROM hosts
-    LEFT JOIN ip_to_country
-      ON hosts.source_ip_hash = ip_to_country.ip_address_hash
-
-), renamed AS (
-
-    SELECT * 
-    FROM usage_with_ip 
-
-)
+    ),
+    renamed as (select * from usage_with_ip)
 
 
-{{ dbt_audit(
-    cte_ref="renamed",
-    created_by="@mpeychet",
-    updated_by="@mcooperDD",
-    created_date="2020-11-24",
-    updated_date="2021-03-05"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="renamed",
+            created_by="@mpeychet",
+            updated_by="@mcooperDD",
+            created_date="2020-11-24",
+            updated_date="2021-03-05",
+        )
+    }}

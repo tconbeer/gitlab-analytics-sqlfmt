@@ -1,20 +1,22 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('customers', 'customers_db_eulas') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY UPDATED_AT DESC) = 1
+        select *
+        from {{ source("customers", "customers_db_eulas") }}
+        qualify row_number() OVER (partition by id order by updated_at desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER           AS eula_id,
-      name::VARCHAR         AS eula_name,
-      content::VARCHAR      AS eula_content,
-      created_at::TIMESTAMP AS created_at,
-      updated_at::TIMESTAMP AS updated_at
-    FROM source  
+        select
+            id::number as eula_id,
+            name::varchar as eula_name,
+            content::varchar as eula_content,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

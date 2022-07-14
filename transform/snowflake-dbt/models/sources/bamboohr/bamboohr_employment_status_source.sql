@@ -1,34 +1,42 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('bamboohr', 'employment_status') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
+        select *
+        from {{ source("bamboohr", "employment_status") }}
+        order by uploaded_at desc
+        limit 1
 
-), intermediate as (
+    ),
+    intermediate as (
 
-      SELECT d.value AS data_by_row
-      FROM source,
-      LATERAL FLATTEN(INPUT => parse_json(jsontext), outer => true) d
+        select d.value as data_by_row
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), renamed as (
+    ),
+    renamed as (
 
-      SELECT
-            data_by_row['id']::NUMBER                             AS status_id,
-            data_by_row['employeeId']::NUMBER                     AS employee_id,
-            data_by_row['date']::DATE                             AS effective_date,
-            data_by_row['employmentStatus']::VARCHAR              AS employment_status, 
-            nullif(data_by_row['terminationTypeId']::VARCHAR, '') AS termination_type
-      FROM intermediate
+        select
+            data_by_row['id']::number as status_id,
+            data_by_row['employeeId']::number as employee_id,
+            data_by_row['date']::date as effective_date,
+            data_by_row['employmentStatus']::varchar as employment_status,
+            nullif(data_by_row['terminationTypeId']::varchar, '') as termination_type
+        from intermediate
 
-), final AS (
+    ),
+    final as (
 
-    SELECT *
-    FROM renamed
-    WHERE status_id != 27606 -- incorrect record
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY employee_id,effective_date,employment_status ORDER BY effective_date) = 1
+        select *
+        from renamed
+        where status_id != 27606  -- incorrect record
+        qualify
+            row_number() OVER (
+                partition by employee_id, effective_date, employment_status
+                order by effective_date
+            )
+            = 1
 
-)
+    )
 
-SELECT *
-FROM final
+select *
+from final

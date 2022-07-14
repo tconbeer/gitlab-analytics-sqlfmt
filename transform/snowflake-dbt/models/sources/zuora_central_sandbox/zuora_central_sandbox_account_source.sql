@@ -1,68 +1,67 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_central_sandbox", "account") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_central_sandbox', 'account') }}
+        select
+            id as account_id,
+            -- keys
+            communication_profile_id as communication_profile_id,
+            nullif(
+                "{{this.database}}".{{ target.schema }}.id15to18(ifnull(crm_id, '')),
+                ''
+            ) as crm_id,
 
-), renamed AS(
+            default_payment_method_id as default_payment_method_id,
+            invoice_template_id as invoice_template_id,
+            parent_id as parent_id,
+            sold_to_contact_id as sold_to_contact_id,
+            bill_to_contact_id as bill_to_contact_id,
+            tax_exempt_certificate_id as tax_exempt_certificate_id,
+            tax_exempt_certificate_type as tax_exempt_certificate_type,
 
-    SELECT
-      id                                                     AS account_id,
-      -- keys
-      communication_profile_id                               AS communication_profile_id,
-      nullif("{{this.database}}".{{target.schema}}.id15to18(IFNULL(crm_id, '')), '')
-                                                             AS crm_id,
+            -- account info
+            account_number as account_number,
+            name as account_name,
+            notes as account_notes,
+            purchase_order_number as purchase_order_number,
+            account_code_c as sfdc_account_code,
+            status as status,
+            entity_c as sfdc_entity,
 
-      default_payment_method_id                              AS default_payment_method_id,
-      invoice_template_id                                    AS invoice_template_id,
-      parent_id                                              AS parent_id,
-      sold_to_contact_id                                     AS sold_to_contact_id,
-      bill_to_contact_id                                     AS bill_to_contact_id,
-      tax_exempt_certificate_id                              AS tax_exempt_certificate_id,
-      tax_exempt_certificate_type                            AS tax_exempt_certificate_type,
+            auto_pay as auto_pay,
+            balance as balance,
+            credit_balance as credit_balance,
+            bill_cycle_day as bill_cycle_day,
+            currency as currency,
+            conversion_rate_c as sfdc_conversion_rate,
+            payment_term as payment_term,
 
-      -- account info
-      account_number                                         AS account_number,
-      name                                                   AS account_name,
-      notes                                                  AS account_notes,
-      purchase_order_number                                  AS purchase_order_number,
-      account_code_c                                         AS sfdc_account_code,
-      status                                                 AS status,
-      entity_c                                               AS sfdc_entity,
+            allow_invoice_edit as allow_invoice_edit,
+            batch as batch,
+            invoice_delivery_prefs_email as invoice_delivery_prefs_email,
+            invoice_delivery_prefs_print as invoice_delivery_prefs_print,
+            payment_gateway as payment_gateway,
 
-      auto_pay                                               AS auto_pay,
-      balance                                                AS balance,
-      credit_balance                                         AS credit_balance,
-      bill_cycle_day                                         AS bill_cycle_day,
-      currency                                               AS currency,
-      conversion_rate_c                                      AS sfdc_conversion_rate,
-      payment_term                                           AS payment_term,
+            customer_service_rep_name as customer_service_rep_name,
+            sales_rep_name as sales_rep_name,
+            additional_email_addresses as additional_email_addresses,
+            parent_c as sfdc_parent,
+            sspchannel_c as ssp_channel,
+            porequired_c as po_required,
 
-      allow_invoice_edit                                     AS allow_invoice_edit,
-      batch                                                  AS batch,
-      invoice_delivery_prefs_email                           AS invoice_delivery_prefs_email,
-      invoice_delivery_prefs_print                           AS invoice_delivery_prefs_print,
-      payment_gateway                                        AS payment_gateway,
+            -- financial info
+            last_invoice_date as last_invoice_date,
 
-      customer_service_rep_name                              AS customer_service_rep_name,
-      sales_rep_name                                         AS sales_rep_name,
-      additional_email_addresses                             AS additional_email_addresses,
-      parent_c                                               AS sfdc_parent,
-      sspchannel_c                                           AS ssp_channel,
-      porequired_c                                           AS po_required,
+            -- metadata
+            created_by_id as created_by_id,
+            created_date as created_date,
+            updated_by_id as updated_by_id,
+            updated_date as updated_date,
+            _fivetran_deleted as is_deleted
 
-      -- financial info
-      last_invoice_date                                      AS last_invoice_date,
+        from source
 
-      -- metadata
-      created_by_id                                          AS created_by_id,
-      created_date                                           AS created_date,
-      updated_by_id                                          AS updated_by_id,
-      updated_date                                           AS updated_date,
-      _FIVETRAN_DELETED                                      AS is_deleted
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

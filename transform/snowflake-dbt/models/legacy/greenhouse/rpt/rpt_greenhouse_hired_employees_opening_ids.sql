@@ -1,51 +1,44 @@
-WITH employees AS (
+with
+    employees as (select * from {{ ref("employee_directory") }}),
+    greenhouse_applications as (
 
-    SELECT * 
-    FROM {{ref('employee_directory')}}
+        select * from {{ ref("greenhouse_applications_source") }}
 
-), greenhouse_applications AS (
+    ),
+    greenhouse_openings as (select * from {{ ref("greenhouse_openings_source") }}),
+    greenhouse_jobs as (select * from {{ ref("greenhouse_jobs_source") }}),
+    bamboohr_job_info as (
 
-    SELECT * 
-    FROM {{ref('greenhouse_applications_source')}}
+        select *
+        from {{ ref("bamboohr_job_info_source") }}
+        qualify row_number() OVER (partition by employee_id order by effective_date) = 1
 
-), greenhouse_openings AS (
+    ),
+    aggregated as (
 
-    SELECT * 
-    FROM {{ref('greenhouse_openings_source')}}
+        select
+            opening_id,
+            job_name as job_opening_name,
+            greenhouse_jobs.job_opened_at,
+            concat(first_name, ' ', last_name) as full_name,
+            department as department_hired_into,
+            division as division_hired_into,
+            job_title as job_hired_into
+        from employees
+        inner join
+            greenhouse_applications
+            on employees.greenhouse_candidate_id = greenhouse_applications.candidate_id
+        inner join
+            greenhouse_openings
+            on greenhouse_openings.hired_application_id
+            = greenhouse_applications.application_id
+        inner join
+            greenhouse_jobs on greenhouse_jobs.job_id = greenhouse_openings.job_id
+        inner join
+            bamboohr_job_info on bamboohr_job_info.employee_id = employees.employee_id
+        where greenhouse_candidate_id is not null
 
-), greenhouse_jobs AS (
+    )
 
-    SELECT * 
-    FROM {{ref('greenhouse_jobs_source')}}
-
- ), bamboohr_job_info AS (
-
-    SELECT *
-    FROM {{ ref('bamboohr_job_info_source') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY employee_id ORDER BY effective_date) = 1
-
-), aggregated AS (
-
-    SELECT
-        opening_id,
-        job_name                                                                AS job_opening_name,
-        greenhouse_jobs.job_opened_at, 
-        CONCAT(first_name,' ', last_name)                                       AS full_name,     
-        department                                                              AS department_hired_into, 
-        division                                                                AS division_hired_into, 
-        job_title                                                               AS job_hired_into     
-    FROM employees
-    INNER JOIN greenhouse_applications
-      ON employees.greenhouse_candidate_id = greenhouse_applications.candidate_id 
-    INNER JOIN greenhouse_openings
-      ON greenhouse_openings.hired_application_id = greenhouse_applications.application_id
-    INNER JOIN greenhouse_jobs 
-      ON greenhouse_jobs.job_id = greenhouse_openings.job_id
-    INNER JOIN bamboohr_job_info 
-      ON bamboohr_job_info.employee_id = employees.employee_id 
-    WHERE greenhouse_candidate_id IS NOT NULL 
-
-)
-
-SELECT * 
-FROM aggregated
+select *
+from aggregated

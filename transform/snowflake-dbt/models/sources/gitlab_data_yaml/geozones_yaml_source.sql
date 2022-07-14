@@ -1,51 +1,69 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      jsontext,
-      DATE_TRUNC(day, uploaded_at) AS uploaded_at,
-      RANK() OVER (PARTITION BY DATE_TRUNC('day', uploaded_at) ORDER BY uploaded_at DESC) AS rank
-    FROM {{ source('gitlab_data_yaml', 'geo_zones') }}
-    ORDER BY uploaded_at DESC
+        select
+            jsontext,
+            date_trunc(day, uploaded_at) as uploaded_at,
+            rank() OVER (
+                partition by date_trunc('day', uploaded_at) order by uploaded_at desc
+            ) as rank
+        from {{ source("gitlab_data_yaml", "geo_zones") }}
+        order by uploaded_at desc
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-    SELECT 
-      geozones.value['title']::VARCHAR                                 AS geozone_title, 
-      geozones.value['factor']::VARCHAR                                AS geozone_factor, 
-      geozones.index                                                   AS geozone_index,
-      additional_fields.key::VARCHAR                                   AS info_key,
-      field_info.value::VARCHAR                                        AS field_value,
-      IFF(uploaded_at = '2021-01-04', '2021-01-01', uploaded_at)       AS uploaded_at
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), OUTER => TRUE) geozones,
-    LATERAL FLATTEN(INPUT => parse_json(geozones.value), OUTER => TRUE) additional_fields,
-    TABLE(FLATTEN(input => additional_fields.value, RECURSIVE => TRUE))  field_info
+        select
+            geozones.value['title']::varchar as geozone_title,
+            geozones.value['factor']::varchar as geozone_factor,
+            geozones.index as geozone_index,
+            additional_fields.key::varchar as info_key,
+            field_info.value::varchar as field_value,
+            iff(uploaded_at = '2021-01-04', '2021-01-01', uploaded_at) as uploaded_at
+        from
+            source,
+            lateral flatten(input => parse_json(jsontext), outer => true) geozones,
+            lateral flatten(
+                input => parse_json(geozones.value), outer => true
+            ) additional_fields,
+            table(
+                flatten(input => additional_fields.value, recursive => true)) field_info
 
-), unioned AS (
+    ),
+    unioned as (
 
-    SELECT DISTINCT
-      geozone_title,
-      geozone_factor,
-      'United States'              AS country,
-      field_value                  AS state_or_province,
-      uploaded_at
-    FROM intermediate
-    WHERE info_key IN ('states_or_provinces')
+        select distinct
+            geozone_title,
+            geozone_factor,
+            'United States' as country,
+            field_value as state_or_province,
+            uploaded_at
+        from intermediate
+        where info_key in ('states_or_provinces')
 
-    UNION ALL 
+        union all
 
-    SELECT DISTINCT
-      geozone_title,
-      geozone_factor,
-      field_value                 AS country,
-      NULL                        AS state_or_province,
-      uploaded_at
-    FROM intermediate
-    WHERE info_key IN ('countries')  
-  
-)
+        select distinct
+            geozone_title,
+            geozone_factor,
+            field_value as country,
+            null as state_or_province,
+            uploaded_at
+        from intermediate
+        where info_key in ('countries')
 
-SELECT 
-  {{ dbt_utils.surrogate_key(['geozone_title', 'geozone_factor', 'country', 'state_or_province','geozone_factor']) }}        AS unique_key,
-  unioned.*
-FROM unioned
+    )
+
+select
+    {{
+        dbt_utils.surrogate_key(
+            [
+                "geozone_title",
+                "geozone_factor",
+                "country",
+                "state_or_province",
+                "geozone_factor",
+            ]
+        )
+    }} as unique_key, unioned.*
+from unioned

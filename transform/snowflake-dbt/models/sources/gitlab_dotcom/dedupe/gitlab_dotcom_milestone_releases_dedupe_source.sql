@@ -1,29 +1,33 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "primary_key"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "primary_key"}) }}
 
-WITH base AS (
+with
+    base as (
 
-    SELECT *
-    FROM {{ source('gitlab_dotcom', 'milestone_releases') }}
-    {% if is_incremental() %}
+        select *
+        from {{ source("gitlab_dotcom", "milestone_releases") }}
+        {% if is_incremental() %}
 
-    WHERE _uploaded_at >= (SELECT MAX(_uploaded_at) FROM {{this}})
+        where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
 
-    {% endif %}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY milestone_id, release_id ORDER BY _uploaded_at DESC) = 1
+        {% endif %}
+        qualify
+            row_number() OVER (
+                partition by milestone_id, release_id order by _uploaded_at desc
+            )
+            = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT {{ dbt_utils.surrogate_key( ['milestone_id', 'release_id'])}} AS primary_key,
-           milestone_id::INT                                             AS milestone_id,
-           release_id::INT                                               AS release_id,
-           _uploaded_at                                                  AS _uploaded_at
-    FROM base
+        select
+            {{ dbt_utils.surrogate_key(["milestone_id", "release_id"]) }}
+            as primary_key,
+            milestone_id::int as milestone_id,
+            release_id::int as release_id,
+            _uploaded_at as _uploaded_at
+        from base
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

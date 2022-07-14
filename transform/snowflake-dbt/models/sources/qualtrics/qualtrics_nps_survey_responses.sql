@@ -1,30 +1,31 @@
-{{ config({
-    "schema": "sensitive",
-    "database": env_var('SNOWFLAKE_PREP_DATABASE'),
-    })
+{{
+    config(
+        {
+            "schema": "sensitive",
+            "database": env_var("SNOWFLAKE_PREP_DATABASE"),
+        }
+    )
 }}
 
-WITH source AS (
+with
+    source as (select * from {{ source("qualtrics", "nps_survey_responses") }}),
+    parsed as (
 
-    SELECT *
-    FROM {{ source('qualtrics', 'nps_survey_responses') }}
+        select d.value as data_by_row, uploaded_at
+        from
+            source,
+            lateral flatten(input => parse_json(jsontext['responses']), outer => true) d
 
-), parsed AS (
+    ),
+    response_parsed as (
 
-    SELECT 
-      d.value as data_by_row,
-      uploaded_at
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext['responses']), outer => true) d
+        select
+            data_by_row['responseId']::varchar as response_id,
+            data_by_row['values']::variant as response_values
+        from parsed
+        qualify
+            row_number() OVER (partition by response_id order by uploaded_at desc) = 1
 
-), response_parsed AS (
-
-    SELECT 
-      data_by_row['responseId']::VARCHAR  AS response_id,
-      data_by_row['values']::VARIANT      AS response_values
-    FROM parsed
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY response_id ORDER BY uploaded_at DESC) = 1
-
-)
-SELECT * 
-FROM response_parsed
+    )
+select *
+from response_parsed

@@ -1,49 +1,55 @@
-{{ config({
-        "materialized": "incremental",
-        "unique_key": "mart_retention_parent_account_snapshot_id",
-        "tags": ["edm_snapshot", "retention_snapshots"],
-        "schema": "restricted_safe_common_mart_sales"
-    })
+{{
+    config(
+        {
+            "materialized": "incremental",
+            "unique_key": "mart_retention_parent_account_snapshot_id",
+            "tags": ["edm_snapshot", "retention_snapshots"],
+            "schema": "restricted_safe_common_mart_sales",
+        }
+    )
 }}
 
 /* grain: one record per subscription, product per month */
-WITH snapshot_dates AS (
+with
+    snapshot_dates as (
 
-   SELECT *
-   FROM {{ ref('dim_date') }}
-   WHERE date_actual >= '2020-03-01' and date_actual <= CURRENT_DATE
-   {% if is_incremental() %}
+        select *
+        from {{ ref("dim_date") }}
+        where
+            date_actual >= '2020-03-01' and date_actual <= current_date
+            {% if is_incremental() %}
 
-   -- this filter will only be applied on an incremental run
-   AND date_id > (SELECT max(snapshot_id) FROM {{ this }})
+            -- this filter will only be applied on an incremental run
+            and date_id > (select max(snapshot_id) from {{ this }}) {% endif %}
 
-   {% endif %}
+    ),
+    mart_retention_parent_account as (
 
-), mart_retention_parent_account AS (
+        select * from {{ ref("prep_mart_retention_parent_account_snapshot_base") }}
 
-    SELECT
-      *
-    FROM {{ ref('prep_mart_retention_parent_account_snapshot_base') }}
+    ),
+    mart_retention_parent_account_spined as (
 
-), mart_retention_parent_account_spined AS (
+        select snapshot_dates.date_id as snapshot_id, mart_retention_parent_account.*
+        from mart_retention_parent_account
+        inner join
+            snapshot_dates
+            on snapshot_dates.date_actual
+            >= mart_retention_parent_account.dbt_valid_from
+            and snapshot_dates.date_actual
+            < {{ coalesce_to_infinity("mart_retention_parent_account.dbt_valid_to") }}
 
-    SELECT
-      snapshot_dates.date_id AS snapshot_id,
-      mart_retention_parent_account.*
-    FROM mart_retention_parent_account
-    INNER JOIN snapshot_dates
-      ON snapshot_dates.date_actual >= mart_retention_parent_account.dbt_valid_from
-      AND snapshot_dates.date_actual < {{ coalesce_to_infinity('mart_retention_parent_account.dbt_valid_to') }}
+    ),
+    final as (
 
-), final AS (
+        select
+            {{ dbt_utils.surrogate_key(["snapshot_id", "fct_retention_id"]) }}
+            as mart_retention_parent_account_snapshot_id,
+            *
+        from mart_retention_parent_account_spined
 
-    SELECT
-     {{ dbt_utils.surrogate_key(['snapshot_id', 'fct_retention_id']) }} AS mart_retention_parent_account_snapshot_id,
-       *
-    FROM mart_retention_parent_account_spined
-
-)
+    )
 
 
-SELECT * 
-FROM final
+select *
+from final

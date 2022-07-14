@@ -1,57 +1,83 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *,
-      RANK() OVER (PARTITION BY DATE_TRUNC('day', uploaded_at) ORDER BY uploaded_at DESC) AS rank
-    FROM {{ source('gitlab_data_yaml', 'roles') }}
+        select
+            *,
+            rank() OVER (
+                partition by date_trunc('day', uploaded_at) order by uploaded_at desc
+            ) as rank
+        from {{ source("gitlab_data_yaml", "roles") }}
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-    SELECT
-      d.value                                 AS data_by_row,
-      date_trunc('day', uploaded_at)::date    AS snapshot_date,
-      rank
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), OUTER => TRUE) d
+        select
+            d.value as data_by_row,
+            date_trunc('day', uploaded_at)::date as snapshot_date,
+            rank
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), intermediate_role_information AS (
+    ),
+    intermediate_role_information as (
 
-    SELECT
-      snapshot_date,
-      data_by_row['title']::VARCHAR           AS title,
-      data_by_row['levels']::VARCHAR          AS role_levels,
-      data_by_row['open']::VARCHAR            AS is_open,
-      data_by_row['salary']::VARCHAR          AS previous_salary_value,
-      data_by_row['ic_ttc']                   AS ic_values,
-      data_by_row['manager_ttc']              AS manager_values,
-      data_by_row['director_ttc']             AS director_values,
-      data_by_row['senior_director_ttc']      AS senior_director_values,
-      rank
-    FROM intermediate
+        select
+            snapshot_date,
+            data_by_row['title']::varchar as title,
+            data_by_row['levels']::varchar as role_levels,
+            data_by_row['open']::varchar as is_open,
+            data_by_row['salary']::varchar as previous_salary_value,
+            data_by_row['ic_ttc'] as ic_values,
+            data_by_row['manager_ttc'] as manager_values,
+            data_by_row['director_ttc'] as director_values,
+            data_by_row['senior_director_ttc'] as senior_director_values,
+            rank
+        from intermediate
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      snapshot_date,
-      title,
-      role_levels,
-      TRY_TO_BOOLEAN(is_open)                                                             AS is_open,
-      TRY_TO_NUMERIC(previous_salary_value)                                               AS previous_salary_value,
-      TRY_TO_NUMERIC(ic_values['compensation']::VARCHAR)                                  AS individual_contributor_compensation,
-      TRY_TO_NUMERIC(ic_values['percentage_variable']::VARCHAR,5,2)                       AS individual_contributor_percentage_variable,
-      TRY_TO_BOOLEAN(ic_values['from_base']::VARCHAR)                                     AS individual_contributor_from_base,
-      TRY_TO_NUMERIC(manager_values['compensation']::VARCHAR)                             AS manager_compensation,
-      TRY_TO_NUMERIC(manager_values['percentage_variable']::VARCHAR)                      AS manager_percentage_variable,
-      TRY_TO_BOOLEAN(manager_values['from_base']::VARCHAR)                                AS manager_from_base,
-      TRY_TO_NUMERIC(director_values['compensation']::VARCHAR)                            AS director_compensation,
-      TRY_TO_NUMERIC(director_values['percentage_variable']::VARCHAR,5,2)                 AS director_percentage_variable,
-      TRY_TO_BOOLEAN(director_values['from_base']::VARCHAR)                               AS director_from_base,
-      TRY_TO_NUMERIC(senior_director_values['compensation']::VARCHAR)                     AS senior_director_compensation,
-      TRY_TO_NUMERIC(senior_director_values['percentage_variable']::VARCHAR,5,2)          AS senior_director_percentage_variable,
-      TRY_TO_BOOLEAN(senior_director_values['from_base']::VARCHAR)                        AS senior_director_from_base,
-      rank
-    FROM intermediate_role_information
+        select
+            snapshot_date,
+            title,
+            role_levels,
+            try_to_boolean(is_open) as is_open,
+            try_to_numeric(previous_salary_value) as previous_salary_value,
+            try_to_numeric(
+                ic_values['compensation']::varchar
+            ) as individual_contributor_compensation,
+            try_to_numeric(
+                ic_values['percentage_variable']::varchar, 5, 2
+            ) as individual_contributor_percentage_variable,
+            try_to_boolean(
+                ic_values['from_base']::varchar
+            ) as individual_contributor_from_base,
+            try_to_numeric(
+                manager_values['compensation']::varchar
+            ) as manager_compensation,
+            try_to_numeric(
+                manager_values['percentage_variable']::varchar
+            ) as manager_percentage_variable,
+            try_to_boolean(manager_values['from_base']::varchar) as manager_from_base,
+            try_to_numeric(
+                director_values['compensation']::varchar
+            ) as director_compensation,
+            try_to_numeric(
+                director_values['percentage_variable']::varchar, 5, 2
+            ) as director_percentage_variable,
+            try_to_boolean(director_values['from_base']::varchar) as director_from_base,
+            try_to_numeric(
+                senior_director_values['compensation']::varchar
+            ) as senior_director_compensation,
+            try_to_numeric(
+                senior_director_values['percentage_variable']::varchar, 5, 2
+            ) as senior_director_percentage_variable,
+            try_to_boolean(
+                senior_director_values['from_base']::varchar
+            ) as senior_director_from_base,
+            rank
+        from intermediate_role_information
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

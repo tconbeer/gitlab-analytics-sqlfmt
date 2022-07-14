@@ -1,36 +1,41 @@
-WITH date_details AS (
-  
-    SELECT *
-    FROM {{ ref("date_details") }}
-    WHERE last_day_of_month = date_actual
-     
-), project_snapshots AS (
+with
+    date_details as (
 
-   SELECT
-     *,
-     IFNULL(valid_to, CURRENT_TIMESTAMP) AS valid_to_
-   FROM {{ ref('gitlab_dotcom_project_statistics_snapshots_base') }}
+        select * from {{ ref("date_details") }} where last_day_of_month = date_actual
 
-), project_snapshots_monthly AS (
-  
-    SELECT
-      DATE_TRUNC('month', date_details.date_actual) AS snapshot_month,
-      project_snapshots.project_statistics_id,
-      project_snapshots.project_id,
-      project_snapshots.namespace_id,
-      project_snapshots.commit_count,
-      project_snapshots.storage_size,
-      project_snapshots.repository_size,
-      project_snapshots.lfs_objects_size,
-      project_snapshots.build_artifacts_size,
-      project_snapshots.shared_runners_seconds,
-      project_snapshots.last_update_started_at
-    FROM project_snapshots
-    INNER JOIN date_details
-      ON date_details.date_actual BETWEEN project_snapshots.valid_from AND project_snapshots.valid_to_
-    QUALIFY ROW_NUMBER() OVER(PARTITION BY snapshot_month, project_id ORDER BY valid_to_ DESC) = 1
-  
-)
+    ),
+    project_snapshots as (
 
-SELECT *
-FROM project_snapshots_monthly
+        select *, ifnull(valid_to, current_timestamp) as valid_to_
+        from {{ ref("gitlab_dotcom_project_statistics_snapshots_base") }}
+
+    ),
+    project_snapshots_monthly as (
+
+        select
+            date_trunc('month', date_details.date_actual) as snapshot_month,
+            project_snapshots.project_statistics_id,
+            project_snapshots.project_id,
+            project_snapshots.namespace_id,
+            project_snapshots.commit_count,
+            project_snapshots.storage_size,
+            project_snapshots.repository_size,
+            project_snapshots.lfs_objects_size,
+            project_snapshots.build_artifacts_size,
+            project_snapshots.shared_runners_seconds,
+            project_snapshots.last_update_started_at
+        from project_snapshots
+        inner join
+            date_details
+            on date_details.date_actual
+            between project_snapshots.valid_from and project_snapshots.valid_to_
+        qualify
+            row_number() OVER (
+                partition by snapshot_month, project_id order by valid_to_ desc
+            )
+            = 1
+
+    )
+
+select *
+from project_snapshots_monthly

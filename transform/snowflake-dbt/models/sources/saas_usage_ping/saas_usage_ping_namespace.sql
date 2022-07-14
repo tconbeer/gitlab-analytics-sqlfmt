@@ -1,38 +1,52 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "saas_usage_ping_gitlab_dotcom_namespace_id"
-    })
+{{
+    config(
+        {
+            "materialized": "incremental",
+            "unique_key": "saas_usage_ping_gitlab_dotcom_namespace_id",
+        }
+    )
 }}
 
-WITH base AS (
+with
+    base as (
 
-    SELECT *
-    FROM {{ source('saas_usage_ping', 'namespace') }}
-    {% if is_incremental() %}
+        select *
+        from {{ source("saas_usage_ping", "namespace") }}
+        {% if is_incremental() %}
 
-    WHERE DATEADD('s', _uploaded_at, '1970-01-01') >= (SELECT MAX(_uploaded_at) FROM {{this}})
+        where
+            dateadd('s', _uploaded_at, '1970-01-01')
+            >= (select max(_uploaded_at) from {{ this }})
 
-    {% endif %}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY namespace_ultimate_parent_id, ping_name, ping_date ORDER BY _uploaded_at DESC) = 1
+        {% endif %}
+        qualify
+            row_number() OVER (
+                partition by namespace_ultimate_parent_id, ping_name, ping_date
+                order by _uploaded_at desc
+            )
+            = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      {{ dbt_utils.surrogate_key( ['namespace_ultimate_parent_id',
-                                    'ping_name', 
-                                    'ping_date'])}}           AS saas_usage_ping_gitlab_dotcom_namespace_id,
-      namespace_ultimate_parent_id::INT                       AS namespace_ultimate_parent_id,
-      counter_value::INT                                      AS counter_value,
-      ping_name::VARCHAR                                      AS ping_name,
-      level::VARCHAR                                          AS ping_level,
-      query_ran::VARCHAR                                      AS query_ran,
-      error::VARCHAR                                          AS error,
-      ping_date::TIMESTAMP                                    AS ping_date,
-      dateadd('s', _uploaded_at, '1970-01-01')::TIMESTAMP     AS _uploaded_at
-    FROM base
-    
+        select
+            {{
+                dbt_utils.surrogate_key(
+                    ["namespace_ultimate_parent_id", "ping_name", "ping_date"]
+                )
+            }} as saas_usage_ping_gitlab_dotcom_namespace_id,
+            namespace_ultimate_parent_id::int as namespace_ultimate_parent_id,
+            counter_value::int as counter_value,
+            ping_name::varchar as ping_name,
+            level::varchar as ping_level,
+            query_ran::varchar as query_ran,
+            error::varchar as error,
+            ping_date::timestamp as ping_date,
+            dateadd('s', _uploaded_at, '1970-01-01')::timestamp as _uploaded_at
+        from base
 
-)
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

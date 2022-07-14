@@ -1,36 +1,48 @@
-{{
-    config({
-    "schema": "legacy"
-    })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH source AS (
-    
-    SELECT *
-    FROM {{ source('engineering', 'part_of_product_merge_requests') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY jsontext['plain_diff_path'] 
-      ORDER BY ARRAY_SIZE(jsontext['merge_request_diffs']) DESC, uploaded_at DESC) = 1
+with
+    source as (
 
-), renamed AS (
-    
-    SELECT 
-      jsontext['added_lines']::NUMBER                             AS added_lines,
-      jsontext['real_size']::VARCHAR                              AS real_size, --this occasionally has `+` - ie `374+`
-      jsontext['removed_lines']::NUMBER                           AS removed_lines,
-      jsontext['plain_diff_path']::VARCHAR                        AS plain_diff_url_path,
-      jsontext['merge_request_diff']['created_at']::TIMESTAMP     AS merge_request_updated_at,
-      jsontext['diff_files']::ARRAY                               AS file_diffs,
-      jsontext['target_branch_name']                              AS target_branch_name,
-      --get the number after the last dash
-      REGEXP_REPLACE(
-          GET(SPLIT(plain_diff_url_path, '-'), ARRAY_SIZE(SPLIT(plain_diff_url_path, '-')) - 1),  
-          '[^0-9]+', 
-          ''
-      )::NUMBER                                                   AS product_merge_request_iid,
-      TRIM(ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(plain_diff_url_path, '-'), 0, -1), '-'), '/')::VARCHAR AS product_merge_request_project
-    FROM source
+        select *
+        from {{ source("engineering", "part_of_product_merge_requests") }}
+        qualify
+            row_number() OVER (
+                partition by jsontext['plain_diff_path']
+                order by
+                    array_size(jsontext['merge_request_diffs']) desc, uploaded_at desc
+            )
+            = 1
 
-)
-SELECT * 
-FROM renamed
+    ),
+    renamed as (
 
+        select
+            jsontext['added_lines']::number as added_lines,
+            -- this occasionally has `+` - ie `374+`
+            jsontext['real_size']::varchar as real_size,
+            jsontext['removed_lines']::number as removed_lines,
+            jsontext['plain_diff_path']::varchar as plain_diff_url_path,
+            jsontext['merge_request_diff'] ['created_at']::timestamp
+            as merge_request_updated_at,
+            jsontext['diff_files']::array as file_diffs,
+            jsontext['target_branch_name'] as target_branch_name,
+            -- get the number after the last dash
+            regexp_replace(
+                get(
+                    split(plain_diff_url_path, '-'),
+                    array_size(split(plain_diff_url_path, '-')) - 1
+                ),
+                '[^0-9]+',
+                ''
+            )::number as product_merge_request_iid,
+            trim(
+                array_to_string(
+                    array_slice(split(plain_diff_url_path, '-'), 0, -1), '-'
+                ),
+                '/'
+            )::varchar as product_merge_request_project
+        from source
+
+    )
+select *
+from renamed

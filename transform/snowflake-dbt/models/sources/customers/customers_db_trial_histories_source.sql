@@ -1,23 +1,27 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('customers', 'customers_db_trial_histories') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY gl_namespace_id ORDER BY updated_at DESC) = 1
+        select *
+        from {{ source("customers", "customers_db_trial_histories") }}
+        qualify
+            row_number() OVER (partition by gl_namespace_id order by updated_at desc)
+            = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT DISTINCT
-      gl_namespace_id::VARCHAR AS gl_namespace_id,
-      start_date::TIMESTAMP    AS start_date,
-      expired_on::TIMESTAMP    AS expired_on,
-      created_at::TIMESTAMP    AS created_at,
-      updated_at::TIMESTAMP    AS updated_at,
-      glm_source::VARCHAR      AS glm_source,
-      glm_content::VARCHAR     AS glm_content,
-      trial_entity::VARCHAR    AS trial_entity
-    FROM source
-    
-)
+        select distinct
+            gl_namespace_id::varchar as gl_namespace_id,
+            start_date::timestamp as start_date,
+            expired_on::timestamp as expired_on,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            glm_source::varchar as glm_source,
+            glm_content::varchar as glm_content,
+            trial_entity::varchar as trial_entity
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

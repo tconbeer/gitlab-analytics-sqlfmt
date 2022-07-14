@@ -1,241 +1,242 @@
-WITH members AS ( -- direct group and project members
+with  -- direct group and project members
+    members as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_members') }} members
-    WHERE is_currently_valid = TRUE
-      AND user_id IS NOT NULL
-      AND {{ filter_out_blocked_users('members', 'user_id') }}
-    QUALIFY RANK() OVER (
-        PARTITION BY 
-          user_id, 
-          source_id, 
-          member_source_type 
-        ORDER BY 
-          access_level DESC, 
-          invite_created_at DESC
-        ) = 1
-    
-), namespaces AS (
+        select *
+        from {{ ref("gitlab_dotcom_members") }} members
+        where
+            is_currently_valid = true
+            and user_id is not null
+            and {{ filter_out_blocked_users("members", "user_id") }}
+        qualify
+            rank() OVER (
+                partition by user_id, source_id, member_source_type
+                order by access_level desc, invite_created_at desc
+            )
+            = 1
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_namespaces') }}
+    ),
+    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }}),
+    namespace_lineage as (select * from {{ ref("gitlab_dotcom_namespace_lineage") }}),
+    users as (select * from {{ ref("gitlab_dotcom_users") }}),
+    -- groups invited to groups
+    projects as (select * from {{ ref("gitlab_dotcom_projects") }}),
+    group_group_links as (
 
-), namespace_lineage AS (
+        select *
+        from {{ ref("gitlab_dotcom_group_group_links") }}
+        where is_currently_valid = true
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_namespace_lineage') }}
+    ),  -- groups invited to projects
+    project_group_links as (
 
-), users AS (
+        select *
+        from {{ ref("gitlab_dotcom_project_group_links") }}
+        where is_currently_valid = true
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_users') }}
+    ),
+    group_group_links_lineage as (
 
-), projects AS (
+        select
+            group_group_links.shared_group_id,  -- the "host" group
+            group_group_links.group_group_link_id,
+            group_group_links.shared_with_group_id,  -- the "guest" group
+            group_group_links.group_access,
+            -- all parent namespaces for the "guest" group
+            namespace_lineage.upstream_lineage as base_and_ancestors
+        from group_group_links
+        inner join
+            namespace_lineage
+            on group_group_links.shared_with_group_id = namespace_lineage.namespace_id
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_projects') }}
+    ),
+    project_group_links_lineage as (
 
-), group_group_links AS ( -- groups invited to groups
+        select
+            -- the "host" group the project directly belongs to
+            projects.namespace_id as shared_group_id,
+            project_group_links.project_group_link_id,
+            project_group_links.group_id as shared_with_group_id,  -- the "guest" group
+            project_group_links.group_access,
+            -- all parent namespaces for the "guest" group
+            namespace_lineage.upstream_lineage as base_and_ancestors
+        from project_group_links
+        inner join projects on project_group_links.project_id = projects.project_id
+        inner join
+            namespace_lineage
+            on project_group_links.group_id = namespace_lineage.namespace_id
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_group_group_links') }}
-    WHERE is_currently_valid = TRUE
+    ),
+    group_group_links_flattened as (
 
-), project_group_links AS ( -- groups invited to projects
+        -- creates one row for each "guest" group and its parent namespaces
+        select group_group_links_lineage.*, f.value as shared_with_group_lineage
+        from
+            group_group_links_lineage,
+            table(flatten(group_group_links_lineage.base_and_ancestors)) f
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_project_group_links') }}
-    WHERE is_currently_valid = TRUE
+    ),
+    project_group_links_flattened as (
 
-), group_group_links_lineage AS (
+        -- creates one row for each "guest" group and its parent namespaces
+        select project_group_links_lineage.*, f.value as shared_with_group_lineage
+        from
+            project_group_links_lineage,
+            table(flatten(project_group_links_lineage.base_and_ancestors)) f
 
-    SELECT
-      group_group_links.shared_group_id, -- the "host" group
-      group_group_links.group_group_link_id,
-      group_group_links.shared_with_group_id, -- the "guest" group
-      group_group_links.group_access,
-      namespace_lineage.upstream_lineage AS base_and_ancestors -- all parent namespaces for the "guest" group
-    FROM group_group_links
-    INNER JOIN namespace_lineage
-      ON group_group_links.shared_with_group_id = namespace_lineage.namespace_id
+    ),
+    group_members as (select * from members where member_source_type = 'Namespace'),
+    project_members as (
 
-), project_group_links_lineage AS (
+        select projects.namespace_id, members.*
+        from members
+        inner join projects on members.source_id = projects.project_id
+        where member_source_type = 'Project'
 
-    SELECT
-      projects.namespace_id              AS shared_group_id, -- the "host" group the project directly belongs to
-      project_group_links.project_group_link_id,
-      project_group_links.group_id       AS shared_with_group_id, -- the "guest" group
-      project_group_links.group_access,
-      namespace_lineage.upstream_lineage AS base_and_ancestors -- all parent namespaces for the "guest" group
-    FROM project_group_links
-    INNER JOIN projects
-      ON project_group_links.project_id = projects.project_id
-    INNER JOIN namespace_lineage
-      ON project_group_links.group_id = namespace_lineage.namespace_id
+    ),
+    group_group_link_members as (
 
-), group_group_links_flattened AS (
+        select *
+        from group_group_links_flattened
+        inner join
+            group_members
+            on group_group_links_flattened.shared_with_group_lineage
+            = group_members.source_id
 
-    SELECT
-      group_group_links_lineage.*,
-      f.value AS shared_with_group_lineage -- creates one row for each "guest" group and its parent namespaces
-    FROM group_group_links_lineage,
-      TABLE(FLATTEN(group_group_links_lineage.base_and_ancestors)) f
+    ),
+    project_group_link_members as (
 
-), project_group_links_flattened AS (
+        select *
+        from project_group_links_flattened
+        inner join
+            group_members
+            on project_group_links_flattened.shared_with_group_lineage
+            = group_members.source_id
 
-    SELECT
-      project_group_links_lineage.*,
-      f.value AS shared_with_group_lineage -- creates one row for each "guest" group and its parent namespaces
-    FROM project_group_links_lineage,
-      TABLE(FLATTEN(project_group_links_lineage.base_and_ancestors)) f
+    ),
+    individual_namespaces as (select * from namespaces where namespace_type = 'User'),
+    unioned as (
 
-), group_members AS (
+        select
+            source_id as namespace_id,
+            'group_membership' as membership_source_type,
+            source_id as membership_source_id,
+            access_level,
+            null as group_access,  -- direct member of group
+            requested_at,
+            user_id
+        from group_members
 
-    SELECT *
-    FROM members
-    WHERE member_source_type = 'Namespace'
+        union
 
-), project_members AS (
+        select
+            namespace_id,
+            'project_membership' as membership_source_type,
+            source_id as membership_source_id,
+            access_level,
+            null as group_access,  -- direct member of project
+            requested_at,
+            user_id
+        from project_members
 
-    SELECT
-      projects.namespace_id,
-      members.*
-    FROM members
-    INNER JOIN projects
-      ON members.source_id = projects.project_id
-    WHERE member_source_type = 'Project'
+        union
 
-), group_group_link_members AS (
+        select
+            shared_group_id as namespace_id,
+            iff(
+                shared_with_group_lineage = shared_with_group_id,
+                'group_group_link',
+                'group_group_link_ancestor'
+            -- differentiate "guest" group from its parent namespaces
+            ) as membership_source_type,
+            group_group_link_id as membership_source_id,
+            access_level,
+            group_access,
+            requested_at,
+            user_id
+        from group_group_link_members
 
-    SELECT *
-    FROM group_group_links_flattened
-    INNER JOIN group_members
-      ON group_group_links_flattened.shared_with_group_lineage = group_members.source_id
+        union
 
-), project_group_link_members AS (
+        select
+            shared_group_id as namespace_id,
+            iff(
+                shared_with_group_lineage = shared_with_group_id,
+                'project_group_link',
+                'project_group_link_ancestor'
+            -- differentiate "guest" group from its parent namespaces
+            ) as membership_source_type,
+            project_group_link_id as membership_source_id,
+            access_level,
+            group_access,
+            requested_at,
+            user_id
+        from project_group_link_members
 
-    SELECT *
-    FROM project_group_links_flattened
-    INNER JOIN group_members
-      ON project_group_links_flattened.shared_with_group_lineage = group_members.source_id
+        union
 
-), individual_namespaces AS (
+        select
+            namespace_id,
+            'individual_namespace' as membership_source_type,
+            namespace_id as membership_source_id,
+            50 as access_level,  -- implied by ownership
+            null as group_access,  -- implied by ownership
+            null as requested_at,  -- implied by ownership
+            owner_id as user_id
+        from individual_namespaces
 
-    SELECT *
-    FROM namespaces
-    WHERE namespace_type = 'User'
+    ),
+    joined as (
 
-), unioned AS (
+        select
+            namespace_lineage.ultimate_parent_id,
+            namespace_lineage.ultimate_parent_plan_id,
+            namespace_lineage.ultimate_parent_plan_title,
+            unioned.*,
+            users.state as user_state,
+            users.user_type
+        from unioned
+        inner join
+            namespace_lineage on unioned.namespace_id = namespace_lineage.namespace_id
+        inner join users on unioned.user_id = users.user_id
 
-    SELECT
-      source_id          AS namespace_id,
-      'group_membership' AS membership_source_type,
-      source_id          AS membership_source_id,
-      access_level,
-      NULL               AS group_access, -- direct member of group
-      requested_at,
-      user_id
-    FROM group_members
-  
-    UNION
-  
-    SELECT
-      namespace_id,
-      'project_membership' AS membership_source_type,
-      source_id            AS membership_source_id,
-      access_level,
-      NULL                 AS group_access, -- direct member of project
-      requested_at,
-      user_id
-    FROM project_members
-  
-    UNION
-  
-    SELECT
-      shared_group_id     AS namespace_id,
-      IFF(
-          shared_with_group_lineage = shared_with_group_id, 
-          'group_group_link', 
-          'group_group_link_ancestor'
-      )                   AS membership_source_type, -- differentiate "guest" group from its parent namespaces
-      group_group_link_id AS membership_source_id,
-      access_level,
-      group_access,
-      requested_at,
-      user_id
-    FROM group_group_link_members
-  
-    UNION
-  
-    SELECT
-      shared_group_id       AS namespace_id,
-      IFF(
-          shared_with_group_lineage = shared_with_group_id, 
-          'project_group_link', 
-          'project_group_link_ancestor'
-      )                     AS membership_source_type, -- differentiate "guest" group from its parent namespaces
-      project_group_link_id AS membership_source_id,
-      access_level,
-      group_access,
-      requested_at,
-      user_id
-    FROM project_group_link_members
-    
-    UNION
-  
-    SELECT
-      namespace_id,
-      'individual_namespace' AS membership_source_type,
-      namespace_id           AS membership_source_id,
-      50                     AS access_level, -- implied by ownership
-      NULL                   AS group_access, -- implied by ownership
-      NULL                   AS requested_at, -- implied by ownership
-      owner_id               AS user_id
-    FROM individual_namespaces
-  
-), joined AS (
+    ),
+    final as (
 
-    SELECT
-      namespace_lineage.ultimate_parent_id,
-      namespace_lineage.ultimate_parent_plan_id,
-      namespace_lineage.ultimate_parent_plan_title,
-      unioned.*,
-      users.state AS user_state,
-      users.user_type
-    FROM unioned
-    INNER JOIN namespace_lineage
-      ON unioned.namespace_id = namespace_lineage.namespace_id
-    INNER JOIN users
-      ON unioned.user_id = users.user_id
+        select
+            ultimate_parent_id,
+            ultimate_parent_plan_id,
+            ultimate_parent_plan_title,
+            namespace_id,
+            membership_source_type,
+            membership_source_id,
+            access_level,
+            group_access,
+            requested_at,
+            user_id,
+            user_state,
+            user_type,
+            -- exclude any user with guest access
+            iff(access_level = 10 or group_access = 10, true, false) as is_guest,
+            iff(
+                user_state = 'active'
+                and (user_type != 6 or user_type is null)
+                and requested_at is null,
+                true,  -- must be active, not a project bot, and not awaiting access
+                false
+            ) as is_active,
+            iff(
+                (
+                    ultimate_parent_plan_title = 'gold'
+                    and is_active = true
+                    and is_guest = false
+                )
+                or (ultimate_parent_plan_title != 'gold' and is_active = true),
+                true,  -- exclude guests if namespace has gold plan
+                false
+            ) as is_billable
+        from joined
 
-), final AS (
+    )
 
-    SELECT
-      ultimate_parent_id,
-      ultimate_parent_plan_id,
-      ultimate_parent_plan_title,
-      namespace_id,
-      membership_source_type,
-      membership_source_id,
-      access_level,
-      group_access,
-      requested_at,
-      user_id,
-      user_state,
-      user_type,
-      IFF(access_level = 10 OR group_access = 10, TRUE, FALSE) AS is_guest, -- exclude any user with guest access
-      IFF(
-          user_state = 'active' AND (user_type != 6 OR user_type IS NULL) AND requested_at IS NULL, 
-          TRUE, FALSE -- must be active, not a project bot, and not awaiting access
-      )                                                        AS is_active,
-      IFF(
-          (ultimate_parent_plan_title = 'gold' AND is_active = TRUE AND is_guest = FALSE)
-          OR (ultimate_parent_plan_title != 'gold' AND is_active = TRUE),
-          TRUE, FALSE -- exclude guests if namespace has gold plan
-      )                                                        AS is_billable
-    FROM joined  
-      
-)
-
-SELECT *
-FROM final
+select *
+from final

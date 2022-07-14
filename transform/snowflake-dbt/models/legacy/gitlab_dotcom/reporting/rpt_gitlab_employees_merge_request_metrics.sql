@@ -13,74 +13,76 @@
     FROM intermediate
 {% endset %}
 
-WITH merge_requests AS (
-    
-    SELECT *
-    FROM {{ ref('gitlab_employees_merge_requests_xf') }}
-    WHERE merged_at IS NOT NULL
-  
-), employees AS (
-  
-    SELECT *
-    FROM {{ref('gitlab_bamboohr_employee_base')}}
+with
+    merge_requests as (
 
-), intermediate AS (  
+        select *
+        from {{ ref("gitlab_employees_merge_requests_xf") }}
+        where merged_at is not null
 
-    SELECT
-      employees.*,
-      merge_requests.merge_request_id, 
-      merge_requests.merge_request_data_source,
-      merge_requests.merged_at,
-      merge_requests.is_part_of_product,
-      people_engineering_project
-    FROM employees
-    LEFT JOIN merge_requests
-      ON merge_requests.bamboohr_employee_id = employees.employee_id
-      AND DATE_TRUNC(day, merge_requests.merged_at) BETWEEN employees.valid_from AND COALESCE(employees.valid_to, CURRENT_DATE())
+    ),
+    employees as (select * from {{ ref("gitlab_bamboohr_employee_base") }}),
+    intermediate as (
 
-), aggregated AS (
+        select
+            employees.*,
+            merge_requests.merge_request_id,
+            merge_requests.merge_request_data_source,
+            merge_requests.merged_at,
+            merge_requests.is_part_of_product,
+            people_engineering_project
+        from employees
+        left join
+            merge_requests
+            on merge_requests.bamboohr_employee_id = employees.employee_id
+            and date_trunc(day, merge_requests.merged_at)
+            between employees.valid_from and coalesce(
+                employees.valid_to, current_date())
 
-    SELECT
-      'division'                                                                           AS breakout_level,
-      division,
-      NULL                                                                                 AS department,
-      NULL                                                                                 AS employee_id,
-      {{lines_to_repeat}}
-      {{ dbt_utils.group_by(n=5) }}  
+    ),
+    aggregated as (
 
-    UNION ALL
+        select
+            'division' as breakout_level,
+            division,
+            null as department,
+            null as employee_id,
+            {{ lines_to_repeat }}
+            {{ dbt_utils.group_by(n=5) }}
 
-    SELECT
-      'department'                                                                          AS breakout_level,
-      division,
-      department,
-      NULL                                                                                  AS employee_id,
-      {{lines_to_repeat}}
-      {{ dbt_utils.group_by(n=5) }}  
+        union all
 
-    UNION ALL
+        select
+            'department' as breakout_level,
+            division,
+            department,
+            null as employee_id,
+            {{ lines_to_repeat }}
+            {{ dbt_utils.group_by(n=5) }}
 
-    SELECT
-      'team_member'                                                                        AS breakout_level,
-      division,
-      department,
-      employee_id,
-      {{lines_to_repeat}}
-      {{ dbt_utils.group_by(n=5) }}  
+        union all
 
-    UNION ALL
+        select
+            'team_member' as breakout_level,
+            division,
+            department,
+            employee_id,
+            {{ lines_to_repeat }}
+            {{ dbt_utils.group_by(n=5) }}
 
-    SELECT
-      'division_modified'                                                                  AS breakout_level,
-      'R&D_engineering_and_product'                                                        AS division,
-      NULL                                                                                 AS department,
-      NULL                                                                                 AS employee_id,
-      {{lines_to_repeat}}
-      WHERE division IN ('Engineering','Product')
-        AND department != 'Customer Support'
-      {{ dbt_utils.group_by(n=5) }}  
+        union all
 
-)
+        select
+            'division_modified' as breakout_level,
+            'R&D_engineering_and_product' as division,
+            null as department,
+            null as employee_id,
+            {{ lines_to_repeat }}
+        where
+            division in ('Engineering', 'Product') and department != 'Customer Support'
+            {{ dbt_utils.group_by(n=5) }}
 
-SELECT *
-FROM aggregated
+    )
+
+select *
+from aggregated

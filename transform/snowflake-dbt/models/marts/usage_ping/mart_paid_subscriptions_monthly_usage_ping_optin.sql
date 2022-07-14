@@ -1,124 +1,143 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
 -- PENDING SCHEMA MIGRATION
+with
+    fct_mrr as (
 
-WITH fct_mrr AS (
+        select *
+        from {{ ref("fct_mrr") }}
+        where subscription_status in ('Active', 'Cancelled')
 
-    SELECT *
-    FROM {{ ref('fct_mrr') }}
-    WHERE subscription_status IN ('Active', 'Cancelled')
+    ),
+    dim_product_detail as (select * from {{ ref("dim_product_detail") }}),
+    self_managed_active_subscriptions as (
 
-), dim_product_detail AS (
+        select
+            dim_date_id as date_id,
+            dim_subscription_id as subscription_id,
+            sum(mrr) as mrr,
+            sum(quantity) as quantity
+        from fct_mrr
+        inner join
+            dim_product_detail
+            on fct_mrr.dim_product_detail_id = dim_product_detail.dim_product_detail_id
+            and product_delivery_type = 'Self-Managed'
+            {{ dbt_utils.group_by(n=2) }}
 
-    SELECT *
-    FROM {{ ref('dim_product_detail') }}
+    ),
+    dim_date as (
 
-), self_managed_active_subscriptions AS (
+        select distinct date_id, first_day_of_month
+        from {{ ref("dim_date") }}
+        where first_day_of_month <= current_date
 
-    SELECT
-      dim_date_id           AS date_id,
-      dim_subscription_id   AS subscription_id,
-      SUM(mrr)              AS mrr,
-      SUM(quantity)         AS quantity
-    FROM fct_mrr
-    INNER JOIN dim_product_detail
-      ON fct_mrr.dim_product_detail_id = dim_product_detail.dim_product_detail_id
-        AND product_delivery_type = 'Self-Managed'
-    {{ dbt_utils.group_by(n=2) }}
+    ),
+    active_subscriptions as (
 
-), dim_date AS (
+        select *
+        from {{ ref("dim_subscription") }}
+        where subscription_status not in ('Draft', 'Expired')
 
-    SELECT DISTINCT
-      date_id,
-      first_day_of_month
-    FROM {{ ref('dim_date')}}
-    WHERE first_day_of_month <= CURRENT_DATE
+    ),
+    all_subscriptions as (select * from {{ ref("dim_subscription") }}),
+    fct_payload as (select * from {{ ref("fct_usage_ping_payload") }}),
+    prep_license as (select * from {{ ref("prep_license") }}),
+    mau as (
 
-), active_subscriptions AS (
+        select *
+        from {{ ref("poc_prep_usage_data_28_days_flattened") }}
+        where metrics_path = 'usage_activity_by_stage_monthly.manage.events'
 
-    SELECT *
-    FROM {{ ref('dim_subscription') }}
-    WHERE subscription_status NOT IN ('Draft', 'Expired')
+    ),
+    transformed as (
 
-), all_subscriptions AS (
+        select
+            {{
+                dbt_utils.surrogate_key(
+                    [
+                        "first_day_of_month",
+                        "self_managed_active_subscriptions.subscription_id",
+                    ]
+                )
+            }} as month_subscription_id,
+            first_day_of_month as reporting_month,
+            self_managed_active_subscriptions.subscription_id,
+            active_subscriptions.subscription_name_slugify,
+            active_subscriptions.subscription_start_date,
+            active_subscriptions.subscription_end_date,
+            quantity,
+            max(fct_payload.dim_subscription_id) is not null as has_sent_payloads,
+            count(distinct fct_payload.dim_usage_ping_id) as monthly_payload_counts,
+            count(distinct fct_payload.host_name) as monthly_host_counts,
+            max(license_user_count) as license_user_count,
+            max(metric_value) as umau
+        from self_managed_active_subscriptions
+        inner join
+            dim_date on self_managed_active_subscriptions.date_id = dim_date.date_id
+        left join
+            active_subscriptions
+            on self_managed_active_subscriptions.subscription_id
+            = active_subscriptions.dim_subscription_id
+        left join
+            all_subscriptions
+            on active_subscriptions.subscription_name_slugify
+            = all_subscriptions.subscription_name_slugify
+        left join
+            fct_payload
+            on all_subscriptions.dim_subscription_id = fct_payload.dim_subscription_id
+            and first_day_of_month = date_trunc('month', fct_payload.ping_created_at)
+        left join mau on fct_payload.dim_usage_ping_id = mau.ping_id
+        left join
+            prep_license on fct_payload.dim_license_id = prep_license.dim_license_id
+            {{ dbt_utils.group_by(n=7) }}
 
-    SELECT *
-    FROM {{ ref('dim_subscription') }}
+    ),
+    latest_versions as (
 
-), fct_payload AS (
+        select distinct
+            first_day_of_month as reporting_month,
+            self_managed_active_subscriptions.subscription_id,
+            active_subscriptions.subscription_name_slugify,
+            first_value(major_minor_version) OVER (
+                partition by
+                    first_day_of_month, active_subscriptions.subscription_name_slugify
+                order by ping_created_at desc
+            ) as latest_major_minor_version
+        from self_managed_active_subscriptions
+        inner join
+            dim_date on self_managed_active_subscriptions.date_id = dim_date.date_id
+        inner join
+            active_subscriptions
+            on self_managed_active_subscriptions.subscription_id
+            = active_subscriptions.dim_subscription_id
+        inner join
+            all_subscriptions
+            on active_subscriptions.subscription_name_slugify
+            = all_subscriptions.subscription_name_slugify
+        inner join
+            fct_payload
+            on all_subscriptions.dim_subscription_id = fct_payload.dim_subscription_id
+            and first_day_of_month = date_trunc('month', fct_payload.ping_created_at)
 
-    SELECT *
-    FROM {{ ref('fct_usage_ping_payload') }}
+    ),
+    joined as (
 
-), prep_license AS (
+        select transformed.*, latest_versions.latest_major_minor_version
+        from transformed
+        left join
+            latest_versions
+            on transformed.reporting_month = latest_versions.reporting_month
+            and transformed.subscription_name_slugify
+            = latest_versions.subscription_name_slugify
 
-    SELECT *
-    FROM {{ ref('prep_license') }}
+    )
 
-), mau AS (
-
-    SELECT *
-    FROM {{ ref('poc_prep_usage_data_28_days_flattened') }}
-    WHERE metrics_path = 'usage_activity_by_stage_monthly.manage.events'
-
-), transformed AS (
-
-    SELECT
-      {{ dbt_utils.surrogate_key(['first_day_of_month', 'self_managed_active_subscriptions.subscription_id']) }}        AS month_subscription_id,
-      first_day_of_month                                                                                                AS reporting_month,
-      self_managed_active_subscriptions.subscription_id,
-      active_subscriptions.subscription_name_slugify,
-      active_subscriptions.subscription_start_date,
-      active_subscriptions.subscription_end_date,
-      quantity,
-      MAX(fct_payload.dim_subscription_id) IS NOT NULL                                                                     AS has_sent_payloads,
-      COUNT(DISTINCT fct_payload.dim_usage_ping_id)                                                                        AS monthly_payload_counts,
-      COUNT(DISTINCT fct_payload.host_name)                                                                              AS monthly_host_counts,
-      MAX(license_user_count)                                                                                           AS license_user_count,
-      MAX(metric_value)                                                                                                 AS umau
-    FROM self_managed_active_subscriptions
-    INNER JOIN dim_date ON self_managed_active_subscriptions.date_id = dim_date.date_id
-    LEFT JOIN active_subscriptions ON self_managed_active_subscriptions.subscription_id = active_subscriptions.dim_subscription_id
-    LEFT JOIN all_subscriptions ON active_subscriptions.subscription_name_slugify = all_subscriptions.subscription_name_slugify
-    LEFT JOIN fct_payload ON all_subscriptions.dim_subscription_id = fct_payload.dim_subscription_id AND first_day_of_month = DATE_TRUNC('month', fct_payload.ping_created_at)
-    LEFT JOIN mau ON fct_payload.dim_usage_ping_id = mau.ping_id
-    LEFT JOIN prep_license ON fct_payload.dim_license_id = prep_license.dim_license_id
-    {{ dbt_utils.group_by(n=7) }}
-
-), latest_versions AS (
-
-    SELECT DISTINCT
-      first_day_of_month AS reporting_month,
-      self_managed_active_subscriptions.subscription_id,
-      active_subscriptions.subscription_name_slugify,
-      FIRST_VALUE(major_minor_version) OVER (
-        PARTITION BY first_day_of_month, active_subscriptions.subscription_name_slugify
-        ORDER BY ping_created_at DESC
-      ) AS latest_major_minor_version
-    FROM self_managed_active_subscriptions
-    INNER JOIN dim_date ON self_managed_active_subscriptions.date_id = dim_date.date_id
-    INNER JOIN active_subscriptions ON self_managed_active_subscriptions.subscription_id = active_subscriptions.dim_subscription_id
-    INNER JOIN all_subscriptions ON active_subscriptions.subscription_name_slugify = all_subscriptions.subscription_name_slugify
-    INNER JOIN fct_payload ON all_subscriptions.dim_subscription_id = fct_payload.dim_subscription_id AND first_day_of_month = DATE_TRUNC('month', fct_payload.ping_created_at)
-
-), joined AS (
-
-    SELECT
-      transformed.*,
-      latest_versions.latest_major_minor_version
-    FROM transformed
-    LEFT JOIN latest_versions
-      ON transformed.reporting_month = latest_versions.reporting_month
-        AND transformed.subscription_name_slugify = latest_versions.subscription_name_slugify
-
-)
-
-{{ dbt_audit(
-    cte_ref="joined",
-    created_by="@mpeychet_",
-    updated_by="@jpeguero",
-    created_date="2020-10-16",
-    updated_date="2022-02-17"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="joined",
+            created_by="@mpeychet_",
+            updated_by="@jpeguero",
+            created_date="2020-10-16",
+            updated_date="2022-02-17",
+        )
+    }}

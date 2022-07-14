@@ -1,66 +1,81 @@
-{{ config(
-    tags=["product"]
-) }}
+{{ config(tags=["product"]) }}
 
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "dim_requirement_id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "dim_requirement_id"}) }}
 
-{{ simple_cte([
-    ('dim_date', 'dim_date'),
-    ('prep_namespace_plan_hist', 'prep_namespace_plan_hist'),
-    ('plans', 'gitlab_dotcom_plans_source'),
-    ('prep_namespace', 'prep_namespace'),
-    ('prep_project', 'prep_project'),
-]) }}
+{{
+    simple_cte(
+        [
+            ("dim_date", "dim_date"),
+            ("prep_namespace_plan_hist", "prep_namespace_plan_hist"),
+            ("plans", "gitlab_dotcom_plans_source"),
+            ("prep_namespace", "prep_namespace"),
+            ("prep_project", "prep_project"),
+        ]
+    )
+}},
+gitlab_dotcom_requirements_dedupe_source as (
 
-, gitlab_dotcom_requirements_dedupe_source AS (
-    
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_requirements_dedupe_source') }} 
+    select *
+    from {{ ref("gitlab_dotcom_requirements_dedupe_source") }}
     {% if is_incremental() %}
 
-    WHERE updated_at >= (SELECT MAX(updated_at) FROM {{this}})
+    where updated_at >= (select max(updated_at) from {{ this }}) {% endif %}
 
-    {% endif %}
+),
+prep_user as (
 
-), prep_user AS (
-    
-    SELECT *
-    FROM {{ ref('prep_user') }} users
-    WHERE {{ filter_out_blocked_users('users', 'dim_user_id') }}
+    select *
+    from {{ ref("prep_user") }} users
+    where {{ filter_out_blocked_users("users", "dim_user_id") }}
 
-), joined AS (
+),
+joined as (
 
-    SELECT 
-      gitlab_dotcom_requirements_dedupe_source.id::NUMBER                                  AS dim_requirement_id,
-      gitlab_dotcom_requirements_dedupe_source.project_id::NUMBER                          AS dim_project_id,
-      prep_project.ultimate_parent_namespace_id::NUMBER                                    AS ultimate_parent_namespace_id,
-      dim_date.date_id::NUMBER                                                             AS created_date_id,
-      IFNULL(prep_namespace_plan_hist.dim_plan_id, 34)::NUMBER                             AS dim_plan_id,
-      prep_user.dim_user_id::NUMBER                                                        AS author_id,
-      iid::NUMBER                                                                          AS requirement_internal_id,
-      state::VARCHAR                                                                       AS requirement_state_id,
-      gitlab_dotcom_requirements_dedupe_source.created_at::TIMESTAMP                       AS created_at,
-      gitlab_dotcom_requirements_dedupe_source.updated_at::TIMESTAMP                       AS updated_at
-    FROM gitlab_dotcom_requirements_dedupe_source
-    LEFT JOIN prep_project ON gitlab_dotcom_requirements_dedupe_source.project_id = prep_project.dim_project_id
-    LEFT JOIN prep_namespace ON prep_project.ultimate_parent_namespace_id = prep_namespace.dim_namespace_id
-        AND prep_namespace.is_currently_valid = TRUE
-    LEFT JOIN prep_namespace_plan_hist ON prep_project.ultimate_parent_namespace_id = prep_namespace_plan_hist.dim_namespace_id
-        AND gitlab_dotcom_requirements_dedupe_source.created_at >= prep_namespace_plan_hist.valid_from
-        AND gitlab_dotcom_requirements_dedupe_source.created_at < COALESCE(prep_namespace_plan_hist.valid_to, '2099-01-01')
-    LEFT JOIN prep_user ON gitlab_dotcom_requirements_dedupe_source.author_id = prep_user.dim_user_id
-    LEFT JOIN dim_date ON TO_DATE(gitlab_dotcom_requirements_dedupe_source.created_at) = dim_date.date_day
+    select
+        gitlab_dotcom_requirements_dedupe_source.id::number as dim_requirement_id,
+        gitlab_dotcom_requirements_dedupe_source.project_id::number as dim_project_id,
+        prep_project.ultimate_parent_namespace_id::number
+        as ultimate_parent_namespace_id,
+        dim_date.date_id::number as created_date_id,
+        ifnull(prep_namespace_plan_hist.dim_plan_id, 34)::number as dim_plan_id,
+        prep_user.dim_user_id::number as author_id,
+        iid::number as requirement_internal_id,
+        state::varchar as requirement_state_id,
+        gitlab_dotcom_requirements_dedupe_source.created_at::timestamp as created_at,
+        gitlab_dotcom_requirements_dedupe_source.updated_at::timestamp as updated_at
+    from gitlab_dotcom_requirements_dedupe_source
+    left join
+        prep_project
+        on gitlab_dotcom_requirements_dedupe_source.project_id
+        = prep_project.dim_project_id
+    left join
+        prep_namespace
+        on prep_project.ultimate_parent_namespace_id = prep_namespace.dim_namespace_id
+        and prep_namespace.is_currently_valid = true
+    left join
+        prep_namespace_plan_hist
+        on prep_project.ultimate_parent_namespace_id
+        = prep_namespace_plan_hist.dim_namespace_id
+        and gitlab_dotcom_requirements_dedupe_source.created_at
+        >= prep_namespace_plan_hist.valid_from
+        and gitlab_dotcom_requirements_dedupe_source.created_at
+        < coalesce(prep_namespace_plan_hist.valid_to, '2099-01-01')
+    left join
+        prep_user
+        on gitlab_dotcom_requirements_dedupe_source.author_id = prep_user.dim_user_id
+    left join
+        dim_date
+        on to_date(gitlab_dotcom_requirements_dedupe_source.created_at)
+        = dim_date.date_day
 
 )
 
-{{ dbt_audit(
-    cte_ref="joined",
-    created_by="@mpeychet_",
-    updated_by="@chrissharp",
-    created_date="2021-08-10",
-    updated_date="2022-03-09"
-) }}
+{{
+    dbt_audit(
+        cte_ref="joined",
+        created_by="@mpeychet_",
+        updated_by="@chrissharp",
+        created_date="2021-08-10",
+        updated_date="2022-03-09",
+    )
+}}

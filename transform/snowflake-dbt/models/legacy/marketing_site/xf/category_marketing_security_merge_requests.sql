@@ -1,19 +1,17 @@
-{{ config({
-    "materialized": "view"
-    })
-}}
+{{ config({"materialized": "view"}) }}
 
-WITH marketing_categories AS (
+with
+    marketing_categories as (
 
-    SELECT *
-    FROM {{ ref('category_marketing_site_merge_requests') }}
+        select * from {{ ref("category_marketing_site_merge_requests") }}
 
-), filtered_to_security AS (
+    ),
+    filtered_to_security as (
 
-    SELECT *
-    FROM marketing_categories
-    WHERE ARRAY_CONTAINS('security'::VARIANT, merge_request_department_list)
+        select *
+        from marketing_categories
+        where array_contains('security'::variant, merge_request_department_list)
 
-)
-SELECT *
-FROM filtered_to_security
+    )
+select *
+from filtered_to_security

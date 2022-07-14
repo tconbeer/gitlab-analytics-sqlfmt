@@ -1,32 +1,31 @@
-{{ config({
-        "materialized": "incremental"
-    })
-}}
+{{ config({"materialized": "incremental"}) }}
 
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_audit_events_source') }}
-  {% if is_incremental() %}
-  WHERE created_at >= (SELECT MAX(created_at) FROM {{this}})
-  {% endif %}
+        select *
+        from {{ ref("gitlab_dotcom_audit_events_source") }}
+        {% if is_incremental() %}
+        where created_at >= (select max(created_at) from {{ this }}) {% endif %}
 
-), sequence AS (
+    ),
+    sequence as ({{ dbt_utils.generate_series(upper_bound=11) }}),
+    details_parsed as (
 
-    {{ dbt_utils.generate_series(upper_bound=11) }}
+        select
+            audit_event_id,
+            regexp_substr(
+                audit_event_details, '\\:([a-z_]*)\\: (.*)', 1, generated_number, 'c', 1
+            ) as key_name,
+            regexp_substr(
+                audit_event_details, '\\:([a-z_]*)\\: (.*)', 1, generated_number, 'c', 2
+            ) as key_value,
+            created_at
+        from source
+        inner join sequence
+        where key_name is not null
 
-), details_parsed AS (
+    )
 
-    SELECT
-      audit_event_id,
-      REGEXP_SUBSTR(audit_event_details, '\\:([a-z_]*)\\: (.*)', 1, generated_number, 'c', 1) AS key_name,
-      REGEXP_SUBSTR(audit_event_details, '\\:([a-z_]*)\\: (.*)', 1, generated_number, 'c', 2) AS key_value,
-      created_at
-    FROM source
-    INNER JOIN sequence
-    WHERE key_name IS NOT NULL
-
-)
-
-SELECT *
-FROM details_parsed
+select *
+from details_parsed

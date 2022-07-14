@@ -1,89 +1,112 @@
-WITH source AS (
-      /* 
+with
+    source as (
+        /* 
        Selecting only non error results as there will be nothing to 
        flatten  if there was an error
        */
+        select
+            jsontext,
+            uploaded_at,
+            lead(uploaded_at, 1) OVER (order by uploaded_at) as lead_uploaded_at,
+            max(uploaded_at) OVER () as max_uploaded_at
+        from {{ source("gitlab_data_yaml", "location_factors") }}
+        where not contains(jsontext, 'Server Error')
 
-    SELECT
-      jsontext,
-      uploaded_at,
-      LEAD(uploaded_at,1) OVER (ORDER BY uploaded_at) AS lead_uploaded_at,
-      MAX(uploaded_at) OVER ()                        AS max_uploaded_at
-    FROM {{ source('gitlab_data_yaml', 'location_factors') }} 
-    WHERE NOT CONTAINS(jsontext, 'Server Error')
-      
-), grouped AS (
-      /*
+    ),
+    grouped as (
+        /*
       Reducing to only the changed values to reduce processing load
       and create a contiguious range of data.
       */
-      
-    SELECT DISTINCT
-      jsontext,
-      MIN(uploaded_at) OVER (PARTITION BY jsontext)      AS valid_from,
-      MAX(lead_uploaded_at) OVER (PARTITION BY jsontext) AS valid_to,
-      IFF(valid_to = max_uploaded_at, TRUE, FALSE)       AS is_current
-    FROM source
+        select distinct
+            jsontext,
+            min(uploaded_at) OVER (partition by jsontext) as valid_from,
+            max(lead_uploaded_at) OVER (partition by jsontext) as valid_to,
+            iff(valid_to = max_uploaded_at, true, false) as is_current
+        from source
 
-), level_1 AS (
+    ),
+    level_1 as (
 
-    SELECT
-      valid_from,
-      valid_to,
-      is_current,
-      level_1.value['area']::VARCHAR                AS area_level_1,
-      level_1.value['country']::VARCHAR             AS country_level_1,
-      level_1.value['locationFactor']::NUMBER(6, 3) AS locationfactor_level_1,
-      level_1.value['factor']::NUMBER(6, 3)         AS factor_level_1,
-      level_1.value['metro_areas']::VARIANT         AS metro_areas_level_1,
-      level_1.value['states_or_provinces']::VARIANT AS states_or_provinces_level_1
-    FROM grouped
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(jsontext), OUTER => TRUE) AS level_1
+        select
+            valid_from,
+            valid_to,
+            is_current,
+            level_1.value['area']::varchar as area_level_1,
+            level_1.value['country']::varchar as country_level_1,
+            level_1.value['locationFactor']::number(6, 3) as locationfactor_level_1,
+            level_1.value['factor']::number(6, 3) as factor_level_1,
+            level_1.value['metro_areas']::variant as metro_areas_level_1,
+            level_1.value['states_or_provinces']::variant as states_or_provinces_level_1
+        from grouped
+        inner join
+            lateral flatten(input => try_parse_json(jsontext), outer => true) as level_1
 
-), level_1_metro_areas AS (
+    ),
+    level_1_metro_areas as (
 
-    SELECT
-      level_1.*,
-      level_1_metro_areas.value['name']::VARCHAR         AS metro_areas_name_level_2,
-      level_1_metro_areas.value['factor']::NUMBER(6, 3)  AS metro_areas_factor_level_2,
-      level_1_metro_areas.value['sub_location']::VARCHAR AS metro_areas_sub_location_level_2
-    FROM level_1
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(metro_areas_level_1), OUTER => TRUE) AS level_1_metro_areas
-    UNION ALL
-    -- For the country level override when there is also a metro area
-    SELECT
-      level_1.*,
-      NULL AS metro_areas_name_level_2,
-      NULL AS metro_areas_factor_level_2,
-      NULL AS metro_areas_sub_location_level_2
-    FROM level_1
-    WHERE factor_level_1 IS NOT NULL
-      AND metro_areas_level_1 IS NOT NULL
+        select
+            level_1.*,
+            level_1_metro_areas.value['name']::varchar as metro_areas_name_level_2,
+            level_1_metro_areas.value['factor']::number(
+                6, 3
+            ) as metro_areas_factor_level_2,
+            level_1_metro_areas.value['sub_location']::varchar
+            as metro_areas_sub_location_level_2
+        from level_1
+        inner join
+            lateral flatten(
+                input => try_parse_json(metro_areas_level_1), outer => true
+            ) as level_1_metro_areas
+        union all
+        -- For the country level override when there is also a metro area
+        select
+            level_1.*,
+            null as metro_areas_name_level_2,
+            null as metro_areas_factor_level_2,
+            null as metro_areas_sub_location_level_2
+        from level_1
+        where factor_level_1 is not null and metro_areas_level_1 is not null
 
-), level_1_states_or_provinces AS (
+    ),
+    level_1_states_or_provinces as (
 
-    SELECT
-      level_1_metro_areas.*,
-      level_1_states_or_provinces.value['name']::VARCHAR        AS states_or_provinces_name_level_2,
-      level_1_states_or_provinces.value['factor']::NUMBER(6, 3) AS states_or_provinces_factor_level_2,
-      level_1_states_or_provinces.value['metro_areas']::VARIANT AS states_or_provinces_metro_areas_level_2
-    FROM level_1_metro_areas
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(states_or_provinces_level_1), OUTER =>
-                               TRUE) AS level_1_states_or_provinces
+        select
+            level_1_metro_areas.*,
+            level_1_states_or_provinces.value['name']::varchar
+            as states_or_provinces_name_level_2,
+            level_1_states_or_provinces.value['factor']::number(
+                6, 3
+            ) as states_or_provinces_factor_level_2,
+            level_1_states_or_provinces.value['metro_areas']::variant
+            as states_or_provinces_metro_areas_level_2
+        from level_1_metro_areas
+        inner join
+            lateral flatten(
+                input => try_parse_json(states_or_provinces_level_1),
+                outer => true
+            ) as level_1_states_or_provinces
 
-), level_2_states_or_provinces_metro_areas AS (
+    ),
+    level_2_states_or_provinces_metro_areas as (
 
-    SELECT
-      level_1_states_or_provinces.*,
-      level_2_states_or_provinces_metro_areas.value['name']::VARCHAR        AS states_or_provinces_metro_areas_name_level_2,
-      level_2_states_or_provinces_metro_areas.value['factor']::NUMBER(6, 3) AS states_or_provinces_metro_areas_factor_level_2
-    FROM level_1_states_or_provinces
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(states_or_provinces_metro_areas_level_2), OUTER =>
-                                 TRUE) AS level_2_states_or_provinces_metro_areas
+        select
+            level_1_states_or_provinces.*,
+            level_2_states_or_provinces_metro_areas.value['name']::varchar
+            as states_or_provinces_metro_areas_name_level_2,
+            level_2_states_or_provinces_metro_areas.value['factor']::number(
+                6, 3
+            ) as states_or_provinces_metro_areas_factor_level_2
+        from level_1_states_or_provinces
+        inner join
+            lateral flatten(
+                input => try_parse_json(states_or_provinces_metro_areas_level_2),
+                outer => true
+            ) as level_2_states_or_provinces_metro_areas
 
-)
+    )
 
-  SELECT
+select
     valid_from,
     valid_to,
     is_current,
@@ -98,4 +121,4 @@ WITH source AS (
     states_or_provinces_factor_level_2,
     states_or_provinces_metro_areas_name_level_2,
     states_or_provinces_metro_areas_factor_level_2
-  FROM level_2_states_or_provinces_metro_areas
+from level_2_states_or_provinces_metro_areas

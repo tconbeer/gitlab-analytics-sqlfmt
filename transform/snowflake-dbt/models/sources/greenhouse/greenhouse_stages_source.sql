@@ -1,54 +1,62 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "stages") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'stages') }}
+        select
 
-), renamed as (
+            -- keys
+            id::number as stage_id,
+            organization_id::number as organization_id,
 
-	SELECT
-
-            --keys
-            id::NUMBER                  AS stage_id,
-            organization_id::NUMBER     AS organization_id,
-
-            --info
-            name::varchar             	AS stage_name,
-            "order"::NUMBER                AS stage_order,
-            active::boolean             AS is_active
+            -- info
+            name::varchar as stage_name,
+            "order"::number as stage_order,
+            active::boolean as is_active
 
 
-	FROM source
+        from source
 
-), final AS (
+    ),
+    final as (
 
-    SELECT *,
-      CASE WHEN LOWER(stage_name) LIKE '%screen%'
-             THEN 'Screen'
-           WHEN LOWER(stage_name) LIKE '%executive interview%'
-             THEN 'Executive Interview'  
-           WHEN LOWER(stage_name) LIKE '%interview%'
-             THEN 'Team Interview - Face to Face'
-           WHEN LOWER(stage_name) LIKE '%assessment%'
-             THEN 'Take Home Assessment'
-           WHEN LOWER(stage_name) LIKE '%take home%'
-             THEN 'Take Home Assessment'
-           WHEN stage_name IN ('Hiring Manager Review','Preliminary Phone Screen')
-             THEN 'Hiring Manager Review'
-           WHEN LOWER(stage_name) LIKE '%reference%'
-             THEN 'Reference Check'
-           WHEN LOWER(stage_name) LIKE '%background check & offer'
-             THEN 'Offer'           
-           ELSE stage_name END::VARCHAR(100)                           AS stage_name_modified,
-      IFF(stage_name_modified IN ('Application Review' 
-                                 ,'Screen'
-                                 ,'Hiring Manager Review'
-                                 ,'Take Home Assessment'
-                                 ,'Executive Interview'
-                                 ,'Reference Check'
-                                 ,'Offer'), TRUE, FALSE)               AS is_milestone_stage
-    FROM renamed
+        select
+            *,
+            case
+                when lower(stage_name) like '%screen%'
+                then 'Screen'
+                when lower(stage_name) like '%executive interview%'
+                then 'Executive Interview'
+                when lower(stage_name) like '%interview%'
+                then 'Team Interview - Face to Face'
+                when lower(stage_name) like '%assessment%'
+                then 'Take Home Assessment'
+                when lower(stage_name) like '%take home%'
+                then 'Take Home Assessment'
+                when stage_name in ('Hiring Manager Review', 'Preliminary Phone Screen')
+                then 'Hiring Manager Review'
+                when lower(stage_name) like '%reference%'
+                then 'Reference Check'
+                when lower(stage_name) like '%background check & offer'
+                then 'Offer'
+                else stage_name
+            end::varchar(100) as stage_name_modified,
+            iff(
+                stage_name_modified
+                in (
+                    'Application Review',
+                    'Screen',
+                    'Hiring Manager Review',
+                    'Take Home Assessment',
+                    'Executive Interview',
+                    'Reference Check',
+                    'Offer'
+                ),
+                true,
+                false
+            ) as is_milestone_stage
+        from renamed
 
-)
+    )
 
-SELECT *
-FROM final
+select *
+from final

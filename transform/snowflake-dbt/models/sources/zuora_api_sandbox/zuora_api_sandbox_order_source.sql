@@ -1,38 +1,35 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_api_sandbox", "order") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_api_sandbox', "order") }}
+        select
 
-), renamed AS (
+            id as dim_order_id,
 
-    SELECT
+            -- keys
+            parentaccountid as parent_account_id,
+            billtocontactid as bill_to_contact_id,
+            soldtocontactid as sold_to_contact_id,
+            defaultpaymentmethodid as default_payment_method_id,
 
-      id                                    AS dim_order_id,
-      
-      -- keys
-      parentaccountid                       AS parent_account_id,
-      billtocontactid                       AS bill_to_contact_id,
-      soldtocontactid                       AS sold_to_contact_id,
-      defaultpaymentmethodid                AS default_payment_method_id,
+            -- account_info
+            orderdate::date as order_date,
+            ordernumber as order_number,
+            description as order_description,
+            state as order_state,
+            status as order_status,
+            createdbymigration as is_created_by_migration,
 
-      -- account_info
-      orderdate::DATE                       AS order_date,
-      ordernumber                           AS order_number,
-      description                           AS order_description,
-      state                                 AS order_state,
-      status                                AS order_status,
-      createdbymigration                    AS is_created_by_migration,
-      
-      -- metadata
-      createdbyid                           AS order_created_by_id,
-      createddate::DATE                     AS order_created_date,
-      deleted                               AS is_deleted,
-      updatedbyid                           AS update_by_id,
-      updateddate::DATE                     AS updated_date
+            -- metadata
+            createdbyid as order_created_by_id,
+            createddate::date as order_created_date,
+            deleted as is_deleted,
+            updatedbyid as update_by_id,
+            updateddate::date as updated_date
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

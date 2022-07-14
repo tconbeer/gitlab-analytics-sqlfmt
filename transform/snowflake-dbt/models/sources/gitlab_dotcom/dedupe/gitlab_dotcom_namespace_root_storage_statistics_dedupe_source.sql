@@ -1,14 +1,10 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "namespace_id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "namespace_id"}) }}
 
-SELECT *
-FROM {{ source('gitlab_dotcom', 'namespace_root_storage_statistics') }}
+select *
+from {{ source("gitlab_dotcom", "namespace_root_storage_statistics") }}
 {% if is_incremental() %}
 
-WHERE updated_at >= (SELECT MAX(updated_at) FROM {{this}})
+where updated_at >= (select max(updated_at) from {{ this }})
 
 {% endif %}
-QUALIFY ROW_NUMBER() OVER (PARTITION BY namespace_id ORDER BY updated_at DESC) = 1
+qualify row_number() OVER (partition by namespace_id order by updated_at desc) = 1

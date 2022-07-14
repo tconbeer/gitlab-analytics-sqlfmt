@@ -1,10 +1,13 @@
-WITH qualtrics_distribution AS (
+with
+    qualtrics_distribution as (
 
-    SELECT *
-    FROM {{ ref('qualtrics_distribution') }}
-    QUALIFY ROW_NUMBER() OVER(PARTITION BY distribution_id ORDER BY uploaded_at DESC) = 1
+        select *
+        from {{ ref("qualtrics_distribution") }}
+        qualify
+            row_number() OVER (partition by distribution_id order by uploaded_at desc)
+            = 1
 
-)
+    )
 
-SELECT *
-FROM qualtrics_distribution
+select *
+from qualtrics_distribution

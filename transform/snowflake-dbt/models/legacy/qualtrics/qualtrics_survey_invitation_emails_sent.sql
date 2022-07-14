@@ -1,18 +1,20 @@
-WITH qualtrics_distribution AS (
+with
+    qualtrics_distribution as (
 
-    SELECT *
-    FROM {{ ref('qualtrics_distribution') }}
-    QUALIFY ROW_NUMBER() OVER(PARTITION BY distribution_id ORDER BY uploaded_at DESC) = 1
+        select *
+        from {{ ref("qualtrics_distribution") }}
+        qualify
+            row_number() OVER (partition by distribution_id order by uploaded_at desc)
+            = 1
 
-), email_sent_count AS (
+    ),
+    email_sent_count as (
 
-    SELECT 
-      survey_id,
-      SUM(email_sent_count) AS number_of_emails_sent
+        select survey_id, sum(email_sent_count) as number_of_emails_sent
 
-    FROM qualtrics_distribution
-    GROUP BY survey_id
+        from qualtrics_distribution
+        group by survey_id
 
-)
-SELECT *
-FROM email_sent_count
+    )
+select *
+from email_sent_count

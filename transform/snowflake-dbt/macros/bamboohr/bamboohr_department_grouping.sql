@@ -1,22 +1,35 @@
 {%- macro bamboohr_department_grouping(department) -%}
 
-    CASE WHEN {{department}} IN ('Awareness', 'Communications', 'Community Relations', 'Owned Events')
-           THEN 'Awareness, Communications, Community Relations, Owned Events'
-         WHEN {{department}} IN ('Brand & Digital Design', 'Content Marketing', 'Inbound Marketing')
-           THEN 'Brand & Digital Design, Content Marketing, Inbound Marketing'
-         WHEN {{department}} IN ('Campaigns', 'Digital Marketing', 'Partner Marketing')
-           THEN 'Campaigns, Digital Marketing, Partner Marketing'
-         WHEN {{department}} IN ('Consulting Delivery', 'Customer Success', 'Education Delivery', 'Practice Management')
-          THEN 'Consulting Delivery, Customer Success, Education Delivery, Practice Management'
-         WHEN {{department}} IN ('Field Marketing', 'Marketing Ops')
-          THEN 'Field Marketing, Marketing Ops'
-         WHEN {{department}} IN ('People Success', 'CEO')
-          THEN 'People Success, CEO'
-         WHEN {{department}} IN ('Product Management', 'Product Strategy')
-           THEN 'Product Management, Product Strategy'
-         WHEN {{department}} in ('Field Ops - Child','Field Operations')
-             THEN 'Field Ops - Child, Field Operations'
-         ELSE {{department}} 
-         END 
+case
+    when
+        {{ department }}
+        in ('Awareness', 'Communications', 'Community Relations', 'Owned Events')
+    then 'Awareness, Communications, Community Relations, Owned Events'
+    when
+        {{ department }}
+        in ('Brand & Digital Design', 'Content Marketing', 'Inbound Marketing')
+    then 'Brand & Digital Design, Content Marketing, Inbound Marketing'
+    when {{ department }} in ('Campaigns', 'Digital Marketing', 'Partner Marketing')
+    then 'Campaigns, Digital Marketing, Partner Marketing'
+    when
+        {{ department }}
+        in (
+            'Consulting Delivery',
+            'Customer Success',
+            'Education Delivery',
+            'Practice Management'
+        )
+    then
+        'Consulting Delivery, Customer Success, Education Delivery, Practice Management'
+    when {{ department }} in ('Field Marketing', 'Marketing Ops')
+    then 'Field Marketing, Marketing Ops'
+    when {{ department }} in ('People Success', 'CEO')
+    then 'People Success, CEO'
+    when {{ department }} in ('Product Management', 'Product Strategy')
+    then 'Product Management, Product Strategy'
+    when {{ department }} in ('Field Ops - Child', 'Field Operations')
+    then 'Field Ops - Child, Field Operations'
+    else {{ department }}
+end
 
 {%- endmacro -%}

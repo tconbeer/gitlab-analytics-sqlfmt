@@ -1,23 +1,34 @@
-WITH source AS (
-    
-    SELECT * 
-    FROM {{ ref('categories_yaml_acquisitions_source') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY category_name, category_stage, acquisition_key, acquisition_name, acquisition_end_date 
-                               ORDER BY acquisition_start_date)=1
+with
+    source as (
 
-), final AS (
+        select *
+        from {{ ref("categories_yaml_acquisitions_source") }}
+        qualify
+            row_number() OVER (
+                partition by
+                    category_name,
+                    category_stage,
+                    acquisition_key,
+                    acquisition_name,
+                    acquisition_end_date
+                order by acquisition_start_date
+            )
+            = 1
 
-    SELECT
-      category_name,
-      category_stage,
-      snapshot_date,
-      acquisition_key,
-      acquisition_name,
-      acquisition_start_date,
-      acquisition_end_date
-    FROM source
+    ),
+    final as (
 
-)
+        select
+            category_name,
+            category_stage,
+            snapshot_date,
+            acquisition_key,
+            acquisition_name,
+            acquisition_start_date,
+            acquisition_end_date
+        from source
 
-SELECT *
-FROM final
+    )
+
+select *
+from final

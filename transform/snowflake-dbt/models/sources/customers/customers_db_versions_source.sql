@@ -1,30 +1,35 @@
-{{ config({
-    "schema": "sensitive",
-    "database": env_var('SNOWFLAKE_PREP_DATABASE'),
-    })
+{{
+    config(
+        {
+            "schema": "sensitive",
+            "database": env_var("SNOWFLAKE_PREP_DATABASE"),
+        }
+    )
 }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('customers', 'customers_db_versions') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY _uploaded_at DESC) = 1
+        select *
+        from {{ source("customers", "customers_db_versions") }}
+        qualify row_number() OVER (partition by id order by _uploaded_at desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER             AS version_id,
-      item_id::NUMBER        AS item_id,
-      transaction_id::NUMBER AS transaction_id,
-      created_at::TIMESTAMP   AS created_at,
-      event::VARCHAR          AS event,
-      item_type::VARCHAR      AS item_type,
-      object::VARCHAR         AS object,
-      object_changes::VARCHAR AS object_changes,
-      whodunnit::VARCHAR      AS whodunnit
-    FROM source  
+        select
+            id::number as version_id,
+            item_id::number as item_id,
+            transaction_id::number as transaction_id,
+            created_at::timestamp as created_at,
+            event::varchar as event,
+            item_type::varchar as item_type,
+            object::varchar as object,
+            object_changes::varchar as object_changes,
+            whodunnit::varchar as whodunnit
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

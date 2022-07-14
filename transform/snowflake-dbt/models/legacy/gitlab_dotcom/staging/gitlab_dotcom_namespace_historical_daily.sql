@@ -1,48 +1,54 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "snapshot_day_namespace_id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "snapshot_day_namespace_id"}) }}
 
-WITH date_details AS (
-  
-    SELECT *
-    FROM {{ ref('date_details') }}
-    WHERE date_actual <= CURRENT_DATE
-    {% if is_incremental() %}
-      AND date_actual >= (SELECT MAX(snapshot_day) FROM {{ this }})
-    {% endif %}
-     
-), namespace_snapshots AS (
+with
+    date_details as (
 
-    SELECT
-      *,
-      IFNULL(valid_to, CURRENT_TIMESTAMP) AS valid_to_
-    FROM {{ ref('gitlab_dotcom_namespaces_snapshots_base') }}
-    {% if is_incremental() %}
-    WHERE (SELECT MAX(snapshot_day) FROM {{ this }}) BETWEEN valid_from AND valid_to_
-    {% endif %}
-  
-), namespace_snapshots_daily AS (
-  
-    SELECT
-      {{ dbt_utils.surrogate_key(['date_actual', 'namespace_id']) }}           AS snapshot_day_namespace_id,
-      date_details.date_actual                                                 AS snapshot_day,
-      namespace_snapshots.namespace_id,
-      namespace_snapshots.parent_id,
-      namespace_snapshots.owner_id,
-      namespace_snapshots.namespace_type,
-      namespace_snapshots.visibility_level,
-      namespace_snapshots.shared_runners_minutes_limit,
-      namespace_snapshots.extra_shared_runners_minutes_limit,
-      namespace_snapshots.repository_size_limit,
-      namespace_snapshots.namespace_created_at
-    FROM namespace_snapshots
-    INNER JOIN date_details
-      ON date_details.date_actual BETWEEN namespace_snapshots.valid_from::DATE AND namespace_snapshots.valid_to_::DATE
-    QUALIFY ROW_NUMBER() OVER(PARTITION BY snapshot_day, namespace_id ORDER BY valid_to_ DESC) = 1
-  
-)
+        select *
+        from {{ ref("date_details") }}
+        where
+            date_actual <= current_date
+            {% if is_incremental() %}
+            and date_actual >= (select max(snapshot_day) from {{ this }}) {% endif %}
 
-SELECT *
-FROM namespace_snapshots_daily
+    ),
+    namespace_snapshots as (
+
+        select *, ifnull(valid_to, current_timestamp) as valid_to_
+        from {{ ref("gitlab_dotcom_namespaces_snapshots_base") }}
+        {% if is_incremental() %}
+        where
+            (select max(snapshot_day) from {{ this }}) between valid_from and valid_to_
+        {% endif %}
+
+    ),
+    namespace_snapshots_daily as (
+
+        select
+            {{ dbt_utils.surrogate_key(["date_actual", "namespace_id"]) }}
+            as snapshot_day_namespace_id,
+            date_details.date_actual as snapshot_day,
+            namespace_snapshots.namespace_id,
+            namespace_snapshots.parent_id,
+            namespace_snapshots.owner_id,
+            namespace_snapshots.namespace_type,
+            namespace_snapshots.visibility_level,
+            namespace_snapshots.shared_runners_minutes_limit,
+            namespace_snapshots.extra_shared_runners_minutes_limit,
+            namespace_snapshots.repository_size_limit,
+            namespace_snapshots.namespace_created_at
+        from namespace_snapshots
+        inner join
+            date_details
+            on date_details.date_actual
+            between namespace_snapshots.valid_from
+            ::date and namespace_snapshots.valid_to_::date
+        qualify
+            row_number() OVER (
+                partition by snapshot_day, namespace_id order by valid_to_ desc
+            )
+            = 1
+
+    )
+
+select *
+from namespace_snapshots_daily
