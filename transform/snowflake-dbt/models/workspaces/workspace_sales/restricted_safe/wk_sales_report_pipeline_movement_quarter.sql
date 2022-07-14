@@ -88,8 +88,9 @@ with
                 'Unqualified',
                 '00-Pre Opportunity',
                 '0-Pending Acceptance'
+            )
             -- include web direct purchases
-            ) and is_web_portal_purchase = 1
+            and is_web_portal_purchase = 1
         group by 1, 2
 
     ),
@@ -478,9 +479,8 @@ with
             case
                 when
                     pipe.close_fiscal_quarter_date = opty.close_fiscal_quarter_date
-                    and opty.order_type_stamped not in (
-                        '4. Contraction'
-                    ) and opty.is_won = 1
+                    and opty.order_type_stamped not in ('4. Contraction')
+                    and opty.is_won = 1
                 then '1. Closed Won'
                 -- the close date for churned deals is updated to the last day before
                 -- renewal

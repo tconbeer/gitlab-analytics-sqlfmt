@@ -13,9 +13,7 @@
             ("product_usage_wave_1_3", "fct_product_usage_wave_1_3_metrics_monthly"),
         ]
     )
-}}
-
-,
+}},
 namespace_project_visibility as (
 
     select
@@ -282,7 +280,8 @@ prep as (
         on self_managed_billing_account.dim_billing_account_id
         = marketing_contact_role.zuora_billing_account_id
     left join
-        namespace_lineage on namespace_lineage.dim_namespace_id = coalesce(
+        namespace_lineage
+        on namespace_lineage.dim_namespace_id = coalesce(
             marketing_contact_role.namespace_id,
             saas_namespace.dim_namespace_id,
             saas_customer.dim_namespace_id,

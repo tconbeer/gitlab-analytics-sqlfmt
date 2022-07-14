@@ -21,8 +21,7 @@ select
     || '-'
     || acctg_segs
     || '-'
-    || schd_type
-    as revenue_snapshot_id,
+    || schd_type as revenue_snapshot_id,
     *
 from {{ source("zuora_revenue", "zuora_revenue_invoice_accounting_summary") }}
 qualify rank() over (partition by revenue_snapshot_id order by updt_dt desc) = 1

@@ -39,7 +39,8 @@ with
                     partition by created_week, instance_id, host_id, metrics_path
                     order by created_at desc
                 )
-            ) = 1
+            )
+            = 1
 
     ),
     transformed as (

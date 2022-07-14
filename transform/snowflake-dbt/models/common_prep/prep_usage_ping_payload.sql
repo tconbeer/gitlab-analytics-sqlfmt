@@ -21,9 +21,7 @@
             ("prep_usage_ping", "prep_usage_ping"),
         ]
     )
-}}
-
-,
+}},
 joined as (
 
     select
@@ -46,8 +44,8 @@ joined as (
         (
             raw_usage_data.raw_usage_data_payload:license_subscription_id::text
         ) as license_subscription_id,
-        raw_usage_data.raw_usage_data_payload:usage_activity_by_stage_monthly.manage.events::number
-        as umau_value,
+        raw_usage_data.raw_usage_data_payload:usage_activity_by_stage_monthly.manage.events
+        ::number as umau_value,
         iff(ping_created_at < license_trial_ends_on, true, false) as is_trial
 
     from prep_usage_ping
@@ -107,9 +105,11 @@ final as (
         license_subscription_id
     from joined
     left join
-        dim_product_tier on trim(lower(joined.product_tier)) = trim(
+        dim_product_tier
+        on trim(lower(joined.product_tier)) = trim(
             lower(dim_product_tier.product_tier_historical_short)
-        ) and edition = 'EE'
+        )
+        and edition = 'EE'
 
 )
 

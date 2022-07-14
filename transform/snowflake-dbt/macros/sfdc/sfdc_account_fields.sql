@@ -222,9 +222,8 @@ with
             map_merged_crm_account.dim_crm_account_id as merged_to_account_id,
             iff(
                 sfdc_record_type.record_type_label = 'Partner'
-                and sfdc_account.partner_type in (
-                    'Alliance', 'Channel'
-                ) and sfdc_account.partner_status = 'Authorized',
+                and sfdc_account.partner_type in ('Alliance', 'Channel')
+                and sfdc_account.partner_status = 'Authorized',
                 true,
                 false
             ) as is_reseller,

@@ -8,9 +8,7 @@
 }}
 
 /* grain: one record per rate_plan_charge per month */
-{{ simple_cte([("dim_date", "dim_date"), ("prep_charge", "prep_charge")]) }}
-
-,
+{{ simple_cte([("dim_date", "dim_date"), ("prep_charge", "prep_charge")]) }},
 mrr as (
 
     select
@@ -29,10 +27,13 @@ mrr as (
         array_agg(prep_charge.unit_of_measure) as unit_of_measure
     from prep_charge
     inner join
-        dim_date on prep_charge.effective_start_month <= dim_date.date_actual and (
+        dim_date
+        on prep_charge.effective_start_month <= dim_date.date_actual
+        and (
             prep_charge.effective_end_month > dim_date.date_actual
             or prep_charge.effective_end_month is null
-        ) and dim_date.day_of_month = 1
+        )
+        and dim_date.day_of_month = 1
     where
         subscription_status not in ('Draft') and charge_type = 'Recurring'
         {{ dbt_utils.group_by(n=8) }}

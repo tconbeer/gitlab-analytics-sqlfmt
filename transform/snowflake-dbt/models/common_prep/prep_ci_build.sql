@@ -12,9 +12,7 @@
             ("prep_user", "prep_user"),
         ]
     )
-}}
-
-,
+}},
 gitlab_dotcom_ci_builds_source as (
 
     select *
@@ -115,9 +113,8 @@ renamed as (
         prep_user
         on gitlab_dotcom_ci_builds_source.ci_build_user_id = prep_user.dim_user_id
     left join
-        dim_date on to_date(
-            gitlab_dotcom_ci_builds_source.created_at
-        ) = dim_date.date_day
+        dim_date
+        on to_date(gitlab_dotcom_ci_builds_source.created_at) = dim_date.date_day
     where gitlab_dotcom_ci_builds_source.ci_build_project_id is not null
 
 )

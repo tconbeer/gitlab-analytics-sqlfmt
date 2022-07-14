@@ -14,9 +14,7 @@
             ("subscription_delivery_types", "bdg_subscription_product_rate_plan"),
         ]
     )
-}}
-
-,
+}},
 product_rate_plans as (
 
     select distinct product_rate_plan_id, dim_product_tier_id, product_tier_name
@@ -64,7 +62,8 @@ namespace_list as (
         trial_histories.start_date as saas_trial_start_date,
         trial_histories.expired_on as saas_trial_expired_on,
         iff(
-            trial_histories.gl_namespace_id is not null or (
+            trial_histories.gl_namespace_id is not null
+            or (
                 namespaces.dim_namespace_id = ultimate_parent_namespace_id
                 and namespaces.gitlab_plan_title = 'Ultimate Trial'
             ),
@@ -173,7 +172,8 @@ orders as (
             partition by
                 orders_historical.dim_order_id, orders_historical.valid_from::date
             order by orders_historical.valid_from desc
-        ) = 1
+        )
+        = 1
 
 ),
 order_list as (
@@ -181,11 +181,13 @@ order_list as (
     select orders.*, dates.first_day_of_month as order_snapshot_month
     from orders
     inner join
-        dates on dates.date_actual between iff(
+        dates
+        on dates.date_actual between iff(
             orders.term_start_date < orders.order_start_date,
             orders.order_start_date,
             orders.term_start_date
-        ) and iff(
+        )
+        and iff(
             orders.term_end_date > orders.order_end_date,
             orders.order_end_date,
             orders.term_end_date
@@ -194,7 +196,8 @@ order_list as (
         row_number() over (
             partition by orders.dim_order_id, dates.first_day_of_month
             order by orders.term_end_date desc
-        ) = 1
+        )
+        = 1
 
 ),
 final as (
@@ -240,9 +243,8 @@ final as (
         subscription_list.product_tier_name_subscription,
         case
             when
-                namespace_list.gitlab_plan_id in (
-                    102, 103
-                ) and order_list.dim_order_id is null
+                namespace_list.gitlab_plan_id in (102, 103)
+                and order_list.dim_order_id is null
             then 'Trial Namespace Missing Order'
             when
                 order_list.namespace_id_order
@@ -250,19 +252,16 @@ final as (
                 and namespace_list.is_namespace_active = true
             then 'Order Linked to Non-Ultimate Parent Namespace'
             when
-                namespace_list.gitlab_plan_id not in (
-                    102, 103
-                ) and order_list.dim_order_id is null
+                namespace_list.gitlab_plan_id not in (102, 103)
+                and order_list.dim_order_id is null
             then 'Paid Namespace Missing Order'
             when
-                namespace_list.gitlab_plan_id not in (
-                    102, 103
-                ) and order_list.subscription_id_order is null
+                namespace_list.gitlab_plan_id not in (102, 103)
+                and order_list.subscription_id_order is null
             then 'Paid Namespace Missing Order Subscription'
             when
-                namespace_list.gitlab_plan_id not in (
-                    102, 103
-                ) and subscription_list.dim_subscription_id is null
+                namespace_list.gitlab_plan_id not in (102, 103)
+                and subscription_list.dim_subscription_id is null
             then 'Paid Namespace Missing Zuora Subscription'
             when
                 order_list.subscription_id_order is not null
@@ -290,9 +289,8 @@ final as (
                 and namespace_list.dim_namespace_id is not null
             then 'Paid All Matching'
             when
-                namespace_list.gitlab_plan_id in (
-                    102, 103
-                ) and order_list.dim_order_id is not null
+                namespace_list.gitlab_plan_id in (102, 103)
+                and order_list.dim_order_id is not null
             then 'Trial All Matching'
         end as namespace_order_subscription_match_status
     from order_list

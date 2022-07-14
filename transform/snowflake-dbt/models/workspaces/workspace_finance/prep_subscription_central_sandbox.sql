@@ -77,16 +77,17 @@ with
             ) as term_end_month,
             case
                 when
-                    lower(
-                        zuora_central_sandbox_subscription.subscription_status
-                    ) = 'active' and subscription_end_date > current_date
+                    lower(zuora_central_sandbox_subscription.subscription_status)
+                    = 'active'
+                    and subscription_end_date > current_date
                 then
                     date_trunc(
                         'month',
                         dateadd(
                             'month',
                             zuora_central_sandbox_subscription.current_term,
-                            zuora_central_sandbox_subscription.subscription_end_date::date
+                            zuora_central_sandbox_subscription.subscription_end_date
+                            ::date
                         )
                     )
                 else null

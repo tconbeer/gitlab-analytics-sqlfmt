@@ -26,18 +26,13 @@ with
             raw_usage_data_payload_reconstructed
         from source
         where
-            -- Messy data that's not worth parsing.
+            uuid is not null
+            and version not like ('%VERSION%')  -- Messy data that's not worth parsing.
             -- Staging data has no current use cases for analysis.
-            uuid is not null and version not like ('%VERSION%') and hostname not in (
-                'staging.gitlab.com', 'dr.gitlab.com'
-            )
+            and hostname not in ('staging.gitlab.com', 'dr.gitlab.com')
 
-    )
-
-    ,
-    raw_usage_data as (select * from {{ ref("version_raw_usage_data_source") }})
-
-    ,
+    ),
+    raw_usage_data as (select * from {{ ref("version_raw_usage_data_source") }}),
     joined as (
 
         select

@@ -9,10 +9,9 @@ with
         select *
         from {{ ref("gitlab_dotcom_merge_requests_xf") }}
         where
-            array_contains(
-                'database::approved'::variant, labels
-            -- where the db schema is
-            ) and merged_at is not null and project_id = 278964
+            array_contains('database::approved'::variant, labels)
+            and merged_at is not null
+            and project_id = 278964  -- where the db schema is
 
     ),
     changes_to_db_structure as (

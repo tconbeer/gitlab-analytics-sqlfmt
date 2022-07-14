@@ -10,26 +10,22 @@
             ("fct_usage_ping_payload", "fct_usage_ping_payload"),
         ]
     )
-}}
-
-,
+}},
 active_subscriptions as (
 
     select
         prep_subscription.*,
         strtok_to_array(subscription_lineage, ',') as subscription_lineage_array,
-        array_slice(
-            subscription_lineage_array, -2, -1
-        )::varchar as latest_subscription_in_lineage
+        array_slice(subscription_lineage_array, -2, -1)::varchar
+        as latest_subscription_in_lineage
     from prep_subscription
     left join
         map_subscription_lineage
         on prep_subscription.dim_subscription_id
         = map_subscription_lineage.dim_subscription_id
     where
-        subscription_status in (
-            'Active', 'Cancelled'
-        ) and subscription_start_date < subscription_end_date
+        subscription_status in ('Active', 'Cancelled')
+        and subscription_start_date < subscription_end_date
 
 ),
 usage_ping_with_license as (
@@ -93,8 +89,9 @@ unioned as (
     select
         join_ping_to_subscriptions.dim_usage_ping_id,
         first_subscription.dim_subscription_id,
-        array_agg(join_ping_to_subscriptions.dim_subscription_id) within group(
-            order by subscription_start_date asc
+        array_agg(
+            join_ping_to_subscriptions.dim_subscription_id
+        ) within group(order by subscription_start_date asc
         ) as other_dim_subscription_id_array,
         'Match between Usage Ping and Active Subscription' as match_type
     from join_ping_to_subscriptions

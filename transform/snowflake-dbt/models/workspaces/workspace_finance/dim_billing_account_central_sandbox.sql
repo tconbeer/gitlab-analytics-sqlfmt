@@ -7,9 +7,7 @@
             ("zuora_central_sandbox_contact", "zuora_central_sandbox_contact_source"),
         ]
     )
-}}
-
-,
+}},
 zuora_central_sandbox_account as (
 
     select *
@@ -37,10 +35,12 @@ filtered as (
         zuora_central_sandbox_account.po_required
     from zuora_central_sandbox_account
     left join
-        zuora_central_sandbox_contact on coalesce(
+        zuora_central_sandbox_contact
+        on coalesce(
             zuora_central_sandbox_account.sold_to_contact_id,
             zuora_central_sandbox_account.bill_to_contact_id
-        ) = zuora_central_sandbox_contact.contact_id
+        )
+        = zuora_central_sandbox_contact.contact_id
     left join
         map_merged_crm_account
         on zuora_central_sandbox_account.crm_id = map_merged_crm_account.sfdc_account_id

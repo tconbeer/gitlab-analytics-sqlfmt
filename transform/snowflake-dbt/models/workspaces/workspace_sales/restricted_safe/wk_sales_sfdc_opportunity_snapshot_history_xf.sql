@@ -802,9 +802,8 @@ with
                     sfdc_opportunity_xf.is_won = 1
                     -- contract resets have a special way of calculating net iacv
                     and sfdc_opportunity_xf.opportunity_category <> 'Contract Reset'
-                    and coalesce(sfdc_opportunity_xf.raw_net_arr, 0) <> 0 and coalesce(
-                        sfdc_opportunity_xf.net_incremental_acv, 0
-                    ) <> 0
+                    and coalesce(sfdc_opportunity_xf.raw_net_arr, 0) <> 0
+                    and coalesce(sfdc_opportunity_xf.net_incremental_acv, 0) <> 0
                 then
                     coalesce(
                         sfdc_opportunity_xf.raw_net_arr
@@ -839,9 +838,8 @@ with
                         segment_order_type_iacv_to_net_arr_ratio, 0
                     )
                 when  -- CLOSED LOST DEAL and no Net IACV
-                    opp_snapshot.stage_name in ('8-Closed Lost') and coalesce(
-                        opp_snapshot.net_incremental_acv, 0
-                    ) = 0
+                    opp_snapshot.stage_name in ('8-Closed Lost')
+                    and coalesce(opp_snapshot.net_incremental_acv, 0) = 0
                 then
                     coalesce(opp_snapshot.incremental_acv, 0) * coalesce(
                         segment_order_type_iacv_to_net_arr_ratio, 0
@@ -1120,12 +1118,16 @@ with
             and net_iacv_to_net_arr_ratio.order_type_stamped
             = sfdc_opportunity_xf.order_type_stamped
         where  -- remove test account
-            opp_snapshot.raw_account_id not in ('0014M00001kGcORQA0') and (
+            opp_snapshot.raw_account_id not in ('0014M00001kGcORQA0')
+            and (
                 sfdc_accounts_xf.ultimate_parent_account_id not in (
                     '0016100001YUkWVAA1'
-                ) or sfdc_accounts_xf.account_id is null  -- remove test account
+                )
+                or sfdc_accounts_xf.account_id is null  -- remove test account
+            )
+            and opp_snapshot.is_deleted = 0
             -- NF 20210906 remove JiHu opties from the models
-            ) and opp_snapshot.is_deleted = 0 and sfdc_accounts_xf.is_jihu_account = 0
+            and sfdc_accounts_xf.is_jihu_account = 0
 
     -- in Q2 FY21 a few deals where created in the wrong stage, and as they were
     -- purely aspirational,
@@ -1225,20 +1227,24 @@ with
                         'Ramp Deal',
                         'Credit',
                         'Contract Reset'
-                    ) and opp_snapshot.stage_name not in (
+                    )
+                    and opp_snapshot.stage_name not in (
                         '00-Pre Opportunity',
                         '10-Duplicate',
                         '9-Unqualified',
                         '0-Pending Acceptance'
-                    ) and (
+                    )
+                    and (
                         opp_snapshot.net_arr > 0
                         or opp_snapshot.opportunity_category = 'Credit'
+                    )
                     -- exclude vision opps from FY21-Q2
-                    ) and (
+                    and (
                         opp_snapshot.pipeline_created_fiscal_quarter_name != 'FY21-Q2'
                         or vision_opps.opportunity_id is null
+                    )
                     -- 20220128 Updated to remove webdirect SQS deals 
-                    ) and opp_snapshot.sales_qualified_source != 'Web Direct Generated'
+                    and opp_snapshot.sales_qualified_source != 'Web Direct Generated'
                 then 1
                 else 0
             end as is_eligible_created_pipeline_flag,
@@ -1268,12 +1274,14 @@ with
                     -- contraction / churn
                     and opp_snapshot.order_type_stamped in (
                         '1. New - First Order', '2. New - Connected', '3. Growth'
+                    )
                     -- Exclude Decomissioned as they are not aligned to the real owner
                     -- Contract Reset, Decomission
-                    ) and opp_snapshot.opportunity_category in (
+                    and opp_snapshot.opportunity_category in (
                         'Standard', 'Ramp Deal', 'Internal Correction'
+                    )
                     -- Exclude Deals with nARR < 0
-                    ) and net_arr > 0
+                    and net_arr > 0
                 -- Not JiHu
                 then 1
                 else 0
@@ -1295,12 +1303,14 @@ with
                         '4. Contraction',
                         '6. Churn - Final',
                         '5. Churn - Partial'
+                    )
                     -- Only include deal types with meaningful journeys through the
                     -- stages
-                    ) and opp_snapshot.opportunity_category in (
+                    and opp_snapshot.opportunity_category in (
                         'Standard', 'Ramp Deal', 'Decommissioned'
+                    )
                     -- Web Purchase have a different dynamic and should not be included
-                    ) and opp_snapshot.is_web_portal_purchase = 0
+                    and opp_snapshot.is_web_portal_purchase = 0
                 -- Not JiHu
                 then 1
                 else 0
@@ -1309,11 +1319,13 @@ with
             -- TODO: This is the same as FP&A Boookings Flag
             case
                 when
-                    opp_snapshot.is_edu_oss = 0 and opp_snapshot.is_deleted = 0 and (
-                        opp_snapshot.is_won = 1 or (
-                            opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1
-                        )
-                    ) and opp_snapshot.order_type_stamped in (
+                    opp_snapshot.is_edu_oss = 0
+                    and opp_snapshot.is_deleted = 0
+                    and (
+                        opp_snapshot.is_won = 1
+                        or (opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1)
+                    )
+                    and opp_snapshot.order_type_stamped in (
                         '1. New - First Order',
                         '2. New - Connected',
                         '3. Growth',
@@ -1409,10 +1421,10 @@ with
             case
                 when
                     (
-                        (
-                            opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1
-                        ) or opp_snapshot.is_won = 1
-                    ) and opp_snapshot.order_type_stamped in (
+                        (opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1)
+                        or opp_snapshot.is_won = 1
+                    )
+                    and opp_snapshot.order_type_stamped in (
                         '5. Churn - Partial', '6. Churn - Final', '4. Contraction'
                     )
                 then opp_snapshot.calculated_deal_count
@@ -1445,9 +1457,8 @@ with
             case
                 when
                     (
-                        opp_snapshot.is_won = 1 or (
-                            opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1
-                        )
+                        opp_snapshot.is_won = 1
+                        or (opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1)
                     )
                 then opp_snapshot.net_arr
                 else 0
@@ -1457,10 +1468,10 @@ with
             case
                 when
                     (
-                        (
-                            opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1
-                        ) or opp_snapshot.is_won = 1
-                    ) and opp_snapshot.order_type_stamped in (
+                        (opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1)
+                        or opp_snapshot.is_won = 1
+                    )
+                    and opp_snapshot.order_type_stamped in (
                         '5. Churn - Partial', '6. Churn - Final', '4. Contraction'
                     )
                 then net_arr
@@ -1477,13 +1488,15 @@ with
                         '0016100001CXGCs',
                         '00161000015O9Yn',
                         '0016100001b9Jsc'
-                    ) and opp_snapshot.close_date < '2020-08-01'
+                    )
+                    and opp_snapshot.close_date < '2020-08-01'
                 then 1
                 -- NF 2021 - Pubsec extreme deals
                 when
                     opp_snapshot.opportunity_id in (
                         '0064M00000WtZKUQA3', '0064M00000Xb975QAB'
-                    ) and opp_snapshot.snapshot_date < '2021-05-01'
+                    )
+                    and opp_snapshot.snapshot_date < '2021-05-01'
                 then 1
                 -- exclude vision opps from FY21-Q2
                 when

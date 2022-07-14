@@ -68,7 +68,8 @@ with
                         40914,
                         41954,
                         46
-                    ) or lower(engineering_employees.job_title) like '%backend%'
+                    )
+                    or lower(engineering_employees.job_title) like '%backend%'
                 then 'backend'
                 when lower(engineering_employees.job_title) like '%fullstack%'
                 then 'fullstack'

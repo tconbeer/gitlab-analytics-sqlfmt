@@ -446,9 +446,7 @@
             ("prep_ci_trigger", "prep_ci_trigger"),
         ]
     )
-}}
-
-,
+}},
 dast_jobs as (select * from prep_ci_build where secure_ci_build_type = 'dast'),
 dependency_scanning_jobs as (
 
@@ -516,9 +514,8 @@ action_monthly_active_users_design_management_source as (
     select *
     from prep_action
     where
-        target_type = 'DesignManagement::Design' and event_action_type in (
-            'created', 'updated'
-        )
+        target_type = 'DesignManagement::Design'
+        and event_action_type in ('created', 'updated')
 
 ),
 project_prometheus_source as (
@@ -658,11 +655,9 @@ data as (
         prep_plan on {{ event_cte.source_cte_name }}.dim_plan_id = prep_plan.dim_plan_id
     {%- endif %}
     where
-        date_part(
-            'year', {{ event_cte.source_cte_name }}.created_at
-        ) = {{ year_value }} and date_part(
-            'month', {{ event_cte.source_cte_name }}.created_at
-        ) = {{ month_value }}
+        date_part('year', {{ event_cte.source_cte_name }}.created_at) = {{ year_value }}
+        and date_part('month', {{ event_cte.source_cte_name }}.created_at)
+        = {{ month_value }}
     {% if not loop.last %}
     union all
     {% endif %}

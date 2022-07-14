@@ -26,27 +26,23 @@ with
             -- Engineering departments 
             case
                 when
-                    lower(
-                        merge_request_path
-                    ) like '%/handbook/engineering/development/%'
+                    lower(merge_request_path)
+                    like '%/handbook/engineering/development/%'
                 then 1
                 when
-                    lower(
-                        merge_request_path
-                    ) like '%data/performance_indicators/development_department.yml%'
+                    lower(merge_request_path)
+                    like '%data/performance_indicators/development_department.yml%'
                 then 1
                 else 0
             end as path_count_development,
             case
                 when
-                    lower(
-                        merge_request_path
-                    ) like '%/handbook/engineering/infrastructure/%'
+                    lower(merge_request_path)
+                    like '%/handbook/engineering/infrastructure/%'
                 then 1
                 when
-                    lower(
-                        merge_request_path
-                    ) like '%data/performance_indicators/infrastructure_department.yml%'
+                    lower(merge_request_path)
+                    like '%data/performance_indicators/infrastructure_department.yml%'
                 then 1
                 else 0
             end as path_count_infrastructure,
@@ -54,9 +50,8 @@ with
                 when lower(merge_request_path) like '%/handbook/engineering/quality/%'
                 then 1
                 when
-                    lower(
-                        merge_request_path
-                    ) like '%data/performance_indicators/quality_department.yml%'
+                    lower(merge_request_path)
+                    like '%data/performance_indicators/quality_department.yml%'
                 then 1
                 else 0
             end as path_count_quality,
@@ -64,9 +59,8 @@ with
                 when lower(merge_request_path) like '%/handbook/engineering/security/%'
                 then 1
                 when
-                    lower(
-                        merge_request_path
-                    ) like '%data/performance_indicators/security_department.yml%'
+                    lower(merge_request_path)
+                    like '%data/performance_indicators/security_department.yml%'
                 then 1
                 else 0
             end as path_count_security,
@@ -74,9 +68,8 @@ with
                 when lower(merge_request_path) like '%/handbook/support/%'
                 then 1
                 when
-                    lower(
-                        merge_request_path
-                    ) like '%data/performance_indicators/customer_support_department.yml%'
+                    lower(merge_request_path)
+                    like '%data/performance_indicators/customer_support_department.yml%'
                 then 1
                 else 0
             end as path_count_support,
@@ -84,9 +77,8 @@ with
                 when lower(merge_request_path) like '%/handbook/engineering/ux/%'
                 then 1
                 when
-                    lower(
-                        merge_request_path
-                    ) like '%data/performance_indicators/ux_department.yml%'
+                    lower(merge_request_path)
+                    like '%data/performance_indicators/ux_department.yml%'
                 then 1
                 else 0
             end as path_count_ux,
@@ -95,9 +87,8 @@ with
                     lower(merge_request_path) like '%/handbook/engineering/incubation/%'
                 then 1
                 when
-                    lower(
-                        merge_request_path
-                    ) like '%data/performance_indicators/incubation_engineering_department.yml%'
+                    lower(merge_request_path)
+                    like '%data/performance_indicators/incubation_engineering_department.yml%'
                 then 1
                 else 0
             end as path_count_incubation,

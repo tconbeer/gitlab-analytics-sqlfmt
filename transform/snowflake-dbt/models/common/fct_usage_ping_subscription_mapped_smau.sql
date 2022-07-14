@@ -8,9 +8,7 @@
             ("smau_metrics", "prep_usage_ping_subscription_mapped_smau"),
         ]
     )
-}}
-
-,
+}},
 sm_subscriptions as (
 
     select distinct
@@ -33,7 +31,8 @@ smau_monthly as (
         row_number() over (
             partition by dim_subscription_id, uuid, hostname, ping_created_at_month
             order by ping_created_at desc
-        ) = 1
+        )
+        = 1
 
 ),
 joined as (
@@ -72,7 +71,8 @@ joined as (
                     smau_monthly.uuid,
                     smau_monthly.hostname
                 order by smau_monthly.ping_created_at desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_latest_smau_reported

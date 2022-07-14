@@ -51,9 +51,8 @@ with recursive
             0 as ultimate_parent_id
         from namespaces
         where
-            parent_id not in (
-                select distinct namespace_id from namespaces
-            ) or namespace_id in (
+            parent_id not in (select distinct namespace_id from namespaces)
+            or namespace_id in (
                 11967197,
                 11967195,
                 11967194,
@@ -115,9 +114,8 @@ with recursive
             coalesce(ultimate_parent_plans.plan_id, 34) as ultimate_parent_plan_id,
             case
                 when
-                    ultimate_parent_gitlab_subscriptions.is_trial and coalesce(
-                        ultimate_parent_gitlab_subscriptions.plan_id, 34
-                    ) <> 34
+                    ultimate_parent_gitlab_subscriptions.is_trial
+                    and coalesce(ultimate_parent_gitlab_subscriptions.plan_id, 34) <> 34
                 then 'Trial: Ultimate'
                 else coalesce(ultimate_parent_plans.plan_title, 'Free')
             end as ultimate_parent_plan_title,
@@ -132,18 +130,18 @@ with recursive
             gitlab_subscriptions as namespace_gitlab_subscriptions
             on extracted.namespace_id = namespace_gitlab_subscriptions.namespace_id
         left join
-            plans as namespace_plans on coalesce(
-                namespace_gitlab_subscriptions.plan_id, 34
-            ) = namespace_plans.plan_id
+            plans as namespace_plans
+            on coalesce(namespace_gitlab_subscriptions.plan_id, 34)
+            = namespace_plans.plan_id
         -- Get plan information for the ultimate parent namespace.
         left join
             gitlab_subscriptions as ultimate_parent_gitlab_subscriptions
             on extracted.ultimate_parent_id
             = ultimate_parent_gitlab_subscriptions.namespace_id
         left join
-            plans as ultimate_parent_plans on coalesce(
-                ultimate_parent_gitlab_subscriptions.plan_id, 34
-            ) = ultimate_parent_plans.plan_id
+            plans as ultimate_parent_plans
+            on coalesce(ultimate_parent_gitlab_subscriptions.plan_id, 34)
+            = ultimate_parent_plans.plan_id
 
     )
 

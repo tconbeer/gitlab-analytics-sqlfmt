@@ -124,9 +124,8 @@ with
                 zi_c_company_cbsa_name::varchar, ''
             ) as headquarters_company_cbsa_name,
             nullif(zi_c_company_county::varchar, '') as headquarters_company_county,
-            nullif(
-                zi_c_company_verified_address, ''
-            )::boolean as has_headquarters_company_verified_address,
+            nullif(zi_c_company_verified_address, '')::boolean
+            as has_headquarters_company_verified_address,
             nullif(
                 zi_c_company_employee_range::varchar, ''
             ) as headquarters_employee_range,

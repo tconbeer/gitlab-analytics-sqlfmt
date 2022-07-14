@@ -14,6 +14,7 @@ qualify
     rank() over (
         partition by rc_appr_id, approver_sequence, approval_rule_id
         order by incr_updt_dt desc
-    ) = 1
+    )
+    = 1
 
 {% endsnapshot %}

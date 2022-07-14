@@ -13,9 +13,7 @@
             ("billing_accounts", "dim_billing_account"),
         ]
     )
-}}
-
-,
+}},
 customers_db_versions as (
 
     -- selecting only orders

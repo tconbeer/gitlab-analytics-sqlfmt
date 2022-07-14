@@ -9,9 +9,7 @@
             ("dim_subscription", "dim_subscription"),
         ]
     )
-}}
-
-,
+}},
 fct_mrr as (
 
     select *

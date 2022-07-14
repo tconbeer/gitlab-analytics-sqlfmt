@@ -1,14 +1,8 @@
 with
     resource_weight_events as (
 
-        select * from {{ ref("gitlab_dotcom_resource_weight_events") }}
-
-    )
-
-    ,
-    issues as (select * from {{ ref("gitlab_dotcom_issues") }})
-
-    ,
+        select * from {{ ref("gitlab_dotcom_resource_weight_events") }}),
+    issues as (select * from {{ ref("gitlab_dotcom_issues") }}),
     joined as (
 
         select resource_weight_events.*, issues.project_id

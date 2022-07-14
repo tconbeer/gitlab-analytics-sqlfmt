@@ -33,7 +33,8 @@ with
             row_number() over (
                 partition by employee_id, effective_date, employment_status
                 order by effective_date
-            ) = 1
+            )
+            = 1
 
     )
 

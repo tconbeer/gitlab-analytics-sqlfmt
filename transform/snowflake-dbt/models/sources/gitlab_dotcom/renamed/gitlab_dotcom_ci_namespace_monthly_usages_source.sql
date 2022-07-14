@@ -4,9 +4,7 @@ with
         select *
         from {{ ref("gitlab_dotcom_ci_namespace_monthly_usages_dedupe_source") }}
 
-    )
-
-    ,
+    ),
     renamed as (
         select
             id::number as ci_namespace_monthly_usages_id,

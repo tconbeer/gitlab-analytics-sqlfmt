@@ -62,9 +62,8 @@ This CTE finds groups of snapshoted chages that changed the parent id. This is a
         inner join
             parent_change as iter
             on iter.parent_id = anchor.namespace_id
-            and not array_contains(
-                iter.namespace_id::variant, anchor.upstream_lineage
-            ) and (
+            and not array_contains(iter.namespace_id::variant, anchor.upstream_lineage)
+            and (
                 case
                     when iter.valid_from between anchor.valid_from and anchor.valid_to
                     then true
@@ -74,7 +73,8 @@ This CTE finds groups of snapshoted chages that changed the parent id. This is a
                     then true
                     else false
                 end
-            ) = true
+            )
+            = true
     ),
 
     namespace_lineage_scd as (
@@ -82,9 +82,8 @@ This CTE finds groups of snapshoted chages that changed the parent id. This is a
             recursive_namespace_lineage.namespace_id,
             recursive_namespace_lineage.parent_id,
             recursive_namespace_lineage.upstream_lineage,
-            recursive_namespace_lineage.upstream_lineage[
-                0
-            ]::number as ultimate_parent_id,
+            recursive_namespace_lineage.upstream_lineage[0]::number
+            as ultimate_parent_id,
             array_size(recursive_namespace_lineage.upstream_lineage) as lineage_depth,
             recursive_namespace_lineage.valid_from_list,
             recursive_namespace_lineage.valid_to_list,

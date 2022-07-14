@@ -1,9 +1,7 @@
 {{ config({"materialized": "table"}) }}
 
 with
-    {{ distinct_source(source=source("gitlab_dotcom", "issue_links")) }}
-
-    ,
+    {{ distinct_source(source=source("gitlab_dotcom", "issue_links")) }},
     renamed as (
 
         select

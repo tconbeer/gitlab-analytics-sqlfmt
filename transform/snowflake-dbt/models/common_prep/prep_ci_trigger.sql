@@ -10,9 +10,7 @@
             ("dim_project", "dim_project"),
         ]
     )
-}}
-
-,
+}},
 ci_trigger_source as (
 
     select *

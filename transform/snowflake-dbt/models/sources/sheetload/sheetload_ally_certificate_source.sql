@@ -15,8 +15,8 @@ with
             "Timestamp"::timestamp::date as completed_date,
             "Score" as score,
             "First_&_Last_Name" as submitter_name,
-            "Email_Address_(GitLab_team_members,_please_use_your_GitLab_email_address)"::varchar
-            as submitter_email,
+            "Email_Address_(GitLab_team_members,_please_use_your_GitLab_email_address)"
+            ::varchar as submitter_email,
             "_UPDATED_AT" as last_updated_at
         from source
 

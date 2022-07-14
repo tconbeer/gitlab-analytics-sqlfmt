@@ -11,10 +11,7 @@
             ("namespaces", "dim_namespace"),
         ]
     )
-}}
-
-
-,
+}},
 most_recent_subscription_version as (
     select
         subscription_name,
@@ -29,10 +26,9 @@ most_recent_subscription_version as (
     qualify
         row_number() over (
             partition by subscription_name order by subscription_version desc
-        ) = 1
-)
-
-,
+        )
+        = 1
+),
 sm_paid_user_metrics as (
 
     select

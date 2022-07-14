@@ -1,5 +1,6 @@
 {{ config(tags=["mnpi_exception"]) }}
 
+-- Add a flag to dim_subscription which specify if the subscription is the last version
 {{
     simple_cte(
         [
@@ -10,17 +11,13 @@
             ("mart_arr", "mart_arr"),
         ]
     )
-}}
-
--- Add a flag to dim_subscription which specify if the subscription is the last version
-,
+}},
 dim_subscription as (
 
     select
         iff(
-            max(subscription_version) over (
-                partition by subscription_name
-            ) = subscription_version,
+            max(subscription_version) over (partition by subscription_name)
+            = subscription_version,
             true,
             false
         ) as is_last_subscription_version,
@@ -44,7 +41,8 @@ dim_license as (
         row_number() over (
             partition by dim_subscription_id
             order by environment_order, license_expire_date desc
-        ) = 1
+        )
+        = 1
     order by dim_subscription_id
 
 ),
@@ -61,7 +59,8 @@ subscription_amendments_issue_license_mapping as (
                     1,
                     0
                 )
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) does_subscription_name_contains_amendments_issue_license
@@ -127,7 +126,8 @@ amendments as (
         (
             amendment_type in (
                 'NewProduct', 'RemoveProduct', 'UpdateProduct', 'Renewal'
-            ) or dim_subscription.subscription_version = 1
+            )
+            or dim_subscription.subscription_version = 1
         )
 
     -- Gets latest subscription_version where the ammendments above happened
@@ -135,7 +135,8 @@ amendments as (
         row_number() over (
             partition by dim_subscription.subscription_name
             order by dim_subscription.subscription_version desc
-        ) = 1
+        )
+        = 1
 
 -- Pull the latest subscription version and append it to the ammendments found above.
 ),
@@ -195,7 +196,8 @@ self_managed_subscriptions as (
         last_value(dim_product_detail.product_delivery_type) over (
             partition by dim_subscription.subscription_name
             order by dim_subscription.subscription_version, fct_mrr.dim_date_id
-        ) = 'Self-Managed'
+        )
+        = 'Self-Managed'
 
 ),  -- Get subscriptions names that are currently paying ARR.
 subscriptions_with_arr_in_current_month as (
@@ -246,7 +248,8 @@ subscription_to_licenses_final as (
         row_number() over (
             partition by subscription_name
             order by dim_license_id desc nulls last, subscription_version desc
-        ) = 1
+        )
+        = 1
 
 ),
 licenses_missing_subscriptions as (

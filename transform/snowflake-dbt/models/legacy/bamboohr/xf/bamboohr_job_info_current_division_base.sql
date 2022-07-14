@@ -29,12 +29,12 @@ with
         where
             current_date() between effective_date and coalesce(
                 effective_end_date, current_date()
-            ) and bamboo_mapping.termination_date is null
+            )
+            and bamboo_mapping.termination_date is null
         group by 1, 2
         qualify
-            row_number() over (
-                partition by department order by total_employees desc
-            ) = 1
+            row_number() over (partition by department order by total_employees desc)
+            = 1
     -- to account for individuals that have not been transistioned to new division  
     )
 

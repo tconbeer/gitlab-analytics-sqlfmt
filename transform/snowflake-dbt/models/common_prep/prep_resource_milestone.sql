@@ -10,9 +10,7 @@
             ("dim_merge_request", "dim_merge_request"),
         ]
     )
-}}
-
-,
+}},
 resource_milestone_events as (
 
     select *

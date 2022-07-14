@@ -42,15 +42,18 @@ with
             ) as geographic_region
         from greenhouse_offer_custom_fields
         left join
-            zuora_regions z1 on lower(z1.country_name_in_zuora) = lower(
+            zuora_regions z1
+            on lower(z1.country_name_in_zuora) = lower(
                 greenhouse_offer_custom_fields.candidate_country
             )
         left join
-            zuora_regions z2 on lower(z2.iso_alpha_2_code) = lower(
+            zuora_regions z2
+            on lower(z2.iso_alpha_2_code) = lower(
                 greenhouse_offer_custom_fields.candidate_country
             )
         left join
-            zuora_regions z3 on lower(z3.iso_alpha_3_code) = lower(
+            zuora_regions z3
+            on lower(z3.iso_alpha_3_code) = lower(
                 greenhouse_offer_custom_fields.candidate_country
             )
 

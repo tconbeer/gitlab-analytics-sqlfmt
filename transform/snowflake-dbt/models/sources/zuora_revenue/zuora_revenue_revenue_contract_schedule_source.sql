@@ -6,9 +6,8 @@ with
         select *
         from {{ source("zuora_revenue", "zuora_revenue_revenue_contract_schedule") }}
         qualify
-            rank() over (
-                partition by schd_id, acctg_type order by incr_updt_dt desc
-            ) = 1
+            rank() over (partition by schd_id, acctg_type order by incr_updt_dt desc)
+            = 1
 
     ),
     renamed as (
@@ -36,9 +35,8 @@ with
             g_ex_rate::float as reporting_currency_exchange_rate,
             rel_id::varchar as release_action_id,
             rel_pct::float as release_percent,
-            concat(
-                crtd_prd_id, '01'
-            )::varchar as revenue_contract_schedule_created_period_id,
+            concat(crtd_prd_id, '01')::varchar
+            as revenue_contract_schedule_created_period_id,
             root_line_id::varchar as root_line_id,
             ref_bill_id::varchar as reference_revenue_contract_bill_id,
             schd_id::varchar as revenue_contract_schedule_id,

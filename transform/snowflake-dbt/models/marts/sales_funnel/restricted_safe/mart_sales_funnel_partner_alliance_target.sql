@@ -10,9 +10,7 @@
             ("dim_crm_user_hierarchy_stamped", "dim_crm_user_hierarchy_stamped"),
         ]
     )
-}}
-
-,
+}},
 final as (
 
     select

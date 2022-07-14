@@ -14,19 +14,18 @@
             ("dim_product_detail", "dim_product_detail"),
         ]
     )
-}}
-
-,
+}},
 dim_subscription as (
 
     select *
     from {{ ref("dim_subscription") }}
     where
         (
-            subscription_name_slugify <> zuora_renewal_subscription_name_slugify[
-                0
-            ]::text or zuora_renewal_subscription_name_slugify is null
-        ) and subscription_status not in ('Draft', 'Expired')
+            subscription_name_slugify
+            <> zuora_renewal_subscription_name_slugify[0]::text
+            or zuora_renewal_subscription_name_slugify is null
+        )
+        and subscription_status not in ('Draft', 'Expired')
 
 ),
 fct_charge as (select * from {{ ref("fct_charge") }}),

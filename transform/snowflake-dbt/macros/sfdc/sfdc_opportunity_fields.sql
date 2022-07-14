@@ -246,7 +246,8 @@ with
             end as is_sao,
             case
                 when
-                    is_sao = true and sfdc_opportunity.sales_qualified_source in (
+                    is_sao = true
+                    and sfdc_opportunity.sales_qualified_source in (
                         'SDR Generated', 'BDR Generated'
                     )
                 then true
@@ -258,8 +259,10 @@ with
                         (
                             sfdc_opportunity.sales_type = 'Renewal'
                             and stage_name = '8-Closed Lost'
-                        ) or sfdc_opportunity.stage_name = 'Closed Won'
-                    ) and sfdc_account.is_jihu_account = false
+                        )
+                        or sfdc_opportunity.stage_name = 'Closed Won'
+                    )
+                    and sfdc_account.is_jihu_account = false
                 then true
                 else false
             end as is_net_arr_closed_deal,
@@ -287,7 +290,8 @@ with
                         sfdc_opportunity.reason_for_loss is null
                         or sfdc_opportunity.reason_for_loss
                         != 'Merged into another opportunity'
-                    ) and sfdc_opportunity.is_edu_oss = 0
+                    )
+                    and sfdc_opportunity.is_edu_oss = 0
                 then true
                 else false
             end as is_win_rate_calc,
@@ -321,21 +325,17 @@ with
                 then 'Legacy'
                 when
                     sfdc_opportunity.opportunity_sales_development_representative
-                    is
-                    not null
+                    is not null
                     and sfdc_opportunity.opportunity_business_development_representative
-                    is
-                    not null
+                    is not null
                 then 'SDR & BDR'
                 when
                     sfdc_opportunity.opportunity_sales_development_representative
-                    is
-                    not null
+                    is not null
                 then 'SDR'
                 when
                     sfdc_opportunity.opportunity_business_development_representative
-                    is
-                    not null
+                    is not null
                 then 'BDR'
                 when
                     sfdc_opportunity.opportunity_business_development_representative
@@ -545,11 +545,12 @@ with
                         'Ramp Deal',
                         'Credit',
                         'Contract Reset'
-                    ) and (
-                        is_stage_1_plus = 1 or is_lost = 1
-                    ) and sfdc_opportunity.stage_name not in (
+                    )
+                    and (is_stage_1_plus = 1 or is_lost = 1)
+                    and sfdc_opportunity.stage_name not in (
                         '10-Duplicate', '9-Unqualified'
-                    ) and (
+                    )
+                    and (
                         sfdc_opportunity.net_arr > 0
                         or sfdc_opportunity.opportunity_category = 'Credit'
                     )
@@ -577,13 +578,16 @@ with
                     and sfdc_opportunity.is_deleted = 0
                     and sfdc_opportunity.order_type in (
                         '1. New - First Order', '2. New - Connected', '3. Growth'
-                    ) and sfdc_opportunity.opportunity_category in (
+                    )
+                    and sfdc_opportunity.opportunity_category in (
                         'Standard', 'Ramp Deal', 'Internal Correction'
-                    ) and (
+                    )
+                    and (
                         (
                             sfdc_opportunity.is_web_portal_purchase = 1
                             and sfdc_opportunity.net_arr > 0
-                        ) or sfdc_opportunity.is_web_portal_purchase = 0
+                        )
+                        or sfdc_opportunity.is_web_portal_purchase = 0
                     )
                 then 1
                 else 0
@@ -600,9 +604,11 @@ with
                         '4. Contraction',
                         '6. Churn - Final',
                         '5. Churn - Partial'
-                    ) and sfdc_opportunity.opportunity_category in (
+                    )
+                    and sfdc_opportunity.opportunity_category in (
                         'Standard', 'Ramp Deal', 'Decommissioned'
-                    ) and sfdc_opportunity.is_web_portal_purchase = 0
+                    )
+                    and sfdc_opportunity.is_web_portal_purchase = 0
                 then 1
                 else 0
             end as is_eligible_age_analysis,
@@ -610,9 +616,8 @@ with
                 when
                     sfdc_opportunity.is_edu_oss = 0
                     and sfdc_opportunity.is_deleted = 0
-                    and (
-                        is_won = 1 or (is_renewal = 1 and is_lost = 1)
-                    ) and sfdc_opportunity.order_type in (
+                    and (is_won = 1 or (is_renewal = 1 and is_lost = 1))
+                    and sfdc_opportunity.order_type in (
                         '1. New - First Order',
                         '2. New - Connected',
                         '3. Growth',
@@ -651,7 +656,8 @@ with
                 when
                     reason_for_loss_staged in (
                         'Do Nothing', 'Other', 'Competitive Loss', 'Operational Silos'
-                    ) or reason_for_loss_staged is null
+                    )
+                    or reason_for_loss_staged is null
                 then 'Unknown'
                 when
                     reason_for_loss_staged in (

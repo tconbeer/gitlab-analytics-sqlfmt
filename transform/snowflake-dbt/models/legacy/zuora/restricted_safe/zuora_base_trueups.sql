@@ -5,9 +5,7 @@ with
         from {{ ref("zuora_base_invoice_details") }}
         where lower(charge_name) like '%trueup%'
 
-    )
-
-    ,
+    ),
     final as (
 
         select

@@ -70,6 +70,7 @@
 ] -%}
 
 
+/* Source CTEs Start Here */
 {{
     simple_cte(
         [
@@ -84,11 +85,7 @@
             ("blocked_users", "gitlab_dotcom_users_blocked_xf"),
         ]
     )
-}}
-
-
-/* Source CTEs Start Here */
-,
+}},
 incident_labeled_issues_source as (
 
     select *, issue_created_at as created_at
@@ -141,9 +138,7 @@ issue_resource_milestone_events_source as (
 
 )
 
-{% endfor -%}
-
-,
+{% endfor -%},
 data as (
 
     {% for event_cte in event_ctes %}
@@ -235,9 +230,7 @@ data as (
     {% endif %}
     {% endfor -%}
 
-)
-
-,
+),
 final as (
     select
         data.*,

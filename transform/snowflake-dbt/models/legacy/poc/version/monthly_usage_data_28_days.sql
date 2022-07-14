@@ -65,7 +65,8 @@ with
                     partition by created_month, instance_id, host_id, metrics_path
                     order by created_week desc, created_at desc
                 )
-            ) = 1
+            )
+            = 1
 
     )
 

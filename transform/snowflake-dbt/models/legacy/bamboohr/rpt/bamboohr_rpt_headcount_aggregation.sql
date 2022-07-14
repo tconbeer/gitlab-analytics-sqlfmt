@@ -1,6 +1,4 @@
 {% set partition_statement = "OVER (PARTITION BY base.breakout_type, base.department, base.division, base.job_role,                                     base.job_grade, base.eeoc_field_name, base.eeoc_value                               ORDER BY base.month_date DESC ROWS BETWEEN CURRENT ROW AND 11 FOLLOWING)                               " %}
-
-
 {% set ratio_to_report_partition_statement = "OVER (PARTITION BY base.month_date, base.breakout_type, base.department, base.division, base.job_role,                                               base.job_grade, base.eeoc_field_name                                               ORDER BY base.month_date)                               " %}
 
 with
@@ -127,8 +125,8 @@ with
                 < rolling_12_month_separations_management,
                 null,
                 1 - (
-                    rolling_12_month_separations_management / nullif(
-                        rolling_12_month_headcount_management, 0
+                    rolling_12_month_separations_management /
+                    nullif(rolling_12_month_headcount_management, 0
                     )
                 )
             ) as retention_management,
@@ -148,8 +146,8 @@ with
                 rolling_12_month_headcount_staff < rolling_12_month_separations_staff,
                 null,
                 1 - (
-                    rolling_12_month_separations_management / nullif(
-                        rolling_12_month_headcount_staff, 0
+                    rolling_12_month_separations_management /
+                    nullif(rolling_12_month_headcount_staff, 0
                     )
                 )
             ) as retention_staff,
@@ -458,7 +456,8 @@ with
                 percent_of_headcount_manager
             ) as percent_of_headcount_manager,
             iff(
-                (total_headcount_staff < 5 and show_value_criteria = false) or (
+                (total_headcount_staff < 5 and show_value_criteria = false)
+                or (
                     breakout_type = 'all_attributes_breakout'
                     and eeoc_field_name != 'no_eeoc'
                 ),
@@ -475,12 +474,13 @@ with
                 when
                     breakout_type in (
                         'kpi_breakout', 'division_breakout', 'department_breakout'
-                    ) and eeoc_value = 'no_eeoc'
+                    )
+                    and eeoc_value = 'no_eeoc'
                 then rolling_12_month_promotions
                 when
-                    breakout_type in ('eeoc_breakout') and eeoc_field_name in (
-                        'gender', 'ethnicity', 'region_modified'
-                    ) and rolling_12_month_promotions > 3
+                    breakout_type in ('eeoc_breakout')
+                    and eeoc_field_name in ('gender', 'ethnicity', 'region_modified')
+                    and rolling_12_month_promotions > 3
                 then rolling_12_month_promotions
                 else null
             end as rolling_12_month_promotions,
@@ -489,12 +489,13 @@ with
                 when
                     breakout_type in (
                         'kpi_breakout', 'division_breakout', 'department_breakout'
-                    ) and eeoc_value = 'no_eeoc'
+                    )
+                    and eeoc_value = 'no_eeoc'
                 then rolling_12_month_promotions_excluding_sdr
                 when
-                    breakout_type in ('eeoc_breakout') and eeoc_field_name in (
-                        'gender', 'ethnicity', 'region_modified'
-                    ) and rolling_12_month_promotions > 3
+                    breakout_type in ('eeoc_breakout')
+                    and eeoc_field_name in ('gender', 'ethnicity', 'region_modified')
+                    and rolling_12_month_promotions > 3
                 then rolling_12_month_promotions_excluding_sdr
                 else null
             end as rolling_12_month_promotions_excluding_sdr,
@@ -502,14 +503,16 @@ with
                 when
                     breakout_type in (
                         'kpi_breakout', 'division_breakout', 'department_breakout'
-                    ) and eeoc_value = 'no_eeoc' and rolling_12_month_promotions > 3
+                    )
+                    and eeoc_value = 'no_eeoc'
+                    and rolling_12_month_promotions > 3
                 then
                     rolling_12_month_promotions_percent_change_in_comp
                     / rolling_12_month_promotions
                 when
-                    breakout_type in ('eeoc_breakout') and eeoc_field_name in (
-                        'gender', 'ethnicity', 'region_modified'
-                    ) and rolling_12_month_promotions > 3
+                    breakout_type in ('eeoc_breakout')
+                    and eeoc_field_name in ('gender', 'ethnicity', 'region_modified')
+                    and rolling_12_month_promotions > 3
                 then
                     rolling_12_month_promotions_percent_change_in_comp
                     / rolling_12_month_promotions
@@ -526,9 +529,9 @@ with
                     rolling_12_month_promotions_percent_change_in_comp_excluding_sdr
                     / rolling_12_month_promotions_excluding_sdr
                 when
-                    breakout_type in ('eeoc_breakout') and eeoc_field_name in (
-                        'gender', 'ethnicity', 'region_modified'
-                    ) and rolling_12_month_promotions_excluding_sdr > 3
+                    breakout_type in ('eeoc_breakout')
+                    and eeoc_field_name in ('gender', 'ethnicity', 'region_modified')
+                    and rolling_12_month_promotions_excluding_sdr > 3
                 then
                     rolling_12_month_promotions_percent_change_in_comp_excluding_sdr
                     / rolling_12_month_promotions_excluding_sdr

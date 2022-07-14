@@ -9,9 +9,7 @@
             ("fct_mrr", "fct_mrr"),
         ]
     )
-}}
-
-,
+}},
 mart_arr as (
 
     select
@@ -49,9 +47,8 @@ mart_arr as (
         dim_crm_account
         on dim_billing_account.dim_crm_account_id = dim_crm_account.dim_crm_account_id
     where
-        fct_mrr.subscription_status in (
-            'Active', 'Cancelled'
-        ) and dim_crm_account.is_jihu_account != 'TRUE'
+        fct_mrr.subscription_status in ('Active', 'Cancelled')
+        and dim_crm_account.is_jihu_account != 'TRUE'
 
 ),
 max_min_month as (

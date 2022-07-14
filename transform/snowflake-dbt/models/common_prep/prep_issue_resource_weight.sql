@@ -11,9 +11,7 @@
             ("dim_issue", "dim_issue"),
         ]
     )
-}}
-
-,
+}},
 resource_weight_events as (
 
     select *

@@ -31,9 +31,9 @@ with
         select *
         from {{ ref("zuora_subscription_snapshots_source") }}
         where
-            lower(subscription_status) not in (
-                'draft', 'expired'
-            ) and is_deleted = false and exclude_from_analysis in ('False', '')
+            lower(subscription_status) not in ('draft', 'expired')
+            and is_deleted = false
+            and exclude_from_analysis in ('False', '')
 
     ),
     zuora_subscription_spined as (
@@ -49,7 +49,8 @@ with
             rank() over (
                 partition by subscription_name, snapshot_dates.date_actual
                 order by dbt_valid_from desc
-            ) = 1
+            )
+            = 1
 
     ),
     map_merged_crm_account as (select * from {{ ref("map_merged_crm_account") }}),

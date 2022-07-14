@@ -8,9 +8,8 @@ with
             "FirstName"::text as first_name,
             "LastName"::text as last_name,
             "Username"::text as user_name,
-            to_timestamp(
-                convert_timezone('UTC', "CreatedDate")
-            )::timestamp as created_date,
+            to_timestamp(convert_timezone('UTC', "CreatedDate"))::timestamp
+            as created_date,
             to_timestamp_ntz(cast(_uploaded_at as int))::timestamp as uploaded_at
         from source
 

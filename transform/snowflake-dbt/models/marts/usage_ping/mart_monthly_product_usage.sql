@@ -22,10 +22,11 @@ with
         from {{ ref("dim_subscription") }}
         where
             (
-                subscription_name_slugify <> zuora_renewal_subscription_name_slugify[
-                    0
-                ]::text or zuora_renewal_subscription_name_slugify is null
-            ) and subscription_status not in ('Draft', 'Expired')
+                subscription_name_slugify
+                <> zuora_renewal_subscription_name_slugify[0]::text
+                or zuora_renewal_subscription_name_slugify is null
+            )
+            and subscription_status not in ('Draft', 'Expired')
 
     ),
     zuora_subscription_snapshots as (
@@ -42,10 +43,10 @@ with
             subscription_name
         from {{ ref("zuora_subscription_snapshots_source") }}
         where
-            subscription_status not in ('Draft', 'Expired') and current_timestamp(
-            )::timestamp_tz >= dbt_valid_from
-            and {{ coalesce_to_infinity("dbt_valid_to") }} > current_timestamp(
-            )::timestamp_tz
+            subscription_status not in ('Draft', 'Expired')
+            and current_timestamp()::timestamp_tz >= dbt_valid_from
+            and {{ coalesce_to_infinity("dbt_valid_to") }}
+            > current_timestamp()::timestamp_tz
 
     ),
     fct_charge as (select * from {{ ref("fct_charge") }}),

@@ -1,5 +1,7 @@
 {{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
+-- Fact data from mart_service_ping_instance_metric_28_day, bringing in only last ping
+-- of months which are valid
 {{
     simple_cte(
         [
@@ -10,11 +12,7 @@
             ("mart_pct", "rpt_service_ping_instance_metric_adoption_monthly_all"),
         ]
     )
-}}
-
--- Fact data from mart_service_ping_instance_metric_28_day, bringing in only last ping
--- of months which are valid
-,
+}},
 fact as (
 
     select

@@ -104,34 +104,28 @@ with
             dim_product_detail.service_type,
             case
                 when
-                    lower(
-                        dim_product_detail.product_rate_plan_charge_name
-                    ) like '%edu or oss%'
+                    lower(dim_product_detail.product_rate_plan_charge_name)
+                    like '%edu or oss%'
                 then true
                 when
-                    lower(
-                        dim_product_detail.product_rate_plan_charge_name
-                    ) like '%education%'
+                    lower(dim_product_detail.product_rate_plan_charge_name)
+                    like '%education%'
                 then true
                 when
-                    lower(
-                        dim_product_detail.product_rate_plan_charge_name
-                    ) like '%y combinator%'
+                    lower(dim_product_detail.product_rate_plan_charge_name)
+                    like '%y combinator%'
                 then true
                 when
-                    lower(
-                        dim_product_detail.product_rate_plan_charge_name
-                    ) like '%support%'
+                    lower(dim_product_detail.product_rate_plan_charge_name)
+                    like '%support%'
                 then true
                 when
-                    lower(
-                        dim_product_detail.product_rate_plan_charge_name
-                    ) like '%reporter%'
+                    lower(dim_product_detail.product_rate_plan_charge_name)
+                    like '%reporter%'
                 then true
                 when
-                    lower(
-                        dim_product_detail.product_rate_plan_charge_name
-                    ) like '%guest%'
+                    lower(dim_product_detail.product_rate_plan_charge_name)
+                    like '%guest%'
                 then true
                 when crm_opportunity_name like '%EDU%'
                 then true
@@ -183,9 +177,8 @@ with
 
         select
             combined.*,
-            abs(invoice_item_charge_amount) / (
-                arr * current_term_years
-            ) as pct_paid_of_total_revenue,
+            abs(invoice_item_charge_amount)
+            / (arr * current_term_years) as pct_paid_of_total_revenue,
             {{
                 arr_buckets(
                     "SUM(arr) OVER(PARTITION BY dim_parent_crm_account_id_invoice,         effective_start_month, effective_end_month, subscription_name,         product_rate_plan_charge_name)"

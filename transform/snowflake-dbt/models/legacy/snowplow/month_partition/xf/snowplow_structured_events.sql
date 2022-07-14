@@ -1,7 +1,5 @@
 with
-    events as (select * from {{ ref("snowplow_unnested_events") }})
-
-    ,
+    events as (select * from {{ ref("snowplow_unnested_events") }}),
     renamed as (
 
         select

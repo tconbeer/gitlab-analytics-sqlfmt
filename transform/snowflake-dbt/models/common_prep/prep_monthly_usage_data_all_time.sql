@@ -7,9 +7,7 @@
             ("prep_usage_ping_payload", "prep_usage_ping_payload"),
         ]
     )
-}}
-
-,
+}},
 data as (
 
     select *
@@ -43,11 +41,10 @@ transformed as (
         row_number() over (
             partition by dim_instance_id, metrics_path, ping_created_month
             order by ping_created_at desc
-        ) = 1
+        )
+        = 1
 
-)
-
-,
+),
 monthly as (
 
     select
@@ -65,9 +62,9 @@ monthly as (
         ) as last_ping_value,
         datediff('day', last_ping_date, ping_created_at) as days_since_last_ping,
         metric_value - last_ping_value as monthly_metric_value,
-        monthly_metric_value * 28 / ifnull(
-            days_since_last_ping, 1
-        ) as normalized_monthly_metric_value
+        monthly_metric_value
+        * 28
+        / ifnull(days_since_last_ping, 1) as normalized_monthly_metric_value
     from transformed
 
 ),

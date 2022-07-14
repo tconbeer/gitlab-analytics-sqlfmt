@@ -184,39 +184,34 @@ with
         {%- endif %}
 
         where
-            app_id is not null and date_part(
-                month, try_to_timestamp(derived_tstamp)
-            ) = '{{ month_value }}' and date_part(
-                year, try_to_timestamp(derived_tstamp)
-            ) = '{{ year_value }}' and (
+            app_id is not null
+            and date_part(month, try_to_timestamp(derived_tstamp)) = '{{ month_value }}'
+            and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
+            and
+            (
                 (
                     -- js backend tracker
-                    v_tracker like 'js%' and lower(
-                        page_url
-                    ) not like 'https://staging.gitlab.com/%' and lower(
-                        page_url
-                    ) not like 'https://customers.stg.gitlab.com/%' and lower(
-                        page_url
-                    ) not like 'http://localhost:%'
+                    v_tracker like 'js%'
+                    and lower(page_url) not like 'https://staging.gitlab.com/%'
+                    and lower(page_url) not like 'https://customers.stg.gitlab.com/%'
+                    and lower(page_url) not like 'http://localhost:%'
                 )
 
                 or
 
                 -- ruby backend tracker
                 (v_tracker like 'rb%')
+            )
             -- removing it after approval from @rparker2 in this issue:
             -- https://gitlab.com/gitlab-data/analytics/-/issues/9112
-            ) and iff(
-                event_name in (
-                    'submit_form', 'focus_form', 'change_form'
-                ) and try_to_timestamp(derived_tstamp) < '2021-05-26',
+            and iff(
+                event_name in ('submit_form', 'focus_form', 'change_form')
+                and try_to_timestamp(derived_tstamp) < '2021-05-26',
                 false,
                 true
             )
 
-    )
-
-    ,
+    ),
     base as (
 
         select *
@@ -416,9 +411,8 @@ with
             }} as glm_source,
             case
                 when
-                    length(unstruct_event) > 0 and try_parse_json(
-                        unstruct_event
-                    ) is null
+                    length(unstruct_event) > 0
+                    and try_parse_json(unstruct_event) is null
                 then true
                 else false
             end as is_bad_unstruct_event,

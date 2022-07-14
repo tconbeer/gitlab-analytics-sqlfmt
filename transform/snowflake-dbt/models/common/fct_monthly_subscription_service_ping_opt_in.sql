@@ -12,9 +12,7 @@
             ("prep_charge", "prep_charge"),
         ]
     )
-}}
-
-,
+}},
 dim_date as (
 
     select * from {{ ref("dim_date") }} where first_day_of_month < current_date
@@ -29,20 +27,22 @@ self_managed_active_subscriptions as (
         sum(prep_charge.quantity) as quantity
     from prep_charge
     inner join
-        dim_date on prep_charge.effective_start_month <= dim_date.date_actual and (
+        dim_date
+        on prep_charge.effective_start_month <= dim_date.date_actual
+        and (
             prep_charge.effective_end_month > dim_date.date_actual
             or prep_charge.effective_end_month is null
-        ) and dim_date.day_of_month = 1
+        )
+        and dim_date.day_of_month = 1
     inner join
         dim_product_detail
         on prep_charge.dim_product_detail_id = dim_product_detail.dim_product_detail_id
         and product_delivery_type = 'Self-Managed'
     where
+        subscription_status in ('Active', 'Cancelled')
         /* This excludes Education customers (charge name EDU or OSS) with free subscriptions.
          Pull in seats from Paid EDU Plans with no ARR */
-        subscription_status in ('Active', 'Cancelled') and (
-            mrr != 0 or lower(prep_charge.rate_plan_charge_name) = 'max enrollment'
-        )
+        and (mrr != 0 or lower(prep_charge.rate_plan_charge_name) = 'max enrollment')
         {{ dbt_utils.group_by(n=2) }}
 
 ),
@@ -68,9 +68,8 @@ transformed as (
         self_managed_active_subscriptions.dim_subscription_id,
         mrr * 12 as arr,
         quantity,
-        max(
-            prep_usage_ping_payload.dim_subscription_id
-        ) is not null as has_sent_payloads,
+        max(prep_usage_ping_payload.dim_subscription_id)
+        is not null as has_sent_payloads,
         count(
             distinct prep_usage_ping_payload.dim_usage_ping_id
         ) as monthly_payload_counts,

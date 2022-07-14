@@ -5,8 +5,7 @@ select
 from {{ ref("gitlab_dotcom_projects_dedupe_source") }}
 left join
     {{ ref("gitlab_dotcom_namespaces_dedupe_source") }}
-    on
-    gitlab_dotcom_namespaces_dedupe_source.id
+    on gitlab_dotcom_namespaces_dedupe_source.id
     = gitlab_dotcom_projects_dedupe_source.namespace_id
 where
     gitlab_dotcom_projects_dedupe_source.import_type = 'fogbugz'

@@ -9,9 +9,7 @@
             ("dim_gitlab_releases", "dim_gitlab_releases"),
         ]
     )
-}}
-
-,
+}},
 transformed as (
 
     select distinct

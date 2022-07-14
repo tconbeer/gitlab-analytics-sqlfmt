@@ -6,9 +6,8 @@ with
         select *
         from {{ source("snapshots", "sheetload_employee_location_factor_snapshots") }}
         where
-            "Employee_ID" != 'Not In Comp Calc' and "Employee_ID" not in (
-                '$72,124', 'S1453'
-            )
+            "Employee_ID" != 'Not In Comp Calc'
+            and "Employee_ID" not in ('$72,124', 'S1453')
 
     ),
     renamed as (

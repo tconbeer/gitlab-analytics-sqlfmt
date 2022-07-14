@@ -27,9 +27,7 @@
             ("dim_amendment", "dim_amendment"),
         ]
     )
-}}
-
-,
+}},
 dim_subscription_source as (
 
     select
@@ -38,7 +36,8 @@ dim_subscription_source as (
             when
                 lead(term_start_month) over (
                     partition by subscription_name order by subscription_version
-                ) = term_start_month
+                )
+                = term_start_month
             then true
             else false
         end as is_dup_term
@@ -87,93 +86,111 @@ dim_subscription_int as (
             when
                 lead(term_end_month) over (
                     partition by subscription_name order by subscription_version
-                ) = term_end_month
+                )
+                = term_end_month
             then true
             when
                 lead(term_end_month, 2) over (
                     partition by subscription_name order by subscription_version
-                ) = term_end_month
+                )
+                = term_end_month
             then true
             when
                 lead(subscription_end_fiscal_year) over (
                     partition by subscription_name order by subscription_version
-                ) = subscription_end_fiscal_year
+                )
+                = subscription_end_fiscal_year
             then true
             when
                 lead(term_start_month) over (
                     partition by subscription_name order by subscription_version
-                ) = term_start_month
+                )
+                = term_start_month
             then true
             -- check for subsequent subscriptiptions that are backed out
             when
                 lead(term_start_month) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 2) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 3) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 4) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 5) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 6) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 7) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 8) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 9) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 10) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 11) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 12) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 13) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             when
                 lead(term_start_month, 14) over (
                     partition by subscription_name order by subscription_version
-                ) < term_start_month
+                )
+                < term_start_month
             then true
             else false
         end as exclude_from_term_sorting
@@ -493,11 +510,8 @@ base_{{ renewal_fiscal_year }} as (
         on mart_charge.subscription_name
         = renewal_subscriptions_{{ renewal_fiscal_year }}.subscription_name
     where
-        mart_charge.term_start_month <= concat(
-            '{{renewal_fiscal_year}}' -1, '-01-01'
-        ) and mart_charge.term_end_month > concat(
-            '{{renewal_fiscal_year}}' -1, '-01-01'
-        )
+        mart_charge.term_start_month <= concat('{{renewal_fiscal_year}}' -1, '-01-01')
+        and mart_charge.term_end_month > concat('{{renewal_fiscal_year}}' -1, '-01-01')
 
 -- get the starting and ending month ARR for charges with current terms <= 12 months.
 -- These terms do not need additional logic.
@@ -637,9 +651,8 @@ twenty_four_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 13 and 24 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 13 and 24
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
 
 -- create records for the intermitent renewals for multi-year bookings that are not in
@@ -674,9 +687,8 @@ thirty_six_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 25 and 36 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 25 and 36
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
 
     union all
@@ -707,9 +719,8 @@ thirty_six_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 25 and 36 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 25 and 36
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
     order by 1
 
@@ -745,9 +756,8 @@ forty_eight_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 37 and 48 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 37 and 48
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
 
     union all
@@ -778,9 +788,8 @@ forty_eight_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 37 and 48 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 37 and 48
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
 
     union all
@@ -811,9 +820,8 @@ forty_eight_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 37 and 48 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 37 and 48
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
     order by 1
 
@@ -849,9 +857,8 @@ sixty_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 49 and 60 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 49 and 60
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
 
     union all
@@ -882,9 +889,8 @@ sixty_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 49 and 60 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 49 and 60
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
 
     union all
@@ -915,9 +921,8 @@ sixty_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 49 and 60 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 49 and 60
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
 
     union all
@@ -948,9 +953,8 @@ sixty_mth_term_{{ renewal_fiscal_year }} as (
         sum(arr) as arr
     from agg_charge_term_greater_than_12_{{ renewal_fiscal_year }}
     where
-        current_term between 49 and 60 and term_end_month > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        current_term between 49 and 60
+        and term_end_month > concat('{{renewal_fiscal_year}}', '-01-01')
         {{ dbt_utils.group_by(n=22) }}
     order by 1
 
@@ -1084,7 +1088,8 @@ renewal_report_{{ renewal_fiscal_year }} as (
             when
                 base_{{ renewal_fiscal_year }}.term_end_month between dateadd(
                     'month', 1, concat('{{renewal_fiscal_year}}' -1, '-01-01')
-                ) and concat('{{renewal_fiscal_year}}', '-01-01')
+                )
+                and concat('{{renewal_fiscal_year}}', '-01-01')
                 and base_{{ renewal_fiscal_year }}.is_multi_year_booking_with_multi_subs
                 = false
             then true
@@ -1116,7 +1121,9 @@ renewal_report_{{ renewal_fiscal_year }} as (
     where
         combined_{{ renewal_fiscal_year }}.term_end_month between dateadd(
             'month', 1, concat('{{renewal_fiscal_year}}' -1, '-01-01')
-        ) and concat('{{renewal_fiscal_year}}', '-01-01') and day_of_month = 1
+        )
+        and concat('{{renewal_fiscal_year}}', '-01-01')
+        and day_of_month = 1
     order by fiscal_quarter_name_fy
 
 {% endfor -%}

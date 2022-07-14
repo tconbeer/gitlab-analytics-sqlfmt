@@ -19,7 +19,8 @@ with
         qualify
             row_number() over (
                 partition by ping_created_at_date order by dim_usage_ping_id desc
-            ) = 1
+            )
+            = 1
 
     )
 

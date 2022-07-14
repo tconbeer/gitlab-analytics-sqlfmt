@@ -10,9 +10,7 @@
             ("dim_project", "dim_project"),
         ]
     )
-}}
-
-,
+}},
 boards_source as (
 
     select *

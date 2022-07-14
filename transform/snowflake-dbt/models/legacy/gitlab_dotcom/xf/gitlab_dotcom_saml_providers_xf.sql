@@ -1,10 +1,6 @@
 with
-    saml_providers as (select * from {{ ref("gitlab_dotcom_saml_providers") }})
-
-    ,
-    identities as (select * from {{ ref("gitlab_dotcom_identities") }})
-
-    ,
+    saml_providers as (select * from {{ ref("gitlab_dotcom_saml_providers") }}),
+    identities as (select * from {{ ref("gitlab_dotcom_identities") }}),
     joined as (
 
         select

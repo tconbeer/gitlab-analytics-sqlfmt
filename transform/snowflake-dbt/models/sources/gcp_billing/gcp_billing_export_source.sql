@@ -20,9 +20,8 @@ with
             flatten_export.value['cost_type']::varchar as cost_type,
             flatten_export.value['credits']::variant as credits,
             flatten_export.value['currency']::varchar as currency,
-            flatten_export.value[
-                'currency_conversion_rate'
-            ]::float as currency_conversion_rate,
+            flatten_export.value['currency_conversion_rate']::float
+            as currency_conversion_rate,
             flatten_export.value['export_time']::timestamp as export_time,
             to_date(
                 flatten_export.value['invoice'] ['month']::string, 'YYYYMM'
@@ -37,17 +36,15 @@ with
             flatten_export.value['project'] ['labels']::variant as project_labels,
             flatten_export.value['project'] ['name']::varchar as project_name,
             flatten_export.value['service'] ['id']::varchar as service_id,
-            flatten_export.value['service'] [
-                'description'
-            ]::varchar as service_description,
+            flatten_export.value['service'] ['description']::varchar
+            as service_description,
             flatten_export.value['sku'] ['id']::varchar as sku_id,
             flatten_export.value['sku'] ['description']::varchar as sku_description,
             flatten_export.value['system_labels']::variant as system_labels,
             flatten_export.value['usage'] ['pricing_unit']::varchar as pricing_unit,
             flatten_export.value['usage'] ['amount']::float as usage_amount,
-            flatten_export.value['usage'] [
-                'amount_in_pricing_units'
-            ]::float as usage_amount_in_pricing_units,
+            flatten_export.value['usage'] ['amount_in_pricing_units']::float
+            as usage_amount_in_pricing_units,
             flatten_export.value['usage'] ['unit']::varchar as usage_unit,
             flatten_export.value['usage_start_time']::timestamp as usage_start_time,
             flatten_export.value['usage_end_time']::timestamp as usage_end_time,

@@ -38,27 +38,27 @@ with
                     contains(
                         issue_description,
                         '[x] Yes, Diversity Sourcing methods were used'::varchar
-                    ) = true
+                    )
+                    = true
                 then 'Used Diversity Strings'
                 when
                     contains(
                         issue_description,
                         '[x] No, I did not use Diversity Sourcing methods'::varchar
-                    ) = true
+                    )
+                    = true
                 then 'Did not use'
                 when
-                    contains(
-                        issue_description, '[x] Not Actively Sourcing'::varchar
-                    ) = true
+                    contains(issue_description, '[x] Not Actively Sourcing'::varchar)
+                    = true
                 then 'Not Actively Sourcing'
                 else 'No Answer'
             end as issue_answer
         from issues
         left join agg_assignee on agg_assignee.issue_id = issues.issue_id
         where
-            lower(issue_title) like '%weekly check-in:%' and lower(
-                issue_title
-            ) not like '%test%'
+            lower(issue_title) like '%weekly check-in:%'
+            and lower(issue_title) not like '%test%'
 
     ),
     split_issue as (

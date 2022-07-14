@@ -14,7 +14,8 @@ with
             iff(
                 row_number() over (
                     partition by order_subscription_id order by report_date desc
-                ) = 1,
+                )
+                = 1,
                 true,
                 false
             ) as is_last_seat_link_report_per_subscription,
@@ -59,9 +60,8 @@ with
             seat_links.is_last_seat_link_report_per_subscription,
             seat_links.is_last_seat_link_report_per_order,
             iff(
-                ifnull(
-                    seat_links.order_subscription_id, ''
-                ) = subscriptions.dim_subscription_id,
+                ifnull(seat_links.order_subscription_id, '')
+                = subscriptions.dim_subscription_id,
                 true,
                 false
             ) as is_subscription_in_zuora,

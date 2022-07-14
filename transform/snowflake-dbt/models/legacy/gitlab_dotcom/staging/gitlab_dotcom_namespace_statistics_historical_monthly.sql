@@ -27,7 +27,8 @@ with
         qualify
             row_number() over (
                 partition by snapshot_month, namespace_id order by valid_to_ desc
-            ) = 1
+            )
+            = 1
 
     )
 

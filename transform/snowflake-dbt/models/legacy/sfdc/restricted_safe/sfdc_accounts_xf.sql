@@ -32,9 +32,8 @@ with
             sfdc_account_deal_size_segmentation.deal_size,
             case
                 when
-                    sfdc_account.ultimate_parent_sales_segment in (
-                        'Large', 'Strategic'
-                    ) or sfdc_account.division_sales_segment in ('Large', 'Strategic')
+                    sfdc_account.ultimate_parent_sales_segment in ('Large', 'Strategic')
+                    or sfdc_account.division_sales_segment in ('Large', 'Strategic')
                 then true
                 else false
             end as is_large_and_up,

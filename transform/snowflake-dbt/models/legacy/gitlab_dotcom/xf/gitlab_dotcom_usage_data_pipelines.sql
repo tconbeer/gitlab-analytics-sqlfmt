@@ -303,6 +303,7 @@
 ] -%}
 
 
+/* Source CTEs Start Here */
 {{
     simple_cte(
         [
@@ -317,11 +318,7 @@
             ("user_details", "gitlab_dotcom_users"),
         ]
     )
-}}
-
-
-/* Source CTEs Start Here */
-,
+}},
 action_monthly_active_users_project_repo_source as (
 
     select *
@@ -453,9 +450,7 @@ terraform_reports_source as (
 
 )
 
-{% endfor -%}
-
-,
+{% endfor -%},
 data as (
 
     {% for event_cte in event_ctes %}
@@ -547,9 +542,7 @@ data as (
     {% endif %}
     {% endfor -%}
 
-)
-
-,
+),
 final as (
     select
         data.*,

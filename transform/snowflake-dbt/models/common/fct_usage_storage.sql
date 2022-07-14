@@ -16,14 +16,12 @@ with
             snapshot_month,
             project_id,
             namespace_id,
-            (
-                repository_size + lfs_objects_size
-            ) / {{ bytes_to_gib_conversion }} as project_storage_size
+            (repository_size + lfs_objects_size)
+            / {{ bytes_to_gib_conversion }} as project_storage_size
         from {{ ref("gitlab_dotcom_project_statistic_historical_monthly") }}
         where
-            snapshot_month >= '2020-07-01' and snapshot_month < date_trunc(
-                'month', current_date
-            )
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
         union all
 
@@ -32,9 +30,8 @@ with
             date_trunc('month', current_date) as snapshot_month,
             project_id,
             namespace_id,
-            (
-                repository_size + lfs_objects_size
-            ) / {{ bytes_to_gib_conversion }} as project_storage_size
+            (repository_size + lfs_objects_size)
+            / {{ bytes_to_gib_conversion }} as project_storage_size
         from {{ ref("gitlab_dotcom_project_statistics_source") }}
 
     ),
@@ -44,9 +41,8 @@ with
         select snapshot_month, namespace_id, ultimate_parent_id
         from {{ ref("gitlab_dotcom_namespace_lineage_historical_monthly") }}
         where
-            snapshot_month >= '2020-07-01' and snapshot_month < date_trunc(
-                'month', current_date
-            )
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
         union all
 
@@ -73,9 +69,8 @@ with
             repository_size + lfs_objects_size as billable_storage_size
         from {{ ref("gitlab_dotcom_namespace_storage_statistics_historical_monthly") }}
         where
-            snapshot_month >= '2020-07-01' and snapshot_month < date_trunc(
-                'month', current_date
-            )
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
         union all
 
@@ -106,9 +101,11 @@ with
             sum(order_quantity * 10) as purchased_storage_gib
         from {{ ref("customers_db_orders_source") }}
         inner join
-            month_spine on month_spine.first_day_of_month between date_trunc(
+            month_spine
+            on month_spine.first_day_of_month between date_trunc(
                 'month', order_start_date
-            ) and dateadd(month, -1, date_trunc('month', order_end_date))
+            )
+            and dateadd(month, -1, date_trunc('month', order_end_date))
         -- only storage rate plan, 10GiB of storage
         where product_rate_plan_id = '2c92a00f7279a6f5017279d299d01cf9'
         group by 1, 2
@@ -185,7 +182,8 @@ with
                     namespace_lineage_monthly_all.snapshot_month
             ) as total_purchased_storage_size,
             iff(
-                is_free_storage_used_up and (
+                is_free_storage_used_up
+                and (
                     purchased_storage_limit = 0
                     or total_purchased_storage_size >= purchased_storage_limit
                 ),
@@ -242,11 +240,9 @@ with
             ) as has_capped_repositories,
             repository.capped_repositories_count,
             repository.free_storage
-            * {{ bytes_to_gib_conversion }}
-            as total_free_storage_bytes,
+            * {{ bytes_to_gib_conversion }} as total_free_storage_bytes,
             repository.purchased_storage
-            * {{ bytes_to_gib_conversion }}
-            as total_purchased_storage_bytes,
+            * {{ bytes_to_gib_conversion }} as total_purchased_storage_bytes,
             namespace.billable_storage_size as billable_storage_bytes,
             namespace.repository_size as repository_bytes,
             namespace.lfs_objects_size as lfs_objects_bytes,
@@ -255,36 +251,28 @@ with
             namespace.wiki_size as wiki_bytes,
             namespace.storage_size as storage_bytes,
             repository.free_storage
-            * {{ mib_to_gib_conversion }}
-            as total_free_storage_mib,
+            * {{ mib_to_gib_conversion }} as total_free_storage_mib,
             repository.purchased_storage
-            * {{ mib_to_gib_conversion }}
-            as total_purchased_storage_mib,
+            * {{ mib_to_gib_conversion }} as total_purchased_storage_mib,
             namespace.billable_storage_size
-            / {{ bytes_to_mib_conversion }}
-            as billable_storage_mib,
+            / {{ bytes_to_mib_conversion }} as billable_storage_mib,
             namespace.repository_size / {{ bytes_to_mib_conversion }} as repository_mib,
             namespace.lfs_objects_size
-            / {{ bytes_to_mib_conversion }}
-            as lfs_objects_mib,
+            / {{ bytes_to_mib_conversion }} as lfs_objects_mib,
             namespace.build_artifacts_size
-            / {{ bytes_to_mib_conversion }}
-            as build_artifacts_mib,
+            / {{ bytes_to_mib_conversion }} as build_artifacts_mib,
             namespace.packages_size / {{ bytes_to_mib_conversion }} as packages_mib,
             namespace.wiki_size / {{ bytes_to_mib_conversion }} as wiki_mib,
             namespace.storage_size / {{ bytes_to_mib_conversion }} as storage_mib,
             repository.free_storage as total_free_storage_gib,
             repository.purchased_storage as total_purchased_storage_gib,
             namespace.billable_storage_size
-            / {{ bytes_to_gib_conversion }}
-            as billable_storage_gib,
+            / {{ bytes_to_gib_conversion }} as billable_storage_gib,
             namespace.repository_size / {{ bytes_to_gib_conversion }} as repository_gib,
             namespace.lfs_objects_size
-            / {{ bytes_to_gib_conversion }}
-            as lfs_objects_gib,
+            / {{ bytes_to_gib_conversion }} as lfs_objects_gib,
             namespace.build_artifacts_size
-            / {{ bytes_to_gib_conversion }}
-            as build_artifacts_gib,
+            / {{ bytes_to_gib_conversion }} as build_artifacts_gib,
             namespace.packages_size / {{ bytes_to_gib_conversion }} as packages_gib,
             namespace.wiki_size / {{ bytes_to_gib_conversion }} as wiki_gib,
             namespace.storage_size / {{ bytes_to_gib_conversion }} as storage_gib

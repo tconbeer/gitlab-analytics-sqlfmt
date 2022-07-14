@@ -9,7 +9,8 @@ with
             row_number() over (
                 partition by order_subscription_id, snapshot_month
                 order by report_date desc
-            ) = 1
+            )
+            = 1
 
     ),
     final as (

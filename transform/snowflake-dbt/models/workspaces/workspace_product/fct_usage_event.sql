@@ -15,9 +15,7 @@
             ("dim_namespace", "dim_namespace"),
         ]
     )
-}}
-
-,
+}},
 fct_events as (
 
     select
@@ -59,7 +57,8 @@ paid_flag_by_day as (
     qualify
         row_number() over (
             partition by namespace_id, event_date order by event_created_at desc
-        ) = 1
+        )
+        = 1
 
 ),
 fct_events_w_plan_was_paid as (
@@ -94,7 +93,8 @@ deduped_namespace_bdg as (
     qualify
         row_number() over (
             partition by dim_namespace_id order by subscription_version desc
-        ) = 1
+        )
+        = 1
 
 ),
 dim_namespace_w_bdg as (

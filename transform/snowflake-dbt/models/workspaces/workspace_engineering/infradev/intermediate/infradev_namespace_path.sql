@@ -11,38 +11,29 @@ with
                 then
                     namespace_4.namespace_path
                     || '/'
-                    ||
-                    namespace_3.namespace_path
+                    || namespace_3.namespace_path
                     || '/'
-                    ||
-                    namespace_2.namespace_path
+                    || namespace_2.namespace_path
                     || '/'
-                    ||
-                    namespace_1.namespace_path
+                    || namespace_1.namespace_path
                     || '/'
-                    ||
-                    namespaces.namespace_path
+                    || namespaces.namespace_path
                 when namespace_3.dim_namespace_id is not null
                 then
                     namespace_3.namespace_path
                     || '/'
-                    ||
-                    namespace_2.namespace_path
+                    || namespace_2.namespace_path
                     || '/'
-                    ||
-                    namespace_1.namespace_path
+                    || namespace_1.namespace_path
                     || '/'
-                    ||
-                    namespaces.namespace_path
+                    || namespaces.namespace_path
                 when namespace_2.dim_namespace_id is not null
                 then
                     namespace_2.namespace_path
                     || '/'
-                    ||
-                    namespace_1.namespace_path
+                    || namespace_1.namespace_path
                     || '/'
-                    ||
-                    namespaces.namespace_path
+                    || namespaces.namespace_path
                 when namespace_1.dim_namespace_id is not null
                 then namespace_1.namespace_path || '/' || namespaces.namespace_path
                 else namespaces.namespace_path

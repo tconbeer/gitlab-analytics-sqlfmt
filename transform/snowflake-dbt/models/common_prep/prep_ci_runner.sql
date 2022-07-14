@@ -8,9 +8,7 @@
             ("dim_date", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 gitlab_dotcom_ci_runners_source as (
 
     select *
@@ -50,9 +48,8 @@ final as (
 
     from gitlab_dotcom_ci_runners_source
     left join
-        dim_date on to_date(
-            gitlab_dotcom_ci_runners_source.created_at
-        ) = dim_date.date_day
+        dim_date
+        on to_date(gitlab_dotcom_ci_runners_source.created_at) = dim_date.date_day
 
 )
 

@@ -11,11 +11,7 @@ with
     ),
     gitlab_dotcom_xmau_metrics as (
 
-        select * from {{ ref("gitlab_dotcom_xmau_metrics") }}
-
-    )
-
-    ,
+        select * from {{ ref("gitlab_dotcom_xmau_metrics") }}),
     events as (
 
         select
@@ -38,9 +34,7 @@ with
             gitlab_dotcom_xmau_metrics as xmau
             on events.event_name = xmau.events_to_include
 
-    )
-
-    ,
+    ),
     joined as (
 
         select
@@ -68,7 +62,8 @@ with
             ) as paid_namespace_count
         from skeleton
         left join
-            events on event_date between dateadd(
+            events
+            on event_date between dateadd(
                 'days', -28, last_day_of_month
             ) and last_day_of_month
             {{ dbt_utils.group_by(n=8) }}

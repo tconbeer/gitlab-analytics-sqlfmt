@@ -18,9 +18,9 @@ with
         select *
         from {{ ref("zuora_subscription_snapshots_source") }}
         where
-            subscription_status not in (
-                'Draft', 'Expired'
-            ) and is_deleted = false and exclude_from_analysis in ('False', '')
+            subscription_status not in ('Draft', 'Expired')
+            and is_deleted = false
+            and exclude_from_analysis in ('False', '')
 
     ),
     zuora_subscription_spined as (
@@ -37,7 +37,8 @@ with
             rank() over (
                 partition by subscription_name, snapshot_dates.date_actual
                 order by dbt_valid_from desc
-            ) = 1
+            )
+            = 1
 
     ),
     opportunity as (
@@ -113,9 +114,8 @@ with
             end as is_myb_with_multi_subs,
             case
                 when
-                    date_trunc(
-                        'month', fct_charge.charged_through_date
-                    ) = fct_charge.effective_end_month
+                    date_trunc('month', fct_charge.charged_through_date)
+                    = fct_charge.effective_end_month
                 then true
                 else false
             end as is_paid_in_full,

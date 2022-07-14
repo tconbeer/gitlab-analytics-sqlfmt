@@ -10,6 +10,5 @@ where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
 
 {% endif %}
 qualify
-    row_number() over (
-        partition by approval_project_rule_id order by _uploaded_at desc
-    ) = 1
+    row_number() over (partition by approval_project_rule_id order by _uploaded_at desc)
+    = 1

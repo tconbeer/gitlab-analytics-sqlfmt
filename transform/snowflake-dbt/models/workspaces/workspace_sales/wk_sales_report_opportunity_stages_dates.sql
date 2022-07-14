@@ -49,9 +49,8 @@ with
         select o.opportunity_id, o.stage_name, o.created_date as min_stage_date
         from sfdc_opportunity_xf o
         left join
-            (
-                select distinct opportunity_id from history_base
-            ) h on h.opportunity_id = o.opportunity_id
+            (select distinct opportunity_id from history_base) h
+            on h.opportunity_id = o.opportunity_id
         where h.opportunity_id is null
 
     ),

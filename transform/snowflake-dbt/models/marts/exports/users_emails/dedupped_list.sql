@@ -56,7 +56,8 @@ with
         qualify
             row_number() over (
                 partition by full_name, notification_email, plan_title order by state
-            ) = 1
+            )
+            = 1
 
     )
 

@@ -1,5 +1,6 @@
 {{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
+-- Get value from mart_arr
 {{
     simple_cte(
         [
@@ -15,10 +16,7 @@
             ("dim_service_ping_metric", "dim_service_ping_metric"),
         ]
     )
-}}
-
--- Get value from mart_arr
-,
+}},
 arr_joined as (
 
     select mart_service_ping_instance_metric_28_day.*, mart_arr.quantity
@@ -77,8 +75,7 @@ joined_counts as (
         -- could have reported
         potential_report_counts.total_subscription_count as total_subscription_count,
         total_subscription_count  -- could have reported, but didn't
-        - reported_subscription_count
-        as no_reporting_subscription_count,
+        - reported_subscription_count as no_reporting_subscription_count,
         -- could have reported, but didn't
         total_licensed_users - reported_seat_count as no_reporting_seat_count
     from reported_actuals

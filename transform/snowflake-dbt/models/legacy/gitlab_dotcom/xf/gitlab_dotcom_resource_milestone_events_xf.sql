@@ -1,17 +1,9 @@
 with
     gitlab_dotcom_resource_milestone_events as (
 
-        select * from {{ ref("gitlab_dotcom_resource_milestone_events") }}
-
-    )
-
-    ,
-    issues as (select * from {{ ref("gitlab_dotcom_issues") }})
-
-    ,
-    mrs as (select * from {{ ref("gitlab_dotcom_merge_requests") }})
-
-    ,
+        select * from {{ ref("gitlab_dotcom_resource_milestone_events") }}),
+    issues as (select * from {{ ref("gitlab_dotcom_issues") }}),
+    mrs as (select * from {{ ref("gitlab_dotcom_merge_requests") }}),
     joined as (
 
         select

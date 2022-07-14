@@ -38,7 +38,8 @@ with
         where
             date_trunc('year', first_day_of_month) between dateadd(
                 'year', -2, date_trunc('year', current_date)
-            ) and dateadd('year', 2, date_trunc('year', current_date))
+            )
+            and dateadd('year', 2, date_trunc('year', current_date))
 
     ),
     accts_depts_periods_cost as (

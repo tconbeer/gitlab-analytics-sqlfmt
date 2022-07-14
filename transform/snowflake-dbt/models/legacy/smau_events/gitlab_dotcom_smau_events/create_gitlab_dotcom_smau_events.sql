@@ -15,9 +15,7 @@ with
         from {{ ref("gitlab_dotcom_notes") }}
         where noteable_type = 'MergeRequest' and created_at >= '2015-01-01'
 
-    )
-
-    ,
+    ),
     mr_created as (
 
         select
@@ -33,9 +31,7 @@ with
         from {{ ref("gitlab_dotcom_merge_requests_xf") }}
         where created_at >= '2015-01-01'
 
-    )
-
-    ,
+    ),
     snippet_comment_added as (
 
         select
@@ -48,9 +44,7 @@ with
         from {{ ref("gitlab_dotcom_notes") }}
         where noteable_type = 'Snippet' and created_at >= '2015-01-01'
 
-    )
-
-    ,
+    ),
     unioned as (
         {% for event_cte in event_ctes %}
 

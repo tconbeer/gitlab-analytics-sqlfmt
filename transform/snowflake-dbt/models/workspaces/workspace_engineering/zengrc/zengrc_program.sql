@@ -6,9 +6,7 @@
             ("requests", "zengrc_request_source"),
         ]
     )
-}}
-
-,
+}},
 audit_programs as (
 
     select
@@ -20,7 +18,8 @@ audit_programs as (
     qualify
         row_number() over (
             partition by audits.program_id order by audit_uploaded_at desc
-        ) = 1
+        )
+        = 1
 
 ),
 issue_programs as (

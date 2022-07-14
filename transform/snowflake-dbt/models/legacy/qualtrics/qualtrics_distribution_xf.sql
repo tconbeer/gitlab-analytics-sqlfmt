@@ -4,9 +4,8 @@ with
         select *
         from {{ ref("qualtrics_distribution") }}
         qualify
-            row_number() over (
-                partition by distribution_id order by uploaded_at desc
-            ) = 1
+            row_number() over (partition by distribution_id order by uploaded_at desc)
+            = 1
 
     )
 

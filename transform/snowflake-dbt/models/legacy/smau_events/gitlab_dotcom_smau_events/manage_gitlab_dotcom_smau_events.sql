@@ -17,9 +17,7 @@ with
         from {{ ref("gitlab_dotcom_projects_xf") }}
         where project_created_at >= '2015-01-01'
 
-    )
-
-    ,
+    ),
     user_created as (
 
         select
@@ -32,9 +30,7 @@ with
         from {{ ref("gitlab_dotcom_users_xf") }}
         where created_at >= '2015-01-01'
 
-    )
-
-    ,
+    ),
     unioned as (
         {% for event_cte in event_ctes %}
 

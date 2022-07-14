@@ -80,9 +80,11 @@ with
         from sfdc_opportunity_xf o
         left join date_details d on o.subscription_start_date = d.date_actual
         where
-            o.sales_type = 'Renewal' and stage_name not in (
+            o.sales_type = 'Renewal'
+            and stage_name not in (
                 '9-Unqualified', '10-Duplicate', '00-Pre Opportunity'
-            ) and amount <> 0
+            )
+            and amount <> 0
         group by 1, 2
 
     ),
@@ -96,9 +98,11 @@ with
         from sfdc_opportunity_xf o
         left join date_details d on o.subscription_start_date = d.date_actual
         where
-            o.sales_type = 'Renewal' and stage_name not in (
+            o.sales_type = 'Renewal'
+            and stage_name not in (
                 '9-Unqualified', '10-Duplicate', '00-Pre Opportunity'
-            ) and amount <> 0
+            )
+            and amount <> 0
         group by 1, 2
 
     ),
@@ -112,11 +116,15 @@ with
         from sfdc_opportunity_xf o
         cross join report_dates d
         where
-            o.sales_type = 'Renewal' and o.subscription_start_date between dateadd(
+            o.sales_type = 'Renewal'
+            and o.subscription_start_date between dateadd(
                 month, -12, date_trunc('month', d.report_month_date)
-            ) and date_trunc('month', d.report_month_date) and o.stage_name not in (
+            )
+            and date_trunc('month', d.report_month_date)
+            and o.stage_name not in (
                 '9-Unqualified', '10-Duplicate', '00-Pre Opportunity'
-            ) and o.amount <> 0
+            )
+            and o.amount <> 0
         group by 1, 2
 
     -- Rolling 1 year Net ARR
@@ -221,10 +229,10 @@ with
             sum(
                 case
                     when
-                        (o.is_won = 1 or (o.is_renewal = 1 and o.is_lost = 1)) and (
-                            (
-                                o.is_renewal = 1 and o.arr_basis > 5000
-                            ) or o.net_arr > 5000
+                        (o.is_won = 1 or (o.is_renewal = 1 and o.is_lost = 1))
+                        and (
+                            (o.is_renewal = 1 and o.arr_basis > 5000)
+                            or o.net_arr > 5000
                         )
                     then o.calculated_deal_count
                     else 0
@@ -234,10 +242,10 @@ with
             sum(
                 case
                     when
-                        (o.is_won = 1 or (o.is_renewal = 1 and o.is_lost = 1)) and (
-                            (
-                                o.is_renewal = 1 and o.arr_basis > 10000
-                            ) or o.net_arr > 10000
+                        (o.is_won = 1 or (o.is_renewal = 1 and o.is_lost = 1))
+                        and (
+                            (o.is_renewal = 1 and o.arr_basis > 10000)
+                            or o.net_arr > 10000
                         )
                     then o.calculated_deal_count
                     else 0
@@ -247,10 +255,10 @@ with
             sum(
                 case
                     when
-                        (o.is_won = 1 or (o.is_renewal = 1 and o.is_lost = 1)) and (
-                            (
-                                o.is_renewal = 1 and o.arr_basis > 50000
-                            ) or o.net_arr > 50000
+                        (o.is_won = 1 or (o.is_renewal = 1 and o.is_lost = 1))
+                        and (
+                            (o.is_renewal = 1 and o.arr_basis > 50000)
+                            or o.net_arr > 50000
                         )
                     then o.calculated_deal_count
                     else 0
@@ -301,11 +309,12 @@ with
             o.close_date between dateadd(
                 month, -12, date_trunc('month', d.report_month_date)
             ) and
-            date_trunc('month', d.report_month_date) and (
-                o.stage_name = 'Closed Won' or (
-                    o.sales_type = 'Renewal' and o.stage_name = '8-Closed Lost'
-                )
-            ) and o.net_arr <> 0
+            date_trunc('month', d.report_month_date)
+            and (
+                o.stage_name = 'Closed Won'
+                or (o.sales_type = 'Renewal' and o.stage_name = '8-Closed Lost')
+            )
+            and o.net_arr <> 0
         group by 1, 2
 
     -- total booked net arr in fy
@@ -412,10 +421,10 @@ with
         from sfdc_opportunity_xf o
         where
             (
-                o.stage_name = 'Closed Won' or (
-                    o.sales_type = 'Renewal' and o.stage_name = '8-Closed Lost'
-                )
-            ) and o.net_arr <> 0
+                o.stage_name = 'Closed Won'
+                or (o.sales_type = 'Renewal' and o.stage_name = '8-Closed Lost')
+            )
+            and o.net_arr <> 0
         group by 1, 2
 
     -- Total open pipeline at the same point in previous fiscal years (total open pipe)
@@ -429,9 +438,9 @@ with
             sum(h.calculated_deal_count) as count_open_deals
         from sfdc_opportunity_snapshot_xf h
         where
-            h.close_date > h.snapshot_date and h.forecast_category_name not in (
-                'Omitted', 'Closed'
-            ) and h.stage_name in (
+            h.close_date > h.snapshot_date
+            and h.forecast_category_name not in ('Omitted', 'Closed')
+            and h.stage_name in (
                 '1-Discovery',
                 '2-Scoping',
                 '3-Technical',
@@ -515,9 +524,9 @@ with
         from sfdc_opportunity_snapshot_xf h
         -- pipeline created within the last 12 months
         where
-            h.pipeline_created_date > dateadd(
-                month, -12, h.snapshot_date
-            ) and h.pipeline_created_date <= h.snapshot_date and h.stage_name in (
+            h.pipeline_created_date > dateadd(month, -12, h.snapshot_date)
+            and h.pipeline_created_date <= h.snapshot_date
+            and h.stage_name in (
                 '1-Discovery',
                 '2-Scoping',
                 '3-Technical',
@@ -570,7 +579,8 @@ with
         from sfdc_opportunity_snapshot_xf h
         -- pipeline created within the fiscal year
         where
-            h.snapshot_fiscal_year = h.net_arr_created_fiscal_year and h.stage_name in (
+            h.snapshot_fiscal_year = h.net_arr_created_fiscal_year
+            and h.stage_name in (
                 '1-Discovery',
                 '2-Scoping',
                 '3-Technical',
@@ -764,7 +774,9 @@ with
                 when
                     coalesce(arr.product_ultimate_arr, 0) > coalesce(
                         arr.product_starter_arr, 0
-                    ) + coalesce(arr.product_premium_arr, 0)
+                    ) + coalesce(
+                        arr.product_premium_arr, 0
+                    )
                 then 1
                 else 0
             end as is_ultimate_customer_flag,
@@ -773,7 +785,9 @@ with
                 when
                     coalesce(arr.product_ultimate_arr, 0) < coalesce(
                         arr.product_starter_arr, 0
-                    ) + coalesce(arr.product_premium_arr, 0)
+                    ) + coalesce(
+                        arr.product_premium_arr, 0
+                    )
                 then 1
                 else 0
             end as is_premium_customer_flag,

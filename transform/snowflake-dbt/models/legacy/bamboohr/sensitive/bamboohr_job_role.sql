@@ -51,7 +51,8 @@ with
                 order by
                     date_trunc(day, effective_date) asc,
                     date_trunc(hour, effective_date) desc
-            ) = 1
+            )
+            = 1
 
     ),
     final as (
@@ -59,8 +60,7 @@ with
         select
             *,
             lead(dateadd(day, -1, date_trunc(day, intermediate.effective_date))) over
-            (
-                partition by employee_number order by intermediate.effective_date
+            (partition by employee_number order by intermediate.effective_date
             ) as next_effective_date
         from intermediate
         where effective_date >= '2020-02-27'  -- 1st day we started capturing job role

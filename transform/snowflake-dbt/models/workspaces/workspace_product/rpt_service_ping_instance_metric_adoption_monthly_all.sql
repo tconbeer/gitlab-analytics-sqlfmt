@@ -1,5 +1,6 @@
 {{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
+-- union the two adoption methods to pipe into estimations model
 {{
     simple_cte(
         [
@@ -13,10 +14,7 @@
             ),
         ]
     )
-}}
-
--- union the two adoption methods to pipe into estimations model
-,
+}},
 final as (
 
     select

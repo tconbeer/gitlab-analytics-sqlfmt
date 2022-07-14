@@ -43,9 +43,8 @@ with
             and opties.is_excluded_flag = 0
             and opties.is_edu_oss = 0
             and opties.net_arr is not null
-            and lower(opties.deal_group) like any (
-                '%growth%', '%new%'
-            ) and opties.stage_name not in (
+            and lower(opties.deal_group) like any ('%growth%', '%new%')
+            and opties.stage_name not in (
                 '0-Pending Acceptance',
                 'Unqualified',
                 '00-Pre Opportunity',
@@ -286,8 +285,9 @@ with
         where
             pipeline_snapshot.snapshot_fiscal_quarter_date = dateadd(
                 month, -3, pipeline_snapshot.close_fiscal_quarter_date
+            )
             -- exclude lost deals from pipeline
-            ) and pipeline_snapshot.is_lost = 0
+            and pipeline_snapshot.is_lost = 0
         group by 1, 2, 3, 4, 5
 
     -- Quarter plus 2, from the reported quarter perspective
@@ -330,8 +330,9 @@ with
         where
             pipeline_snapshot.snapshot_fiscal_quarter_date = dateadd(
                 month, -6, pipeline_snapshot.close_fiscal_quarter_date
+            )
             -- exclude lost deals from pipeline
-            ) and pipeline_snapshot.is_lost = 0
+            and pipeline_snapshot.is_lost = 0
         group by 1, 2, 3, 4, 5
 
     ),
@@ -472,11 +473,13 @@ with
             on close_date.first_day_of_fiscal_quarter
             = key_fields.close_fiscal_quarter_date
         left join
-            date_details rq_plus_1 on rq_plus_1.date_actual = dateadd(
+            date_details rq_plus_1
+            on rq_plus_1.date_actual = dateadd(
                 month, 3, close_date.first_day_of_fiscal_quarter
             )
         left join
-            date_details rq_plus_2 on rq_plus_2.date_actual = dateadd(
+            date_details rq_plus_2
+            on rq_plus_2.date_actual = dateadd(
                 month, 6, close_date.first_day_of_fiscal_quarter
             )
 

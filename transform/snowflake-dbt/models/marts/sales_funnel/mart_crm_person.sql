@@ -15,9 +15,7 @@
             ("dim_date", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 final as (
 
     select

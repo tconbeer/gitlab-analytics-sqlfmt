@@ -7,7 +7,8 @@ with
         where
             created_at::varchar not in (
                 '0001-01-01 12:00:00', '1000-01-01 12:00:00', '10000-01-01 12:00:00'
-            ) and left(created_at::varchar, 10) != '1970-01-01'
+            )
+            and left(created_at::varchar, 10) != '1970-01-01'
 
     ),
     renamed as (

@@ -10,9 +10,7 @@
             ("dim_project", "dim_project"),
         ]
     )
-}}
-
-,
+}},
 gitlab_dotcom_todo_dedupe_source as (
 
     select *
@@ -51,9 +49,8 @@ joined as (
             dim_namespace_plan_hist.valid_to, '2099-01-01'
         )
     left join
-        dim_date on to_date(
-            gitlab_dotcom_todo_dedupe_source.created_at
-        ) = dim_date.date_day
+        dim_date
+        on to_date(gitlab_dotcom_todo_dedupe_source.created_at) = dim_date.date_day
 
 )
 

@@ -19,9 +19,7 @@
             ("instance_types", "dim_host_instance_type"),
         ]
     )
-}}
-
-,
+}},
 joined as (
 
     select
@@ -55,7 +53,8 @@ joined as (
                 prep_saas_usage_ping_namespace.dim_namespace_id,
                 prep_saas_usage_ping_namespace.ping_name
             order by prep_saas_usage_ping_namespace.ping_date desc
-        ) = 1
+        )
+        = 1
 
 ),
 pivoted as (

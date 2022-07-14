@@ -16,30 +16,26 @@ with
         {%- endif %}
 
         where
-            app_id is not null and date_part(
-                month, try_to_timestamp(derived_tstamp)
-            ) = '{{ month_value }}' and date_part(
-                year, try_to_timestamp(derived_tstamp)
-            ) = '{{ year_value }}' and (
+            app_id is not null
+            and date_part(month, try_to_timestamp(derived_tstamp)) = '{{ month_value }}'
+            and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
+            and
+            (
                 (
                     -- js backend tracker
-                    v_tracker like 'js%' and lower(
-                        page_url
-                    ) not like 'https://staging.gitlab.com/%' and lower(
-                        page_url
-                    ) not like 'https://customers.stg.gitlab.com/%' and lower(
-                        page_url
-                    ) not like 'http://localhost:%'
+                    v_tracker like 'js%'
+                    and lower(page_url) not like 'https://staging.gitlab.com/%'
+                    and lower(page_url) not like 'https://customers.stg.gitlab.com/%'
+                    and lower(page_url) not like 'http://localhost:%'
                 )
 
                 or
 
                 -- ruby backend tracker
                 (v_tracker like 'rb%')
-            ) and try_to_timestamp(derived_tstamp) is not null
-    )
-
-    ,
+            )
+            and try_to_timestamp(derived_tstamp) is not null
+    ),
     base as (select distinct * from filtered_source),
     events_with_context_flattened as (
         /*
@@ -76,8 +72,9 @@ select
     iff(
         google_analytics_id = '',
         null,
-        split_part(google_analytics_id, '.', 3) || '.' || split_part(
-            google_analytics_id, '.', 4
+        split_part(google_analytics_id, '.', 3)
+        || '.' ||
+        split_part(google_analytics_id, '.', 4
         )
     )::varchar as google_analytics_client_id,
     context_data['project_id']::number as project_id,

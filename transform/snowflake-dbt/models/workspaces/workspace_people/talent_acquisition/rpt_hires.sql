@@ -12,9 +12,7 @@
             ("candidates", "greenhouse_candidates_source"),
         ]
     )
-}}
-
-,
+}},
 job_departments as (
 
     select *
@@ -22,9 +20,8 @@ job_departments as (
     -- Table is many to many (job_id to department_id) with the lowest level created
     -- first
     qualify
-        row_number() over (
-            partition by job_id order by job_department_created_at asc
-        ) = 1
+        row_number() over (partition by job_id order by job_department_created_at asc)
+        = 1
 
 )
 

@@ -19,7 +19,8 @@ with
                 partition by
                     {{ primary_key }}, date_trunc({{ date_part }}, dbt_valid_from)
                 order by dbt_valid_from desc
-            ) = 1
+            )
+            = 1
 
     ),
     final as (
@@ -34,7 +35,9 @@ with
             base.*
         from base
         inner join
-            date_spine on base.dbt_valid_from::date <= date_spine.date_actual and (
+            date_spine
+            on base.dbt_valid_from::date <= date_spine.date_actual
+            and (
                 base.dbt_valid_to::date > date_spine.date_actual
                 or base.dbt_valid_to is null
             )

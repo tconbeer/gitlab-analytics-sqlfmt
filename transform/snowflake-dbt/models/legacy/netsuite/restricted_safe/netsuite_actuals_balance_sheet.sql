@@ -43,7 +43,8 @@ with
             consolidated_exchange_rates.to_subsidiary_id in (
                 -- constrait - only the primary subsidiary has no parent
                 select subsidiary_id from subsidiaries where parent_id is null
-            ) and consolidated_exchange_rates.accounting_book_id in (
+            )
+            and consolidated_exchange_rates.accounting_book_id in (
                 select accounting_book_id from accounting_books where is_primary = true
             )
 
@@ -96,8 +97,9 @@ with
 
         select
             base.accounting_period_id,
-            array_agg(multiplier.accounting_period_id) within group(
-                order by multiplier.accounting_period_id
+            array_agg(
+                multiplier.accounting_period_id
+            ) within group(order by multiplier.accounting_period_id
             ) as accounting_periods_to_include_for
         from accounting_periods as base
         inner join
@@ -174,8 +176,7 @@ with
             * exchange_transaction_period
             as converted_amount_using_transaction_accounting_period,
             unconverted_amount
-            * exchange_reporting_period
-            as converted_amount_using_reporting_month
+            * exchange_reporting_period as converted_amount_using_reporting_month
         from transactions_in_every_calculation_period_w_exchange_rates
 
     ),
@@ -197,9 +198,8 @@ with
             case
                 when
                     (
-                        lower(
-                            accounts.account_type
-                        ) in {{ net_income_retained_earnings }}
+                        lower(accounts.account_type)
+                        in {{ net_income_retained_earnings }}
                         and reporting_accounting_periods.year_id
                         = transaction_accounting_periods.year_id
                     )
@@ -213,9 +213,8 @@ with
             case
                 when
                     (
-                        lower(
-                            accounts.account_type
-                        ) in {{ net_income_retained_earnings }}
+                        lower(accounts.account_type)
+                        in {{ net_income_retained_earnings }}
                         and reporting_accounting_periods.year_id
                         = transaction_accounting_periods.year_id
                     )
@@ -252,24 +251,21 @@ with
             sum(
                 case
                     when
-                        lower(
-                            accounts.account_type
-                        ) in {{ net_income_retained_earnings }}
+                        lower(accounts.account_type)
+                        in {{ net_income_retained_earnings }}
                     then - converted_amount_using_transaction_accounting_period
                     when accounts.account_number = '3000'
                     then - converted_amount_using_transaction_accounting_period
                     when
                         (
-                            lower(
-                                accounts.general_rate_type
-                            ) = 'historical' and accounts.is_leftside_account = false
+                            lower(accounts.general_rate_type) = 'historical'
+                            and accounts.is_leftside_account = false
                         )
                     then - converted_amount_using_transaction_accounting_period
                     when
                         (
-                            lower(
-                                accounts.general_rate_type
-                            ) = 'historical' and accounts.is_leftside_account = true
+                            lower(accounts.general_rate_type) = 'historical'
+                            and accounts.is_leftside_account = true
                         )
                     then converted_amount_using_transaction_accounting_period
                     when
@@ -308,11 +304,12 @@ with
         where
             reporting_accounting_periods.fiscal_calendar_id = (
                 select fiscal_calendar_id from subsidiaries where parent_id is null
-            ) and transaction_accounting_periods.fiscal_calendar_id = (
+            )
+            and transaction_accounting_periods.fiscal_calendar_id = (
                 select fiscal_calendar_id from subsidiaries where parent_id is null
-            ) and lower(
-                accounts.account_type
-            ) != 'statistical' and accounts.account_number != '3035'
+            )
+            and lower(accounts.account_type) != 'statistical'
+            and accounts.account_number != '3035'
             {{ dbt_utils.group_by(n=16) }}
 
         union all
@@ -368,11 +365,12 @@ with
         where
             reporting_accounting_periods.fiscal_calendar_id = (
                 select fiscal_calendar_id from subsidiaries where parent_id is null
-            ) and transaction_accounting_periods.fiscal_calendar_id = (
+            )
+            and transaction_accounting_periods.fiscal_calendar_id = (
                 select fiscal_calendar_id from subsidiaries where parent_id is null
-            ) and lower(
-                accounts.account_type
-            ) != 'statistical' and accounts.account_number != '3035'
+            )
+            and lower(accounts.account_type) != 'statistical'
+            and accounts.account_number != '3035'
             {{ dbt_utils.group_by(n=11) }}
 
     ),

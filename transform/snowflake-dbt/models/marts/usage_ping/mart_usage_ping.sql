@@ -15,9 +15,7 @@
             ("dim_location", "dim_location_country"),
         ]
     )
-}}
-
-,
+}},
 joined as (
 
     select
@@ -78,7 +76,8 @@ renamed as (
             row_number() over (
                 partition by dim_instance_id, ping_created_at_month
                 order by dim_usage_ping_id desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_last_ping_in_month,
@@ -86,7 +85,8 @@ renamed as (
             row_number() over (
                 partition by dim_instance_id, fiscal_quarter_name_fy
                 order by dim_usage_ping_id desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_last_ping_in_quarter,

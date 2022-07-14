@@ -61,9 +61,9 @@ with
             ) as hired_sourced_candidate
         from base
         left join
-            greenhouse_recruiting_xf on date_trunc(
-                'month', greenhouse_recruiting_xf.application_date
-            ) = base.month_date
+            greenhouse_recruiting_xf
+            on date_trunc('month', greenhouse_recruiting_xf.application_date)
+            = base.month_date
         left join
             eeoc
             on greenhouse_recruiting_xf.application_id = eeoc.application_id
@@ -85,9 +85,9 @@ with
             ) as hired_sourced_candidate
         from base
         left join
-            greenhouse_recruiting_xf on date_trunc(
-                'month', greenhouse_recruiting_xf.offer_sent_date
-            ) = base.month_date
+            greenhouse_recruiting_xf
+            on date_trunc('month', greenhouse_recruiting_xf.offer_sent_date)
+            = base.month_date
         left join
             eeoc
             on greenhouse_recruiting_xf.application_id = eeoc.application_id
@@ -109,9 +109,9 @@ with
             ) as hired_sourced_candidate
         from base
         left join
-            greenhouse_recruiting_xf on date_trunc(
-                'month', greenhouse_recruiting_xf.offer_resolved_date
-            ) = base.month_date
+            greenhouse_recruiting_xf
+            on date_trunc('month', greenhouse_recruiting_xf.offer_resolved_date)
+            = base.month_date
         left join
             eeoc
             on greenhouse_recruiting_xf.application_id = eeoc.application_id

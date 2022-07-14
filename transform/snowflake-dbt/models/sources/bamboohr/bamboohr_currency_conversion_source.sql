@@ -16,9 +16,8 @@ with
             data_by_row.value['customCurrencyConversionFactor']::decimal(
                 10, 5
             ) as currency_conversion_factor,
-            data_by_row.value[
-                'customLocalAnnualSalary'
-            ]::varchar as local_annual_salary,
+            data_by_row.value['customLocalAnnualSalary']::varchar
+            as local_annual_salary,
             data_by_row.value['customUSDAnnualSalary']::varchar as usd_annual_salary,
             uploaded_at
         from

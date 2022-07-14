@@ -22,15 +22,14 @@ salesforce_accounts as (
         zoom_info_company_country as company_country,
         iff(company_industry is not null, 1, 0) + iff(
             company_state_province is not null, 1, 0
-        ) + iff(company_country is not null, 1, 0) as completeness_score
+        )
+        + iff(company_country is not null, 1, 0) as completeness_score
     from accounts
     where company_id is not null and is_excluded_from_zoom_info_enrich = false
     qualify
-        max(company_revenue) over (
-            partition by company_id
-        ) = company_revenue and row_number() over (
-            partition by company_id order by completeness_score desc
-        ) = 1
+        max(company_revenue) over (partition by company_id) = company_revenue
+        and row_number() over (partition by company_id order by completeness_score desc)
+        = 1
 ),
 
 salesforce_leads as (
@@ -44,15 +43,14 @@ salesforce_leads as (
         zoominfo_company_country as company_country,
         iff(company_industry is not null, 1, 0) + iff(
             company_state_province is not null, 1, 0
-        ) + iff(company_country is not null, 1, 0) as completeness_score
+        )
+        + iff(company_country is not null, 1, 0) as completeness_score
     from leads
     where company_id is not null
     qualify
-        max(company_revenue) over (
-            partition by company_id
-        ) = company_revenue and row_number() over (
-            partition by company_id order by completeness_score desc
-        ) = 1
+        max(company_revenue) over (partition by company_id) = company_revenue
+        and row_number() over (partition by company_id order by completeness_score desc)
+        = 1
 ),
 
 salesforce_contacts as (
@@ -65,15 +63,14 @@ salesforce_contacts as (
         zoominfo_company_country as company_country,
         iff(company_industry is not null, 1, 0) + iff(
             company_state_province is not null, 1, 0
-        ) + iff(company_country is not null, 1, 0) as completeness_score
+        )
+        + iff(company_country is not null, 1, 0) as completeness_score
     from contacts
     where company_id is not null
     qualify
-        max(company_revenue) over (
-            partition by company_id
-        ) = company_revenue and row_number() over (
-            partition by company_id order by completeness_score desc
-        ) = 1
+        max(company_revenue) over (partition by company_id) = company_revenue
+        and row_number() over (partition by company_id order by completeness_score desc)
+        = 1
 ),
 
 zoom_info_base as (

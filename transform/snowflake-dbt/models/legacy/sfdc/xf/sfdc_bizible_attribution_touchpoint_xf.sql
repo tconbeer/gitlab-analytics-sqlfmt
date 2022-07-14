@@ -28,7 +28,8 @@ with
                         'Brand.Corporate Event',
                         'Conference',
                         'Speaking Session'
-                    ) or (
+                    )
+                    or (
                         bizible_medium = 'Field Event (old)'
                         and bizible_marketing_channel_path = 'Other'
                     )
@@ -57,8 +58,9 @@ with
                 when
                     bizible_marketing_channel_path in (
                         'Marketing Site.Web Direct', 'Web Direct'
+                    )
                     -- Added to Web Direct
-                    ) or campaign_id in (
+                    or campaign_id in (
                         '701610000008ciRAAQ',  -- Trial - GitLab.com
                         '70161000000VwZbAAK',  -- Trial - Self-Managed
                         '70161000000VwZgAAK',  -- Trial - SaaS
@@ -75,8 +77,7 @@ with
                 else 'Unknown'
             end as pipe_name,
             opps.incremental_acv
-            * touches.bizible_attribution_percent_full_path
-            as iacv_full_path,
+            * touches.bizible_attribution_percent_full_path as iacv_full_path,
             opps.sales_type,
             opps.lead_source,
             opps.record_type_label

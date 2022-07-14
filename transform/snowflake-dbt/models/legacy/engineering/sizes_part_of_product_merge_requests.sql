@@ -4,9 +4,8 @@ with
         select
             added_lines::number as product_merge_request_lines_added,
             real_size::varchar as product_merge_request_files_changed,
-            regexp_replace(
-                real_size::varchar, '[^0-9]+', ''
-            )::number as product_merge_request_files_changed_truncated,
+            regexp_replace(real_size::varchar, '[^0-9]+', '')::number
+            as product_merge_request_files_changed_truncated,
             removed_lines::varchar as product_merge_request_lines_removed,
             product_merge_request_iid,
             product_merge_request_project

@@ -37,11 +37,13 @@ with
         inner join
             date_details
             on date_details.date_actual
-            between project_snapshots.valid_from::date and project_snapshots.valid_to_::date
+            between project_snapshots.valid_from::date and project_snapshots.valid_to_
+            ::date
         qualify
             row_number() over (
                 partition by snapshot_day, project_id order by valid_to_ desc
-            ) = 1
+            )
+            = 1
 
     )
 

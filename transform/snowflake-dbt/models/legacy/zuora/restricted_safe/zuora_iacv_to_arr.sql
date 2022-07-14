@@ -46,7 +46,8 @@ with
                         charge_number,
                         charge_segment
                     order by segment_version_order desc
-                ) = 1,
+                )
+                = 1,
                 true,
                 false
             ) as is_last_invoice_segment_version

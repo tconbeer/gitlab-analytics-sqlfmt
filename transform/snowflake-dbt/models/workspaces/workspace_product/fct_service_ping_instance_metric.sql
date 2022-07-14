@@ -26,9 +26,7 @@
             ("dim_service_ping_metric", "dim_service_ping_metric"),
         ]
     )
-}}
-
-,
+}},
 map_ip_location as (
 
     select
@@ -78,14 +76,17 @@ prep_usage_ping_cte as (
         has_timed_out as has_timed_out
     from add_country_info_to_usage_ping
     left join
-        dim_product_tier on trim(
-            lower(add_country_info_to_usage_ping.product_tier)
-        ) = trim(lower(dim_product_tier.product_tier_historical_short)) and iff(
+        dim_product_tier
+        on trim(lower(add_country_info_to_usage_ping.product_tier)) = trim(
+            lower(dim_product_tier.product_tier_historical_short)
+        )
+        and iff(
             add_country_info_to_usage_ping.dim_instance_id
             = 'ea8bf810-1d6f-4a6a-b4fd-93e8cbd8b57f',
             'SaaS',
             'Self-Managed'
-        ) = dim_product_tier.product_delivery_type
+        )
+        = dim_product_tier.product_delivery_type
 -- AND main_edition = 'EE'
 ),
 joined_payload as (

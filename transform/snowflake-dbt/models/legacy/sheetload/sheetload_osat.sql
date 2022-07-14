@@ -15,7 +15,8 @@ with
             source.buddy_experience_score
         from source
         left join
-            bamboohr on source.employee_name = concat(
+            bamboohr
+            on source.employee_name = concat(
                 bamboohr.first_name, ' ', bamboohr.last_name
             )
         where source.completed_date is not null

@@ -13,9 +13,7 @@
             ("dim_date", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 current_fiscal_year as (
 
     select fiscal_year as current_fiscal_year

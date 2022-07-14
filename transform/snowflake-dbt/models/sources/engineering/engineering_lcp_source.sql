@@ -15,9 +15,8 @@ with
     data_points_flushed_out as (
 
         select
-            split_part(
-                metric_name, '.', 13 + version_offset
-            )::varchar as aggregation_name,
+            split_part(metric_name, '.', 13 + version_offset)::varchar
+            as aggregation_name,
             split_part(metric_name, '.', 5 + version_offset)::varchar as metric_name,
             data_by_row.value[0]::float as metric_value,
             data_by_row.value[1]::timestamp as metric_reported_at
@@ -29,7 +28,8 @@ with
             row_number() over (
                 partition by metric_name, aggregation_name, metric_reported_at
                 order by uploaded_at desc
-            ) = 1
+            )
+            = 1
 
     )
 

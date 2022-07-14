@@ -39,7 +39,8 @@ gmau_monthly as (
         row_number() over (
             partition by dim_subscription_id, uuid, hostname, ping_created_at_month
             order by ping_created_at desc
-        ) = 1
+        )
+        = 1
 
 ),
 joined as (
@@ -74,7 +75,8 @@ joined as (
                     gmau_monthly.uuid,
                     gmau_monthly.hostname
                 order by gmau_monthly.ping_created_at desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_latest_gmau_reported

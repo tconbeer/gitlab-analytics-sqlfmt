@@ -31,9 +31,8 @@ with
                 flatten(input => acquisition.value, recursive => true)
             ) acquisition_info
         where
-            acquisition.key ilike 'acquisition_%' and acquisition_info.key in (
-                'name', 'start_date', 'end_date'
-            )
+            acquisition.key ilike 'acquisition_%'
+            and acquisition_info.key in ('name', 'start_date', 'end_date')
 
     ),
     info_combined as (

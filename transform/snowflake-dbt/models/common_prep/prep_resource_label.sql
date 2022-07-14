@@ -11,9 +11,7 @@
             ("dim_merge_request", "dim_merge_request"),
         ]
     )
-}}
-
-,
+}},
 resource_label_events as (
 
     select *

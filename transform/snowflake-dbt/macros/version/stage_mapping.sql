@@ -31,8 +31,6 @@ where
         0
     )
     {%- else -%} {{ return(1) }}
-    {%- endif %}
-
-    as {{ stage }}_sum
+    {%- endif %} as {{ stage }}_sum
 
 {% endmacro %}

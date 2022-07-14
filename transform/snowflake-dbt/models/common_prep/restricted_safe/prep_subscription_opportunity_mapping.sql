@@ -30,7 +30,8 @@ with
             dim_crm_opportunity_id as opportunity_id
         from zuora_subscription_source
         where
-            opportunity_id is not null and (
+            opportunity_id is not null
+            and (
                 subscription_created_date >= '2021-04-12'
                 or subscription_sales_type = 'Self-Service'
             )
@@ -634,8 +635,7 @@ with
             ) as formatted_quantity_name_match,
             opp_invoice_amount_match
             + slugify_quantity_name_match
-            + formatted_quantity_name_match
-            as total
+            + formatted_quantity_name_match as total
         from dupes
         inner join
             invoice_item_amount ii
@@ -730,7 +730,8 @@ with
             rank() over (
                 partition by dim_subscription_id
                 order by invoice_opp_created_date_forward
-            ) = 1
+            )
+            = 1
 
     ),
     final_matches_part_1 as (
@@ -780,7 +781,8 @@ with
                     invoice_opp_id_forward,
                     invoice_opp_id_backward,
                     invoice_opp_id_backward_term_based
-            ) = 1
+            )
+            = 1
 
     ),
     sales_assisted_dupes_with_quote_num_on_sub as (
@@ -788,11 +790,13 @@ with
         select *
         from dupes_part_2
         where
-            subscription_sales_type = 'Sales-Assisted' and coalesce(
+            subscription_sales_type = 'Sales-Assisted'
+            and coalesce(
                 subscription_quote_number_opp_id_forward,
                 subscription_quote_number_opp_id_backward,
                 subscription_quote_number_opp_id_backward_term_based
-            ) is not null
+            )
+            is not null
         qualify
             rank() over (
                 partition by dim_subscription_id
@@ -800,7 +804,8 @@ with
                     invoice_opp_id_forward,
                     invoice_opp_id_backward,
                     invoice_opp_id_backward_term_based
-            ) = 1
+            )
+            = 1
 
     ),
     dupes_all_raw_sub_options_match as (
@@ -855,7 +860,8 @@ with
                     split_part(
                         combined_opportunity_id, 'https://gitlab.my.salesforce.com/', 2
                     )
-                ) = 0,
+                )
+                = 0,
                 null,
                 split_part(
                     combined_opportunity_id, 'https://gitlab.my.salesforce.com/', 2
@@ -920,9 +926,11 @@ with
             short_oppty_id.long_oppty_id as dim_crm_opportunity_id
         from final_matches_with_bad_data_flag
         left join
-            short_oppty_id on left(
+            short_oppty_id
+            on left(
                 final_matches_with_bad_data_flag.combined_oportunity_id_coalesced, 15
-            ) = short_oppty_id.short_oppty_id
+            )
+            = short_oppty_id.short_oppty_id
 
     )
 

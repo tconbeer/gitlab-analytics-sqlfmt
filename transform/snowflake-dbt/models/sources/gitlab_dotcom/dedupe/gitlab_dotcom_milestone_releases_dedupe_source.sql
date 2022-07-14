@@ -13,7 +13,8 @@ with
         qualify
             row_number() over (
                 partition by milestone_id, release_id order by _uploaded_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     renamed as (

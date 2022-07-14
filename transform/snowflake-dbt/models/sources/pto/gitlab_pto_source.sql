@@ -7,7 +7,8 @@ with
         qualify
             row_number() over (
                 partition by jsontext['uuid']::varchar order by uploaded_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     each_pto_day as (

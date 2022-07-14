@@ -7,9 +7,7 @@
             ("gainsight_instance_info", "gainsight_instance_info_source"),
         ]
     )
-}}
-
-,
+}},
 final as (
 
     select distinct

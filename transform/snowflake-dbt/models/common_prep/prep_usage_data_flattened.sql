@@ -14,9 +14,7 @@ with
 
         {% endif %}
 
-    )
-
-    ,
+    ),
     flattened as (
 
         select

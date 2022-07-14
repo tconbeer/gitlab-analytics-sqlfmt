@@ -7,10 +7,10 @@ with
         select *
         from {{ ref("customers_db_licenses_source") }}
         where
+            license_md5 is not null
+            and is_trial = false
             -- Remove internal test licenses
-            license_md5 is not null and is_trial = false and not (
-                email like '%@gitlab.com' and lower(company) like '%gitlab%'
-            )
+            and not (email like '%@gitlab.com' and lower(company) like '%gitlab%')
 
     ),
     usage_data as (

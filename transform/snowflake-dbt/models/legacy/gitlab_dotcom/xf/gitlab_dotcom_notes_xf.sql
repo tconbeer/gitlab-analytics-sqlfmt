@@ -13,12 +13,8 @@ with
         where updated_at >= (select max(updated_at) from {{ this }})
 
         {% endif %}
-    )
-
-    ,
-    projects as (select * from {{ ref("gitlab_dotcom_projects_xf") }})
-
-    ,
+    ),
+    projects as (select * from {{ ref("gitlab_dotcom_projects_xf") }}),
     internal_namespaces as (
 
         select
@@ -29,22 +25,18 @@ with
             ) as namespace_is_internal
         from {{ ref("gitlab_dotcom_namespaces_xf") }}
 
-    )
-
-    ,
+    ),
     system_note_metadata as (
 
         select
             note_id,
-            array_agg(action_type) within group(
-                order by action_type asc
+            array_agg(
+                action_type) within group(order by action_type asc
             ) as action_type_array
         from {{ ref("gitlab_dotcom_system_note_metadata") }}
         group by 1
 
-    )
-
-    ,
+    ),
     anonymised as (
 
         select

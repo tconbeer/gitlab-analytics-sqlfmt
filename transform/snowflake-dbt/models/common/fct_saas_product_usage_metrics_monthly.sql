@@ -15,9 +15,7 @@
             ("dates", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 saas_subscriptions as (
 
     select
@@ -42,14 +40,15 @@ gitlab_seats as (
         dates.first_day_of_month as snapshot_month
     from gitlab_subscriptions
     inner join
-        dates on dates.date_actual between to_date(
-            gitlab_subscriptions.valid_from
-        ) and ifnull(gitlab_subscriptions.valid_to, current_date)
+        dates
+        on dates.date_actual between to_date(gitlab_subscriptions.valid_from)
+        and ifnull(gitlab_subscriptions.valid_to, current_date)
     qualify
         row_number() over (
             partition by gitlab_subscriptions.namespace_id, dates.first_day_of_month
             order by gitlab_subscriptions.valid_from desc
-        ) = 1
+        )
+        = 1
 
 ),
 joined as (
@@ -286,13 +285,15 @@ joined as (
             false
         ) as is_data_in_subscription_month,
         iff(
-            is_data_in_subscription_month = true and row_number() over (
+            is_data_in_subscription_month = true
+            and row_number() over (
                 partition by
                     saas_subscriptions.dim_subscription_id,
                     saas_usage_ping.dim_namespace_id,
                     is_data_in_subscription_month
                 order by saas_subscriptions.snapshot_month desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_latest_data

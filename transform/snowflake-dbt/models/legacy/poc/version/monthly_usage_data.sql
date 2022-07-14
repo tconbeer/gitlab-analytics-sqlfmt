@@ -1,11 +1,7 @@
 with
     monthly_usage_data_all_time as (
 
-        select * from {{ ref("monthly_usage_data_all_time") }}
-
-    )
-
-    ,
+        select * from {{ ref("monthly_usage_data_all_time") }}),
     monthly_usage_data_28_days as (
 
         select * from {{ ref("monthly_usage_data_28_days") }}

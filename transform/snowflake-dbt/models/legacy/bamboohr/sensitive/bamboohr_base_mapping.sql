@@ -6,7 +6,9 @@ with
         where
             date_actual between dateadd(
                 year, -1, dateadd(month, -1, date_trunc(month, current_date()))
-            ) and date_trunc(month, current_date()) and day_of_month = 1
+            )
+            and date_trunc(month, current_date())
+            and day_of_month = 1
 
     ),
     division_department_mapping as (

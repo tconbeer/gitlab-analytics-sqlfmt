@@ -1,8 +1,6 @@
 {{ config(tags=["product"]) }}
 
-{{ simple_cte([("prep_namespace", "prep_namespace")]) }}
-
-,
+{{ simple_cte([("prep_namespace", "prep_namespace")]) }},
 final as (
 
     select

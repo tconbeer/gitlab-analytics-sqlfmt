@@ -1,22 +1,10 @@
 with
-    customers as (select * from {{ ref("customers_db_customers_source") }})
-
-    ,
-    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }})
-
-    ,
-    trials as (select * from {{ ref("customers_db_trials") }})
-
-    ,
-    zuora_rp as (select * from {{ ref("zuora_rate_plan") }})
-
-    ,
-    zuora_rpc as (select * from {{ ref("zuora_rate_plan_charge") }})
-
-    ,
-    zuora_subscription_xf as (select * from {{ ref("zuora_subscription_xf") }})
-
-    ,
+    customers as (select * from {{ ref("customers_db_customers_source") }}),
+    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }}),
+    trials as (select * from {{ ref("customers_db_trials") }}),
+    zuora_rp as (select * from {{ ref("zuora_rate_plan") }}),
+    zuora_rpc as (select * from {{ ref("zuora_rate_plan_charge") }}),
+    zuora_subscription_xf as (select * from {{ ref("zuora_subscription_xf") }}),
     orders_with_subscription as (
 
         select distinct
@@ -37,9 +25,7 @@ with
             orders_snapshots.product_rate_plan_id is not null
             and orders_snapshots.order_is_trial = false
             and orders_snapshots.subscription_id is not null
-    )
-
-    ,
+    ),
     joined as (
 
         select distinct
@@ -102,9 +88,7 @@ with
         inner join zuora_rpc on zuora_rpc.rate_plan_id = zuora_rp.rate_plan_id
         left join trials on orders_with_subscription.order_id = trials.order_id
 
-    )
-
-    ,
+    ),
     joined_with_customer_and_namespace_list as (
 
         select distinct

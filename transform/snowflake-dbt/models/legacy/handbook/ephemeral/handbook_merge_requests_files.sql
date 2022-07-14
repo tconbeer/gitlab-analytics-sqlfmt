@@ -13,9 +13,8 @@ with
         from base
         inner join table(flatten(input => file_diffs, outer => true)) as file_diffs
         where
-            lower(file_diffs.value:file_path) like '%/handbook/%' or lower(
-                file_diffs.value:file_path
-            ) like '%data/performance_indicators%'
+            lower(file_diffs.value:file_path) like '%/handbook/%'
+            or lower(file_diffs.value:file_path) like '%data/performance_indicators%'
 
     )
 select *

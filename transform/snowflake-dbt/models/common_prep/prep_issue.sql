@@ -20,9 +20,7 @@
             ("gitlab_dotcom_award_emoji_source", "gitlab_dotcom_award_emoji_source"),
         ]
     )
-}}
-
-,
+}},
 gitlab_dotcom_issues_source as (
 
     select *
@@ -50,8 +48,9 @@ agg_labels as (
 
     select
         gitlab_dotcom_issues_source.issue_id as dim_issue_id,
-        array_agg(lower(prep_labels.label_title)) within group(
-            order by prep_labels.label_title asc
+        array_agg(
+            lower(prep_labels.label_title)
+        ) within group(order by prep_labels.label_title asc
         ) as labels
     from gitlab_dotcom_issues_source
     left join
@@ -107,30 +106,26 @@ renamed as (
             when prep_issue_severity.severity = 4
             then 'S1'
             when
-                array_contains(
-                    'severity::1'::variant, agg_labels.labels
-                ) or array_contains('s1'::variant, agg_labels.labels)
+                array_contains('severity::1'::variant, agg_labels.labels)
+                or array_contains('s1'::variant, agg_labels.labels)
             then 'S1'
             when prep_issue_severity.severity = 3
             then 'S2'
             when
-                array_contains(
-                    'severity::2'::variant, agg_labels.labels
-                ) or array_contains('s2'::variant, agg_labels.labels)
+                array_contains('severity::2'::variant, agg_labels.labels)
+                or array_contains('s2'::variant, agg_labels.labels)
             then 'S2'
             when prep_issue_severity.severity = 2
             then 'S3'
             when
-                array_contains(
-                    'severity::3'::variant, agg_labels.labels
-                ) or array_contains('s3'::variant, agg_labels.labels)
+                array_contains('severity::3'::variant, agg_labels.labels)
+                or array_contains('s3'::variant, agg_labels.labels)
             then 'S3'
             when prep_issue_severity.severity = 1
             then 'S4'
             when
-                array_contains(
-                    'severity::4'::variant, agg_labels.labels
-                ) or array_contains('s4'::variant, agg_labels.labels)
+                array_contains('severity::4'::variant, agg_labels.labels)
+                or array_contains('s4'::variant, agg_labels.labels)
             then 'S4'
             else null
         end as severity,

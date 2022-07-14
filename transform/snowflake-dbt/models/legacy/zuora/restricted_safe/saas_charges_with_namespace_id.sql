@@ -1,27 +1,12 @@
 with
     zuora_base_mrr as (
 
-        select * from {{ ref("zuora_base_mrr") }} where delivery = 'SaaS'
-
-    )
-
-    ,
-    customers_db_charges as (select * from {{ ref("customers_db_charges_xf") }})
-
-    ,
-    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }})
-
-    ,
-    dim_billing_account as (select * from {{ ref("dim_billing_account") }})
-
-    ,
-    dim_crm_account as (select * from {{ ref("dim_crm_account") }})
-
-    ,
-    dim_subscription as (select * from {{ ref("dim_subscription") }})
-
-
-    ,
+        select * from {{ ref("zuora_base_mrr") }} where delivery = 'SaaS'),
+    customers_db_charges as (select * from {{ ref("customers_db_charges_xf") }}),
+    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }}),
+    dim_billing_account as (select * from {{ ref("dim_billing_account") }}),
+    dim_crm_account as (select * from {{ ref("dim_crm_account") }}),
+    dim_subscription as (select * from {{ ref("dim_subscription") }}),
     joined as (
 
         select

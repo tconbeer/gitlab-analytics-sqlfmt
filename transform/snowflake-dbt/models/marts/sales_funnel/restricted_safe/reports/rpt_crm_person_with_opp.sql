@@ -8,9 +8,7 @@
             ("dim_crm_user", "dim_crm_user"),
         ]
     )
-}}
-
-,
+}},
 upa_base as (select dim_parent_crm_account_id, dim_crm_account_id from dim_crm_account),
 first_order_opps as (
 

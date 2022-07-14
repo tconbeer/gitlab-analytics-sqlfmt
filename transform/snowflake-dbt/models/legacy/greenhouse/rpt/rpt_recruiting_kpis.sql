@@ -22,7 +22,8 @@ with
                             hit_application_review,
                             0
                         )
-                    ) / prospected
+                    )
+                    / prospected
                 )
             ) as prospect_to_review,
             iff(
@@ -35,15 +36,15 @@ with
                             hit_screening,
                             0
                         )
-                    ) / prospected
+                    )
+                    / prospected
                 )
             ) as prospect_to_screen,
             iff(
                 prospected = 0,
                 null,
-                sum(
-                    iff(application_stage = 'Application Submitted', hit_hired, 0)
-                ) / prospected
+                sum(iff(application_stage = 'Application Submitted', hit_hired, 0))
+                / prospected
             ) as prospect_to_hire,
             iff(
                 prospected = 0,
@@ -54,7 +55,8 @@ with
                         candidate_dropout,
                         0
                     )
-                ) / prospected
+                )
+                / prospected
             ) as prospect_to_dropout,
 
             sum(iff(application_stage = 'Application Review', 1, 0)) as app_reviewed,
@@ -62,17 +64,15 @@ with
                 app_reviewed = 0,
                 null,
                 (
-                    sum(
-                        iff(application_stage = 'Application Review', hit_screening, 0)
-                    ) / app_reviewed
+                    sum(iff(application_stage = 'Application Review', hit_screening, 0))
+                    / app_reviewed
                 )
             ) as review_to_screen,
             iff(
                 app_reviewed = 0,
                 null,
-                sum(
-                    iff(application_stage = 'Application Review', hit_hired, 0)
-                ) / app_reviewed
+                sum(iff(application_stage = 'Application Review', hit_hired, 0))
+                / app_reviewed
             ) as review_to_hire,
 
             sum(iff(application_stage = 'Screen', 1, 0)) as screen,
@@ -99,7 +99,8 @@ with
                         hit_hired,
                         0
                     )
-                ) / team_interview
+                )
+                / team_interview
             ) as interview_to_hire,
             iff(
                 team_interview = 0,
@@ -110,7 +111,8 @@ with
                         hit_rejected,
                         0
                     )
-                ) / team_interview
+                )
+                / team_interview
             ) as interview_to_reject,
 
             sum(
@@ -119,9 +121,8 @@ with
             iff(
                 executive_interview = 0,
                 null,
-                sum(
-                    iff(application_stage = 'Executive Interview', hit_hired, 0)
-                ) / executive_interview
+                sum(iff(application_stage = 'Executive Interview', hit_hired, 0))
+                / executive_interview
             ) as exec_interview_to_hire,
 
             sum(iff(application_stage = 'Reference Check', 1, 0)) as reference_check,
@@ -140,7 +141,8 @@ with
                         hit_hired,
                         0
                     )
-                ) / offer
+                )
+                / offer
             ) as offer_acceptance_rate,
 
             sum(iff(application_stage = 'Hired', 1, 0)) as hired,
@@ -186,9 +188,8 @@ with
         from metrics
         left join isat on isat.submitted_at = metrics.month_date
         where
-            month_date between date_trunc(
-                month, dateadd(month, -13, current_date())
-            ) and date_trunc(month, current_date())
+            month_date between date_trunc(month, dateadd(month, -13, current_date()))
+            and date_trunc(month, current_date())
 
     )
 

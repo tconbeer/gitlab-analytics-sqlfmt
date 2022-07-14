@@ -33,11 +33,7 @@ with
 
     {% for table_to_import in tables_to_import %}
 
-    , {{ table_to_import }} as (select * from {{ ref(table_to_import) }})
-
-    {% endfor -%}
-
-    ,
+    , {{ table_to_import }} as (select * from {{ ref(table_to_import) }}) {% endfor -%},
     unioned as (
 
         {% for table_to_import in tables_to_import %}
@@ -51,9 +47,7 @@ with
 
         {% endfor -%}
 
-    )
-
-    ,
+    ),
     filtered_pageviews as (
 
         select snowplow_page_views_30.*, unioned.event_type as smau_event_type

@@ -38,9 +38,10 @@ with
             contact_email as email,
             iff(
                 (
-                    (inactive_contact = true) or (
-                        has_opted_out_email = true
-                    ) or (invalid_email_address = true) or (email_is_bounced = true)
+                    (inactive_contact = true)
+                    or (has_opted_out_email = true)
+                    or (invalid_email_address = true)
+                    or (email_is_bounced = true)
                 ),
                 'Inactive',
                 'Active'
@@ -110,7 +111,8 @@ with
             work_email as email,
             subscription.product_category as plan_title,
             iff(
-                subscription.account_id in (
+                subscription.account_id in
+                (
                     select account_id
                     from zuora_subscription_product_category_saas_only_current_month
                 ),
@@ -139,7 +141,9 @@ with
             subscription.product_category as plan_title,
 
             iff(
-                contacts.state = 'inactive' or subscription.account_id not in (
+                contacts.state = 'inactive'
+                or subscription.account_id not in
+                (
                     select account_id
                     from zuora_subscription_product_category_saas_only_current_month
                 ),
@@ -181,7 +185,8 @@ with
         qualify
             row_number() over (
                 partition by full_name, email, plan_title order by state asc
-            ) = 1
+            )
+            = 1
 
     -- Stops getting contact information from zuora and sfdc
     ),

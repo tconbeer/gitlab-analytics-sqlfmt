@@ -9,11 +9,11 @@ with
         select *
         from {{ ref("snowplow_gitlab_bad_events_source") }}
         where
-            length(jsontext['errors']) > 0 and date_part(
-                month, jsontext['failure_tstamp']::timestamp
-            ) = '{{ month_value }}' and date_part(
-                year, jsontext['failure_tstamp']::timestamp
-            ) = '{{ year_value }}'
+            length(jsontext['errors']) > 0
+            and date_part(month, jsontext['failure_tstamp']::timestamp)
+            = '{{ month_value }}'
+            and date_part(year, jsontext['failure_tstamp']::timestamp)
+            = '{{ year_value }}'
 
     ),
     renamed as (

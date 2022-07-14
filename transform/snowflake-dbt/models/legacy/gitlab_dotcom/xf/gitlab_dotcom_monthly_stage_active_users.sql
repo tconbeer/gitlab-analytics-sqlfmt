@@ -2,9 +2,7 @@
 
 
 with
-    date_details as (select * from {{ ref("date_details") }})
-
-    ,
+    date_details as (select * from {{ ref("date_details") }}),
     gitlab_dotcom_usage_data_events as (
 
         select *
@@ -18,16 +16,12 @@ with
 
         {% endif %}
 
-    )
-
-    ,
+    ),
     gitlab_subscriptions as (
 
         select *
         from {{ ref("gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base") }}
-    )
-
-    ,
+    ),
     plans as (select * from {{ ref("gitlab_dotcom_plans") }})
 
 select

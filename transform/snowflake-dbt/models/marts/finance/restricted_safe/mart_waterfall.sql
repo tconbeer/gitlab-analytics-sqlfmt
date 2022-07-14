@@ -18,9 +18,7 @@
             ("zuora_contact_source", "zuora_contact_source"),
         ]
     )
-}}
-
-,
+}},
 schd as (
 
     select zuora_revenue_revenue_contract_schedule_source.*
@@ -52,9 +50,8 @@ waterfall_summary as (
         schd.schedule_type,
         schd.amount as t_at,
         schd.amount * schd.functional_currency_exchange_rate as f_at,
-        (
-            schd.amount * schd.functional_currency_exchange_rate
-        ) * schd.reporting_currency_exchange_rate as r_at,
+        (schd.amount * schd.functional_currency_exchange_rate)
+        * schd.reporting_currency_exchange_rate as r_at,
         schd.revenue_contract_schedule_created_date,
         schd.revenue_contract_schedule_created_by,
         schd.revenue_contract_schedule_updated_date,
@@ -135,7 +132,8 @@ last_waterfall_line as (
         rank() over (
             partition by revenue_contract_line_id
             order by as_of_period_id desc, period_id desc
-        ) = 1
+        )
+        = 1
 
 ),
 records_to_insert as (
@@ -292,9 +290,9 @@ final_waterfall_pivot as (
         on waterfall_with_previous_revenue.customer_number
         = zuora_account.account_number
     left join
-        zuora_contact_source on coalesce(
-            zuora_account.sold_to_contact_id, zuora_account.bill_to_contact_id
-        ) = zuora_contact_source.contact_id
+        zuora_contact_source
+        on coalesce(zuora_account.sold_to_contact_id, zuora_account.bill_to_contact_id)
+        = zuora_contact_source.contact_id
     group by 1, 2, 4, 5, 7, 8, 11, 12, 20
 
 ),

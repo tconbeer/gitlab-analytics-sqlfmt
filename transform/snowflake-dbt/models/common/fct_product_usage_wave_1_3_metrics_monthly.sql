@@ -9,10 +9,7 @@
             ("smau", "fct_usage_ping_subscription_mapped_smau"),
         ]
     )
-}}
-
-
-,
+}},
 sm_subscriptions as (
 
     select
@@ -73,7 +70,8 @@ usage_ping as (
         row_number() over (
             partition by dim_subscription_id, uuid, hostname, ping_created_at_month
             order by ping_created_at desc
-        ) = 1
+        )
+        = 1
 
 ),
 joined as (
@@ -275,14 +273,16 @@ joined as (
             false
         ) as is_data_in_subscription_month,
         iff(
-            is_data_in_subscription_month = true and row_number() over (
+            is_data_in_subscription_month = true
+            and row_number() over (
                 partition by
                     sm_subscriptions.dim_subscription_id,
                     usage_ping.uuid,
                     usage_ping.hostname,
                     is_data_in_subscription_month
                 order by sm_subscriptions.snapshot_month desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_latest_data

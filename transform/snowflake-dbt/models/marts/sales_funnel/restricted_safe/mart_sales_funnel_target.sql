@@ -8,9 +8,7 @@
             ("fct_sales_funnel_target", "fct_sales_funnel_target"),
         ]
     )
-}}
-
-,
+}},
 final as (
 
     select

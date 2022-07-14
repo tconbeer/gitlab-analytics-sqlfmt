@@ -6,9 +6,7 @@
             ("dim_date", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 transformed as (
 
     select

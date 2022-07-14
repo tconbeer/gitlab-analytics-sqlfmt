@@ -1,6 +1,4 @@
 {% macro gdpr_delete_gitlab_dotcom(email_sha, run_queries=False) %}
-
-
 {% set data_types = (
     "BOOLEAN",
     "TIMESTAMP_TZ",
@@ -35,15 +33,18 @@ with
     email_columns as (
 
         select
-            lower(table_catalog) || '.' || lower(
+            lower(table_catalog)
+            || '.' || lower(
                 table_schema
-            ) || '.' || lower(table_name) as fqd_name,
+            )
+            || '.'
+            || lower(table_name) as fqd_name,
             listagg(column_name, ',') as email_column_names
         from "RAW"."INFORMATION_SCHEMA"."COLUMNS"
         where
-            lower(column_name) like '%email%' and table_schema in (
-                'TAP_POSTGRES'
-            ) and data_type not in {{ data_types }}
+            lower(column_name) like '%email%'
+            and table_schema in ('TAP_POSTGRES')
+            and data_type not in {{ data_types }}
         group by 1
 
     )
@@ -90,42 +91,42 @@ with
     email_columns as (
 
         select
-            lower(table_catalog) || '.' || lower(
+            lower(table_catalog)
+            || '.' || lower(
                 table_schema
-            ) || '.' || lower(table_name) as fqd_name,
+            )
+            || '.'
+            || lower(table_name) as fqd_name,
             listagg(column_name, ',') as email_column_names
         from "RAW"."INFORMATION_SCHEMA"."COLUMNS"
         where
-            lower(column_name) like '%email%' and table_schema in (
-                'SNAPSHOTS'
-            ) and data_type not in {{ data_types }} and lower(
-                column_name
-            ) not in {{ exclude_columns }} and lower(table_name) like (
-                'gitlab_dotcom_%'
-            )
+            lower(column_name) like '%email%'
+            and table_schema in ('SNAPSHOTS')
+            and data_type not in {{ data_types }}
+            and lower(column_name) not in {{ exclude_columns }}
+            and lower(table_name) like ('gitlab_dotcom_%')
         group by 1
 
     ),
     non_email_columns as (
 
         select
-            lower(table_catalog) || '.' || lower(
+            lower(table_catalog)
+            || '.' || lower(
                 table_schema
-            ) || '.' || lower(table_name) as fqd_name,
+            )
+            || '.'
+            || lower(table_name) as fqd_name,
             listagg(column_name, ',') as non_email_column_names
         from "RAW"."INFORMATION_SCHEMA"."COLUMNS" as a
         where
-            lower(column_name) not like '%email%' and table_schema in (
-                'SNAPSHOTS'
-            ) and data_type not in {{ data_types }} and lower(
-                column_name
-            ) not in {{ exclude_columns }} and lower(
-                column_name
-            ) not like '%id%' and lower(
-                column_name
-            ) not in {{ exclude_columns }} and lower(table_name) like (
-                'gitlab_dotcom_%'
-            )
+            lower(column_name) not like '%email%'
+            and table_schema in ('SNAPSHOTS')
+            and data_type not in {{ data_types }}
+            and lower(column_name) not in {{ exclude_columns }}
+            and lower(column_name) not like '%id%'
+            and lower(column_name) not in {{ exclude_columns }}
+            and lower(table_name) like ('gitlab_dotcom_%')
         group by 1
 
     )

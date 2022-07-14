@@ -15,9 +15,7 @@
             ("zuora_contact", "zuora_contact_source"),
         ]
     )
-}}
-
-,
+}},
 zuora_account as (
 
     select *
@@ -51,9 +49,9 @@ filtered as (
         zuora_account.batch
     from zuora_account
     left join
-        zuora_contact on coalesce(
-            zuora_account.sold_to_contact_id, zuora_account.bill_to_contact_id
-        ) = zuora_contact.contact_id
+        zuora_contact
+        on coalesce(zuora_account.sold_to_contact_id, zuora_account.bill_to_contact_id)
+        = zuora_contact.contact_id
     left join
         map_merged_crm_account
         on zuora_account.crm_id = map_merged_crm_account.sfdc_account_id

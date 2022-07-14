@@ -102,9 +102,7 @@
             ("users", "gitlab_dotcom_users"),
         ]
     )
-}}
-
-,
+}},
 push_events_source as (
 
     select *
@@ -143,9 +141,7 @@ push_events_source as (
 
 )
 
-{% endfor -%}
-
-,
+{% endfor -%},
 data as (
 
     {% for event_cte in event_ctes %}
@@ -237,9 +233,7 @@ data as (
     {% endif %}
     {% endfor -%}
 
-)
-
-,
+),
 final as (
     select
         data.*,

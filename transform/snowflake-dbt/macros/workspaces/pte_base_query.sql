@@ -108,7 +108,8 @@ with
             sum(
                 case
                     when
-                        subscription_status = 'Cancelled' or (
+                        subscription_status = 'Cancelled'
+                        or (
                             subscription_status = 'Active'
                             and subscription_end_date <= dateadd(
                                 month, -3, '{{ end_date }}'
@@ -124,11 +125,10 @@ with
         -- data prior to 2021-06
         -- limit to snapshot to day before our prediction window
         where
+            snapshot_date = '{{ end_date }}'
             -- limit data for just the month the '{{ end_date }}' falls in. arr_month
             -- is unique at the dim_crm_account_id & snapshot_date level
-            snapshot_date = '{{ end_date }}' and arr_month = date_trunc(
-                'MONTH', cast('{{ end_date }}' as date)
-            )
+            and arr_month = date_trunc('MONTH', cast('{{ end_date }}' as date))
             -- Remove Chinese accounts like this per feedback from Melia and Israel
             and is_jihu_account != 'TRUE'
             -- filter to just active subscriptions per feedback by Melia
@@ -208,7 +208,8 @@ with
             sum(
                 case
                     when
-                        subscription_status = 'Cancelled' or (
+                        subscription_status = 'Cancelled'
+                        or (
                             subscription_status = 'Active'
                             and subscription_end_date <= dateadd(
                                 month, -3, '{{ end_date }}'
@@ -220,13 +221,15 @@ with
             ) as cancelled_subs_prev
         from mart_arr_snapshot_bottom_up
         where  -- limit to snapshot to day before our prediction window
+            snapshot_date = '{{ end_date }}'
             -- limit to customer's data for just the PERIOD prior to where the '{{
             -- end_date }}' falls
-            snapshot_date = '{{ end_date }}' and arr_month = date_trunc(
+            and arr_month = date_trunc(
                 'MONTH',
                 dateadd('{{ period_type }}', -365, cast('{{ end_date }}' as date))
+            )
             -- Remove Chinese accounts like this per feedback from Melia and Israel
-            ) and is_jihu_account != 'TRUE'
+            and is_jihu_account != 'TRUE'
         group by dim_crm_account_id
 
 
@@ -274,9 +277,8 @@ with
             sum(
                 case
                     when
-                        stage_name in (
-                            'Closed Won'
-                        ) and order_type_stamped != '7. PS / Other'
+                        stage_name in ('Closed Won')
+                        and order_type_stamped != '7. PS / Other'
                     then 1
                     else 0
                 end
@@ -284,9 +286,8 @@ with
             sum(
                 case
                     when
-                        stage_name in (
-                            '8-Closed Lost', 'Closed Lost'
-                        ) and order_type_stamped != '7. PS / Other'
+                        stage_name in ('8-Closed Lost', 'Closed Lost')
+                        and order_type_stamped != '7. PS / Other'
                     then 1
                     else 0
                 end
@@ -294,9 +295,9 @@ with
             count(
                 case
                     when
-                        order_type_stamped in (
-                            '2. New - Connected', '3. Growth'
-                        ) and net_arr > 0 and stage_name in ('Closed Won')
+                        order_type_stamped in ('2. New - Connected', '3. Growth')
+                        and net_arr > 0
+                        and stage_name in ('Closed Won')
                     then 1
                     else 0
                 end
@@ -304,9 +305,8 @@ with
             count(
                 case
                     when
-                        order_type_stamped in (
-                            '4. Contraction', '5. Churn - Partial'
-                        ) and net_arr <= 0
+                        order_type_stamped in ('4. Contraction', '5. Churn - Partial')
+                        and net_arr <= 0
                     then 1
                     else 0
                 end
@@ -337,9 +337,8 @@ with
             sum(
                 case
                     when
-                        order_type_stamped = '1. New - First Order' and stage_name in (
-                            'Closed Won'
-                        )
+                        order_type_stamped = '1. New - First Order'
+                        and stage_name in ('Closed Won')
                     then 1
                     else 0
                 end
@@ -361,9 +360,8 @@ with
             sum(
                 case
                     when
-                        order_type_stamped = '1. New - First Order' and stage_name in (
-                            '8-Closed Lost'
-                        )
+                        order_type_stamped = '1. New - First Order'
+                        and stage_name in ('8-Closed Lost')
                     then 1
                     else 0
                 end
@@ -371,9 +369,8 @@ with
             sum(
                 case
                     when
-                        sales_type = 'Add-On Business' and stage_name in (
-                            '8-Closed Lost'
-                        )
+                        sales_type = 'Add-On Business'
+                        and stage_name in ('8-Closed Lost')
                     then 1
                     else 0
                 end
@@ -465,10 +462,10 @@ with
             ) as use_case_git_ops
         from {{ ref("wk_sales_sfdc_opportunity_snapshot_history_xf") }}
         where
+            snapshot_date = '{{ end_date }}'
             -- filter as requested by Noel
-            snapshot_date = '{{ end_date }}' and opportunity_category in (
-                'Standard', 'Decommissioned', 'Ramp Deal'
-            ) and created_date between dateadd(
+            and opportunity_category in ('Standard', 'Decommissioned', 'Ramp Deal')
+            and created_date between dateadd(
                 '{{ period_type }}', - '{{ delta_value }}', '{{ end_date }}'
             ) and '{{ end_date }}'
         group by account_id
@@ -549,9 +546,8 @@ with
                 case
                     when
                         (
-                            contains(
-                                zi_technologies__c, 'ARE_USED: BitBucket'
-                            ) or contains(
+                            contains(zi_technologies__c, 'ARE_USED: BitBucket')
+                            or contains(
                                 zi_technologies__c, 'ARE_USED: AtlASsian Bitbucket'
                             )
                         )
@@ -566,24 +562,21 @@ with
                         )
                     then 1
                 end
-            ) as zi_jira_flag
-
             -- GCP
-            ,
+            ) as zi_jira_flag,
             max(
                 case
                     when
                         (
                             contains(
                                 zi_technologies__c, 'ARE_USED: Google Cloud Platform'
-                            ) or contains(zi_technologies__c, 'ARE_USED: GCP')
+                            )
+                            or contains(zi_technologies__c, 'ARE_USED: GCP')
                         )
                     then 1
                 end
-            ) as zi_gcp_flag
-
             -- Github
-            ,
+            ) as zi_gcp_flag,
             max(
                 case when contains(zi_technologies__c, 'ARE_USED: GitHub') then 1 end
             ) as zi_github_flag,
@@ -592,10 +585,8 @@ with
                     when contains(zi_technologies__c, 'ARE_USED: GitHub Enterprise')
                     then 1
                 end
-            ) as zi_github_enterprise_flag
-
             -- AWS
-            ,
+            ) as zi_github_enterprise_flag,
             max(
                 case when contains(zi_technologies__c, 'ARE_USED: AWS') then 1 end
             ) as zi_aws_flag,
@@ -606,7 +597,8 @@ with
                             contains(
                                 zi_technologies__c,
                                 'ARE_USED: Amazon AWS Identity and Access Management'
-                            ) or contains(
+                            )
+                            or contains(
                                 zi_technologies__c,
                                 'Amazon AWS Identity and Access Management (IAM)'
                             )
@@ -619,10 +611,8 @@ with
                     when contains(zi_technologies__c, 'ARE_USED: Amazon AWS CloudTrail')
                     then 1
                 end
-            ) as zi_aws_cloud_trail_flag
-
             -- Other CI
-            ,
+            ) as zi_aws_cloud_trail_flag,
             max(
                 case when contains(zi_technologies__c, 'ARE_USED: Hashicorp') then 1 end
             ) as zi_hashicorp_flag,
@@ -630,9 +620,8 @@ with
                 case
                     when
                         (
-                            contains(
-                                zi_technologies__c, 'ARE_USED: CircleCI'
-                            ) or contains(
+                            contains(zi_technologies__c, 'ARE_USED: CircleCI')
+                            or contains(
                                 zi_technologies__c, 'ARE_USED: Circle Internet Services'
                             )
                         )
@@ -647,9 +636,8 @@ with
                 case
                     when
                         (
-                            contains(
-                                zi_technologies__c, 'ARE_USED: Apache Subversion'
-                            ) or contains(zi_technologies__c, 'ARE_USED: SVN')
+                            contains(zi_technologies__c, 'ARE_USED: Apache Subversion')
+                            or contains(zi_technologies__c, 'ARE_USED: SVN')
                         )
                     then 1
                 end
@@ -755,9 +743,8 @@ with
                 case when type = 'Direct Mail' then 1 else 0 end
             ) as touchpoint_type_direct_mail,
             sum(case when type = 'Trial' then 1 else 0 end) as touchpoint_type_trial,
-            sum(
-                case when type = 'Webcast' then 1 else 0 end
-            ) as touchpoint_type_webcast,
+            sum(case when type = 'Webcast' then 1 else 0 end) as touchpoint_type_webcast
+            ,
             sum(
                 case when bizible_medium = 'Web' then 1 else 0 end
             ) as touchpoint_bizible_medium_web,
@@ -900,13 +887,15 @@ with
             ) as gitlab_version
         from {{ ref("mart_product_usage_paid_user_metrics_monthly") }}
         where
-            ping_created_at is not null and snapshot_month between date_trunc(
+            ping_created_at is not null
+            and snapshot_month between date_trunc(
                 month,
                 dateadd(
                     '{{ period_type }}', - '{{ delta_value }}',
                     cast('{{ end_date }}' as date)
                 )
-            ) and date_trunc(month, dateadd(month, -1, cast('{{ end_date }}' as date)))
+            ) and date_trunc(month, dateadd(month, -1, cast('{{ end_date }}' as date))
+            )
         group by dim_crm_account_id
 
     )
@@ -918,18 +907,18 @@ select
     p1.dim_crm_account_id as crm_account_id,
     case
         when
-            coalesce(p1.sum_arr, 0) != 0 and (
+            coalesce(p1.sum_arr, 0) != 0
+            and (
                 (coalesce(t.future_arr, 0) - coalesce(p1.sum_arr, 0)) / coalesce(
                     p1.sum_arr, 0
                 )
-            ) > 0.1
+            )
+            > 0.1
         then 1
         else 0
     end as is_expanded_flag,
-    coalesce(t.future_arr, 0) - coalesce(p1.sum_arr, 0) as is_expanded_amt
-
     -- Zuora Fields
-    ,
+    coalesce(t.future_arr, 0) - coalesce(p1.sum_arr, 0) as is_expanded_amt,
     p1.num_of_subs as subs_cnt,
     p1.cancelled_subs as cancelled_subs_cnt,
     case
@@ -977,8 +966,7 @@ select
     coalesce(p1.parent_crm_account_tsp_area, 'Unknown') as parent_account_area,
     p1.crm_account_tsp_account_employees as parent_account_employees_cnt,
     p1.parent_crm_account_tsp_max_family_employees
-    as parent_account_max_family_employees_cnt
-    ,
+    as parent_account_max_family_employees_cnt,
     p1.parent_crm_account_employee_count_band as parent_account_employee_count_band,
     p1.is_ultimate_product_tier as is_ultimate_product_tier_flag,
     p1.is_premium_product_tier as is_premium_product_tier_flag,
@@ -997,10 +985,8 @@ select
     coalesce(p1.self_managed_instance_count, 0) as self_managed_instance_cnt,
     coalesce(p1.saas_instance_count, 0) as saas_instance_cnt,
     coalesce(p1.others_instance_count, 0) as others_instance_cnt,
-    coalesce(p1.num_products_purchased, 0) as products_purchased_cnt
-
     -- Previous Period Zuora Fields
-    ,
+    coalesce(p1.num_products_purchased, 0) as products_purchased_cnt,
     coalesce(p2.sum_arr_prev, 0) as arr_prev_amt,
     coalesce(p2.sum_mrr_prev, 0) as mrr_prev_amt,
     coalesce(p2.cancelled_subs_prev, 0) as cancelled_subs_prev_cnt,
@@ -1008,10 +994,8 @@ select
     coalesce(
         crm_account_tsp_account_employees_prev, 0
     ) as crm_account_tsp_account_employees_prev_cnt,
-    coalesce(license_count_prev, 0) as license_prev_cnt
-
     -- Zuora Change Fields
-    ,
+    coalesce(license_count_prev, 0) as license_prev_cnt,
     case
         when sum_arr_prev > 0 then (sum_arr - sum_arr_prev) / sum_arr_prev else 1
     end as arr_change_pct,
@@ -1023,15 +1007,14 @@ select
     case
         when crm_account_tsp_account_employees_prev > 0
         then
-            (
-                crm_account_tsp_account_employees
-                - crm_account_tsp_account_employees_prev
-            ) / crm_account_tsp_account_employees_prev
+            (crm_account_tsp_account_employees - crm_account_tsp_account_employees_prev)
+            / crm_account_tsp_account_employees_prev
         else 1
     end as crm_account_tsp_account_employees_change_pct,
     coalesce(crm_account_tsp_account_employees, 0) - coalesce(
         crm_account_tsp_account_employees_prev, 0
-    ) as crm_account_tsp_account_employees_change_cnt,
+    ) as crm_account_tsp_account_employees_change_cnt
+    ,
     case
         when num_of_subs_prev > 0
         then (num_of_subs - num_of_subs_prev) / num_of_subs_prev
@@ -1049,30 +1032,28 @@ select
         then (cancelled_subs - cancelled_subs_prev) / cancelled_subs_prev
         else 1
     end as cancelled_subs_change_pct,
-    coalesce(cancelled_subs, 0) - coalesce(
-        cancelled_subs_prev, 0
-    ) as cancelled_subs_change_cnt,
+    coalesce(cancelled_subs, 0)
+    - coalesce(cancelled_subs_prev, 0) as cancelled_subs_change_cnt,
     coalesce(p1.self_managed_instance_count, 0) - coalesce(
         p2.self_managed_instance_count_prev, 0
-    ) as self_managed_instance_change_cnt,
-    coalesce(p1.saas_instance_count, 0) - coalesce(
-        p2.saas_instance_count_prev, 0
-    ) as saas_instance_change_cnt,
-    coalesce(p1.others_instance_count, 0) - coalesce(
-        p2.others_instance_count_prev, 0
-    ) as others_instance_change_cnt,
-    coalesce(p1.is_ultimate_product_tier, 0) - coalesce(
-        p2.is_ultimate_product_tier_prev, 0
-    ) as ultimate_product_tier_change_cnt,
-    coalesce(p1.is_premium_product_tier, 0) - coalesce(
-        p2.is_premium_product_tier_prev, 0
-    ) as premium_product_tier_change_cnt,
+    ) as self_managed_instance_change_cnt
+    ,
+    coalesce(p1.saas_instance_count, 0)
+    - coalesce(p2.saas_instance_count_prev, 0) as saas_instance_change_cnt,
+    coalesce(p1.others_instance_count, 0)
+    - coalesce(p2.others_instance_count_prev, 0) as others_instance_change_cnt,
+    coalesce(p1.is_ultimate_product_tier, 0)
+    - coalesce(p2.is_ultimate_product_tier_prev, 0) as ultimate_product_tier_change_cnt,
+    coalesce(p1.is_premium_product_tier, 0)
+    - coalesce(p2.is_premium_product_tier_prev, 0) as premium_product_tier_change_cnt,
     coalesce(p1.is_starter_bronze_product_tier, 0) - coalesce(
         p2.is_starter_bronze_product_tier_prev, 0
-    ) as starter_bronze_product_tier_change_cnt,
+    ) as starter_bronze_product_tier_change_cnt
+    ,
     coalesce(p1.is_service_type_full_service, 0) - coalesce(
         p2.is_service_type_full_service_prev, 0
-    ) as service_type_full_service_change_cnt,
+    ) as service_type_full_service_change_cnt
+    ,
     coalesce(p1.is_service_type_support_only, 0) - coalesce(
         p2.is_service_type_support_only_prev, 0
     ) as service_type_support_only_change_cnt
@@ -1110,9 +1091,7 @@ select
     ) as lost_opportunities_new_business_cnt,
     coalesce(
         o.lost_opportunities_add_on_business, 0
-    ) as lost_opportunities_add_on_business_cnt
-
-    ,
+    ) as lost_opportunities_add_on_business_cnt,
     coalesce(o.competitors_other, 0) as competitors_other_flag,
     coalesce(o.competitors_gitlab_core, 0) as competitors_gitlab_core_flag,
     coalesce(o.competitors_none, 0) as competitors_none_flag,
@@ -1129,14 +1108,11 @@ select
     coalesce(o.competitors_perforce, 0) as competitors_perforce_flag,
     coalesce(o.competitors_visual_studio, 0) as competitors_visual_studio_flag,
     coalesce(o.competitors_azure, 0) as competitors_azure_flag,
-    coalesce(
-        o.competitors_amazon_code_commit, 0
-    ) as competitors_amazon_code_commit_flag,
+    coalesce(o.competitors_amazon_code_commit, 0) as competitors_amazon_code_commit_flag
+    ,
     coalesce(o.competitors_circleci, 0) as competitors_circleci_flag,
     coalesce(o.competitors_bamboo, 0) as competitors_bamboo_flag,
-    coalesce(o.competitors_aws, 0) as competitors_aws_flag
-
-    ,
+    coalesce(o.competitors_aws, 0) as competitors_aws_flag,
     coalesce(
         o.use_case_continuous_integration, 0
     ) as use_case_continuous_integration_cnt,
@@ -1150,10 +1126,8 @@ select
     coalesce(o.use_case_other, 0) as use_case_other_cnt,
     coalesce(o.use_case_cloud_native, 0) as use_case_cloud_native_cnt,
     coalesce(o.use_case_git_ops, 0) as use_case_git_ops_cnt,
-    case when o.account_id is not null then 1 else 0 end as has_sfdc_opportunities_flag
-
     -- ZoomInfo Fields
-    ,
+    case when o.account_id is not null then 1 else 0 end as has_sfdc_opportunities_flag,
     zt.zi_revenue as zi_revenue,
     zt.zi_industry as zi_industry,
     zt.zi_sic_code as zi_sic_code,
@@ -1191,10 +1165,8 @@ select
         zt.zi_tortoise_svn_flag,
         zt.zi_kubernetes_flag,
         0
-    ) as zi_open_source_any_flag
-
     -- Event Salesforce
-    ,
+    ) as zi_open_source_any_flag,
     coalesce(
         es.initial_qualifying_meeting_event_count, 0
     ) as initial_qualifying_meeting_event_cnt,
@@ -1205,11 +1177,8 @@ select
     coalesce(es.in_person_event_count, 0) as in_person_event_cnt,
     coalesce(es.renewal_event_count, 0) as renewal_event_cnt,
     coalesce(es.total_event_count, 0) as total_event_cnt,
-    case when es.account_id is not null then 1 else 0 end as has_sfdc_events_flag
-
-
     -- Task Salesforce
-    ,
+    case when es.account_id is not null then 1 else 0 end as has_sfdc_events_flag,
     coalesce(ts.email_task_count, 0) as email_task_cnt,
     coalesce(ts.call_task_count, 0) as call_task_cnt,
     coalesce(ts.demo_task_count, 0) as demo_task_cnt,
@@ -1220,10 +1189,8 @@ select
     coalesce(ts.is_correct_contact_task, 0) as is_correct_contact_task_flag,
     coalesce(ts.is_left_message_task, 0) as is_left_message_task_flag,
     coalesce(ts.is_not_answered_task, 0) as is_not_answered_task_flag,
-    case when ts.account_id is not null then 1 else 0 end as has_sfdc_tasks_flag
-
     -- Bizible Fields
-    ,
+    case when ts.account_id is not null then 1 else 0 end as has_sfdc_tasks_flag,
     coalesce(b.num_bizible_touchpoints, 0) as bizible_touchpoints_cnt,
     coalesce(b.num_campaigns, 0) as campaigns_cnt,
     coalesce(b.touchpoint_source_web_direct, 0) as touchpoint_source_web_direct_cnt,
@@ -1305,14 +1272,11 @@ select
     ) as touchpoint_crm_person_title_software_dev_team_lead_cnt,
     case
         when b.dim_crm_account_id is not null then 1 else 0
-    end as has_bizible_data_flag
-
     -- Product Usage
-    ,
+    end as has_bizible_data_flag,
     u.unique_active_user as unique_active_user_cnt,
     u.action_monthly_active_users_project_repo_avg
-    as action_monthly_active_users_project_repo_avg
-    ,
+    as action_monthly_active_users_project_repo_avg,
     u.merge_requests_avg as merge_requests_avg,
     u.projects_with_repositories_enabled_avg as projects_with_repositories_enabled_avg,
     u.ci_pipelines_avg as ci_pipelines_avg,
@@ -1320,8 +1284,7 @@ select
     u.ci_builds_avg as ci_builds_avg,
     u.ci_pipeline_config_repository_avg as ci_pipeline_config_repository_avg,
     u.user_unique_users_all_secure_scanners_avg
-    as user_unique_users_all_secure_scanners_avg
-    ,
+    as user_unique_users_all_secure_scanners_avg,
     u.user_sast_jobs_avg as user_sast_jobs_avg,
     u.user_dast_jobs_avg as user_dast_jobs_avg,
     u.user_dependency_scanning_jobs_avg as user_dependency_scanning_jobs_avg,
@@ -1338,8 +1301,7 @@ select
     u.template_repositories_all_time_event as template_repositories_all_time_event_cnt,
     u.ci_runners_all_time_event as ci_runners_all_time_event_cnt,
     u.auto_devops_enabled_all_time_event as auto_devops_enabled_all_time_event_cnt,
-    u.projects_with_packages_all_time_event
-    as projects_with_packages_all_time_event_cnt
+    u.projects_with_packages_all_time_event as projects_with_packages_all_time_event_cnt
     ,
     u.merge_requests_all_time_event as merge_requests_all_time_event_cnt,
     u.epics_all_time_event as epics_all_time_event_cnt,

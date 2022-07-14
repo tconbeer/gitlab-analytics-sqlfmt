@@ -1,12 +1,8 @@
 {{ config(tags=["mnpi_exception"]) }}
 
 with
-    customers as (select * from {{ ref("customers_db_customers") }})
-
-    ,
-    trials as (select * from {{ ref("customers_db_trials") }})
-
-    ,
+    customers as (select * from {{ ref("customers_db_customers") }}),
+    trials as (select * from {{ ref("customers_db_trials") }}),
     users as (
 
         select
@@ -26,16 +22,10 @@ with
             }}, created_at as user_created_at, updated_at as user_updated_at
         from {{ ref("gitlab_dotcom_users") }}
 
-    )
-
-    ,
+    ),
     highest_paid_subscription_plan as (
 
-        select * from {{ ref("gitlab_dotcom_highest_paid_subscription_plan") }}
-
-    )
-
-    ,
+        select * from {{ ref("gitlab_dotcom_highest_paid_subscription_plan") }}),
     customers_with_trial as (
 
         select
@@ -51,9 +41,7 @@ with
         where customers.customer_provider = 'gitlab'
         group by 1
 
-    )
-
-    ,
+    ),
     joined as (
         select
             users.*,

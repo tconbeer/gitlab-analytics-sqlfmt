@@ -7,19 +7,16 @@
 }}
 
 {% set repeated_metric_columns = "SUM(headcount_start)                             AS headcount_start,       SUM(headcount_end)                                AS headcount_end,       SUM(headcount_end_excluding_sdr)                  AS headcount_end_excluding_sdr,       (SUM(headcount_start) + SUM(headcount_end))/2     AS headcount_average,       SUM(hire_count)                                   AS hire_count,       SUM(separation_count)                             AS separation_count,       SUM(voluntary_separation)                         AS voluntary_separation,       SUM(involuntary_separation)                       AS involuntary_separation,        SUM(headcount_start_leader)                       AS headcount_start_leader,       SUM(headcount_end_leader)                         AS headcount_end_leader,       (SUM(headcount_start_leader)          + SUM(headcount_end_leader))/2                  AS headcount_average_leader,       SUM(hired_leaders)                                AS hired_leaders,       SUM(separated_leaders)                            AS separated_leaders,        SUM(headcount_start_manager)                      AS headcount_start_manager,       SUM(headcount_end_manager)                        AS headcount_end_manager,       (SUM(headcount_start_manager)          + SUM(headcount_end_leader))/2                  AS headcount_average_manager,       SUM(hired_manager)                                AS hired_manager,       SUM(separated_manager)                            AS separated_manager,        SUM(headcount_start_management)                   AS headcount_start_management,       SUM(headcount_end_management)                     AS headcount_end_management,       (SUM(headcount_start_management)          + SUM(headcount_end_management))/2              AS headcount_average_management,       SUM(hired_management)                             AS hired_management,       SUM(separated_management)                         AS separated_management,                     SUM(headcount_start_staff)                        AS headcount_start_staff,       SUM(headcount_end_staff)                          AS headcount_end_staff,       (SUM(headcount_start_staff)          + SUM(headcount_end_staff))/2                   AS headcount_average_staff,       SUM(hired_staff)                                  AS hired_staff,       SUM(separated_staff)                              AS separated_staff,        SUM(headcount_start_contributor)                  AS headcount_start_contributor,       SUM(headcount_end_contributor)                    AS headcount_end_individual_contributor,       (SUM(headcount_start_contributor)          + SUM(headcount_end_contributor))/2             AS headcount_average_contributor,       SUM(hired_contributor)                            AS hired_contributor,       SUM(separated_contributor)                        AS separated_contributor,        SUM(IFF(is_promotion = TRUE,1,0))                 AS promotion,       SUM(IFF(is_promotion_excluding_sdr = TRUE,1,0))   AS promotion_excluding_sdr,              SUM(percent_change_in_comp)                       AS percent_change_in_comp,       SUM(percent_change_in_comp_excluding_sdr)         AS percent_change_in_comp_excluding_sdr,        AVG(location_factor)                              AS location_factor,       AVG(new_hire_location_factor)                     AS new_hire_location_factor,       SUM(discretionary_bonus)                          AS discretionary_bonus,        AVG(tenure_months)                                AS tenure_months,       SUM(tenure_zero_to_six_months)                    AS tenure_zero_to_six_months,       SUM(tenure_six_to_twelve_months)                  AS tenure_six_to_twelve_months,       SUM(tenure_one_to_two_years)                      AS tenure_one_to_two_years,       SUM(tenure_two_to_four_years)                     AS tenure_two_to_four_years,       SUM(tenure_four_plus_years)                       AS tenure_four_plus_years       " %}
-
-
-
 with
     dates as (
 
         select date_actual as start_date, last_day(date_actual) as end_date
         from {{ ref("date_details") }}
         where
-            date_day <= last_day(
-                current_date
+            date_day <= last_day(current_date)
+            and day_of_month = 1
             -- min employment_status_date in bamboohr_employment_status model
-            ) and day_of_month = 1 and date_actual >= '2013-07-01'
+            and date_actual >= '2013-07-01'
 
     ),
     mapping as (
@@ -215,16 +212,16 @@ with
             ) as percent_change_in_comp_excluding_sdr,
 
             iff(
-                dates.end_date = date_actual and coalesce(
-                    sales_geo_differential, 'n/a - Comp Calc'
-                ) = 'n/a - Comp Calc',
+                dates.end_date = date_actual
+                and coalesce(sales_geo_differential, 'n/a - Comp Calc')
+                = 'n/a - Comp Calc',
                 location_factor,
                 null
             ) as location_factor,
             iff(
-                is_hire_date = true and coalesce(
-                    sales_geo_differential, 'n/a - Comp Calc'
-                ) = 'n/a - Comp Calc',
+                is_hire_date = true
+                and coalesce(sales_geo_differential, 'n/a - Comp Calc')
+                = 'n/a - Comp Calc',
                 location_factor,
                 null
             ) as new_hire_location_factor,
@@ -247,7 +244,8 @@ with
             ) as tenure_four_plus_years
         from dates
         left join
-            employees on date_trunc(month, dates.start_date) = date_trunc(
+            employees
+            on date_trunc(month, dates.start_date) = date_trunc(
                 month, employees.date_actual
             )
         left join
@@ -278,9 +276,8 @@ with
             {{ repeated_metric_columns }}
         from dates
         left join
-            intermediate on date_trunc(month, start_date) = date_trunc(
-                month, date_actual
-            )
+            intermediate
+            on date_trunc(month, start_date) = date_trunc(month, date_actual)
             {{ dbt_utils.group_by(n=8) }}
 
 
@@ -298,9 +295,8 @@ with
             {{ repeated_metric_columns }}
         from dates
         left join
-            intermediate on date_trunc(month, start_date) = date_trunc(
-                month, date_actual
-            )
+            intermediate
+            on date_trunc(month, start_date) = date_trunc(month, date_actual)
             {{ dbt_utils.group_by(n=8) }}
 
         union all
@@ -317,9 +313,8 @@ with
             {{ repeated_metric_columns }}
         from dates
         left join
-            intermediate on date_trunc(month, start_date) = date_trunc(
-                month, date_actual
-            )
+            intermediate
+            on date_trunc(month, start_date) = date_trunc(month, date_actual)
             {{ dbt_utils.group_by(n=8) }}
 
         union all
@@ -336,9 +331,8 @@ with
             {{ repeated_metric_columns }}
         from dates
         left join
-            intermediate on date_trunc(month, start_date) = date_trunc(
-                month, date_actual
-            )
+            intermediate
+            on date_trunc(month, start_date) = date_trunc(month, date_actual)
         where department is not null {{ dbt_utils.group_by(n=8) }}
 
     ),

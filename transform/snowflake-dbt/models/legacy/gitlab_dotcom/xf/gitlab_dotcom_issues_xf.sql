@@ -24,9 +24,9 @@ with
         select noteable_id as issue_id, created_at as derived_closed_at
         from {{ ref("gitlab_dotcom_notes") }}
         where
-            noteable_type = 'Issue' and system = true and (
-                contains(note, 'closed') or contains(note, 'moved to')
-            )
+            noteable_type = 'Issue'
+            and system = true
+            and (contains(note, 'closed') or contains(note, 'moved to'))
         qualify
             row_number() over (partition by noteable_id order by created_at desc) = 1
 
@@ -35,8 +35,8 @@ with
 
         select
             issues.issue_id,
-            array_agg(lower(masked_label_title)) within group(
-                order by masked_label_title asc
+            array_agg(
+                lower(masked_label_title)) within group(order by masked_label_title asc
             ) as labels
         from issues
         left join label_links on issues.issue_id = label_links.target_id
@@ -108,7 +108,8 @@ with
 
             case
                 when
-                    projects.namespace_id = 9970 and array_contains(
+                    projects.namespace_id = 9970
+                    and array_contains(
                         'community contribution'::variant, agg_labels.labels
                     )
                 then true
@@ -117,57 +118,48 @@ with
 
             case
                 when
-                    array_contains(
-                        'severity::1'::variant, agg_labels.labels
-                    ) or array_contains('S1'::variant, agg_labels.labels)
+                    array_contains('severity::1'::variant, agg_labels.labels)
+                    or array_contains('S1'::variant, agg_labels.labels)
                 then 'severity 1'
                 when
-                    array_contains(
-                        'severity::2'::variant, agg_labels.labels
-                    ) or array_contains('S2'::variant, agg_labels.labels)
+                    array_contains('severity::2'::variant, agg_labels.labels)
+                    or array_contains('S2'::variant, agg_labels.labels)
                 then 'severity 2'
                 when
-                    array_contains(
-                        'severity::3'::variant, agg_labels.labels
-                    ) or array_contains('S3'::variant, agg_labels.labels)
+                    array_contains('severity::3'::variant, agg_labels.labels)
+                    or array_contains('S3'::variant, agg_labels.labels)
                 then 'severity 3'
                 when
-                    array_contains(
-                        'severity::4'::variant, agg_labels.labels
-                    ) or array_contains('S4'::variant, agg_labels.labels)
+                    array_contains('severity::4'::variant, agg_labels.labels)
+                    or array_contains('S4'::variant, agg_labels.labels)
                 then 'severity 4'
                 else 'undefined'
             end as severity_tag,
 
             case
                 when
-                    array_contains(
-                        'priority::1'::variant, agg_labels.labels
-                    ) or array_contains('P1'::variant, agg_labels.labels)
+                    array_contains('priority::1'::variant, agg_labels.labels)
+                    or array_contains('P1'::variant, agg_labels.labels)
                 then 'priority 1'
                 when
-                    array_contains(
-                        'priority::2'::variant, agg_labels.labels
-                    ) or array_contains('P2'::variant, agg_labels.labels)
+                    array_contains('priority::2'::variant, agg_labels.labels)
+                    or array_contains('P2'::variant, agg_labels.labels)
                 then 'priority 2'
                 when
-                    array_contains(
-                        'priority::3'::variant, agg_labels.labels
-                    ) or array_contains('P3'::variant, agg_labels.labels)
+                    array_contains('priority::3'::variant, agg_labels.labels)
+                    or array_contains('P3'::variant, agg_labels.labels)
                 then 'priority 3'
                 when
-                    array_contains(
-                        'priority::4'::variant, agg_labels.labels
-                    ) or array_contains('P4'::variant, agg_labels.labels)
+                    array_contains('priority::4'::variant, agg_labels.labels)
+                    or array_contains('P4'::variant, agg_labels.labels)
                 then 'priority 4'
                 else 'undefined'
             end as priority_tag,
 
             case
                 when
-                    projects.namespace_id = 9970 and array_contains(
-                        'security'::variant, agg_labels.labels
-                    )
+                    projects.namespace_id = 9970
+                    and array_contains('security'::variant, agg_labels.labels)
                 then true
                 else false
             end as is_security_issue,

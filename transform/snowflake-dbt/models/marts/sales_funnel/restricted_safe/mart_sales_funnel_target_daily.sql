@@ -9,9 +9,7 @@
             ("dim_crm_user_hierarchy_stamped", "dim_crm_user_hierarchy_stamped"),
         ]
     )
-}}
-
-,
+}},
 monthly_targets as (
 
     select

@@ -13,9 +13,8 @@ with
             nullif(due_date, '')::varchar as due_date,
             nullif(other, '')::varchar as other,
             nullif(requestor_name, '')::varchar as requestor_name,
-            nullif(
-                additional_gitlab_team_members, ''
-            )::varchar as additional_gitlab_team_members,
+            nullif(additional_gitlab_team_members, '')::varchar
+            as additional_gitlab_team_members,
             nullif(month, '')::date as date
         from source
 

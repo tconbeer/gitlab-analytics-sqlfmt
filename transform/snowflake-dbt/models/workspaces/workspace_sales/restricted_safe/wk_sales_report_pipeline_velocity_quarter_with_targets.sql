@@ -76,7 +76,8 @@ with
 
         from report_pipeline_velocity pv
         where
-            pv.close_fiscal_year >= 2020 and (
+            pv.close_fiscal_year >= 2020
+            and (
                 pv.close_day_of_fiscal_quarter_normalised
                 != pv.current_day_of_fiscal_quarter_normalised
                 or pv.close_fiscal_quarter_date != pv.current_fiscal_quarter_date
@@ -105,8 +106,6 @@ with
 
     ),
     base_keys as (
-
-
         select
             pipeline_summary.close_fiscal_quarter_name,
             pipeline_summary.close_fiscal_quarter_date,

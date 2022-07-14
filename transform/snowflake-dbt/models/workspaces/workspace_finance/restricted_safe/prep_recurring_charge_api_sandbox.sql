@@ -28,9 +28,9 @@ with
         select *
         from {{ ref("zuora_api_sandbox_subscription_source") }}
         where
-            is_deleted = false and exclude_from_analysis in (
-                'False', ''
-            ) and subscription_status not in ('Draft')
+            is_deleted = false
+            and exclude_from_analysis in ('False', '')
+            and subscription_status not in ('Draft')
 
     ),
     active_zuora_subscription as (
@@ -147,7 +147,8 @@ with
             and (
                 combined_rate_plans.effective_end_month > dim_date.date_actual
                 or combined_rate_plans.effective_end_month is null
-            ) and dim_date.day_of_month = 1
+            )
+            and dim_date.day_of_month = 1
             {{ dbt_utils.group_by(n=8) }}
 
     ),

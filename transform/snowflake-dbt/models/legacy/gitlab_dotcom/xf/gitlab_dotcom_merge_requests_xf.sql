@@ -28,8 +28,8 @@ with
 
         select
             merge_requests.merge_request_id,
-            array_agg(lower(masked_label_title)) within group(
-                order by masked_label_title asc
+            array_agg(
+                lower(masked_label_title)) within group(order by masked_label_title asc
             ) as labels
         from merge_requests
         left join label_links on merge_requests.merge_request_id = label_links.target_id
@@ -107,7 +107,8 @@ with
                 false
             ) as is_part_of_product,
             iff(
-                projects.namespace_is_internal is not null and array_contains(
+                projects.namespace_is_internal is not null
+                and array_contains(
                     'community contribution'::variant, agg_labels.labels
                 ),
                 true,

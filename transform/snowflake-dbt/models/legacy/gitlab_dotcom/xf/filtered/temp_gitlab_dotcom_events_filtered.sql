@@ -14,11 +14,13 @@ select
     event_id
 from {{ ref("gitlab_dotcom_events") }}
 where
-    created_at is not null and created_at >= dateadd(month, -25, current_date) and (
-        (target_type is null and event_action_type_id = 5) or
-        (target_type = 'DesignManagement::Design' and event_action_type_id in (1, 2)) or
-        (target_type = 'WikiPage::Meta' and event_action_type_id in (1, 2)) or
-        (event_action_type = 'pushed')
+    created_at is not null
+    and created_at >= dateadd(month, -25, current_date)
+    and (
+        (target_type is null and event_action_type_id = 5)
+        or (target_type = 'DesignManagement::Design' and event_action_type_id in (1, 2))
+        or (target_type = 'WikiPage::Meta' and event_action_type_id in (1, 2))
+        or (event_action_type = 'pushed')
     )
 
     {% if is_incremental() %}

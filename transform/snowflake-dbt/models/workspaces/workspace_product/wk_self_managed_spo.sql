@@ -6,9 +6,7 @@
 
 {{ config({"materialized": "table"}) }}
 
-{{ simple_cte([("fct_monthly_usage_data", "fct_monthly_usage_data")]) }}
-
-,
+{{ simple_cte([("fct_monthly_usage_data", "fct_monthly_usage_data")]) }},
 smau_only as (
 
     select

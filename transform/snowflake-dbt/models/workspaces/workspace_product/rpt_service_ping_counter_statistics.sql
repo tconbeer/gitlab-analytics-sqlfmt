@@ -1,5 +1,6 @@
 {{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
+-- find min and max version for each metric
 {{
     simple_cte(
         [
@@ -7,10 +8,7 @@
             ("dim_gitlab_releases", "dim_gitlab_releases"),
         ]
     )
-}}
-
--- find min and max version for each metric
-,
+}},
 transformed as (
 
     select distinct

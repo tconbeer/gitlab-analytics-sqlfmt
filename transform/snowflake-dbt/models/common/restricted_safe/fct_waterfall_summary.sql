@@ -38,12 +38,9 @@ with
 
             schedule_source.amount as transactional_amount,
             schedule_source.amount
-            * schedule_source.functional_currency_exchange_rate
-            as functional_amount,
-            (
-                schedule_source.amount
-                * schedule_source.functional_currency_exchange_rate
-            ) * schedule_source.reporting_currency_exchange_rate as reporting_amount,
+            * schedule_source.functional_currency_exchange_rate as functional_amount,
+            (schedule_source.amount * schedule_source.functional_currency_exchange_rate)
+            * schedule_source.reporting_currency_exchange_rate as reporting_amount,
 
             -- metadata
             {{ get_date_id("schedule_source.revenue_contract_schedule_created_date") }}

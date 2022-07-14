@@ -8,9 +8,8 @@ with
             "DIVISION"::varchar as division,
             nullif("SATISFACTION_SCORE", '')::number as satisfaction_score,
             nullif("RECOMMEND_TO_FRIEND", '')::number as recommend_to_friend,
-            nullif(
-                onboarding_buddy_experience_score, ''
-            )::number as buddy_experience_score,
+            nullif(onboarding_buddy_experience_score, '')::number
+            as buddy_experience_score,
             try_to_timestamp_ntz("HIRE_DATE")::date as hire_date
 
         from source

@@ -40,5 +40,5 @@ left join
     and hires.employee_id = location_factor.employee_id
 where
     date_trunc(month, offer_sent) between date_trunc(
-        month, dateadd(month, -6, current_date())
-    ) and current_date()
+        month, dateadd(month, -6, current_date())) and current_date(
+    )

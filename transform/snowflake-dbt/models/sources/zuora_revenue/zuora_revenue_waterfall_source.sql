@@ -7,7 +7,8 @@ with
             rank() over (
                 partition by as_of_prd_id, schd_id, acctg_type_id
                 order by incr_updt_dt desc
-            ) = 1
+            )
+            = 1
 
     ),
     renamed as (

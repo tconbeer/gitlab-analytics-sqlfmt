@@ -65,7 +65,8 @@ with
         qualify
             row_number() over (
                 partition by zuora_subscription_name order by report_date desc
-            ) = 1
+            )
+            = 1
 
     ),
     self_managed as (
@@ -112,7 +113,8 @@ with
             row_number() over (
                 partition by subscription_name
                 order by order_end_date desc, order_updated_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     customers as (

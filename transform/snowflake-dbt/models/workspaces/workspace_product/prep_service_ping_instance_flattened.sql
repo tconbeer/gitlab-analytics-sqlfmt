@@ -37,8 +37,8 @@ with
             (
                 source.raw_usage_data_payload:license_subscription_id::text
             ) as license_subscription_id,
-            source.raw_usage_data_payload:usage_activity_by_stage_monthly.manage.events::number
-            as umau_value,
+            source.raw_usage_data_payload:usage_activity_by_stage_monthly.manage.events
+            ::number as umau_value,
             path as metrics_path,
             iff(value = -1, 0, value) as metric_value,
             iff(value = -1, true, false) as has_timed_out

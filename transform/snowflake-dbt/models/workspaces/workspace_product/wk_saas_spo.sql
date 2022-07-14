@@ -15,9 +15,7 @@
             ("metrics", "gitlab_dotcom_xmau_metrics"),
         ]
     )
-}}
-
-,
+}},
 all_namespaces as (
 
     select namespace_id, namespace_type, creator_id, namespace_created_at
@@ -88,9 +86,8 @@ joined as (
     inner join date_details on events.event_month = date_details.date_day
     inner join namespaces on namespaces.namespace_id = events.namespace_id
     where
-        event_date >= dateadd(
-            'day', -28, date_details.last_day_of_month
-        ) and stage_name != 'manage'
+        event_date >= dateadd('day', -28, date_details.last_day_of_month)
+        and stage_name != 'manage'
         {{ dbt_utils.group_by(n=9) }}
 
 )

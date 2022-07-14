@@ -12,7 +12,8 @@ with
                     acquisition_name,
                     acquisition_end_date
                 order by acquisition_start_date
-            ) = 1
+            )
+            = 1
 
     ),
     final as (

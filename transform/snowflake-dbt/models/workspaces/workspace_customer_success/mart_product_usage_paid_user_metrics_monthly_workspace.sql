@@ -13,10 +13,7 @@
             ("dates", "dim_date"),
         ]
     )
-}}
-
-
-,
+}},
 most_recent_subscription_version as (
     select
         subscription_name,
@@ -31,7 +28,8 @@ most_recent_subscription_version as (
     qualify
         row_number() over (
             partition by subscription_name order by subscription_version desc
-        ) = 1
+        )
+        = 1
 
 ),
 zuora_licenses_per_subscription as (
@@ -42,16 +40,18 @@ zuora_licenses_per_subscription as (
         sum(charges.quantity) as zuora_licenses
     from charges
     join
-        dates on charges.effective_start_month <= dates.date_actual and (
+        dates
+        on charges.effective_start_month <= dates.date_actual
+        and (
             charges.effective_end_month > dates.date_actual
             or charges.effective_end_month is null
-        ) and dates.day_of_month = 1
+        )
+        and dates.day_of_month = 1
     left join
         subscriptions on charges.dim_subscription_id = subscriptions.dim_subscription_id
     where
-        charges.subscription_status in (
-            'Active', 'Cancelled'
-        ) and charges.product_tier_name != 'Storage'
+        charges.subscription_status in ('Active', 'Cancelled')
+        and charges.product_tier_name != 'Storage'
         {{ dbt_utils.group_by(n=2) }}
 
 ),

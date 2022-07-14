@@ -10,9 +10,7 @@
             ("version_releases", "version_releases"),
         ]
     )
-}}
-
-,
+}},
 usage_data as (
 
     select
@@ -42,8 +40,7 @@ joined as (
         ) as days_after_version_release_date,
         latest_version.major_minor_version as latest_version_available_at_ping_creation,
         latest_version.version_row_number
-        - ping_version.version_row_number
-        as versions_behind_latest
+        - ping_version.version_row_number as versions_behind_latest
 
     from usage_data
     left join licenses on usage_data.license_md5 = licenses.license_md5
@@ -64,9 +61,10 @@ joined as (
         }}
     where
         (
-            licenses.email is null or not (  -- Exclude internal tests licenses.
-                email like '%@gitlab.com' and lower(company) like '%gitlab%'
-            ) or uuid = 'ea8bf810-1d6f-4a6a-b4fd-93e8cbd8b57f'
+            licenses.email is null
+            -- Exclude internal tests licenses.
+            or not (email like '%@gitlab.com' and lower(company) like '%gitlab%')
+            or uuid = 'ea8bf810-1d6f-4a6a-b4fd-93e8cbd8b57f'
         )
 
 ),
@@ -95,8 +93,8 @@ renamed as (
             then 'Starter'
             else null
         end as edition_type,
-        usage_activity_by_stage_monthly['manage'] [
-            'events'
+        usage_activity_by_stage_monthly[
+            'manage'] ['events'
         ] as monthly_active_users_last_28_days
 
     from joined

@@ -31,6 +31,9 @@
     "Large MQLs & Trials",
 ] %}
 
+-- For the rpt_models align the column names and how Missing values are encoded with
+-- the null_or_missing macro.
+-- Also, add the variable extra_where_clause to filter the base data
 {{
     simple_cte(
         [
@@ -44,12 +47,7 @@
             ("rpt_sales_funnel_target_daily", "rpt_sales_funnel_target_daily"),
         ]
     )
-}}
-
--- For the rpt_models align the column names and how Missing values are encoded with
--- the null_or_missing macro.
--- Also, add the variable extra_where_clause to filter the base data
-,
+}},
 crm_opportunity_closed_period as (
 
     select
@@ -211,9 +209,12 @@ factor_to_date as (
     left join current_fiscal_quarter
     -- WHERE [fiscal_quarter_name_fy=bc_fiscal_quarter]
     where
-        fiscal_year between extract(year from current_date) - 1 and extract(
+        fiscal_year between extract(
             year from current_date
-        ) + 1
+        ) - 1 and extract(
+            year from current_date
+        )
+        + 1
 
 -- Union all the data sources columns to create a base list that can be used to join
 -- all the metrics too
@@ -296,13 +297,11 @@ base_list as (
         {% endfor %}
     from prep_base_list
 
-)
-
 -- Calculate the metrics in each CTE. Uses Group by ROLLUP to also calculate subtotal
 -- and total columns
 -- The IFNULL in the select_column is used because the Subtotal and Total columns
 -- calculated by the rollup come back as NULL
-,
+),
 new_logos_actual as (
 
     select
@@ -313,8 +312,11 @@ new_logos_actual as (
         count(distinct dim_crm_opportunity_id) as "Logos / A"
     from crm_opportunity_closed_period
     where
+        is_won = 'TRUE'
+        and is_closed = 'TRUE'
+        and is_edu_oss = 0
         -- AND IFF([new_logos] = FALSE, TRUE, order_type = '1. New - First Order')
-        is_won = 'TRUE' and is_closed = 'TRUE' and is_edu_oss = 0 and iff(
+        and iff(
             {{ is_new_logo_calc }} = false, true, order_type = '1. New - First Order'
         )
     group by
@@ -396,7 +398,8 @@ targets as (
                     {{ is_new_logo_calc }} = false,
                     true,
                     order_type_name = '1. New - First Order'
-                ) and kpi_name = 'Deals',
+                )
+                and kpi_name = 'Deals',
                 qtd_allocated_target,
                 0
             )
@@ -416,8 +419,9 @@ targets as (
             factor_to_date.is_selected_quarter_lower_than_current_quarter,
             target_date = factor_to_date.last_day_of_fiscal_quarter,
             report_target_date = current_date
+        )
         -- AND [fiscal_quarter_name_fy=bc_fiscal_quarter]
-        ) and fiscal_quarter_name_fy = 'FY22-Q1'
+        and fiscal_quarter_name_fy = 'FY22-Q1'
     group by
         rollup (
             1,
@@ -440,7 +444,8 @@ targets_full as (
                     {{ is_new_logo_calc }} = false,
                     true,
                     order_type_name = '1. New - First Order'
-                ) and kpi_name = 'Deals',
+                )
+                and kpi_name = 'Deals',
                 allocated_target,
                 0
             )
@@ -592,10 +597,14 @@ large_subtotal_new_logo as (
         count(distinct dim_crm_opportunity_id) as "Logos / A"
     from crm_opportunity_closed_period
     where
+        is_won = 'TRUE'
+        and is_closed = 'TRUE'
+        and is_edu_oss = 0
         -- AND IFF([new_logos] = FALSE, TRUE, order_type = '1. New - First Order')
-        is_won = 'TRUE' and is_closed = 'TRUE' and is_edu_oss = 0 and iff(
+        and iff(
             {{ is_new_logo_calc }} = false, true, order_type = '1. New - First Order'
-        ) and segment_region_grouped in (
+        )
+        and segment_region_grouped in (
             {% for large_region in large_segment_region_grouped %}
             '{{large_region}}' {% if not loop.last %}, {% endif %}
             {% endfor %}
@@ -639,10 +648,7 @@ large_subtotal as (
 
 )
 {% endif %}
-{% endfor %}
-
-
-,
+{% endfor %},
 final as (
 
     select *

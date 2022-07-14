@@ -1,6 +1,4 @@
-{{ simple_cte([("prep_host", "prep_host"), ("prep_usage_ping", "prep_usage_ping")]) }}
-
-,
+{{ simple_cte([("prep_host", "prep_host"), ("prep_usage_ping", "prep_usage_ping")]) }},
 joined as (
 
     select

@@ -9,9 +9,7 @@
             ("prep_usage_ping_payload", "prep_usage_ping_payload"),
         ]
     )
-}}
-
-,
+}},
 data as (
 
     select *
@@ -82,7 +80,8 @@ monthly as (
                     ping_created_month, dim_instance_id, host_name, metrics_path
                 order by ping_created_at_week desc, joined.dim_date_id desc
             )
-        ) = 1
+        )
+        = 1
 
 ),
 final as (

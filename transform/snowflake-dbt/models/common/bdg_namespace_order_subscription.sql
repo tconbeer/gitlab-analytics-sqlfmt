@@ -13,9 +13,7 @@
             ("subscription_delivery_types", "bdg_subscription_product_rate_plan"),
         ]
     )
-}}
-
-,
+}},
 product_rate_plans as (
 
     select distinct product_rate_plan_id, dim_product_tier_id, product_tier_name
@@ -67,7 +65,8 @@ namespace_list as (
         trial_histories.start_date as saas_trial_start_date,
         trial_histories.expired_on as saas_trial_expired_on,
         iff(
-            trial_histories.gl_namespace_id is not null or (
+            trial_histories.gl_namespace_id is not null
+            or (
                 namespaces.dim_namespace_id = ultimate_parent_namespace_id
                 and product_tier_name_namespace = 'SaaS - Trial: Ultimate'
             ),
@@ -191,9 +190,8 @@ final as (
         subscription_list.count_of_tiers_per_subscription,
         case
             when
-                namespace_list.gitlab_plan_id in (
-                    102, 103
-                ) and order_list.order_id is null
+                namespace_list.gitlab_plan_id in (102, 103)
+                and order_list.order_id is null
             then 'Trial Namespace Missing Order'
             when
                 order_list.namespace_id_order
@@ -201,19 +199,16 @@ final as (
                 and namespace_list.is_namespace_active = true
             then 'Order Linked to Non-Ultimate Parent Namespace'
             when
-                namespace_list.gitlab_plan_id not in (
-                    102, 103
-                ) and order_list.order_id is null
+                namespace_list.gitlab_plan_id not in (102, 103)
+                and order_list.order_id is null
             then 'Paid Namespace Missing Order'
             when
-                namespace_list.gitlab_plan_id not in (
-                    102, 103
-                ) and order_list.subscription_id_order is null
+                namespace_list.gitlab_plan_id not in (102, 103)
+                and order_list.subscription_id_order is null
             then 'Paid Namespace Missing Order Subscription'
             when
-                namespace_list.gitlab_plan_id not in (
-                    102, 103
-                ) and subscription_list.dim_subscription_id is null
+                namespace_list.gitlab_plan_id not in (102, 103)
+                and subscription_list.dim_subscription_id is null
             then 'Paid Namespace Missing Zuora Subscription'
             when
                 order_list.subscription_id_order is not null
@@ -241,9 +236,8 @@ final as (
                 and namespace_list.dim_namespace_id is not null
             then 'Paid All Matching'
             when
-                namespace_list.gitlab_plan_id in (
-                    102, 103
-                ) and order_list.order_id is not null
+                namespace_list.gitlab_plan_id in (102, 103)
+                and order_list.order_id is not null
             then 'Trial All Matching'
         end as namespace_order_subscription_match_status
     from order_list

@@ -38,10 +38,8 @@ from zuora_subscription_intermediate
 left join
     zuora_subscription_lineage
     on zuora_subscription_intermediate.subscription_name_slugify
-    =
-    zuora_subscription_lineage.subscription_name_slugify
+    = zuora_subscription_lineage.subscription_name_slugify
 left join
     zuora_subscription_parentage
     on zuora_subscription_intermediate.subscription_name_slugify
-    =
-    zuora_subscription_parentage.child_sub
+    = zuora_subscription_parentage.child_sub

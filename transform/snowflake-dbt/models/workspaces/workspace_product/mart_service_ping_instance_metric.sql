@@ -23,19 +23,18 @@
             ("dim_service_ping_metric", "dim_service_ping_metric"),
         ]
     )
-}}
-
-,
+}},
 dim_subscription as (
 
     select *
     from {{ ref("dim_subscription") }}
     where
         (
-            subscription_name_slugify <> zuora_renewal_subscription_name_slugify[
-                0
-            ]::text or zuora_renewal_subscription_name_slugify is null
-        ) and subscription_status not in ('Draft', 'Expired')
+            subscription_name_slugify
+            <> zuora_renewal_subscription_name_slugify[0]::text
+            or zuora_renewal_subscription_name_slugify is null
+        )
+        and subscription_status not in ('Draft', 'Expired')
 
 ),
 fct_service_ping as (
@@ -186,8 +185,7 @@ joined as (
         dim_service_ping.product_tier as ping_product_tier,
         dim_service_ping.ping_edition
         || ' - '
-        || dim_service_ping.product_tier
-        as ping_edition_product_tier,
+        || dim_service_ping.product_tier as ping_edition_product_tier,
         dim_service_ping.major_version as major_version,
         dim_service_ping.minor_version as minor_version,
         dim_service_ping.major_minor_version as major_minor_version,

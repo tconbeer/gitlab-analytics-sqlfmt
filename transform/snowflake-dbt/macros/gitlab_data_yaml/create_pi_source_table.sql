@@ -22,12 +22,10 @@ with
             data_by_row['sisense_data'] is not null as is_embedded,
             data_by_row['target']::varchar as pi_target,
             data_by_row['target_name']::varchar as pi_metric_target_name,
-            data_by_row[
-                'monthly_recorded_targets'
-            ]::varchar as pi_monthly_recorded_targets,
-            data_by_row[
-                'monthly_estimated_targets'
-            ]::varchar as pi_monthly_estimated_targets,
+            data_by_row['monthly_recorded_targets']::varchar
+            as pi_monthly_recorded_targets,
+            data_by_row['monthly_estimated_targets']::varchar
+            as pi_monthly_estimated_targets,
             data_by_row['metric_name']::varchar as pi_metric_name,
             data_by_row['telemetry_type']::varchar as telemetry_type,
             data_by_row['urls']::varchar as pi_url,

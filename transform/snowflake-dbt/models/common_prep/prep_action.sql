@@ -10,9 +10,7 @@
             ("dim_date", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 prep_user as (select * from {{ ref("prep_user") }} users where user_state <> 'blocked'),
 joined as (
 

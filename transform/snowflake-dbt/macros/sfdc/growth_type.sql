@@ -9,12 +9,12 @@ case
             '4. Contraction',
             '5. Churn - Partial',
             '6. Churn - Final'
-        ) and {{ arr_basis }} != 0
+        )
+        and {{ arr_basis }} != 0
     then 'Growth on Renewal'
     when
-        {{ order_type }} in (
-            '4. Contraction', '5. Churn - Partial'
-        ) and {{ arr_basis }} != 0
+        {{ order_type }} in ('4. Contraction', '5. Churn - Partial')
+        and {{ arr_basis }} != 0
     then 'Contraction on Renewal'
     when {{ order_type }} in ('6. Churn - Final') and {{ arr_basis }} != 0
     then 'Lost on Renewal'

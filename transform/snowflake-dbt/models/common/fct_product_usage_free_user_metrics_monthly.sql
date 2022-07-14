@@ -10,9 +10,7 @@
             ("smau", "fct_usage_ping_subscription_mapped_smau"),
         ]
     )
-}}
-
-,
+}},
 smau_convert as (
 
     select distinct
@@ -206,7 +204,8 @@ sm_free_user_metrics as (
             row_number() over (
                 partition by sm_free_users.uuid, sm_free_users.hostname
                 order by sm_free_users.ping_created_at desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_latest_data
@@ -223,7 +222,8 @@ sm_free_user_metrics as (
                 sm_free_users.hostname,
                 sm_free_users.ping_created_at_month
             order by sm_free_users.ping_created_at desc
-        ) = 1
+        )
+        = 1
 
 ),
 saas_free_user_metrics as (
@@ -447,7 +447,8 @@ saas_free_user_metrics as (
         iff(
             row_number() over (
                 partition by dim_namespace_id order by reporting_month desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_latest_data

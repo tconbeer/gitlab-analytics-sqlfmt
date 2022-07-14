@@ -1,7 +1,5 @@
 with
-    {{ distinct_source(source=source("gitlab_ops", "members")) }}
-
-    ,
+    {{ distinct_source(source=source("gitlab_ops", "members")) }},
     renamed as (
 
         select

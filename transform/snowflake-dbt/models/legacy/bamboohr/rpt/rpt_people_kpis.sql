@@ -13,9 +13,7 @@
             ("rpt_promotion", "bamboohr_promotion_rate"),
         ]
     )
-}}
-
-,
+}},
 basic_metrics as (
 
     select
@@ -146,8 +144,7 @@ final as (
 
         rpt_osat.rolling_3_month_osat,
         rpt_osat.rolling_3_month_respondents
-        / basic_metrics.rolling_3_month_hires
-        as rolling_3_month_osat_response_rate,
+        / basic_metrics.rolling_3_month_hires as rolling_3_month_osat_response_rate,
         rpt_osat.rolling_3_month_buddy_score,
         rpt_osat.rolling_3_month_buddy_respondents,
 
@@ -167,9 +164,11 @@ final as (
         on basic_metrics.month_date = people_group_metrics.month_date
     left join rpt_osat on basic_metrics.month_date = rpt_osat.completed_month
     left join
-        rpt_headcount_vs_planned on basic_metrics.month_date = date_trunc(
+        rpt_headcount_vs_planned
+        on basic_metrics.month_date = date_trunc(
             month, rpt_headcount_vs_planned.month_date
-        ) and rpt_headcount_vs_planned.breakout_type = 'all_company_breakout'
+        )
+        and rpt_headcount_vs_planned.breakout_type = 'all_company_breakout'
     left join
         rpt_recruiting_kpis on basic_metrics.month_date = rpt_recruiting_kpis.month_date
     left join
@@ -185,9 +184,11 @@ final as (
         and sdr_promotion.field_name = 'department_grouping_breakout'
         and sdr_promotion.field_value = 'Sales Development'
     left join
-        rpt_team_members_out_of_comp_band on basic_metrics.month_date = date_trunc(
+        rpt_team_members_out_of_comp_band
+        on basic_metrics.month_date = date_trunc(
             month, rpt_team_members_out_of_comp_band.date_actual
-        ) and rpt_team_members_out_of_comp_band.breakout_type = 'company_breakout'
+        )
+        and rpt_team_members_out_of_comp_band.breakout_type = 'company_breakout'
 )
 
 select
@@ -204,6 +205,5 @@ select
     final.*
 from final
 where
-    month_date between dateadd(
-        month, -13, date_trunc(month, current_date())
-    ) and dateadd(month, -1, date_trunc(month, current_date()))
+    month_date between dateadd(month, -13, date_trunc(month, current_date()))
+    and dateadd(month, -1, date_trunc(month, current_date()))

@@ -1,8 +1,6 @@
 {{ config({"schema": "common_mart_marketing"}) }}
 
-{{ simple_cte([("pmg_paid_digital", "pmg_paid_digital")]) }}
-
-,
+{{ simple_cte([("pmg_paid_digital", "pmg_paid_digital")]) }},
 final as (
 
     select

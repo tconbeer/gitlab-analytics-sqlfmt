@@ -16,9 +16,7 @@ with
 
             {% endif %}
 
-    )
-
-    ,
+    ),
     transformed as (
 
         select *, date_trunc('month', created_at) as created_month
@@ -27,11 +25,10 @@ with
             row_number() over (
                 partition by instance_id, metrics_path, host_id, created_month
                 order by created_at desc
-            ) = 1
+            )
+            = 1
 
-    )
-
-    ,
+    ),
     monthly as (
 
         select

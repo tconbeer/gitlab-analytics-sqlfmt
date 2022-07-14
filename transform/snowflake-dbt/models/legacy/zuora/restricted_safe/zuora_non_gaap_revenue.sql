@@ -29,9 +29,9 @@ with
         from zuora_rev_sch
         inner join zuora_accts on zuora_rev_sch.account_id = zuora_accts.account_id
         left join
-            zuora_contact on coalesce(
-                zuora_accts.sold_to_contact_id, zuora_accts.bill_to_contact_id
-            ) = zuora_contact.contact_id
+            zuora_contact
+            on coalesce(zuora_accts.sold_to_contact_id, zuora_accts.bill_to_contact_id)
+            = zuora_contact.contact_id
         inner join
             zuora_rpc
             on zuora_rev_sch.rate_plan_charge_id = zuora_rpc.rate_plan_charge_id

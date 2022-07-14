@@ -4,9 +4,8 @@ with
 
         select
             handbook_file_edited,
-            regexp_replace(
-                plain_diff_url_path, '[^0-9]+', ''
-            )::number as merge_request_iid
+            regexp_replace(plain_diff_url_path, '[^0-9]+', '')::number
+            as merge_request_iid
         from {{ ref("handbook_merge_requests_files") }}
 
     ),
@@ -36,9 +35,11 @@ with
             on mr_files.merge_request_iid = merge_requests.merge_request_iid
             and merge_requests.project_id = 7764
         left join
-            file_classifications on lower(
-                mr_files.handbook_file_edited
-            ) like '%' || file_classifications.handbook_path || '%'
+            file_classifications
+            on lower(mr_files.handbook_file_edited)
+            like '%'
+            || file_classifications.handbook_path
+            || '%'
         where merge_requests.is_merge_to_master
 
     ),

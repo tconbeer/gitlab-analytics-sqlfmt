@@ -128,7 +128,8 @@ with
             row_number() over (
                 partition by opportunity_id, date_trunc('day', valid_from)
                 order by valid_from desc
-            ) = 1
+            )
+            = 1
 
     ),
     joined as (
@@ -191,7 +192,9 @@ with
             other_non_recurring_amount__c as other_non_recurring_amount
         from cleaned
         inner join
-            date_spine on cleaned.valid_from::date <= date_spine.date_actual and (
+            date_spine
+            on cleaned.valid_from::date <= date_spine.date_actual
+            and (
                 cleaned.valid_to::date > date_spine.date_actual
                 or cleaned.valid_to is null
             )

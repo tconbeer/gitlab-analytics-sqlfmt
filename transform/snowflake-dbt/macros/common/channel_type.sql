@@ -6,18 +6,16 @@ case
         and {{ order_type }} = '1. New - First Order'
     then 'Sourced - New'
     when
-        {{ sqs_bucket_engagement }} = 'Partner Sourced' and (
-            {{ order_type }} != '1. New - First Order' or {{ order_type }} is null
-        )
+        {{ sqs_bucket_engagement }} = 'Partner Sourced'
+        and ({{ order_type }} != '1. New - First Order' or {{ order_type }} is null)
     then 'Sourced - Growth'
     when
         {{ sqs_bucket_engagement }} = 'Co-sell'
         and {{ order_type }} = '1. New - First Order'
     then 'Co-sell - New'
     when
-        {{ sqs_bucket_engagement }} = 'Co-sell' and (
-            {{ order_type }} != '1. New - First Order' or {{ order_type }} is null
-        )
+        {{ sqs_bucket_engagement }} = 'Co-sell'
+        and ({{ order_type }} != '1. New - First Order' or {{ order_type }} is null)
     then 'Co-sell - Growth'
 end
 

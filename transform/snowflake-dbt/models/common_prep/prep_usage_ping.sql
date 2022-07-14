@@ -183,11 +183,11 @@ with
             dim_location_country_id
         from add_country_info_to_usage_ping
         left outer join
-            dim_product_tier on trim(
-                lower(add_country_info_to_usage_ping.product_tier)
-            ) = trim(
+            dim_product_tier
+            on trim(lower(add_country_info_to_usage_ping.product_tier)) = trim(
                 lower(dim_product_tier.product_tier_historical_short)
-            ) and main_edition = 'EE'
+            )
+            and main_edition = 'EE'
 
     )
 

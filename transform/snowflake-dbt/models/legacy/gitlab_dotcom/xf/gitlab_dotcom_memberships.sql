@@ -11,7 +11,8 @@ with  -- direct group and project members
             rank() over (
                 partition by user_id, source_id, member_source_type
                 order by access_level desc, invite_created_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }}),
@@ -217,9 +218,9 @@ with  -- direct group and project members
             -- exclude any user with guest access
             iff(access_level = 10 or group_access = 10, true, false) as is_guest,
             iff(
-                user_state = 'active' and (
-                    user_type != 6 or user_type is null
-                ) and requested_at is null,
+                user_state = 'active'
+                and (user_type != 6 or user_type is null)
+                and requested_at is null,
                 true,  -- must be active, not a project bot, and not awaiting access
                 false
             ) as is_active,
@@ -228,7 +229,8 @@ with  -- direct group and project members
                     ultimate_parent_plan_title = 'gold'
                     and is_active = true
                     and is_guest = false
-                ) or (ultimate_parent_plan_title != 'gold' and is_active = true),
+                )
+                or (ultimate_parent_plan_title != 'gold' and is_active = true),
                 true,  -- exclude guests if namespace has gold plan
                 false
             ) as is_billable

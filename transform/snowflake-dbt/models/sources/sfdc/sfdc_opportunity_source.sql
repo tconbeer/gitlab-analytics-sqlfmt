@@ -21,9 +21,8 @@ with
                 when stagename = '6-Awaiting Signature'
                 then x6_awaiting_signature_date__c
             end as calculation_days_in_stage_date,
-            datediff(
-                days, calculation_days_in_stage_date::date, current_date::date
-            ) + 1 as days_in_stage
+            datediff(days, calculation_days_in_stage_date::date, current_date::date)
+            + 1 as days_in_stage
         from {{ source("salesforce", "opportunity") }} as opportunity
 
     ),
@@ -107,9 +106,8 @@ with
                 when sales_qualified_source = 'BDR Generated'
                 then 'SDR Generated'
                 when
-                    sales_qualified_source like any (
-                        'Web%', 'Missing%', 'Other'
-                    ) or sales_qualified_source is null
+                    sales_qualified_source like any ('Web%', 'Missing%', 'Other')
+                    or sales_qualified_source is null
                 then 'Web Direct Generated'
                 else sales_qualified_source
             end as sales_qualified_source_grouped,

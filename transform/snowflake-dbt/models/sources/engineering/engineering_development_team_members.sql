@@ -20,17 +20,14 @@ with
             data_by_row['gitlab']::varchar as gitlab_handle,
             data_by_row['gitlabId']::varchar as gitlab_id,
             data_by_row['isBackendMaintainer']::boolean as is_backend_maintainer,
-            data_by_row[
-                'isBackendTraineeMaintainer'
-            ]::boolean as is_backend_trainee_maintainer,
+            data_by_row['isBackendTraineeMaintainer']::boolean
+            as is_backend_trainee_maintainer,
             data_by_row['isDatabaseMaintainer']::boolean as is_database_maintainer,
-            data_by_row[
-                'isDatabaseTraineeMaintainer'
-            ]::boolean as is_database_trainee_maintainer,
+            data_by_row['isDatabaseTraineeMaintainer']::boolean
+            as is_database_trainee_maintainer,
             data_by_row['isFrontendMaintainer']::boolean as is_frontend_maintainer,
-            data_by_row[
-                'isFrontendTraineeMaintainer'
-            ]::boolean as is_frontend_trainee_maintainer,
+            data_by_row['isFrontendTraineeMaintainer']::boolean
+            as is_frontend_trainee_maintainer,
             data_by_row['isManager']::boolean as is_manager,
             data_by_row['level']::varchar as team_member_level,
             data_by_row['locality']::varchar as locality,

@@ -30,7 +30,8 @@ with
         where
             breakout_type in (
                 'kpi_breakout', 'department_breakout', 'division_breakout'
-            ) and eeoc_field_name = 'no_eeoc'
+            )
+            and eeoc_field_name = 'no_eeoc'
 
     ),
     hire_plan as (
@@ -156,8 +157,8 @@ with
             ) as cumulative_hires_vs_plan
         from joined
         where
-            month_date between dateadd(month, -24, current_date()) and dateadd(
-                month, 12, current_date()
+            month_date between dateadd(
+                month, -24, current_date()) and dateadd(month, 12, current_date()
             )
     )
 

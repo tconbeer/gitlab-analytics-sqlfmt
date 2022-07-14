@@ -98,9 +98,9 @@ with
             and zuora_rpc.mrr > 0
             and zuora_rpc.tcv > 0
         left join
-            zuora_contact on coalesce(
-                zuora_accts.sold_to_contact_id, zuora_accts.bill_to_contact_id
-            ) = zuora_contact.contact_id
+            zuora_contact
+            on coalesce(zuora_accts.sold_to_contact_id, zuora_accts.bill_to_contact_id)
+            = zuora_contact.contact_id
         left join
             original_rate_plan_id
             on zuora_rpc.original_id = original_rate_plan_id.original_id

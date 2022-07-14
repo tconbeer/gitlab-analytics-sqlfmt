@@ -1,39 +1,21 @@
 {{ config(tags=["mnpi_exception"]) }}
 
 with
-    customers as (select * from {{ ref("customers_db_customers_source") }})
-
-    ,
-    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }})
-
-    ,
-    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }})
-
-    ,
-    users as (select * from {{ ref("gitlab_dotcom_users") }})
-
-    ,
-    zuora_rate_plan as (select * from {{ ref("zuora_rate_plan") }})
-
-    ,
-    zuora_base_mrr as (select * from {{ ref("zuora_base_mrr") }})
-
-    ,
+    customers as (select * from {{ ref("customers_db_customers_source") }}),
+    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }}),
+    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }}),
+    users as (select * from {{ ref("gitlab_dotcom_users") }}),
+    zuora_rate_plan as (select * from {{ ref("zuora_rate_plan") }}),
+    zuora_base_mrr as (select * from {{ ref("zuora_base_mrr") }}),
     zuora_subscription_with_positive_mrr_tcv as (
 
         select distinct subscription_name_slugify, subscription_start_date
         from zuora_base_mrr
 
-    )
-
-    ,
+    ),
     ci_minutes_charges as (
 
-        select * from zuora_rate_plan where rate_plan_name = '1,000 CI Minutes'
-
-    )
-
-    ,
+        select * from zuora_rate_plan where rate_plan_name = '1,000 CI Minutes'),
     orders_shapshots_excluding_ci_minutes as (
 
         select

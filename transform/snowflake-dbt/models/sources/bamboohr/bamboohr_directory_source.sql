@@ -17,11 +17,14 @@ with
         select *
         from intermediate
         where
-            work_email != 't2test@gitlab.com' and (
-                lower(full_name) not like '%greenhouse test%' and lower(
-                    full_name
-                ) not like '%test profile%' and lower(full_name) != 'test-gitlab'
-            ) and employee_id not in (42039, 42043) and uploaded_at not in (
+            work_email != 't2test@gitlab.com'
+            and (
+                lower(full_name) not like '%greenhouse test%'
+                and lower(full_name) not like '%test profile%'
+                and lower(full_name) != 'test-gitlab'
+            )
+            and employee_id not in (42039, 42043)
+            and uploaded_at not in (
                 '2021-03-24 22:00:47.283',
                 '2021-03-24 20:01:27.458',
                 '2021-03-24 18:01:33.370'

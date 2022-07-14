@@ -11,9 +11,7 @@
             ("subscription_delivery_types", "bdg_subscription_product_rate_plan"),
         ]
     )
-}}
-
-,
+}},
 trial_tiers as (
 
     select dim_product_tier_id, product_tier_name

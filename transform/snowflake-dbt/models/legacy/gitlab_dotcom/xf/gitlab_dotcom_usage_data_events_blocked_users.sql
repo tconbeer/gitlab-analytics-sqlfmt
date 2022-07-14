@@ -452,23 +452,12 @@ with
         select *
         from {{ ref("gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base") }}
 
-    )
-
-    ,
-    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces_xf") }})
-
-    ,
-    plans as (select * from {{ ref("gitlab_dotcom_plans") }})
-
-    ,
-    projects as (select * from {{ ref("gitlab_dotcom_projects_xf") }})
-
-    ,
-    users as (select * from {{ ref("gitlab_dotcom_users") }})
-
-
+    ),
+    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces_xf") }}),
+    plans as (select * from {{ ref("gitlab_dotcom_plans") }}),
+    projects as (select * from {{ ref("gitlab_dotcom_projects_xf") }}),
     /* Source CTEs Start Here */
-    ,
+    users as (select * from {{ ref("gitlab_dotcom_users") }}),
     action_monthly_active_users_project_repo as (
 
         select *
@@ -646,9 +635,7 @@ with
 
     )
 
-    {% endfor -%}
-
-    ,
+    {% endfor -%},
     data as (
 
         {% for event_cte in event_ctes %}

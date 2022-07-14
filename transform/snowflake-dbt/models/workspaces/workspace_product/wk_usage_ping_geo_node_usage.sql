@@ -11,10 +11,7 @@ with
 
         {% endif %}
 
-    )
-
-
-    ,
+    ),
     data as (
 
         select *

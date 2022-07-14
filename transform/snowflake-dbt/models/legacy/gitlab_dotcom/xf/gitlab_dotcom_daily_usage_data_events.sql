@@ -16,9 +16,7 @@ with
 
         {% endif %}
 
-    )
-
-    ,
+    ),
     aggregated as (
 
         select

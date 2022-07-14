@@ -1,29 +1,13 @@
 with
-    customers as (select * from {{ ref("customers_db_customers_source") }})
-
-    ,
-    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }})
-
-    ,
+    customers as (select * from {{ ref("customers_db_customers_source") }}),
+    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }}),
     orders_with_valid_charges as (
 
-        select * from {{ ref("customers_db_orders_with_valid_charges") }}
-
-    )
-
-    ,
-    trials as (select * from {{ ref("customers_db_trials") }})
-
-    ,
-    zuora_rp as (select * from {{ ref("zuora_rate_plan") }})
-
-    ,
-    zuora_rpc as (select * from {{ ref("zuora_rate_plan_charge") }})
-
-    ,
-    zuora_subscription_xf as (select * from {{ ref("zuora_subscription_xf") }})
-
-    ,
+        select * from {{ ref("customers_db_orders_with_valid_charges") }}),
+    trials as (select * from {{ ref("customers_db_trials") }}),
+    zuora_rp as (select * from {{ ref("zuora_rate_plan") }}),
+    zuora_rpc as (select * from {{ ref("zuora_rate_plan_charge") }}),
+    zuora_subscription_xf as (select * from {{ ref("zuora_subscription_xf") }}),
     orders_with_subscriptions_without_product_plan_rate as (
 
         select distinct
@@ -45,9 +29,7 @@ with
             and orders_snapshots.order_is_trial = false
             and orders_snapshots.subscription_id is not null
 
-    )
-
-    ,
+    ),
     joined as (
 
         select distinct
@@ -105,9 +87,7 @@ with
         inner join zuora_rpc on zuora_rpc.rate_plan_id = zuora_rp.rate_plan_id
         left join trials on opr.order_id = trials.order_id
 
-    )
-
-    ,
+    ),
     joined_with_customer_and_namespace_list as (
 
         select distinct
@@ -126,9 +106,7 @@ with
             within group(order  by customer_id asc) as gitlab_namespace_id_list
         from joined {{ dbt_utils.group_by(n=9) }}
 
-    )
-
-    ,
+    ),
     filtered_out_charges_with_valid_data as (
 
         select joined_with_customer_and_namespace_list.*

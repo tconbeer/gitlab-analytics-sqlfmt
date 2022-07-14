@@ -212,11 +212,13 @@ with
             on close_date.first_day_of_fiscal_quarter
             = key_fields.close_fiscal_quarter_date
         left join
-            date_details rq_plus_1 on rq_plus_1.date_actual = dateadd(
+            date_details rq_plus_1
+            on rq_plus_1.date_actual = dateadd(
                 month, 3, close_date.first_day_of_fiscal_quarter
             )
         left join
-            date_details rq_plus_2 on rq_plus_2.date_actual = dateadd(
+            date_details rq_plus_2
+            on rq_plus_2.date_actual = dateadd(
                 month, 6, close_date.first_day_of_fiscal_quarter
             )
 

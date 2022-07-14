@@ -58,9 +58,7 @@ with
         )
     }}
 
-    {% endfor -%}
-
-    ,
+    {% endfor -%},
     unioned as (
 
         {% for event_cte in event_ctes %}

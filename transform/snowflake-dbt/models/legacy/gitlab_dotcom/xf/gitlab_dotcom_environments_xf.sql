@@ -1,20 +1,14 @@
 {% set fields_to_mask = ["environment_name", "external_url", "slug"] %}
 
 with
-    base as (select * from {{ ref("gitlab_dotcom_environments") }})
-
-    ,
-    projects as (select * from {{ ref("gitlab_dotcom_projects_xf") }})
-
-    ,
+    base as (select * from {{ ref("gitlab_dotcom_environments") }}),
+    projects as (select * from {{ ref("gitlab_dotcom_projects_xf") }}),
     internal_namespaces as (
 
         select namespace_id, namespace_is_internal
         from {{ ref("gitlab_dotcom_namespaces_xf") }}
 
-    )
-
-    ,
+    ),
     anonymised as (
 
         select

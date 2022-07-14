@@ -1,53 +1,27 @@
 {{ config(tags=["mnpi_exception"]) }}
 
 with
-    customers as (select * from {{ ref("customers_db_customers") }})
-
-    ,
+    customers as (select * from {{ ref("customers_db_customers") }}),
     customers_db_latest_trial_per_namespace as (
 
-        select * from {{ ref("customers_db_latest_trial_per_namespace") }}
-
-    )
-
-    ,
+        select * from {{ ref("customers_db_latest_trial_per_namespace") }}),
     gitlab_subscriptions as (
 
-        select * from {{ ref("gitlab_dotcom_gitlab_subscriptions_snapshots_base") }}
-
-    )
-
-    ,
-    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }})
-
-    ,
-    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }})
-
-    ,
-    users as (select * from {{ ref("gitlab_dotcom_users") }})
-
-    ,
-    zuora_rate_plan as (select * from {{ ref("zuora_rate_plan") }})
-
-    ,
-    zuora_base_mrr as (select * from {{ ref("zuora_base_mrr") }})
-
-    ,
+        select * from {{ ref("gitlab_dotcom_gitlab_subscriptions_snapshots_base") }}),
+    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }}),
+    orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }}),
+    users as (select * from {{ ref("gitlab_dotcom_users") }}),
+    zuora_rate_plan as (select * from {{ ref("zuora_rate_plan") }}),
+    zuora_base_mrr as (select * from {{ ref("zuora_base_mrr") }}),
     zuora_subscription_with_positive_mrr_tcv as (
 
         select distinct subscription_name_slugify, subscription_start_date
         from zuora_base_mrr
 
-    )
-
-    ,
+    ),
     ci_minutes_charges as (
 
-        select * from zuora_rate_plan where rate_plan_name = '1,000 CI Minutes'
-
-    )
-
-    ,
+        select * from zuora_rate_plan where rate_plan_name = '1,000 CI Minutes'),
     orders_shapshots_excluding_ci_minutes as (
 
         select orders_snapshots.*
@@ -59,9 +33,7 @@ with
             = ci_minutes_charges.product_rate_plan_id
         where ci_minutes_charges.subscription_id is null
 
-    )
-
-    ,
+    ),
     namespace_with_latest_trial_date as (
 
         select
@@ -74,9 +46,7 @@ with
         where gitlab_subscription_trial_ends_on is not null
         group by 1
 
-    )
-
-    ,
+    ),
     trials_joined as (
 
         select
@@ -101,9 +71,7 @@ with
             on customers_db_latest_trial_per_namespace.customer_id
             = customers.customer_id
 
-    )
-
-    ,
+    ),
     converted_trials as (
 
         select distinct
@@ -125,9 +93,7 @@ with
         where
             orders_shapshots_excluding_ci_minutes.subscription_name_slugify is not null
 
-    )
-
-    ,
+    ),
     joined as (
 
         select

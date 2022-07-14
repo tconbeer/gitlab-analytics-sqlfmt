@@ -23,7 +23,8 @@ with
         from {{ ref(golden_data_model) }} golden_data
         left join
             {{ source(source_name, table_name) }} source_table
-            on {%- for column in gr_column_names %}
+            on
+            {%- for column in gr_column_names %}
             source_table.{{ column }}::varchar = golden_data.{{ column }}::varchar
             {% if not loop.last %} and {% endif %}
             {% endfor %}

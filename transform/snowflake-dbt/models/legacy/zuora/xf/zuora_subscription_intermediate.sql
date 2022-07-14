@@ -30,21 +30,17 @@ with
 
             zuora_subs_filtered.*,
             -- Dates
-            date_trunc(
-                'month', zuora_subs_filtered.subscription_start_date
-            )::date as subscription_start_month,
+            date_trunc('month', zuora_subs_filtered.subscription_start_date)::date
+            as subscription_start_month,
             date_trunc(
                 'month', dateadd('day', -1, zuora_subs_filtered.subscription_end_date)
             )::date as subscription_end_month,
-            date_trunc(
-                'month', zuora_subs_filtered.contract_effective_date
-            )::date as subscription_month,
-            date_trunc(
-                'quarter', zuora_subs_filtered.contract_effective_date
-            )::date as subscription_quarter,
-            date_trunc(
-                'year', zuora_subs_filtered.contract_effective_date
-            )::date as subscription_year
+            date_trunc('month', zuora_subs_filtered.contract_effective_date)::date
+            as subscription_month,
+            date_trunc('quarter', zuora_subs_filtered.contract_effective_date)::date
+            as subscription_quarter,
+            date_trunc('year', zuora_subs_filtered.contract_effective_date)::date
+            as subscription_year
 
         from zuora_subs_filtered
         where zuora_subs_filtered.sub_row = 1

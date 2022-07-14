@@ -13,9 +13,7 @@
             ("prep_user", "prep_user"),
         ]
     )
-}}
-
-,
+}},
 gitlab_dotcom_packages_packages_dedupe_source as (
 
     select *
@@ -72,9 +70,9 @@ renamed as (
         on gitlab_dotcom_packages_packages_dedupe_source.creator_id
         = prep_user.dim_user_id
     left join
-        dim_date on to_date(
-            gitlab_dotcom_packages_packages_dedupe_source.created_at
-        ) = dim_date.date_day
+        dim_date
+        on to_date(gitlab_dotcom_packages_packages_dedupe_source.created_at)
+        = dim_date.date_day
 
 )
 

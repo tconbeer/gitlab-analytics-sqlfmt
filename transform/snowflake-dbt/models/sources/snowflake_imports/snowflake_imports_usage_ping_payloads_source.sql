@@ -5,9 +5,8 @@ with
         select
             jsontext['active_user_count']::number as active_user_count,
             jsontext['avg_cycle_analytics']::variant as avg_cycle_analytics,
-            jsontext[
-                'container_registry_enabled'
-            ]::boolean as is_container_registry_enabled,
+            jsontext['container_registry_enabled']::boolean
+            as is_container_registry_enabled,
             jsontext['counts']::variant as counts,
             jsontext['database'] ['adapter']::varchar as database_adapter,
             jsontext['database'] ['version']::varchar as database_version,
@@ -19,9 +18,8 @@ with
             jsontext['gitaly'] ['version']::varchar as gitaly_version,
             jsontext['gitlab_pages'] ['enabled']::boolean as is_gitlab_pages_enabled,
             jsontext['gitlab_pages'] ['version']::varchar as gitlab_pages_version,
-            jsontext[
-                'gitlab_shared_runners_enabled'
-            ]::boolean as is_gitlab_shared_runners_enabled,
+            jsontext['gitlab_shared_runners_enabled']::boolean
+            as is_gitlab_shared_runners_enabled,
             coalesce(
                 jsontext['git_version']::varchar, jsontext['git'] ['version']::varchar
             ) as git_version,
@@ -40,9 +38,8 @@ with
             jsontext['license_user_count']::number as license_user_count,
             jsontext['mattermost_enabled']::boolean as is_mattermost_enabled,
             jsontext['omniauth_enabled']::boolean as is_omniauth_enabled,
-            jsontext[
-                'prometheus_metrics_enabled'
-            ]::boolean as is_prometheus_metrics_enabled,
+            jsontext['prometheus_metrics_enabled']::boolean
+            as is_prometheus_metrics_enabled,
             jsontext['recorded_at']::timestamp as recorded_at,
             jsontext['reply_by_email_enabled']::boolean as is_reply_by_email_enabled,
             jsontext['signup_enabled']::boolean as is_signup_enabled,
@@ -50,12 +47,10 @@ with
             jsontext['uuid']::varchar as uuid,
             jsontext['version']::varchar as version,
             jsontext['license_trial_ends_on']::timestamp as license_trial_ends_on,
-            jsontext[
-                'web_ide_clientside_preview_enabled'
-            ]::boolean as is_web_ide_clientside_preview_enabled,
-            jsontext[
-                'ingress_modsecurity_enabled'
-            ]::boolean as is_ingress_modsecurity_enabled,
+            jsontext['web_ide_clientside_preview_enabled']::boolean
+            as is_web_ide_clientside_preview_enabled,
+            jsontext['ingress_modsecurity_enabled']::boolean
+            as is_ingress_modsecurity_enabled,
             jsontext['dependency_proxy_enabled']::boolean as is_dependency_proxy_enabled
         from source
 

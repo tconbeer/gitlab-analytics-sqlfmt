@@ -19,9 +19,7 @@
             ("dates", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 application_settings_historical as (
 
     select

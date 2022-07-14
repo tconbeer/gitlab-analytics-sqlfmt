@@ -36,9 +36,8 @@ with
 
             case
                 when
-                    day_name = 'Sun' and lead(week_of_year_temp) over (
-                        order by date_day
-                    ) = '1'
+                    day_name = 'Sun'
+                    and lead(week_of_year_temp) over (order by date_day) = '1'
                 then '1'
                 else week_of_year_temp
             end as week_of_year,
@@ -109,9 +108,8 @@ with
                 partition by fiscal_year order by date_day
             ) as last_day_of_fiscal_year,
 
-            datediff(
-                'week', first_day_of_fiscal_year, date_actual
-            ) + 1 as week_of_fiscal_year,
+            datediff('week', first_day_of_fiscal_year, date_actual)
+            + 1 as week_of_fiscal_year,
 
             case
                 when extract('month', date_day) = 1
@@ -126,7 +124,8 @@ with
             (year_actual || '-Q' || extract(quarter from date_day)) as quarter_name,
 
             (
-                fiscal_year || '-' || decode(
+                fiscal_year
+                || '-' || decode(
                     fiscal_quarter, 1, 'Q1', 2, 'Q2', 3, 'Q3', 4, 'Q4'
                 )
             ) as fiscal_quarter_name,
@@ -189,9 +188,10 @@ with
             case
                 when
                     (
-                        (
-                            datediff(day, date_actual, last_day_of_fiscal_quarter) -6
-                        ) % 7 = 0 or date_actual = first_day_of_fiscal_quarter
+                        (datediff(day, date_actual, last_day_of_fiscal_quarter) -6)
+                        % 7
+                        = 0
+                        or date_actual = first_day_of_fiscal_quarter
                     )
                 then 1
                 else 0

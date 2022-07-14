@@ -22,47 +22,56 @@ with
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like '%saas - ultimate%'
+                    )
+                    like '%saas - ultimate%'
                 then 'SaaS - Ultimate'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like '%saas - premium%'
+                    )
+                    like '%saas - premium%'
                 then 'SaaS - Premium'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like '%ultimate%'
+                    )
+                    like '%ultimate%'
                 then 'Self-Managed - Ultimate'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like '%premium%'
+                    )
+                    like '%premium%'
                 then 'Self-Managed - Premium'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like 'gold%'
+                    )
+                    like 'gold%'
                 then 'SaaS - Gold'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like 'silver%'
+                    )
+                    like 'silver%'
                 then 'SaaS - Silver'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like '%bronze%'
+                    )
+                    like '%bronze%'
                 then 'SaaS - Bronze'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like '%starter%'
+                    )
+                    like '%starter%'
                 then 'Self-Managed - Starter'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like 'gitlab enterprise edition%'
+                    )
+                    like 'gitlab enterprise edition%'
                 then 'Self-Managed - Starter'
                 when
                     zuora_central_sandbox_product_rate_plan.product_rate_plan_name
@@ -71,17 +80,20 @@ with
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like 'plus%'
+                    )
+                    like 'plus%'
                 then 'Plus'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like 'standard%'
+                    )
+                    like 'standard%'
                 then 'Standard'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like 'basic%'
+                    )
+                    like 'basic%'
                 then 'Basic'
                 when
                     zuora_central_sandbox_product_rate_plan.product_rate_plan_name
@@ -92,7 +104,8 @@ with
                         lower(
                             zuora_central_sandbox_product_rate_plan.product_rate_plan_name
                         )
-                    ) like 'githost%'
+                    )
+                    like 'githost%'
                 then 'GitHost'
                 when
                     lower(
@@ -139,17 +152,20 @@ with
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like 'gitlab geo%'
+                    )
+                    like 'gitlab geo%'
                 then 'Other'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like 'ci runner%'
+                    )
+                    like 'ci runner%'
                 then 'Other'
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like 'discount%'
+                    )
+                    like 'discount%'
                 then 'Other'
                 when
                     trim(

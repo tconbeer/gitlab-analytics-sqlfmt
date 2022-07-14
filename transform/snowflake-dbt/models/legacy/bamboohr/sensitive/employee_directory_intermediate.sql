@@ -54,7 +54,8 @@ with recursive
                     on employee_directory.hire_date::date <= date_actual
                     and coalesce(
                         termination_date::date, {{ max_date_in_bamboo_analyses() }}
-                    ) >= date_actual
+                    )
+                    >= date_actual
                 left join
                     department_info
                     on employee_directory.employee_id = department_info.employee_id
@@ -187,12 +188,11 @@ with recursive
             case
                 when
                     (
-                        left(department_info.job_title, 5) = 'Staff' or left(
-                            department_info.job_title, 13
-                        ) = 'Distinguished' or left(
-                            department_info.job_title, 9
-                        ) = 'Principal'
-                    ) and coalesce(
+                        left(department_info.job_title, 5) = 'Staff'
+                        or left(department_info.job_title, 13) = 'Distinguished'
+                        or left(department_info.job_title, 9) = 'Principal'
+                    )
+                    and coalesce(
                         job_role.job_grade, job_info_mapping_historical.job_grade
                     ) in ('8', '9', '9.5', '10')
                 then 'Staff'
@@ -204,32 +204,33 @@ with recursive
                     ) in ('11', '12', '14', '15', 'CXO')
                 then 'Senior Leadership'
                 when
-                    coalesce(
-                        job_role.job_grade, job_info_mapping_historical.job_grade
-                    ) like '%C%'
+                    coalesce(job_role.job_grade, job_info_mapping_historical.job_grade)
+                    like '%C%'
                 then 'Senior Leadership'
                 when
                     (
                         department_info.job_title like '%VP%'
                         or department_info.job_title like '%Chief%'
                         or department_info.job_title like '%Senior Director%'
-                    ) and coalesce(
+                    )
+                    and coalesce(
                         job_role.job_role,
                         job_info_mapping_historical.job_role,
                         department_info.job_role
-                    ) = 'Leader'
+                    )
+                    = 'Leader'
                 then 'Senior Leadership'
                 when
-                    coalesce(
-                        job_role.job_grade, job_info_mapping_historical.job_grade
-                    ) = '10'
+                    coalesce(job_role.job_grade, job_info_mapping_historical.job_grade)
+                    = '10'
                 then 'Manager'
                 when
                     coalesce(
                         job_role.job_role,
                         job_info_mapping_historical.job_role,
                         department_info.job_role
-                    ) = 'Manager'
+                    )
+                    = 'Manager'
                 then 'Manager'
                 when coalesce(total_direct_reports, 0) = 0
                 then 'Individual Contributor'
@@ -244,16 +245,14 @@ with recursive
             bamboohr_discretionary_bonuses_xf.total_discretionary_bonuses
             as discretionary_bonus,
             row_number() over
-            (
-                partition by employee_directory.employee_id order by date_actual
+            (partition by employee_directory.employee_id order by date_actual
             ) as tenure_days
         from date_details
         left join
             employee_directory
             on employee_directory.hire_date::date <= date_actual
-            and coalesce(
-                termination_date::date, {{ max_date_in_bamboo_analyses() }}
-            ) >= date_actual
+            and coalesce(termination_date::date, {{ max_date_in_bamboo_analyses() }})
+            >= date_actual
         left join
             department_info
             on employee_directory.employee_id = department_info.employee_id
@@ -268,9 +267,8 @@ with recursive
             on employee_directory.employee_number::varchar
             = location_factor.bamboo_employee_number::varchar
             and valid_from <= date_actual
-            and coalesce(
-                valid_to::date, {{ max_date_in_bamboo_analyses() }}
-            ) >= date_actual
+            and coalesce(valid_to::date, {{ max_date_in_bamboo_analyses() }})
+            >= date_actual
         left join
             employment_status
             on employee_directory.employee_id = employment_status.employee_id

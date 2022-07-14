@@ -12,9 +12,7 @@
             ("dim_channel_type", "dim_channel_type"),
         ]
     )
-}}
-
-,
+}},
 dim_crm_user_hierarchy_live_sales_segment as (
 
     select distinct

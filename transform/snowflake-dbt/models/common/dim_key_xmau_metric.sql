@@ -2,9 +2,7 @@
     simple_cte(
         [("usage_ping_metrics", "sheetload_usage_ping_metrics_sections_source")]
     )
-}}
-
-,
+}},
 final as (
 
     select
@@ -14,7 +12,8 @@ final as (
         metrics_path,
         'raw_usage_data_payload[''' || replace(
             metrics_path, '.', ''']['''
-        ) || ''']' as sql_friendly_path,
+        )
+        || ''']' as sql_friendly_path,
         clean_metrics_name,
         periscope_metrics_name,
         replace(periscope_metrics_name, '.', '_') as sql_friendly_name,

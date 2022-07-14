@@ -173,50 +173,43 @@ with
 
             report_opportunity_user_segment
             || '_'
-            || sales_qualified_source
-            as key_segment_sqs,
+            || sales_qualified_source as key_segment_sqs,
             report_opportunity_user_segment || '_' || deal_group as key_segment_ot,
 
             report_opportunity_user_segment
             || '_'
-            || report_opportunity_user_geo
-            as key_segment_geo,
+            || report_opportunity_user_geo as key_segment_geo,
             report_opportunity_user_segment
             || '_'
             || report_opportunity_user_geo
             || '_'
-            || sales_qualified_source
-            as key_segment_geo_sqs,
+            || sales_qualified_source as key_segment_geo_sqs,
             report_opportunity_user_segment
             || '_'
             || report_opportunity_user_geo
             || '_'
-            || deal_group
-            as key_segment_geo_ot,
+            || deal_group as key_segment_geo_ot,
 
 
             report_opportunity_user_segment
             || '_'
             || report_opportunity_user_geo
             || '_'
-            || report_opportunity_user_region
-            as key_segment_geo_region,
+            || report_opportunity_user_region as key_segment_geo_region,
             report_opportunity_user_segment
             || '_'
             || report_opportunity_user_geo
             || '_'
             || report_opportunity_user_region
             || '_'
-            || sales_qualified_source
-            as key_segment_geo_region_sqs,
+            || sales_qualified_source as key_segment_geo_region_sqs,
             report_opportunity_user_segment
             || '_'
             || report_opportunity_user_geo
             || '_'
             || report_opportunity_user_region
             || '_'
-            || deal_group
-            as key_segment_geo_region_ot,
+            || deal_group as key_segment_geo_region_ot,
 
             report_opportunity_user_segment
             || '_'
@@ -224,8 +217,7 @@ with
             || '_'
             || report_opportunity_user_region
             || '_'
-            || report_opportunity_user_area
-            as key_segment_geo_region_area,
+            || report_opportunity_user_area as key_segment_geo_region_area,
             report_opportunity_user_segment
             || '_'
             || report_opportunity_user_geo
@@ -234,8 +226,7 @@ with
             || '_'
             || report_opportunity_user_area
             || '_'
-            || sales_qualified_source
-            as key_segment_geo_region_area_sqs,
+            || sales_qualified_source as key_segment_geo_region_area_sqs,
             report_opportunity_user_segment
             || '_'
             || report_opportunity_user_geo
@@ -244,16 +235,14 @@ with
             || '_'
             || report_opportunity_user_area
             || '_'
-            || deal_group
-            as key_segment_geo_region_area_ot,
+            || deal_group as key_segment_geo_region_area_ot,
 
 
             report_opportunity_user_segment
             || '_'
             || report_opportunity_user_geo
             || '_'
-            || report_opportunity_user_area
-            as key_segment_geo_area,
+            || report_opportunity_user_area as key_segment_geo_area,
 
             coalesce(report_opportunity_user_segment, 'other') as sales_team_cro_level,
 
@@ -299,7 +288,8 @@ with
                         report_opportunity_user_segment,
                         '_',
                         report_opportunity_user_region
-                    ) like '%other%'
+                    )
+                    like '%other%'
                 then 'other'
                 else
                     concat(

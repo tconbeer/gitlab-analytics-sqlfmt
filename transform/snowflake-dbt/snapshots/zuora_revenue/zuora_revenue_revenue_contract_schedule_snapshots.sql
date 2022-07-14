@@ -21,8 +21,7 @@ select
     || '-'
     || line_id
     || '-'
-    || acctg_seg
-    as revenue_snapshot_id,
+    || acctg_seg as revenue_snapshot_id,
     *
 from {{ source("zuora_revenue", "zuora_revenue_revenue_contract_schedule") }}
 qualify rank() over (partition by schd_id, acctg_type order by incr_updt_dt desc) = 1

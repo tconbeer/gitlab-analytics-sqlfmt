@@ -83,14 +83,14 @@ with
             zuora_rp on zuora_rp.subscription_id = zuora_subscription.subscription_id
         inner join zuora_rpc on zuora_rpc.rate_plan_id = zuora_rp.rate_plan_id
         left join
-            zuora_contact on coalesce(
-                zuora_accts.sold_to_contact_id, zuora_accts.bill_to_contact_id
-            ) = zuora_contact.contact_id
+            zuora_contact
+            on coalesce(zuora_accts.sold_to_contact_id, zuora_accts.bill_to_contact_id)
+            = zuora_contact.contact_id
         left join zuora_product on zuora_product.product_id = zuora_rpc.product_id
         where
-            zuora_subscription.subscription_status not in (
-                'Draft', 'Expired'
-            ) and zuora_rpc.charge_type = 'Recurring' and mrr != 0
+            zuora_subscription.subscription_status not in ('Draft', 'Expired')
+            and zuora_rpc.charge_type = 'Recurring'
+            and mrr != 0
 
     ),
     month_base_mrr as (
@@ -128,7 +128,9 @@ with
             sum(quantity) as quantity
         from base_mrr
         inner join
-            date_table on base_mrr.effective_start_month <= date_table.date_actual and (
+            date_table
+            on base_mrr.effective_start_month <= date_table.date_actual
+            and (
                 base_mrr.effective_end_month > date_table.date_actual
                 or base_mrr.effective_end_month is null
             )
@@ -149,11 +151,9 @@ with
             zuora_rp on zuora_rp.subscription_id = zuora_subscription.subscription_id
         inner join zuora_rpc on zuora_rpc.rate_plan_id = zuora_rp.rate_plan_id
         where
-            zuora_subscription.subscription_status not in (
-                'Draft', 'Expired'
-            ) and effective_start_date <= current_date and (
-                effective_end_date > current_date or effective_end_date is null
-            )
+            zuora_subscription.subscription_status not in ('Draft', 'Expired')
+            and effective_start_date <= current_date
+            and (effective_end_date > current_date or effective_end_date is null)
             {{ dbt_utils.group_by(n=3) }}
 
     )

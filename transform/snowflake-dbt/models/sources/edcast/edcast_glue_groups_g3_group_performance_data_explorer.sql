@@ -25,7 +25,8 @@ with
                     user_full_name,
                     __loaded_at
                 order by __loaded_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     renamed as (

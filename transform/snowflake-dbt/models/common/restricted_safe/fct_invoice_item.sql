@@ -135,7 +135,8 @@ with
                 row_number() over (
                     partition by rate_plan_charge_number, rate_plan_charge_segment
                     order by rate_plan_charge_version desc, service_start_date desc
-                ) = 1,
+                )
+                = 1,
                 true,
                 false
             ) as is_last_segment_version

@@ -105,7 +105,8 @@ with
                 when
                     bamboohr_compensation_changes.employee_id in (
                         40955, 40647, 41234, 40985, 41027, 40782, 40540
-                    ) and bamboohr_compensation_changes.effective_date <= '2020-06-01'
+                    )
+                    and bamboohr_compensation_changes.effective_date <= '2020-06-01'
                 then 12
                 -- we didn't capture pay frequency prior to 2020.07 and in 2020.07 the
                 -- pay frequency had changed for these individuals
@@ -230,8 +231,7 @@ with
                     * prior_currency_conversion_factor
             end as prior_compensation_value_usd,
             new_compensation_value_usd
-            - prior_compensation_value_usd
-            as change_in_comp_usd,
+            - prior_compensation_value_usd as change_in_comp_usd,
             coalesce(ote_usd, 0) as ote_usd,
             coalesce(prior_ote_usd, 0) as prior_ote_usd,
             coalesce(ote_change, 0) as ote_change,
@@ -245,7 +245,8 @@ with
                 null,
                 round(
                     (coalesce(ote_change, 0) + change_in_comp_usd) /
-                    (prior_compensation_value_usd + coalesce(prior_ote_usd, 0)),
+                    (prior_compensation_value_usd + coalesce(prior_ote_usd, 0)
+                    ),
                     2
                 )
             ) as percent_change_in_comp

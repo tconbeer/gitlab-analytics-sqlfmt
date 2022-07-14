@@ -8,9 +8,7 @@
             ("xmau_metrics", "gitlab_dotcom_xmau_metrics"),
         ]
     )
-}}
-
-,
+}},
 fact_with_date as (
     select
         event_id,

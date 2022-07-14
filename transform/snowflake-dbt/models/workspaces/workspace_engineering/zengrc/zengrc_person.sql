@@ -6,9 +6,7 @@
             ("requests", "zengrc_request_source"),
         ]
     )
-}}
-
-,
+}},
 audit_managers as (
 
     select distinct

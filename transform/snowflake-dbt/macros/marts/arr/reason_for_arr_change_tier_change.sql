@@ -12,7 +12,10 @@ case
     then
         zeroifnull(
             {{ quantity }} * (
-                {{ arr }}/ nullif({{ quantity }}, 0) - {{ previous_arr }}/ nullif(
+                {{ arr }}/ nullif(
+                    {{ quantity }}, 0
+                )
+                - {{ previous_arr }}/ nullif(
                     {{ previous_quantity }}, 0
                 )
             )

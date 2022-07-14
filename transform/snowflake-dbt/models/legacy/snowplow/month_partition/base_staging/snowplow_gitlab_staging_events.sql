@@ -186,15 +186,12 @@ with
         {%- endif %}
 
         where
-            app_id is not null and date_part(
-                month, try_to_timestamp(derived_tstamp)
-            ) = '{{ month_value }}' and date_part(
-                year, try_to_timestamp(derived_tstamp)
-            ) = '{{ year_value }}' and app_id = 'gitlab-staging'
+            app_id is not null
+            and date_part(month, try_to_timestamp(derived_tstamp)) = '{{ month_value }}'
+            and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
+            and app_id = 'gitlab-staging'
 
-    )
-
-    ,
+    ),
     base as (
 
         select *
@@ -376,9 +373,8 @@ with
             }} as glm_source,
             case
                 when
-                    length(unstruct_event) > 0 and try_parse_json(
-                        unstruct_event
-                    ) is null
+                    length(unstruct_event) > 0
+                    and try_parse_json(unstruct_event) is null
                 then true
                 else false
             end as is_bad_unstruct_event,

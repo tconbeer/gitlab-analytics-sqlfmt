@@ -13,9 +13,7 @@
             ("fct_charge", "fct_charge_central_sandbox"),
         ]
     )
-}}
-
-,
+}},
 mart_charge as (
 
     select

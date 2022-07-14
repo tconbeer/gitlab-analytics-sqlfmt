@@ -20,9 +20,7 @@
             ("dim_order_type", "dim_order_type"),
         ]
     )
-}}
-
-,
+}},
 opportunity_seats as (
 
     select
@@ -47,7 +45,8 @@ opportunity_seats as (
         on dim_product_detail.dim_product_detail_id
         = fct_quote_item.dim_product_detail_id
     where
-        dim_quote.is_primary_quote = true and dim_product_detail.product_tier_name in (
+        dim_quote.is_primary_quote = true
+        and dim_product_detail.product_tier_name in (
             'Plus',
             'GitHost',
             'Standard',
@@ -58,7 +57,8 @@ opportunity_seats as (
             'Basic',
             'Self-Managed - Ultimate',
             'SaaS - Ultimate'
-        ) and fct_crm_opportunity.close_date >= '2019-02-01'
+        )
+        and fct_crm_opportunity.close_date >= '2019-02-01'
         {{ dbt_utils.group_by(5) }}
 
 ),
@@ -130,9 +130,8 @@ account_open_opp_net_arr_growth as (
     select dim_crm_account_id, sum(net_arr) as net_arr
     from opportunity_net_arr
     where
-        stage_is_closed = false and order_type_name in (
-            '2. New - Connected', '3. Growth'
-        )
+        stage_is_closed = false
+        and order_type_name in ('2. New - Connected', '3. Growth')
     group by 1
 
 ),
@@ -145,9 +144,8 @@ account_next_renewal_month as (
         dim_subscription
         on dim_subscription.dim_subscription_id = fct_mrr.dim_subscription_id
     where
-        dim_subscription.subscription_end_month >= date_trunc(
-            'month', current_date
-        ) and fct_mrr.subscription_status in ('Active', 'Cancelled')
+        dim_subscription.subscription_end_month >= date_trunc('month', current_date)
+        and fct_mrr.subscription_status in ('Active', 'Cancelled')
     group by 1
 
 ),
@@ -164,11 +162,9 @@ arr_metrics_current_month as (
         dim_product_detail
         on dim_product_detail.dim_product_detail_id = fct_mrr.dim_product_detail_id
     where
-        subscription_status in (
-            'Active', 'Cancelled'
-        ) and dim_date.date_actual = date_trunc(
-            'month', current_date
-        ) and dim_product_detail.product_tier_name in (
+        subscription_status in ('Active', 'Cancelled')
+        and dim_date.date_actual = date_trunc('month', current_date)
+        and dim_product_detail.product_tier_name in (
             'Plus',
             'GitHost',
             'Standard',
@@ -188,12 +184,10 @@ epic_weight as (
     select
         dim_epic_id,
         sum(weight) as epic_weight,
-        sum(iff(state_name = 'closed', weight, 0)) / nullifzero(
-            epic_weight
-        ) as epic_completeness,
-        sum(iff(state_name = 'closed', 1, 0)) / count(
-            *
-        ) as epic_completeness_alternative,
+        sum(iff(state_name = 'closed', weight, 0))
+        / nullifzero(epic_weight) as epic_completeness,
+        sum(iff(state_name = 'closed', 1, 0))
+        / count(*) as epic_completeness_alternative,
         coalesce(epic_completeness, epic_completeness_alternative) as epic_status
     from dim_issue
     group by 1
@@ -308,9 +302,8 @@ issue_group_extended_label as (
     from issue_labels
     where product_group_extended is not null
     qualify
-        row_number() over (
-            partition by dim_issue_id order by product_group_level desc
-        ) = 1
+        row_number() over (partition by dim_issue_id order by product_group_level desc)
+        = 1
 
 -- Since category: is not an scoped label, need to make sure I only pull one of them
 ),
@@ -374,9 +367,8 @@ epic_group_extended_label as (
     from epic_labels
     where product_group_extended is not null
     qualify
-        row_number() over (
-            partition by dim_epic_id order by product_group_level desc
-        ) = 1
+        row_number() over (partition by dim_epic_id order by product_group_level desc)
+        = 1
 
 -- Since category: is not an scoped label, need to make sure I only pull one of them
 ),
@@ -416,7 +408,8 @@ epic_last_milestone as (
     qualify
         row_number() over (
             partition by dim_epic_id order by milestone_due_date desc nulls last
-        ) = 1
+        )
+        = 1
 
 ),
 user_request as (
@@ -447,8 +440,7 @@ user_request as (
             'No Link'
         ) as crm_opportunity_link,
         'https://gitlab.my.salesforce.com/'
-        || bdg_issue_user_request.dim_crm_account_id
-        as crm_account_link,
+        || bdg_issue_user_request.dim_crm_account_id as crm_account_link,
         iff(
             link_type = 'Zendesk Ticket',
             'https://gitlab.zendesk.com/agent/tickets/'
@@ -545,8 +537,7 @@ user_request as (
             'No Link'
         ) as crm_opportunity_link,
         'https://gitlab.my.salesforce.com/'
-        || bdg_epic_user_request.dim_crm_account_id
-        as crm_account_link,
+        || bdg_epic_user_request.dim_crm_account_id as crm_account_link,
         iff(
             link_type = 'Zendesk Ticket',
             'https://gitlab.zendesk.com/agent/tickets/'
@@ -742,38 +733,32 @@ customer_value_scores as (
             then
                 case
                     when
-                        datediff(
-                            'months', current_date, crm_account_next_renewal_month
-                        ) > 18
+                        datediff('months', current_date, crm_account_next_renewal_month)
+                        > 18
                     then 1.5
                     when
-                        datediff(
-                            'months', current_date, crm_account_next_renewal_month
-                        ) > 12
+                        datediff('months', current_date, crm_account_next_renewal_month)
+                        > 12
                     then 2
                     when
-                        datediff(
-                            'months', current_date, crm_account_next_renewal_month
-                        ) <= 12
+                        datediff('months', current_date, crm_account_next_renewal_month)
+                        <= 12
                     then 2.5
                 end
             when crm_account_health_score_color = 'Red'
             then
                 case
                     when
-                        datediff(
-                            'months', current_date, crm_account_next_renewal_month
-                        ) > 18
+                        datediff('months', current_date, crm_account_next_renewal_month)
+                        > 18
                     then 2
                     when
-                        datediff(
-                            'months', current_date, crm_account_next_renewal_month
-                        ) > 12
+                        datediff('months', current_date, crm_account_next_renewal_month)
+                        > 12
                     then 3
                     when
-                        datediff(
-                            'months', current_date, crm_account_next_renewal_month
-                        ) <= 12
+                        datediff('months', current_date, crm_account_next_renewal_month)
+                        <= 12
                     then 4
                 end
             else 1
@@ -848,7 +833,8 @@ customer_value_scores as (
         end as priority_score
     from user_request_with_account_opp_attributes
     where
-        issue_epic_state_name = 'opened' and (
+        issue_epic_state_name = 'opened'
+        and (
             case
                 when link_type = 'Opportunity' then crm_opp_is_closed = false else true
             end
@@ -902,9 +888,8 @@ final as (
         customer_value_scores.growth_score as link_growth_score,
         customer_value_scores.combined_score as link_combined_score,
         customer_value_scores.priority_score as link_priority_score,
-        link_priority_score / nullifzero(
-            issue_epic_weight
-        ) as link_weighted_priority_score,
+        link_priority_score
+        / nullifzero(issue_epic_weight) as link_weighted_priority_score,
         iff(
             link_weighted_priority_score is null,
             '[Effort is Empty, Input Effort Here]('

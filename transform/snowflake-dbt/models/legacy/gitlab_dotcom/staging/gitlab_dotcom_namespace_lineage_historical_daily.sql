@@ -31,14 +31,18 @@ namespace_lineage_daily as (
         namespace_lineage.ultimate_parent_id
     from namespace_lineage
     inner join
-        dates on dates.date_actual between date_trunc(
-            'day', namespace_lineage.lineage_valid_from
-        ) and date_trunc('day', namespace_lineage.lineage_valid_to)
+        dates
+        on dates.date_actual between date_trunc(
+            'day',
+            namespace_lineage.lineage_valid_from
+        ) and date_trunc('day', namespace_lineage.lineage_valid_to
+        )
     qualify
         row_number() over (
             partition by dates.date_actual, namespace_id
             order by namespace_lineage.lineage_valid_to desc
-        ) = 1
+        )
+        = 1
 ),
 
 with_plans as (
@@ -49,11 +53,10 @@ with_plans as (
             map_namespace_internal.ultimate_parent_namespace_id is not null, false
         ) as namespace_is_internal,
         iff(
+            namespace_subscription_snapshots.is_trial
             -- Excluded Premium (103) and Free (34) Trials from being remapped as
             -- Ultimate Trials
-            namespace_subscription_snapshots.is_trial and ifnull(
-                namespace_subscription_snapshots.plan_id, 34
-            ) not in (34, 103),
+            and ifnull(namespace_subscription_snapshots.plan_id, 34) not in (34, 103),
             -- All historical trial GitLab subscriptions were Ultimate/Gold Trials
             -- (102)
             102,
@@ -78,7 +81,8 @@ with_plans as (
         row_number() over (
             partition by namespace_lineage_daily.namespace_id, snapshot_day
             order by valid_from desc
-        ) = 1
+        )
+        = 1
 
 )
 

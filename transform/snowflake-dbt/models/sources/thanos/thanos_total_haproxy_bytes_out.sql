@@ -4,9 +4,9 @@ with
 
         select
             pq_2.value['metric'] ['backend']::varchar as metric_backend,
-            parse_json(
-                pq_2.value['value'] [0]::float
-            )::number::timestamp as metric_created_at,
+            parse_json(pq_2.value['value'] [0]::float)::number
+            ::timestamp
+            as metric_created_at,
             nullif(pq_2.value['value'] [1], 'NaN')::float as metric_value,
             pq_1.value['data'] ['resultType']::varchar as result_type,
             pq_1.value['status']::varchar as status_type,
@@ -17,8 +17,8 @@ with
             source pq,
             lateral flatten(input => pq.jsontext['total_haproxy_bytes_out']) pq_1,
             lateral flatten(
-                input => pq.jsontext['total_haproxy_bytes_out'] ['body'] ['data'] [
-                    'result'
+                input => pq.jsontext[
+                    'total_haproxy_bytes_out'] ['body'] ['data'] ['result'
                 ],
                 outer => true
             ) pq_2

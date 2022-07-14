@@ -12,18 +12,14 @@
             ("subscriptions", "dim_subscription_snapshot_bottom_up"),
         ]
     )
-}}
-
-,
+}},
 original_subscription_dates as (
 
     select distinct dim_subscription_id, subscription_start_date, subscription_end_date
     from subscriptions
     where subscription_version = 1
 
-)
-
-,
+),
 joined as (
 
     select

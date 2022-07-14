@@ -6,17 +6,14 @@
             ("gitlab_subscriptions", "gitlab_dotcom_gitlab_subscriptions_source"),
         ]
     )
-}}
-
-,
+}},
 active_gitlab_subscriptions as (
 
     select *
     from gitlab_subscriptions
     where
-        is_currently_valid = true and ifnull(
-            gitlab_subscription_end_date, current_date
-        ) >= current_date
+        is_currently_valid = true
+        and ifnull(gitlab_subscription_end_date, current_date) >= current_date
 
 ),
 namespaces as (
@@ -85,11 +82,12 @@ with_plans as (
         namespace_plans.plan_title as namespace_plan_title,
         namespace_plans.plan_is_paid as namespace_plan_is_paid,
         iff(
+            ultimate_parent_gitlab_subscriptions.is_trial
             -- Excluded Premium (103) and Free (34) Trials from being remapped as
             -- Ultimate Trials
-            ultimate_parent_gitlab_subscriptions.is_trial and ifnull(
-                ultimate_parent_gitlab_subscriptions.plan_id, 34
-            ) not in (34, 103),
+            and ifnull(ultimate_parent_gitlab_subscriptions.plan_id, 34) not in (
+                34, 103
+            ),
             -- All historical trial GitLab subscriptions were Ultimate/Gold Trials
             -- (102)
             102,
@@ -111,18 +109,17 @@ with_plans as (
         active_gitlab_subscriptions as namespace_gitlab_subscriptions
         on extracted.namespace_id = namespace_gitlab_subscriptions.namespace_id
     left join
-        plans as namespace_plans on ifnull(
-            namespace_gitlab_subscriptions.plan_id, 34
-        ) = namespace_plans.plan_id
+        plans as namespace_plans
+        on ifnull(namespace_gitlab_subscriptions.plan_id, 34) = namespace_plans.plan_id
     -- Get plan information for the ultimate parent namespace.
     left join
         active_gitlab_subscriptions as ultimate_parent_gitlab_subscriptions
         on extracted.ultimate_parent_id
         = ultimate_parent_gitlab_subscriptions.namespace_id
     left join
-        plans as ultimate_parent_plans on ifnull(
-            ultimate_parent_gitlab_subscriptions.plan_id, 34
-        ) = ultimate_parent_plans.plan_id
+        plans as ultimate_parent_plans
+        on ifnull(ultimate_parent_gitlab_subscriptions.plan_id, 34)
+        = ultimate_parent_plans.plan_id
 
 )
 select *

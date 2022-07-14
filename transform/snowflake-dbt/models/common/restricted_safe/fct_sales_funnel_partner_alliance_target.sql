@@ -10,9 +10,7 @@
             ("date_details_source", "date_details_source"),
         ]
     )
-}}
-
-,
+}},
 date as (
 
     select distinct fiscal_month_name_fy, fiscal_year, first_day_of_month

@@ -1,6 +1,4 @@
 {% set repeated_column_names = "job_id,         requisition_id,         is_prospect,         current_stage_name,         application_status,         job_name,         department_name,         division_modified,         source_name,         source_type,         sourcer_name,         is_outbound,         is_sourced,         candidate_recruiter,         candidate_coordinator,         rejection_reason_name,         rejection_reason_type,         current_job_req_status,         is_hired_in_bamboo,         time_to_offer" %}
-
-
 with
     stages as (
 
@@ -170,9 +168,8 @@ with
             intermediate.*,
             case
                 when
-                    application_stage in ('Hired', 'Rejected') and (
-                        hit_rejected = 1 or hit_hired = 1
-                    )
+                    application_stage in ('Hired', 'Rejected')
+                    and (hit_rejected = 1 or hit_hired = 1)
                 then 1
                 when (hit_rejected = 1 or hit_hired = 1)
                 then row_number_stages_desc + 1
@@ -249,9 +246,8 @@ with
             ) as candidate_dropout,
             case
                 when
-                    is_current_stage = true and application_stage not in (
-                        'Hired', 'Rejected'
-                    )
+                    is_current_stage = true
+                    and application_stage not in ('Hired', 'Rejected')
                     and hit_rejected = 0
                     and hit_hired = 0
                     and current_job_req_status = 'open'

@@ -7,9 +7,7 @@
             ("zuora_contact", "zuora_contact_source"),
         ]
     )
-}}
-
-,
+}},
 snapshot_dates as (
 
     select *
@@ -54,10 +52,12 @@ joined as (
         zuora_account_spined.batch
     from zuora_account_spined
     left join
-        zuora_contact on coalesce(
+        zuora_contact
+        on coalesce(
             zuora_account_spined.sold_to_contact_id,
             zuora_account_spined.bill_to_contact_id
-        ) = zuora_contact.contact_id
+        )
+        = zuora_contact.contact_id
     left join
         map_merged_crm_account
         on zuora_account_spined.crm_id = map_merged_crm_account.sfdc_account_id

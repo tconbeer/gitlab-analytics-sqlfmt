@@ -5,8 +5,9 @@ with
         from {{ ref("date_details") }}
         where
             date_actual between date_trunc(
-                month, dateadd(month, -5, current_date())
-            ) and current_date() and day_of_month = 1
+                month, dateadd(month, -5, current_date())) and current_date(
+            )
+            and day_of_month = 1
 
     ),
     recruiting_team as (
@@ -15,9 +16,12 @@ with
             date_trunc(month, date_actual) as month_date, full_name, department
         from {{ ref("employee_directory_analysis") }}
         where
-            department like '%Recruiting%' and date_actual between date_trunc(
-                month, dateadd(month, -12, current_date())
-            ) and date_trunc(month, current_date())
+            department like '%Recruiting%'
+            and date_actual between date_trunc(
+                month,
+                dateadd(month, -12, current_date())
+            ) and date_trunc(month, current_date()
+            )
 
     ),
     recruiting_data as (
@@ -60,7 +64,8 @@ with
                             hit_application_review,
                             0
                         )
-                    ) / prospected
+                    )
+                    / prospected
                 )
             ) as prospect_to_review,
             iff(
@@ -73,16 +78,16 @@ with
                             hit_screening,
                             0
                         )
-                    ) / prospected
+                    )
+                    / prospected
                 )
             ) as prospect_to_screen,
 
             iff(
                 prospected = 0,
                 null,
-                sum(
-                    iff(application_stage = 'Application Submitted', hit_hired, 0)
-                ) / prospected
+                sum(iff(application_stage = 'Application Submitted', hit_hired, 0))
+                / prospected
             ) as prospect_to_hire,
             iff(
                 prospected = 0,
@@ -93,7 +98,8 @@ with
                         candidate_dropout,
                         0
                     )
-                ) / prospected
+                )
+                / prospected
             ) as prospect_to_dropout,
 
             sum(iff(application_stage = 'Application Review', 1, 0)) as app_reviewed,
@@ -101,17 +107,15 @@ with
                 app_reviewed = 0,
                 null,
                 (
-                    sum(
-                        iff(application_stage = 'Application Review', hit_screening, 0)
-                    ) / app_reviewed
+                    sum(iff(application_stage = 'Application Review', hit_screening, 0))
+                    / app_reviewed
                 )
             ) as review_to_screen,
             iff(
                 app_reviewed = 0,
                 null,
-                sum(
-                    iff(application_stage = 'Application Review', hit_hired, 0)
-                ) / app_reviewed
+                sum(iff(application_stage = 'Application Review', hit_hired, 0))
+                / app_reviewed
             ) as review_to_hire,
 
 
@@ -140,7 +144,8 @@ with
                         hit_hired,
                         0
                     )
-                ) / team_interview
+                )
+                / team_interview
             ) as interview_to_hire,
             iff(
                 team_interview = 0,
@@ -151,7 +156,8 @@ with
                         hit_rejected,
                         0
                     )
-                ) / team_interview
+                )
+                / team_interview
             ) as interview_to_reject,
 
             sum(
@@ -160,9 +166,8 @@ with
             iff(
                 executive_interview = 0,
                 null,
-                sum(
-                    iff(application_stage = 'Executive Interview', hit_hired, 0)
-                ) / executive_interview
+                sum(iff(application_stage = 'Executive Interview', hit_hired, 0))
+                / executive_interview
             ) as exec_interview_to_hire,
 
             sum(iff(application_stage = 'Reference Check', 1, 0)) as reference_check,

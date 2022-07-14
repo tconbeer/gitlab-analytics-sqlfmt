@@ -1,6 +1,4 @@
-{{ simple_cte([("version_hosts_source", "version_hosts_source")]) }}
-
-,
+{{ simple_cte([("version_hosts_source", "version_hosts_source")]) }},
 renamed as (
 
     select host_id as dim_host_id, host_url as host_name from version_hosts_source

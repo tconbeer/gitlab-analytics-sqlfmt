@@ -564,7 +564,8 @@ with
                 when
                     reason_for_loss_staged in (
                         'Do Nothing', 'Other', 'Competitive Loss', 'Operational Silos'
-                    ) or reason_for_loss_staged is null
+                    )
+                    or reason_for_loss_staged is null
                 then 'Unknown'
                 when
                     reason_for_loss_staged in (
@@ -605,7 +606,8 @@ with
         where
             o.order_type_stamped in (
                 '4. Contraction', '5. Churn - Partial', '6. Churn - Final'
-            ) and (o.is_won = 1 or (is_renewal = 1 and is_lost = 1))
+            )
+            and (o.is_won = 1 or (is_renewal = 1 and is_lost = 1))
 
     ),
     oppty_final as (
@@ -878,7 +880,8 @@ with
                         '0016100001CXGCs',
                         '00161000015O9Yn',
                         '0016100001b9Jsc'
-                    ) and sfdc_opportunity_xf.close_date < '2020-08-01'
+                    )
+                    and sfdc_opportunity_xf.close_date < '2020-08-01'
                 then 1
                 -- NF 2021 - Pubsec extreme deals
                 when
@@ -912,11 +915,10 @@ with
             on churn_metrics.opportunity_id = sfdc_opportunity_xf.opportunity_id
 
         where  -- remove test account
-            sfdc_accounts_xf.ultimate_parent_account_id not in (
-                '0016100001YUkWVAA1'
-            ) and sfdc_opportunity_xf.account_id not in (  -- remove test account
-                '0014M00001kGcORQA0'
-            ) and sfdc_opportunity_xf.is_deleted = 0
+            sfdc_accounts_xf.ultimate_parent_account_id not in ('0016100001YUkWVAA1')
+            -- remove test account
+            and sfdc_opportunity_xf.account_id not in ('0014M00001kGcORQA0')
+            and sfdc_opportunity_xf.is_deleted = 0
 
     ),
     add_calculated_net_arr_to_opty_final as (
@@ -948,9 +950,8 @@ with
                         segment_order_type_iacv_to_net_arr_ratio, 0
                     )
                 when  -- CLOSED LOST DEAL and no Net IACV
-                    oppty_final.stage_name in ('8-Closed Lost') and coalesce(
-                        oppty_final.net_incremental_acv, 0
-                    ) = 0
+                    oppty_final.stage_name in ('8-Closed Lost')
+                    and coalesce(oppty_final.net_incremental_acv, 0) = 0
                 then
                     coalesce(oppty_final.incremental_acv, 0) * coalesce(
                         segment_order_type_iacv_to_net_arr_ratio, 0
@@ -968,9 +969,8 @@ with
             -- that have no raw_net_arr
             case
                 when
-                    oppty_final.close_date < '2018-02-01'::date and coalesce(
-                        oppty_final.raw_net_arr, 0
-                    ) = 0
+                    oppty_final.close_date < '2018-02-01'::date
+                    and coalesce(oppty_final.raw_net_arr, 0) = 0
                 then calculated_from_ratio_net_arr
                 -- Rest of deals after cut off date
                 else coalesce(oppty_final.raw_net_arr, 0)
@@ -1052,13 +1052,15 @@ with
                         'Ramp Deal',
                         'Credit',
                         'Contract Reset'
+                    )
                     -- 20211222 Adjusted to remove the ommitted filter
-                    ) and oppty_final.stage_name not in (
+                    and oppty_final.stage_name not in (
                         '00-Pre Opportunity',
                         '10-Duplicate',
                         '9-Unqualified',
                         '0-Pending Acceptance'
-                    ) and (net_arr > 0 or oppty_final.opportunity_category = 'Credit')
+                    )
+                    and (net_arr > 0 or oppty_final.opportunity_category = 'Credit')
                     -- 20220128 Updated to remove webdirect SQS deals 
                     and oppty_final.sales_qualified_source != 'Web Direct Generated'
                     and oppty_final.is_jihu_account = 0
@@ -1095,12 +1097,14 @@ with
                     -- contraction / churn
                     and oppty_final.order_type_stamped in (
                         '1. New - First Order', '2. New - Connected', '3. Growth'
+                    )
                     -- Exclude Decomissioned as they are not aligned to the real owner
                     -- Contract Reset, Decomission
-                    ) and oppty_final.opportunity_category in (
+                    and oppty_final.opportunity_category in (
                         'Standard', 'Ramp Deal', 'Internal Correction'
+                    )
                     -- Exclude Deals with nARR < 0
-                    ) and net_arr > 0
+                    and net_arr > 0
                 then 1
                 else 0
             end as is_eligible_asp_analysis_flag,
@@ -1121,23 +1125,27 @@ with
                         '4. Contraction',
                         '6. Churn - Final',
                         '5. Churn - Partial'
+                    )
                     -- Only include deal types with meaningful journeys through the
                     -- stages
-                    ) and oppty_final.opportunity_category in (
+                    and oppty_final.opportunity_category in (
                         'Standard', 'Ramp Deal', 'Decommissioned'
+                    )
                     -- Web Purchase have a different dynamic and should not be included
-                    ) and oppty_final.is_web_portal_purchase = 0
+                    and oppty_final.is_web_portal_purchase = 0
                 then 1
                 else 0
             end as is_eligible_age_analysis_flag,
 
             case
                 when
-                    oppty_final.is_edu_oss = 0 and oppty_final.is_deleted = 0 and (
-                        oppty_final.is_won = 1 or (
-                            oppty_final.is_renewal = 1 and oppty_final.is_lost = 1
-                        )
-                    ) and oppty_final.order_type_stamped in (
+                    oppty_final.is_edu_oss = 0
+                    and oppty_final.is_deleted = 0
+                    and (
+                        oppty_final.is_won = 1
+                        or (oppty_final.is_renewal = 1 and oppty_final.is_lost = 1)
+                    )
+                    and oppty_final.order_type_stamped in (
                         '1. New - First Order',
                         '2. New - Connected',
                         '3. Growth',
@@ -1218,10 +1226,10 @@ with
             case
                 when
                     (
-                        (
-                            oppty_final.is_renewal = 1 and oppty_final.is_lost = 1
-                        ) or oppty_final.is_won = 1
-                    ) and is_eligible_churn_contraction_flag = 1
+                        (oppty_final.is_renewal = 1 and oppty_final.is_lost = 1)
+                        or oppty_final.is_won = 1
+                    )
+                    and is_eligible_churn_contraction_flag = 1
                 then oppty_final.calculated_deal_count
                 else 0
             end as booked_churned_contraction_deal_count,
@@ -1251,9 +1259,8 @@ with
             case
                 when
                     (
-                        oppty_final.is_won = 1 or (
-                            oppty_final.is_renewal = 1 and oppty_final.is_lost = 1
-                        )
+                        oppty_final.is_won = 1
+                        or (oppty_final.is_renewal = 1 and oppty_final.is_lost = 1)
                     )
                 then net_arr
                 else 0
@@ -1263,10 +1270,10 @@ with
             case
                 when
                     (
-                        (
-                            oppty_final.is_renewal = 1 and oppty_final.is_lost = 1
-                        ) or oppty_final.is_won = 1
-                    ) and is_eligible_churn_contraction_flag = 1
+                        (oppty_final.is_renewal = 1 and oppty_final.is_lost = 1)
+                        or oppty_final.is_won = 1
+                    )
+                    and is_eligible_churn_contraction_flag = 1
                 then net_arr
                 else 0
             end as booked_churned_contraction_net_arr,

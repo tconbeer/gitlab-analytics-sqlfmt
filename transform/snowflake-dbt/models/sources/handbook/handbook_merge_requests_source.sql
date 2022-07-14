@@ -12,7 +12,8 @@ with
                 partition by jsontext['plain_diff_path']
                 order by
                     array_size(jsontext['merge_request_diffs']) desc, uploaded_at desc
-            ) = 1
+            )
+            = 1
 
 
     )

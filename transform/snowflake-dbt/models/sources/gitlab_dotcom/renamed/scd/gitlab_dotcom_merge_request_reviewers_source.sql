@@ -2,9 +2,7 @@
 {{ config({"materialized": "table"}) }}
 
 with
-    {{ distinct_source(source=source("gitlab_dotcom", "merge_request_reviewers")) }}
-
-    ,
+    {{ distinct_source(source=source("gitlab_dotcom", "merge_request_reviewers")) }},
     renamed as (
 
         select

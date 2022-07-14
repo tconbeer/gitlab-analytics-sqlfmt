@@ -47,14 +47,12 @@ with
             region,
             case
                 when
-                    region = 'Americas' and country in (
-                        'United States', 'Canada', 'Mexico'
-                    )
+                    region = 'Americas'
+                    and country in ('United States', 'Canada', 'Mexico')
                 then 'NORAM'
                 when
-                    region = 'Americas' and country not in (
-                        'United States', 'Canada', 'Mexico'
-                    )
+                    region = 'Americas'
+                    and country not in ('United States', 'Canada', 'Mexico')
                 then 'LATAM'
                 else region
             end as region_modified,
@@ -80,11 +78,13 @@ with
             end as urg_group
         from source
         where
-            hire_date is not null or (
-                lower(first_name) not like '%greenhouse test%' and lower(
-                    last_name
-                ) not like '%test profile%' and lower(last_name) != 'test-gitlab'
-            ) or employee_id not in (42039, 42043)
+            hire_date is not null
+            or (
+                lower(first_name) not like '%greenhouse test%'
+                and lower(last_name) not like '%test profile%'
+                and lower(last_name) != 'test-gitlab'
+            )
+            or employee_id not in (42039, 42043)
 
 
     )

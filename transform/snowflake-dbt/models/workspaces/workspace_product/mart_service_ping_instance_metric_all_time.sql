@@ -10,9 +10,7 @@
     simple_cte(
         [("mart_service_ping_instance_metric", "mart_service_ping_instance_metric")]
     )
-}}
-
-,
+}},
 final as (
 
     select

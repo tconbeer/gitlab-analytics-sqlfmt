@@ -27,7 +27,8 @@ with
             row_number() over (
                 partition by table_name, created_date, updated_date
                 order by updated_date desc
-            ) = 1
+            )
+            = 1
         order by table_name, updated_date desc
     ),
     date_check as (
@@ -141,7 +142,8 @@ with
             date(snowflake.updated_at) as updated_date
         from {{ source("gitlab_dotcom", table) }} as snowflake
         inner join
-            date_check on date(snowflake.updated_at) >= date_check.updated_date
+            date_check
+            on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name = 'gitlab_db_{{table}}'
         qualify row_number() over (partition by id order by updated_date desc) = 1
 
@@ -171,7 +173,8 @@ with
             date(snowflake.updated_at) as updated_date
         from {{ source("gitlab_ops", table) }} as snowflake
         inner join
-            date_check on date(snowflake.updated_at) >= date_check.updated_date
+            date_check
+            on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name = 'gitlab_db_{{table}}'
         qualify row_number() over (partition by id order by updated_date desc) = 1
 
@@ -196,7 +199,8 @@ with
         from
             {{ source("gitlab_dotcom", "issues_prometheus_alert_events") }} as snowflake
         inner join
-            date_check on date(snowflake.updated_at) >= date_check.updated_date
+            date_check
+            on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name = 'gitlab_db_issues_prometheus_alert_events'
         qualify row_number() over (partition by issue_id order by updated_date desc) = 1
         union all
@@ -207,7 +211,8 @@ with
             date(snowflake.updated_at) as updated_date
         from {{ source("gitlab_dotcom", "group_import_states") }} as snowflake
         inner join
-            date_check on date(snowflake.updated_at) >= date_check.updated_date
+            date_check
+            on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name = 'gitlab_db_group_import_states'
         qualify row_number() over (partition by group_id order by updated_date desc) = 1
         union all
@@ -220,7 +225,8 @@ with
             {{ source("gitlab_dotcom", "issues_self_managed_prometheus_alert_events") }}
             as snowflake
         inner join
-            date_check on date(snowflake.updated_at) >= date_check.updated_date
+            date_check
+            on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name
             = 'gitlab_db_issues_self_managed_prometheus_alert_events'
         qualify row_number() over (partition by issue_id order by updated_date desc) = 1
@@ -232,7 +238,8 @@ with
             date(snowflake.updated_at) as updated_date
         from {{ source("gitlab_dotcom", "status_page_settings") }} as snowflake
         inner join
-            date_check on date(snowflake.updated_at) >= date_check.updated_date
+            date_check
+            on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name = 'gitlab_db_status_page_settings'
         qualify
             row_number() over (partition by project_id order by updated_date desc) = 1
@@ -244,7 +251,8 @@ with
             date(snowflake.updated_at) as updated_date
         from {{ source("gitlab_dotcom", "user_preferences") }} as snowflake
         inner join
-            date_check on date(snowflake.updated_at) >= date_check.updated_date
+            date_check
+            on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name = 'gitlab_db_user_preferences'
         qualify row_number() over (partition by user_id order by updated_date desc) = 1
         union all
@@ -255,7 +263,8 @@ with
             date(snowflake.updated_at) as updated_date
         from {{ source("gitlab_dotcom", "container_expiration_policies") }} as snowflake
         inner join
-            date_check on date(snowflake.updated_at) >= date_check.updated_date
+            date_check
+            on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name = 'gitlab_db_container_expiration_policies'
         qualify
             row_number() over (partition by project_id order by updated_date desc) = 1
@@ -267,7 +276,8 @@ with
             date(snowflake.updated_at) as updated_date
         from {{ source("gitlab_dotcom", "namespace_settings") }} as snowflake
         inner join
-            date_check on date(snowflake.updated_at) >= date_check.updated_date
+            date_check
+            on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name = 'gitlab_db_namespace_settings'
         qualify
             row_number() over (partition by namespace_id order by updated_date desc) = 1

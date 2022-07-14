@@ -10,9 +10,7 @@
             ("dim_marketing_contact", "dim_marketing_contact"),
         ]
     )
-}}
-
-,
+}},
 final as (
 
     select

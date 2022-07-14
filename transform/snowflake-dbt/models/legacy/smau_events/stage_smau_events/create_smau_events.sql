@@ -11,9 +11,7 @@ with
 
         from {{ ref("create_snowplow_smau_pageviews_events") }}
 
-    )
-
-    ,
+    ),
     create_gitlab_dotcom_smau_events as (
 
         select
@@ -26,9 +24,7 @@ with
 
         from {{ ref("create_gitlab_dotcom_smau_events") }}
 
-    )
-
-    ,
+    ),
     unioned as (
 
         select *

@@ -7,9 +7,7 @@
             ("dim_usage_ping_metric", "dim_usage_ping_metric"),
         ]
     )
-}}
-
-,
+}},
 flattened as (
 
     select

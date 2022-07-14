@@ -17,4 +17,5 @@ where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
 qualify
     row_number() over (
         partition by project_programming_language_id order by _uploaded_at desc
-    ) = 1
+    )
+    = 1

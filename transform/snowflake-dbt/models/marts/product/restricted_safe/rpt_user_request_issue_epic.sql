@@ -113,23 +113,28 @@ with
 
             -- Account additive fields
             count(distinct dim_crm_account_id) as unique_accounts,
-            array_agg(distinct crm_account_name) within group(
-                order by crm_account_name
+            array_agg(
+                distinct crm_account_name) within group(order by crm_account_name
             ) as crm_account_name_array,
-            array_agg(distinct crm_account_health_score_color) within group(
-                order by crm_account_health_score_color
+            array_agg(
+                distinct crm_account_health_score_color
+            ) within group(order by crm_account_health_score_color
             ) as crm_account_health_score_color_array,
-            array_agg(distinct parent_crm_account_sales_segment) within group(
-                order by parent_crm_account_sales_segment
+            array_agg(
+                distinct parent_crm_account_sales_segment
+            ) within group(order by parent_crm_account_sales_segment
             ) as crm_account_parent_sales_segment_array,
-            array_agg(distinct technical_account_manager) within group(
-                order by technical_account_manager
+            array_agg(
+                distinct technical_account_manager
+            ) within group(order by technical_account_manager
             ) as crm_account_tam_array,
-            array_agg(distinct crm_account_owner_team) within group(
-                order by crm_account_owner_team
+            array_agg(
+                distinct crm_account_owner_team
+            ) within group(order by crm_account_owner_team
             ) as crm_account_owner_team_array,
-            array_agg(distinct strategic_account_leader) within group(
-                order by strategic_account_leader
+            array_agg(
+                distinct strategic_account_leader
+            ) within group(order by strategic_account_leader
             ) as crm_account_strategic_account_leader_array,
 
             sum(customer_reach) as sum_customer_reach,

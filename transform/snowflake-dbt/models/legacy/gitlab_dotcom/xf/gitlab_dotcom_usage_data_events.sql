@@ -9,8 +9,6 @@
         }
     )
 }}
-
-
 select *
 from {{ ref("gitlab_dotcom_usage_data_pipelines") }}
 

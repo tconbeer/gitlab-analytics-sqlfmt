@@ -15,7 +15,8 @@ with recursive
             iff(
                 array_to_string(zuora_renewal_subscription_name_slugify, ',') is null,
                 subscription_name_slugify,
-                subscription_name_slugify || ',' || array_to_string(
+                subscription_name_slugify
+                || ',' || array_to_string(
                     zuora_renewal_subscription_name_slugify, ','
                 )
             ) as lineage,
@@ -53,8 +54,7 @@ with recursive
             anchor.parent_slug as parent_slug,
             anchor.lineage
             || ','
-            || iter.zuora_renewal_subscription_name_slugify
-            as lineage,
+            || iter.zuora_renewal_subscription_name_slugify as lineage,
             iff(
                 iter.zuora_renewal_subscription_name_slugify is null,
                 0,

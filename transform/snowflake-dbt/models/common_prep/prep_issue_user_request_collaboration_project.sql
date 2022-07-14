@@ -32,7 +32,8 @@ with
         qualify
             row_number() over (
                 partition by project_id, issue_iid order by created_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     collaboration_projects as (
@@ -229,7 +230,8 @@ with
                     map_moved_duplicated_issue.dim_issue_id,
                     unioned_with_issue_links.dim_crm_account_id
                 order by unioned_with_issue_links.link_last_updated_at desc nulls last
-            ) = 1
+            )
+            = 1
 
     )
 

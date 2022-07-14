@@ -23,26 +23,22 @@ with
         from source
         inner join lateral flatten(jsontext['sources']) s
         where
-            jsontext['metadata'] [
-                'dbt_version'
+            jsontext['metadata'] ['dbt_version'] is null
             -- impossible to know what freshness is, so filtered out
-            -- latest_load_at
-            ] is null and s.value['state']::varchar != 'runtime error' and s.value[
-                'max_loaded_at'
-            ]::timestamp is not null and s.value[  -- freshness_observed_at
-                'snapshotted_at'
-            ]::timestamp is not null and s.value[  -- time_since_loaded_seconds
-                'max_loaded_at_time_ago_in_s'
-            ]::float is not null
+            and s.value['state']::varchar != 'runtime error'
+            and s.value['max_loaded_at']::timestamp is not null  -- latest_load_at
+            -- freshness_observed_at
+            and s.value['snapshotted_at']::timestamp is not null
+            -- time_since_loaded_seconds
+            and s.value['max_loaded_at_time_ago_in_s']::float is not null
 
     ),
     v1parsed as (
 
         select
             s.value['unique_id']::varchar as source_unique_id,
-            replace(
-                s.value['unique_id'], 'source.gitlab_snowflake.', ''
-            )::varchar as schema_table_name,
+            replace(s.value['unique_id'], 'source.gitlab_snowflake.', '')::varchar
+            as schema_table_name,
             split_part(schema_table_name, '.', 1) as schema_name,
             split_part(schema_table_name, '.', -1) as table_name,
             s.value['max_loaded_at']::timestamp as latest_load_at,
@@ -57,14 +53,12 @@ with
         from source
         inner join lateral flatten(jsontext['results']) s
         where
-            -- latest_load_at
-            jsontext['metadata'] ['dbt_version'] is not null and s.value[
-                'max_loaded_at'
-            ]::timestamp is not null and s.value[  -- freshness_observed_at
-                'snapshotted_at'
-            ]::timestamp is not null and s.value[  -- time_since_loaded_seconds
-                'max_loaded_at_time_ago_in_s'
-            ]::float is not null
+            jsontext['metadata'] ['dbt_version'] is not null
+            and s.value['max_loaded_at']::timestamp is not null  -- latest_load_at
+            -- freshness_observed_at
+            and s.value['snapshotted_at']::timestamp is not null
+            -- time_since_loaded_seconds
+            and s.value['max_loaded_at_time_ago_in_s']::float is not null
     )
 
 

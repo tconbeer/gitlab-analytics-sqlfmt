@@ -10,9 +10,7 @@
             ("dim_project", "dim_project"),
         ]
     )
-}}
-
-,
+}},
 snippet_source as (
 
     select *

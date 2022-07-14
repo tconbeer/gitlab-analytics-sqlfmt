@@ -6,9 +6,7 @@
             ("dim_namespace_plan_hist", "dim_namespace_plan_hist"),
         ]
     )
-}}
-
-,
+}},
 usage_data as (
 
     select *
@@ -22,9 +20,7 @@ usage_data as (
 
     {% endif %}
 
-)
-
-,
+),
 aggregated as (
 
     select
@@ -69,11 +65,10 @@ aggregated as (
         dim_namespace_plan_hist
         on usage_data.ultimate_parent_namespace_id
         = dim_namespace_plan_hist.dim_namespace_id
-        and to_date(
-            usage_data.event_created_at
-        ) >= dim_namespace_plan_hist.valid_from and to_date(
-            usage_data.event_created_at
-        ) < coalesce(dim_namespace_plan_hist.valid_to, '2099-01-01')
+        and to_date(usage_data.event_created_at) >= dim_namespace_plan_hist.valid_from
+        and to_date(usage_data.event_created_at) < coalesce(
+            dim_namespace_plan_hist.valid_to, '2099-01-01'
+        )
     where days_since_user_creation >= 0 {{ dbt_utils.group_by(n=14) }}
 
 )

@@ -32,7 +32,8 @@ with
         qualify
             row_number() over (
                 partition by snapshot_month, project_id order by valid_to_ desc
-            ) = 1
+            )
+            = 1
 
     )
 

@@ -9,15 +9,12 @@
             ("rpt_crm_person_with_opp", "rpt_crm_person_with_opp"),
         ]
     )
-}}
-
-,
+}},
 final as (
 
     select distinct
-        date_trunc(
-            'month', mart_crm_touchpoint.bizible_touchpoint_date
-        )::date as bizible_touchpoint_date_month_yr,
+        date_trunc('month', mart_crm_touchpoint.bizible_touchpoint_date)::date
+        as bizible_touchpoint_date_month_yr,
         mart_crm_touchpoint.bizible_touchpoint_date::date
         as bizible_touchpoint_date_normalized,
         mart_crm_touchpoint.bizible_touchpoint_date,
@@ -168,8 +165,7 @@ final as (
     from mart_crm_touchpoint
     left join
         rpt_crm_person_with_opp
-        on
-        mart_crm_touchpoint.dim_crm_person_id
+        on mart_crm_touchpoint.dim_crm_person_id
         = rpt_crm_person_with_opp.dim_crm_person_id
     where bizible_touchpoint_date_normalized >= '09/01/2019'
 

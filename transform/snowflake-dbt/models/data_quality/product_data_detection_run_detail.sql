@@ -23,9 +23,7 @@
             ("dim_subscription", "dim_subscription"),
         ]
     )
-}}
-
-,
+}},
 rule_run_date as (
 
     select distinct date_day as rule_run_date, 'Product' as type_of_data
@@ -247,9 +245,9 @@ final as (
         type_of_data
     from processed_passed_failed_record_count
     right outer join
-        rule_run_date on to_date(
-            processed_passed_failed_record_count.run_date
-        ) = rule_run_date.rule_run_date
+        rule_run_date
+        on to_date(processed_passed_failed_record_count.run_date)
+        = rule_run_date.rule_run_date
 
 )
 

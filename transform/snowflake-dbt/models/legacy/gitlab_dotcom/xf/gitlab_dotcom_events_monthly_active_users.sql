@@ -34,9 +34,8 @@ with
             count(distinct author_id) as count_audit_events_active_users_last_28_days
         from days
         inner join
-            audit_events on audit_event_day between dateadd(
-                'day', -27, days.day
-            ) and days.day
+            audit_events
+            on audit_event_day between dateadd('day', -27, days.day) and days.day
         group by days.day, days.is_last_day_of_month
         order by days.day
 
@@ -62,9 +61,8 @@ with
             ) as count_events_active_users_last_28_days_by_plan_was_paid
         from days
         inner join
-            events on events.event_day between dateadd(
-                'day', -27, days.day
-            ) and days.day
+            events
+            on events.event_day between dateadd('day', -27, days.day) and days.day
         order by days.day
 
     ),

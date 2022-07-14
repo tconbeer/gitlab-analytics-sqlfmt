@@ -8,7 +8,8 @@
 {% for db in production_databases %}
 {%- if target.name in production_targets -%}
 
-create or replace function "{{ db | trim }}".{{ target.schema }}.regexp_to_array(
+create
+or replace function "{{ db | trim }}".{{ target.schema }}.regexp_to_array(
     "input_text" string, "regex_text" string
 )
 
@@ -21,8 +22,7 @@ or replace function "{{ target.database | trim }}_{{ db | trim }}".{{ target.sch
 
 {% endif %}
 returns array
-language javascript
-as '
+language javascript as '
 
     var regex_constructor = new RegExp(regex_text, "g")
     if (input_text == null) {

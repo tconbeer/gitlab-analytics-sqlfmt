@@ -25,9 +25,12 @@ with
             dateadd(month, -1, date_actual) as end_period
         from {{ ref("date_details") }}
         where
-            day_of_month = 1 and date_actual between date_trunc(
-                month, dateadd(month, -15, current_date())
-            ) and date_trunc(month, current_date())
+            day_of_month = 1
+            and date_actual between date_trunc(
+                month,
+                dateadd(month, -15, current_date())
+            ) and date_trunc(month, current_date()
+            )
 
     ),
     three_month_rolling as (

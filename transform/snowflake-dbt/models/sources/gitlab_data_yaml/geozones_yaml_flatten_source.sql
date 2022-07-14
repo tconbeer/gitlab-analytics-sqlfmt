@@ -31,9 +31,8 @@ with
             geozones.value['title']::varchar as geozone_title,
             geozones.value['factor']::number(6, 3) as geozone_factor,
             geozones.value['countries']::variant as geozone_countries,
-            geozones.value[
-                'states_or_provinces'
-            ]::variant as geozone_states_or_provinces
+            geozones.value['states_or_provinces']::variant
+            as geozone_states_or_provinces
         from grouped
         inner join
             lateral flatten(input => parse_json(jsontext), outer => true) as geozones

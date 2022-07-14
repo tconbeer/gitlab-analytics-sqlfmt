@@ -19,9 +19,8 @@ with
             split_part(cleaned_version, '.', 1) as major_version,
             split_part(cleaned_version, '.', 2) as minor_version,
             major_version || '.' || minor_version as major_minor_version,
-            iff(
-                version like '%-pre%' or version like '%-rc%', true, false
-            )::boolean as is_pre_release,
+            iff(version like '%-pre%' or version like '%-rc%', true, false)::boolean
+            as is_pre_release,
             iff(edition = 'CE', 'CE', 'EE') as main_edition,
             case
                 when edition = 'CE'
@@ -75,8 +74,8 @@ with
             (
                 raw_usage_data.raw_usage_data_payload:license_subscription_id::text
             ) as license_subscription_id,
-            raw_usage_data.raw_usage_data_payload:usage_activity_by_stage_monthly.manage.events::number
-            as umau_value,
+            raw_usage_data.raw_usage_data_payload:usage_activity_by_stage_monthly.manage.events
+            ::number as umau_value,
             iff(
                 internal_identified.created_at < license_trial_ends_on, true, false
             ) as is_trial,

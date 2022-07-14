@@ -1,16 +1,8 @@
 with
-    zuora_account as (select * from {{ ref("zuora_account") }})
-
-    ,
-    zuora_rate_plan as (select * from {{ ref("zuora_rate_plan") }})
-
-    ,
-    zuora_rate_plan_charge as (select * from {{ ref("zuora_rate_plan_charge") }})
-
-    ,
-    zuora_subscription as (select * from {{ ref("zuora_subscription") }})
-
-    ,
+    zuora_account as (select * from {{ ref("zuora_account") }}),
+    zuora_rate_plan as (select * from {{ ref("zuora_rate_plan") }}),
+    zuora_rate_plan_charge as (select * from {{ ref("zuora_rate_plan_charge") }}),
+    zuora_subscription as (select * from {{ ref("zuora_subscription") }}),
     subscription_joined_with_accounts as (
 
         select distinct
@@ -38,9 +30,7 @@ with
         inner join
             zuora_account on zuora_subscription.account_id = zuora_account.account_id
 
-    )
-
-    ,
+    ),
     subscription_with_valid_auto_renew_setting as (
 
         /* 
@@ -52,7 +42,8 @@ with
             subscription_name_slugify,
             term_start_date,
             term_end_date,
-            last_value(auto_renew_native_hist) over (
+            last_value(auto_renew_native_hist) over
+            (
                 partition by subscription_name_slugify, term_start_date, term_end_date
                 order by version
             ) as last_auto_renew
@@ -64,9 +55,7 @@ with
     */
         where created_date < term_end_date
 
-    )
-
-    ,
+    ),
     subscription_joined_with_charges as (
 
         select distinct
@@ -119,9 +108,7 @@ with
             and subscription_version_term_start_date
             != subscription_version_term_end_date
 
-    )
-
-    ,
+    ),
     subscription_with_renewals as (
 
         /* 
@@ -153,15 +140,15 @@ select
         -- manual linked subscription
         when
             subscription_joined_with_charges.zuora_renewal_subscription_name_slugify
-            is
-            not null
+            is not null
         then true
         -- new version available, got renewed
         when
             lead(subscription_joined_with_charges.subscription_name_slugify) over (
                 partition by subscription_joined_with_charges.subscription_name_slugify
                 order by version
-            ) is not null
+            )
+            is not null
         then true
         else false
     end as is_renewed,

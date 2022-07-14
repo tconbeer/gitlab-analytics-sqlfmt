@@ -13,9 +13,7 @@
             ("dim_date", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 sdr_prep as (
 
     select
@@ -26,13 +24,10 @@ sdr_prep as (
         max(termination_date) as termination_date
     from bamboohr_job_info_current_division_base
     where
-        lower(job_title) like '%sales development representative%' or lower(
-            job_title
-        ) like '%sales development team lead%' or lower(
-            job_title
-        ) like '%business development representative%' or lower(
-            job_title
-        ) like '%sales development rep%'
+        lower(job_title) like '%sales development representative%'
+        or lower(job_title) like '%sales development team lead%'
+        or lower(job_title) like '%business development representative%'
+        or lower(job_title) like '%sales development rep%'
     group by 1, 2
 
 ),

@@ -77,7 +77,8 @@ with
                             len(email_id) - charindex('@', email_id)
                         ),
                         '(yahoo)|(gmail)|(hotmail)|(rediff)|(outlook)|(verizon\\.net)|(live\\.)|(sbcglobal\\.net)|(laposte)|(pm\\.me)|(inbox)|(yandex)|(fastmail)|(protonmail)|(email\\.)|(att\\.net)|(posteo)|(rocketmail)|(bk\\.ru)'
-                    ) or substring(
+                    )
+                    or substring(
                         email_id,
                         charindex('@', email_id) + 1,
                         len(email_id) - charindex('@', email_id)
@@ -152,8 +153,8 @@ with
 select *
 from users
 where
-    email_type = 'business email' or (
-        email_type = 'personal_email' and (
-            internal_value1 = true or internal_value2 = 1
-        )
+    email_type = 'business email'
+    or (
+        email_type = 'personal_email'
+        and (internal_value1 = true or internal_value2 = 1)
     )

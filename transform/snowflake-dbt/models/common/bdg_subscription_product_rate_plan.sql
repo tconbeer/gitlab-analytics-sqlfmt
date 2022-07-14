@@ -5,9 +5,7 @@
             ("product_details", "dim_product_detail"),
         ]
     )
-}}
-
-,
+}},
 subscriptions as (
 
     select *

@@ -34,9 +34,8 @@ with
             data_by_row['contributions']::number as stage_contributions,
             data_by_row['usage_driver_score']::number as stage_usage_driver_score,
             data_by_row['sam_driver_score']::number as stage_sam_driver_score,
-            data_by_row[
-                'stage_development_spend_percent'
-            ]::number as stage_development_spend_percent,
+            data_by_row['stage_development_spend_percent']::number
+            as stage_development_spend_percent,
             data_by_row['groups']::array as stage_groups,
             data_by_row['section']::varchar as stage_section
         from intermediate

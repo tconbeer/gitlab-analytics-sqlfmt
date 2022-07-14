@@ -43,19 +43,18 @@ with
         {%- endif %}
 
         where
-            app_id is not null and date_part(
-                month, try_to_timestamp(derived_tstamp)
-            ) = '{{ month_value }}' and date_part(
-                year, try_to_timestamp(derived_tstamp)
-            ) = '{{ year_value }}' and (
+            app_id is not null
+            and date_part(month, try_to_timestamp(derived_tstamp)) = '{{ month_value }}'
+            and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
+            and
+            (
                 -- js backend tracker
-                (v_tracker like 'js%' and app_id = 'gitlab-staging')
-
-                or
+                (v_tracker like 'js%' and app_id = 'gitlab-staging') or
 
                 -- ruby backend tracker
                 (v_tracker like 'rb%')
-            ) and try_to_timestamp(derived_tstamp) is not null
+            )
+            and try_to_timestamp(derived_tstamp) is not null
 
     ),
     events_with_context_flattened as (

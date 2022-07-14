@@ -14,8 +14,7 @@ case
         {{ original_mrr }} > {{ new_mrr }}
         and {{ original_product_category }} = {{ new_product_category }}
         and {{ original_seat_quantity }} > {{ new_seat_quantity }}
-        and
-        {{ original_mrr }}
+        and {{ original_mrr }}
         / {{ original_seat_quantity }}
         > {{ new_mrr }}
         / {{ new_seat_quantity }}
@@ -25,8 +24,7 @@ case
         {{ original_mrr }} < {{ new_mrr }}
         and {{ original_product_category }} = {{ new_product_category }}
         and {{ original_seat_quantity }} < {{ new_seat_quantity }}
-        and
-        {{ original_mrr }}
+        and {{ original_mrr }}
         / {{ original_seat_quantity }}
         < {{ new_mrr }}
         / {{ new_seat_quantity }}
@@ -45,14 +43,18 @@ case
     then 'Seat Change'
 
     when
-        {{ original_mrr }} > {{ new_mrr }} and (
+        {{ original_mrr }} > {{ new_mrr }}
+        and
+        (
             {{ original_product_category }} = {{ new_product_category }}
             and {{ original_seat_quantity }} <= {{ new_seat_quantity }}
         )
     then 'Price Change'
 
     when
-        {{ original_mrr }} < {{ new_mrr }} and (
+        {{ original_mrr }} < {{ new_mrr }}
+        and
+        (
             {{ original_product_category }} = {{ new_product_category }}
             and {{ original_seat_quantity }} >= {{ new_seat_quantity }}
         )

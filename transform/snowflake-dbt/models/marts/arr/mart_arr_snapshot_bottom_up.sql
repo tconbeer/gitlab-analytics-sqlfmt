@@ -55,9 +55,7 @@ with
                 inner join dim_date on dim_date.date_actual = snapshot_date
             )
 
-        {% endif %}
-
-            {{ dbt_utils.group_by(n=8) }}
+        {% endif %} {{ dbt_utils.group_by(n=8) }}
 
     ),
     joined as (

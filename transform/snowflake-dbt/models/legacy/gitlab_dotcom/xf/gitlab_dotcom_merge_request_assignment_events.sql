@@ -19,7 +19,8 @@ with
             ) as unassigned
         from {{ ref("gitlab_dotcom_internal_notes_xf") }}
         where
-            noteable_type = 'MergeRequest' and (
+            noteable_type = 'MergeRequest'
+            and (
                 note like 'assigned to%'
                 or note like 'unassigned%'
                 or note like 'Reassigned%'

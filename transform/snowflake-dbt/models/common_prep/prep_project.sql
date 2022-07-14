@@ -28,9 +28,7 @@
             ("prep_product_tier", "prep_product_tier"),
         ]
     )
-}}
-
-,
+}},
 active_services as (
 
     select * from {{ ref("gitlab_dotcom_services_source") }} where is_active = true
@@ -44,13 +42,13 @@ namespace_lineage as (
             row_number() over (
                 partition by namespace_lineage_historical.namespace_id
                 order by namespace_lineage_historical.snapshot_day desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_current,
         namespace_lineage_historical.snapshot_day
-        = current_date
-        as ultimate_parent_is_current,
+        = current_date as ultimate_parent_is_current,
         plans.plan_title as ultimate_parent_plan_title,
         plans.plan_is_paid as ultimate_parent_plan_is_paid,
         plans.plan_name as ultimate_parent_plan_name
@@ -64,7 +62,8 @@ namespace_lineage as (
                 namespace_lineage_historical.parent_id,
                 namespace_lineage_historical.ultimate_parent_id
             order by namespace_lineage_historical.snapshot_day desc
-        ) = 1
+        )
+        = 1
 
 ),
 joined as (

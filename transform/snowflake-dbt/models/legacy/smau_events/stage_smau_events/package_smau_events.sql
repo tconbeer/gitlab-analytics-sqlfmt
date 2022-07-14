@@ -11,9 +11,7 @@ with
 
         from {{ ref("package_snowplow_smau_pageviews_events") }}
 
-    )
-
-    ,
+    ),
     package_snowplow_smau_structured_events as (
 
         select
@@ -26,9 +24,7 @@ with
 
         from {{ ref("package_snowplow_smau_structured_events") }}
 
-    )
-
-    ,
+    ),
     unioned as (
 
         select *

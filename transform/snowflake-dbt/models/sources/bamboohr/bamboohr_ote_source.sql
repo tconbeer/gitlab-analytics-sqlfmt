@@ -15,9 +15,8 @@ with
             data_by_row.value['id']::number as target_earnings_update_id,
             data_by_row.value['employeeId']::number as employee_id,
             data_by_row.value['customDate']::date as effective_date,
-            data_by_row.value[
-                'customAnnualAmountLocal'
-            ]::varchar as annual_amount_local,
+            data_by_row.value['customAnnualAmountLocal']::varchar
+            as annual_amount_local,
             data_by_row.value['customAnnualAmountUSD']::varchar as annual_amount_usd,
             data_by_row.value['customOTELocal']::varchar as ote_local,
             data_by_row.value['customOTEUSD']::varchar as ote_usd,

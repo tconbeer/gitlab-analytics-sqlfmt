@@ -13,9 +13,7 @@
             ("sfdc_opportunity_source", "sfdc_opportunity_source"),
         ]
     )
-}}
-
-,
+}},
 issue_notes as (
 
     select noteable_id as issue_id, *
@@ -54,9 +52,8 @@ gitlab_issue_description_parsing as (
         ifnull(issue_last_edited_at, created_at) as issue_last_edited_at
     from issue_extended
     where
-        issue_description is not null and not (
-            array_size(sfdc_link_array) = 0 and array_size(zendesk_link_array) = 0
-        )
+        issue_description is not null
+        and not (array_size(sfdc_link_array) = 0 and array_size(zendesk_link_array) = 0)
 
 ),
 issue_notes_extended as (
@@ -139,7 +136,8 @@ gitlab_issue_notes_sfdc_links_with_account as (
         ifnull(
             gitlab_issue_notes_sfdc_links.dim_crm_account_id,
             sfdc_opportunity_source.account_id
-        ) is not null
+        )
+        is not null
 
 ),
 gitlab_issue_description_sfdc_links as (
@@ -192,7 +190,8 @@ gitlab_issue_description_sfdc_links_with_account as (
         ifnull(
             gitlab_issue_description_sfdc_links.dim_crm_account_id,
             sfdc_opportunity_source.account_id
-        ) is not null
+        )
+        is not null
 
 ),
 gitlab_issue_notes_zendesk_link as (
@@ -265,7 +264,8 @@ union_links as (
     qualify
         row_number() over (
             partition by issue_id, sfdc_id_18char order by note_updated_at desc
-        ) = 1
+        )
+        = 1
 
     union
 
@@ -282,7 +282,8 @@ union_links as (
     qualify
         row_number() over (
             partition by issue_id, dim_ticket_id order by note_updated_at desc
-        ) = 1
+        )
+        = 1
 
     union
 
@@ -377,7 +378,8 @@ final as (
             partition by
                 dim_issue_id, dim_crm_opportunity_id, dim_crm_account_id, dim_ticket_id
             order by link_last_updated_at desc
-        ) = 1
+        )
+        = 1
 
 )
 

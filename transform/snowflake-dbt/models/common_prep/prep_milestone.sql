@@ -12,9 +12,7 @@
             ("dim_epic", "dim_epic"),
         ]
     )
-}}
-
-,
+}},
 milestones as (
 
     select *

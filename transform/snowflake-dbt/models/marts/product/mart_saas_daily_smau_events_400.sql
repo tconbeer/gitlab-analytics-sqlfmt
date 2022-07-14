@@ -7,10 +7,7 @@
             ("map_saas_event_to_smau", "map_saas_event_to_smau"),
         ]
     )
-}}
-
-
-,
+}},
 joined as (
 
     select

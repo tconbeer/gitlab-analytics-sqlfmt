@@ -36,7 +36,8 @@ with
                     partition by created_week, dim_instance_id, host_name, metrics_path
                     order by ping_created_at desc
                 )
-            ) = 1
+            )
+            = 1
 
     ),
     transformed as (

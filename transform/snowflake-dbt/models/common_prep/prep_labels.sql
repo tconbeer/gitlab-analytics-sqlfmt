@@ -9,9 +9,7 @@
             ("dim_project", "dim_project"),
         ]
     )
-}}
-
-,
+}},
 renamed as (
 
     select

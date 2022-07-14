@@ -71,11 +71,10 @@ with
         select *
         from {{ ref("zuora_rate_plan_charge_snapshots_source") }}
         where
+            charge_type = 'Recurring'
             /* This excludes Education customers (charge name EDU or OSS) with free subscriptions.
        Pull in seats from Paid EDU Plans with no ARR */
-            charge_type = 'Recurring' and (
-                mrr != 0 or lower(rate_plan_charge_name) = 'max enrollment'
-            )
+            and (mrr != 0 or lower(rate_plan_charge_name) = 'max enrollment')
 
     ),
     zuora_rate_plan_charge_spined as (
@@ -94,9 +93,9 @@ with
         select *
         from {{ ref("zuora_subscription_snapshots_source") }}
         where
-            is_deleted = false and exclude_from_analysis in (
-                'False', ''
-            ) and subscription_status not in ('Draft', 'Expired')
+            is_deleted = false
+            and exclude_from_analysis in ('False', '')
+            and subscription_status not in ('Draft', 'Expired')
 
     ),
     zuora_subscription_spined as (
@@ -112,7 +111,8 @@ with
             rank() over (
                 partition by subscription_name, snapshot_dates.date_actual
                 order by dbt_valid_from desc
-            ) = 1
+            )
+            = 1
 
     ),
     manual_charges as (
@@ -214,7 +214,8 @@ with
             and (
                 combined_charges.effective_end_month > dim_date.date_actual
                 or combined_charges.effective_end_month is null
-            ) and dim_date.day_of_month = 1
+            )
+            and dim_date.day_of_month = 1
             {{ dbt_utils.group_by(n=10) }}
 
     ),

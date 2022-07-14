@@ -51,9 +51,8 @@ with
             level_1_metro_areas.value['factor']::number(
                 6, 3
             ) as metro_areas_factor_level_2,
-            level_1_metro_areas.value[
-                'sub_location'
-            ]::varchar as metro_areas_sub_location_level_2
+            level_1_metro_areas.value['sub_location']::varchar
+            as metro_areas_sub_location_level_2
         from level_1
         inner join
             lateral flatten(
@@ -74,15 +73,13 @@ with
 
         select
             level_1_metro_areas.*,
-            level_1_states_or_provinces.value[
-                'name'
-            ]::varchar as states_or_provinces_name_level_2,
+            level_1_states_or_provinces.value['name']::varchar
+            as states_or_provinces_name_level_2,
             level_1_states_or_provinces.value['factor']::number(
                 6, 3
             ) as states_or_provinces_factor_level_2,
-            level_1_states_or_provinces.value[
-                'metro_areas'
-            ]::variant as states_or_provinces_metro_areas_level_2
+            level_1_states_or_provinces.value['metro_areas']::variant
+            as states_or_provinces_metro_areas_level_2
         from level_1_metro_areas
         inner join
             lateral flatten(
@@ -94,9 +91,8 @@ with
 
         select
             level_1_states_or_provinces.*,
-            level_2_states_or_provinces_metro_areas.value[
-                'name'
-            ]::varchar as states_or_provinces_metro_areas_name_level_2,
+            level_2_states_or_provinces_metro_areas.value['name']::varchar
+            as states_or_provinces_metro_areas_name_level_2,
             level_2_states_or_provinces_metro_areas.value['factor']::number(
                 6, 3
             ) as states_or_provinces_metro_areas_factor_level_2

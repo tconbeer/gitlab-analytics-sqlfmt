@@ -16,9 +16,7 @@
             ("mart_crm_opportunity", "mart_crm_opportunity"),
         ]
     )
-}}
-
-,
+}},
 final as (
 
     select
@@ -245,9 +243,9 @@ final as (
             when
                 dim_campaign.budget_holder = 'fmm'
                 or campaign_rep_role_name = 'Field Marketing Manager'
-                or lower(dim_crm_touchpoint.utm_content) like '%field%' or lower(
-                    dim_campaign.type
-                ) = 'field event' or lower(dim_crm_person.lead_source) = 'field event'
+                or lower(dim_crm_touchpoint.utm_content) like '%field%'
+                or lower(dim_campaign.type) = 'field event'
+                or lower(dim_crm_person.lead_source) = 'field event'
             then 1
             else 0
         end as is_fmm_influenced

@@ -36,7 +36,8 @@ with
         where
             breakout_type in (
                 'department_breakout', 'kpi_breakout', 'division_breakout'
-            ) and eeoc_field_name = 'no_eeoc'
+            )
+            and eeoc_field_name = 'no_eeoc'
         group by 1, 2, 3
 
 
@@ -53,7 +54,8 @@ with
                 field_name = 'division_grouping_breakout',
                 promotions.division_grouping,
                 promotions.department_grouping
-            ) = bamboohr_base.field_value
+            )
+            = bamboohr_base.field_value
         left join
             headcount_end
             on bamboohr_base.rolling_end_month = headcount_end.month_date
@@ -79,7 +81,8 @@ with
                 field_name = 'division_grouping_breakout',
                 promotions.division_grouping,
                 promotions.department_grouping
-            ) = bamboohr_base.field_value
+            )
+            = bamboohr_base.field_value
         left join
             headcount_end
             on bamboohr_base.rolling_end_month = headcount_end.month_date

@@ -15,9 +15,7 @@
             ("sfdc_opportunity", "prep_crm_opportunity"),
         ]
     )
-}}
-
-,
+}},
 user_hierarchy_stamped_sales_segment as (
 
     select distinct

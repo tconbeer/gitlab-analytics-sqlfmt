@@ -12,9 +12,7 @@
             ("prep_user", "prep_user"),
         ]
     )
-}}
-
-,
+}},
 gitlab_dotcom_merge_requests_source as (
 
     select *
@@ -81,9 +79,8 @@ renamed as (
             dim_namespace_plan_hist.valid_to, '2099-01-01'
         )
     left join
-        dim_date on to_date(
-            gitlab_dotcom_merge_requests_source.created_at
-        ) = dim_date.date_day
+        dim_date
+        on to_date(gitlab_dotcom_merge_requests_source.created_at) = dim_date.date_day
     where gitlab_dotcom_merge_requests_source.project_id is not null
 
 )

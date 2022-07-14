@@ -13,7 +13,10 @@ case
     when {{ previous_product_category }} = {{ product_category }}
     then
         {{ quantity }} * (
-            {{ arr }}/ nullif({{ quantity }}, 0) - {{ previous_arr }}/ nullif(
+            {{ arr }}/ nullif(
+                {{ quantity }}, 0
+            )
+            - {{ previous_arr }}/ nullif(
                 {{ previous_quantity }}, 0
             )
         )
@@ -22,7 +25,10 @@ case
         and {{ previous_product_ranking }} = {{ product_ranking }}
     then
         {{ quantity }} * (
-            {{ arr }}/ nullif({{ quantity }}, 0) - {{ previous_arr }}/ nullif(
+            {{ arr }}/ nullif(
+                {{ quantity }}, 0
+            )
+            - {{ previous_arr }}/ nullif(
                 {{ previous_quantity }}, 0
             )
         )

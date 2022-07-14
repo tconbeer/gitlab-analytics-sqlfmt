@@ -14,9 +14,7 @@
             ("prep_usage_ping_metrics_setting", "prep_usage_ping_metrics_setting"),
         ]
     )
-}}
-
-,
+}},
 usage_ping as (
 
     select

@@ -204,10 +204,9 @@ with
         select *
         from crm_person_final
         where
-            dim_crm_person_id not in (
-                select * from duplicates
+            dim_crm_person_id not in (select * from duplicates)
             -- DQ issue: https://gitlab.com/gitlab-data/analytics/-/issues/11559
-            ) and sfdc_record_id != '00Q4M00000kDDKuUAO'
+            and sfdc_record_id != '00Q4M00000kDDKuUAO'
 
     )
 

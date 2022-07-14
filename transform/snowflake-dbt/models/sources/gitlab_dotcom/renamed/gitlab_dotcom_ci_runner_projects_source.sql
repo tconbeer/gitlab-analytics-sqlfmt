@@ -1,11 +1,7 @@
 with
     source as (
 
-        select * from {{ ref("gitlab_dotcom_ci_runner_projects_dedupe_source") }}
-
-    )
-
-    ,
+        select * from {{ ref("gitlab_dotcom_ci_runner_projects_dedupe_source") }}),
     renamed as (
 
         select

@@ -195,9 +195,8 @@ with
             zuora_rate_plan_charge.unit_of_measure,
             case
                 when
-                    date_trunc(
-                        'month', zuora_rate_plan_charge.charged_through_date
-                    ) = zuora_rate_plan_charge.effective_end_month::date
+                    date_trunc('month', zuora_rate_plan_charge.charged_through_date)
+                    = zuora_rate_plan_charge.effective_end_month::date
                 then true
                 else false
             end as is_paid_in_full,
@@ -371,7 +370,8 @@ with
                 when
                     date_trunc('month', effective_end_date) > date_trunc(
                         'month', effective_start_date
-                    ) or date_trunc('month', effective_end_date) is null
+                    )
+                    or date_trunc('month', effective_end_date) is null
                 then true
                 else false
             end as is_included_in_arr_calc,
@@ -448,9 +448,8 @@ with
                 when subscription_version = 1
                 then 'New'
                 when
-                    lower(
-                        subscription_status
-                    ) = 'active' and subscription_end_date <= current_date
+                    lower(subscription_status) = 'active'
+                    and subscription_end_date <= current_date
                 then 'Churn'
                 when lower(subscription_status) = 'cancelled'
                 then 'Churn'

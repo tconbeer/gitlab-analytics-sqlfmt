@@ -27,19 +27,22 @@ with
                     (
                         a.ultimate_parent_account_segment = 'Unknown'
                         or a.ultimate_parent_account_segment is null
-                    ) and o.user_segment = 'SMB'
+                    )
+                    and o.user_segment = 'SMB'
                 then 'SMB'
                 when
                     (
                         a.ultimate_parent_account_segment = 'Unknown'
                         or a.ultimate_parent_account_segment is null
-                    ) and o.user_segment = 'Mid-Market'
+                    )
+                    and o.user_segment = 'Mid-Market'
                 then 'Mid-Market'
                 when
                     (
                         a.ultimate_parent_account_segment = 'Unknown'
                         or a.ultimate_parent_account_segment is null
-                    ) and o.user_segment in (
+                    )
+                    and o.user_segment in (
                         'Large', 'US West', 'US East', 'Public Sector''EMEA', 'APAC'
                     )
                 then 'Large'
@@ -136,9 +139,8 @@ with
             sum(
                 case
                     when
-                        h.stage_name in (
-                            '8-Closed Lost', 'Closed Lost'
-                        ) and h.sales_type = 'Renewal'
+                        h.stage_name in ('8-Closed Lost', 'Closed Lost')
+                        and h.sales_type = 'Renewal'
                     then h.renewal_acv * -1
                     when h.stage_name in ('Closed Won')
                     then h.forecasted_iacv
@@ -169,19 +171,22 @@ with
                     (
                         a.ultimate_parent_account_segment = 'Unknown'
                         or a.ultimate_parent_account_segment is null
-                    ) and o.user_segment = 'SMB'
+                    )
+                    and o.user_segment = 'SMB'
                 then 'SMB'
                 when
                     (
                         a.ultimate_parent_account_segment = 'Unknown'
                         or a.ultimate_parent_account_segment is null
-                    ) and o.user_segment = 'Mid-Market'
+                    )
+                    and o.user_segment = 'Mid-Market'
                 then 'Mid-Market'
                 when
                     (
                         a.ultimate_parent_account_segment = 'Unknown'
                         or a.ultimate_parent_account_segment is null
-                    ) and o.user_segment in (
+                    )
+                    and o.user_segment in (
                         'Large', 'US West', 'US East', 'Public Sector''EMEA', 'APAC'
                     )
                 then 'Large'
@@ -278,9 +283,8 @@ with
             sum(
                 case
                     when
-                        h.stage_name in (
-                            '8-Closed Lost', 'Closed Lost'
-                        ) and h.sales_type = 'Renewal'
+                        h.stage_name in ('8-Closed Lost', 'Closed Lost')
+                        and h.sales_type = 'Renewal'
                     then h.renewal_acv * -1
                     when h.stage_name in ('Closed Won')
                     then h.forecasted_iacv
@@ -385,7 +389,8 @@ with
                     (
                         stage_name_ending = '9-Unqualified'
                         or stage_name_ending = '10-Duplicate'
-                    ) and close_date_ending is not null
+                    )
+                    and close_date_ending is not null
                 then - forecasted_iacv_ending
                 else 0
             end as duplicate_unqualified
@@ -407,7 +412,8 @@ with
                     + duplicate_unqualified
                     + slipped_deals
                 )
-            ) - net_iacv_waterfall as net_change_in_pipeline_iacv
+            )
+            - net_iacv_waterfall as net_change_in_pipeline_iacv
         from waterfall
 
     ),

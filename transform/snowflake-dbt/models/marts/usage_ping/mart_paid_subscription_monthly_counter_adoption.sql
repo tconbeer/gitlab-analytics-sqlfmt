@@ -138,9 +138,8 @@ with
             count(
                 distinct subscription_name_slugify
             ) as major_minor_version_subscriptions,
-            major_minor_version_subscriptions / max(
-                total_subscrption_count
-            ) as pct_major_minor_version_subscriptions
+            major_minor_version_subscriptions
+            / max(total_subscrption_count) as pct_major_minor_version_subscriptions
         from paid_subscriptions_monthly_usage_ping_optin
         inner join
             dim_gitlab_releases as gitlab_releases
@@ -243,7 +242,8 @@ with
             and (
                 counter_data.major_version
                 < monthly_subscription_optin_counts.major_version
-                or (
+                or
+                (
                     counter_data.major_version
                     = monthly_subscription_optin_counts.major_version
                     and counter_data.minor_version

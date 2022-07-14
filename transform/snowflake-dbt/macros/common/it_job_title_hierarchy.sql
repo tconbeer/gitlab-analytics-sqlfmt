@@ -38,17 +38,13 @@ case
             '%president%procurement%',
             '%procurement%president%',
             '%head%devops%'
-        ) or array_contains(
-            'cio'::variant, split(lower({{ job_title }}), ' ')
-        ) or array_contains(
-            'cio'::variant, split(lower({{ job_title }}), ',')
-        ) or array_contains(
-            'cto'::variant, split(lower({{ job_title }}), ' ')
-        ) or array_contains(
-            'cto'::variant, split(lower({{ job_title }}), ',')
-        ) or array_contains(
-            'cfo'::variant, split(lower({{ job_title }}), ' ')
-        ) or array_contains('cfo'::variant, split(lower({{ job_title }}), ','))
+        )
+        or array_contains('cio'::variant, split(lower({{ job_title }}), ' '))
+        or array_contains('cio'::variant, split(lower({{ job_title }}), ','))
+        or array_contains('cto'::variant, split(lower({{ job_title }}), ' '))
+        or array_contains('cto'::variant, split(lower({{ job_title }}), ','))
+        or array_contains('cfo'::variant, split(lower({{ job_title }}), ' '))
+        or array_contains('cfo'::variant, split(lower({{ job_title }}), ','))
     then 'IT Decision Maker'
 
     when
@@ -76,7 +72,8 @@ case
             '%manager%software%',
             '%procurement%manager%',
             '%manager%procurement%'
-        ) and not array_contains('project'::variant, split(lower({{ job_title }}), ' '))
+        )
+        and not array_contains('project'::variant, split(lower({{ job_title }}), ' '))
     then 'IT Manager'
 
     when

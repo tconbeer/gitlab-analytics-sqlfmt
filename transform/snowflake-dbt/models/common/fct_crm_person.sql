@@ -70,7 +70,8 @@ with
         qualify
             row_number() over (
                 partition by converted_contact_id order by converted_date desc
-            ) = 1
+            )
+            = 1
 
     ),
     marketing_qualified_leads as (
@@ -208,9 +209,8 @@ with
                 )
             }}
             as created_date_pt_id,
-            coalesce(
-                sfdc_leads.created_date, sfdc_lead_converted.created_date
-            )::date as lead_created_date,
+            coalesce(sfdc_leads.created_date, sfdc_lead_converted.created_date)::date
+            as lead_created_date,
             {{
                 get_date_id(
                     "COALESCE(sfdc_leads.created_date, sfdc_lead_converted.created_date)::DATE"
@@ -228,9 +228,8 @@ with
             as contact_created_date_id,
             {{ get_date_pt_id("sfdc_contacts.created_date::DATE") }}
             as contact_created_date_pt_id,
-            coalesce(
-                sfdc_contacts.inquiry_datetime, sfdc_leads.inquiry_datetime
-            )::date as inquiry_date,
+            coalesce(sfdc_contacts.inquiry_datetime, sfdc_leads.inquiry_datetime)::date
+            as inquiry_date,
             {{ get_date_id("inquiry_date") }} as inquiry_date_id,
             {{ get_date_pt_id("inquiry_date") }} as inquiry_date_pt_id,
             coalesce(
@@ -307,9 +306,8 @@ with
             as converted_date_id,
             {{ get_date_pt_id("sfdc_lead_converted.converted_date") }}
             as converted_date_pt_id,
-            coalesce(
-                sfdc_contacts.worked_datetime, sfdc_leads.worked_datetime
-            )::date as worked_date,
+            coalesce(sfdc_contacts.worked_datetime, sfdc_leads.worked_datetime)::date
+            as worked_date,
             {{ get_date_id("worked_date") }} as worked_date_id,
             {{ get_date_pt_id("worked_date") }} as worked_date_pt_id,
 
@@ -362,9 +360,9 @@ with
             sales_territory
             on sfdc_leads.tsp_territory = sales_territory.sales_territory_name
         left join
-            industry on coalesce(
-                sfdc_contacts.industry, sfdc_leads.industry
-            ) = industry.industry_name
+            industry
+            on coalesce(sfdc_contacts.industry, sfdc_leads.industry)
+            = industry.industry_name
         left join
             bizible_marketing_channel_path_mapping
             on crm_person.bizible_marketing_channel_path

@@ -9,10 +9,7 @@
             ("employee_directory", "employee_directory_analysis"),
         ]
     )
-}}
-
-
-,
+}},
 joined as (
 
     select
@@ -40,9 +37,8 @@ joined as (
     left join
         employee_directory
         on mapped_employee.bamboohr_employee_id = employee_directory.employee_id
-        and date_trunc(
-            day, gitlab_dotcom_merge_requests.merged_at
-        ) = employee_directory.date_actual
+        and date_trunc(day, gitlab_dotcom_merge_requests.merged_at)
+        = employee_directory.date_actual
 
     union all
 
@@ -70,9 +66,8 @@ joined as (
     left join
         employee_directory
         on mapped_employee.bamboohr_employee_id = employee_directory.employee_id
-        and date_trunc(
-            day, gitlab_ops_merge_requests.merged_at
-        ) = employee_directory.date_actual
+        and date_trunc(day, gitlab_ops_merge_requests.merged_at)
+        = employee_directory.date_actual
 )
 
 select *

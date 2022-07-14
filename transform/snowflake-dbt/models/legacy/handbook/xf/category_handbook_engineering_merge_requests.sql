@@ -11,9 +11,8 @@ with
         select *
         from handbook_categories
         where
-            array_contains(
-                'engineering'::variant, merge_request_department_list
-            ) or array_contains('support'::variant, merge_request_department_list)
+            array_contains('engineering'::variant, merge_request_department_list)
+            or array_contains('support'::variant, merge_request_department_list)
 
     )
 select *

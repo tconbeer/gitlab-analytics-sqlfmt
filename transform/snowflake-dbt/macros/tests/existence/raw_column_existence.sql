@@ -12,9 +12,9 @@ with
         select count(1) as row_count
         from source
         where
-            lower(table_schema) = '{{schema|lower}}' and lower(
-                table_name
-            ) = '{{table|lower}}' and lower(column_name) in (
+            lower(table_schema) = '{{schema|lower}}'
+            and lower(table_name) = '{{table|lower}}'
+            and lower(column_name) in (
                 {%- for column in column_list -%}
 
                 '{{column|lower}}'{% if not loop.last %},{%- endif -%}

@@ -9,9 +9,7 @@
             ("dim_date", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 ci_runner_activity_daily as (
 
     select

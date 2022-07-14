@@ -2,13 +2,12 @@
 
 {{ config({"schema": "common_mart_marketing"}) }}
 
+-- the number of touches a given opp has in total
 {{
     simple_cte(
         [("mart_crm_attribution_touchpoint", "mart_crm_attribution_touchpoint")]
     )
-}}
-
-,  -- the number of touches a given opp has in total
+}},
 linear_base as (
     -- linear attribution Net_Arr of an opp / all touches (count_touches) for each opp
     -- - weighted by the number of touches in the given bucket (campaign,channel,etc)
@@ -132,13 +131,11 @@ final as (
     from mart_crm_attribution_touchpoint
     left join
         linear_base
-        on
-        mart_crm_attribution_touchpoint.dim_crm_opportunity_id
+        on mart_crm_attribution_touchpoint.dim_crm_opportunity_id
         = linear_base.dim_crm_opportunity_id
     left join
         campaigns_per_opp
-        on
-        mart_crm_attribution_touchpoint.dim_crm_opportunity_id
+        on mart_crm_attribution_touchpoint.dim_crm_opportunity_id
         = campaigns_per_opp.dim_crm_opportunity_id
         {{ dbt_utils.group_by(n=52) }}
 

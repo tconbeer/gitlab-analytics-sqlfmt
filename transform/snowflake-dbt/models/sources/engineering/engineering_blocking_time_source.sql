@@ -26,7 +26,8 @@ with
             row_number() over (
                 partition by metric_name, aggregation_name, metric_reported_at
                 order by uploaded_at desc
-            ) = 1
+            )
+            = 1
 
     )
 

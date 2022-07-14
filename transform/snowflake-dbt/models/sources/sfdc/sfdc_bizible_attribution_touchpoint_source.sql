@@ -54,7 +54,8 @@ with
                 when
                     split_part(
                         split_part(bizible_form_url_raw, 'utm_content=', 2), '&', 1
-                    ) is null
+                    )
+                    is null
                 then
                     split_part(
                         split_part(bizible_landing_page_raw, 'utm_content=', 2), '&', 1

@@ -10,18 +10,14 @@
             ("email_classification", "driveload_email_domain_classification_source"),
         ]
     )
-}}
-
-,
+}},
 email_classification_dedup as (
 
     select *
     from email_classification
     qualify row_number() over (partition by domain order by domain desc) = 1
 
-)
-
-,
+),
 renamed as (
 
     select

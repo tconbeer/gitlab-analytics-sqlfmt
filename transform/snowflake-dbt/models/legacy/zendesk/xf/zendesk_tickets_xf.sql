@@ -84,10 +84,10 @@ select distinct
         false
     ) as was_support_sla_met,
     iff(
-        zendesk_users_submitter.role = 'end-user' or (
-            zendesk_users_submitter.role in (
-                'agent', 'admin'
-            ) and zendesk_ticket_audit_first_comment.is_first_comment_public = false
+        zendesk_users_submitter.role = 'end-user'
+        or (
+            zendesk_users_submitter.role in ('agent', 'admin')
+            and zendesk_ticket_audit_first_comment.is_first_comment_public = false
         ),
         true,
         false

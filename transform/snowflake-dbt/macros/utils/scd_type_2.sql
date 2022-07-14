@@ -23,9 +23,7 @@ max_by_primary_key as (
     from {{ source_cte }}
     group by 1
 
-)
-
-,
+),
 windowed as (
 
     select

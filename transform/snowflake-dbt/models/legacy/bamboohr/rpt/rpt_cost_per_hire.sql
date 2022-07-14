@@ -20,17 +20,15 @@ with
             ) as recruiting_department_minus_overlap,
             sum(
                 iff(
-                    lower(
-                        transaction_lines_memo
-                    ) = 'referral bonus' or account_number = 6075,
+                    lower(transaction_lines_memo) = 'referral bonus'
+                    or account_number = 6075,
                     actual_amount,
                     0
                 )
             ) as referral_fees,
             recruiting_department_minus_overlap
             + recruiting_fees
-            + referral_fees
-            as total_expenses
+            + referral_fees as total_expenses
         from {{ ref("netsuite_actuals_income_cogs_opex") }}
         group by 1
 
@@ -63,8 +61,7 @@ with
                 order by hire_month rows between 2 preceding and current row
             ) as rolling_3_month_hires,
             rolling_3_month_total_expenses
-            / rolling_3_month_hires
-            as rolling_3_month_cost_per_hire
+            / rolling_3_month_hires as rolling_3_month_cost_per_hire
         from hires
         inner join
             recruiting_expenses

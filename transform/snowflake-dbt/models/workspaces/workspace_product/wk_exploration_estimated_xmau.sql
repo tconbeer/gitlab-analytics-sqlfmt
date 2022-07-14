@@ -19,9 +19,7 @@
             ),
         ]
     )
-}}
-
-,
+}},
 cte_joined as (
 
     select
@@ -63,7 +61,8 @@ pct_of_instances as (
                 when distrib.months_since_release <= cte_joined.months_since_release
                 then total_counts
             end
-        ) / sum(total_counts) as pct_of_instances
+        )
+        / sum(total_counts) as pct_of_instances
     from cte_joined
     left join
         wk_usage_ping_monthly_events_distribution_by_version as distrib

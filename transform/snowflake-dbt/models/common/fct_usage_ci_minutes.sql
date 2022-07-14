@@ -10,9 +10,8 @@ with
             shared_runners_enabled
         from {{ ref("gitlab_dotcom_project_historical_monthly") }}
         where
-            snapshot_month >= '2020-07-01' and snapshot_month < date_trunc(
-                'month', current_date
-            )
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
         union all
 
@@ -37,9 +36,8 @@ with
             ultimate_parent_id
         from {{ ref("gitlab_dotcom_namespace_lineage_historical_monthly") }}
         where
-            snapshot_month >= '2020-07-01' and snapshot_month < date_trunc(
-                'month', current_date
-            )
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
         union all
 
@@ -67,9 +65,8 @@ with
             extra_shared_runners_minutes_limit
         from {{ ref("gitlab_dotcom_namespace_historical_monthly") }}
         where
-            snapshot_month >= '2020-07-01' and snapshot_month < date_trunc(
-                'month', current_date
-            )
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
         union all
 
@@ -96,9 +93,8 @@ with
             shared_runners_seconds_last_reset
         from {{ ref("gitlab_dotcom_namespace_statistics_historical_monthly") }}
         where
-            snapshot_month >= '2020-07-01' and snapshot_month < date_trunc(
-                'month', current_date
-            )
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
         union all
 

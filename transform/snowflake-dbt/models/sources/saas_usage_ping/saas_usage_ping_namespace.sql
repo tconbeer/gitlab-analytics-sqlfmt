@@ -24,7 +24,8 @@ with
             row_number() over (
                 partition by namespace_ultimate_parent_id, ping_name, ping_date
                 order by _uploaded_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     renamed as (

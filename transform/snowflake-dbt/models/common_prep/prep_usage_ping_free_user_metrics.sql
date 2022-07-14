@@ -10,9 +10,7 @@
             ("instance_types", "dim_host_instance_type"),
         ]
     )
-}}
-
-,
+}},
 core_usage_pings as (
 
     select
@@ -66,16 +64,14 @@ joined as (
 
     from core_usage_pings
     left join
-        instance_types on core_usage_pings.raw_usage_data_payload[
-            'uuid'
-        ]::varchar = instance_types.instance_uuid
-        and core_usage_pings.raw_usage_data_payload[
-            'hostname'
-        ]::varchar = instance_types.instance_hostname
+        instance_types
+        on core_usage_pings.raw_usage_data_payload['uuid']::varchar
+        = instance_types.instance_uuid
+        and core_usage_pings.raw_usage_data_payload['hostname']::varchar
+        = instance_types.instance_hostname
     qualify
-        row_number() over (
-            partition by dim_usage_ping_id order by ping_created_at desc
-        ) = 1
+        row_number() over (partition by dim_usage_ping_id order by ping_created_at desc)
+        = 1
 )
 
 {{

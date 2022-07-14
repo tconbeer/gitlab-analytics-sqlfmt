@@ -34,9 +34,10 @@ with
 
         from maxmind_countries_source
         left join
-            zuora_country_geographic_region on upper(
-                maxmind_countries_source.country_iso_code
-            ) = upper(zuora_country_geographic_region.iso_alpha_2_code)
+            zuora_country_geographic_region
+            on upper(maxmind_countries_source.country_iso_code) = upper(
+                zuora_country_geographic_region.iso_alpha_2_code
+            )
         where country_iso_code is not null
 
     ),

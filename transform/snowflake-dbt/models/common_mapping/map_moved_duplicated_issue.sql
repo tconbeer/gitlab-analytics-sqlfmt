@@ -29,9 +29,8 @@ with recursive
         select
             issue_id as issue_id,
             issue_lineage as issue_lineage,
-            issue_lineage[
-                array_size(issue_lineage) - 1
-            ]::number as last_moved_duplicated_issue_id,
+            issue_lineage[array_size(issue_lineage) - 1]::number
+            as last_moved_duplicated_issue_id,
             iff(
                 last_moved_duplicated_issue_id != issue_id, true, false
             ) as is_issue_moved_duplicated,

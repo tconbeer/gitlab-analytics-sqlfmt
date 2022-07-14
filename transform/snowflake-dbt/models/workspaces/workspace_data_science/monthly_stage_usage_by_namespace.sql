@@ -42,18 +42,16 @@ select
     count(
         distinct case
             when
-                usage_ping_metrics.product_stage in (
-                    'create', 'devops::create'
-                ) and usage_ping_metrics.time_frame = 'all'
+                usage_ping_metrics.product_stage in ('create', 'devops::create')
+                and usage_ping_metrics.time_frame = 'all'
             then flattened_metrics.metrics_path
         end
     ) as stage_create_alltime_features,
     count(
         distinct case
             when
-                usage_ping_metrics.product_stage in (
-                    'create', 'devops::create'
-                ) and usage_ping_metrics.time_frame = '28d'
+                usage_ping_metrics.product_stage in ('create', 'devops::create')
+                and usage_ping_metrics.time_frame = '28d'
             then flattened_metrics.metrics_path
         end
     ) as stage_create_28days_features,
@@ -95,18 +93,16 @@ select
     count(
         distinct case
             when
-                usage_ping_metrics.product_stage in (
-                    'release', 'releases'
-                ) and usage_ping_metrics.time_frame = 'all'
+                usage_ping_metrics.product_stage in ('release', 'releases')
+                and usage_ping_metrics.time_frame = 'all'
             then flattened_metrics.metrics_path
         end
     ) as stage_release_alltime_features,
     count(
         distinct case
             when
-                usage_ping_metrics.product_stage in (
-                    'release', 'releases'
-                ) and usage_ping_metrics.time_frame = '28d'
+                usage_ping_metrics.product_stage in ('release', 'releases')
+                and usage_ping_metrics.time_frame = '28d'
             then flattened_metrics.metrics_path
         end
     ) as stage_release_28days_features,
@@ -148,18 +144,16 @@ select
     count(
         distinct case
             when
-                usage_ping_metrics.product_stage in (
-                    'manage', 'managed'
-                ) and usage_ping_metrics.time_frame = 'all'
+                usage_ping_metrics.product_stage in ('manage', 'managed')
+                and usage_ping_metrics.time_frame = 'all'
             then flattened_metrics.metrics_path
         end
     ) as stage_manage_alltime_features,
     count(
         distinct case
             when
-                usage_ping_metrics.product_stage in (
-                    'manage', 'managed'
-                ) and usage_ping_metrics.time_frame = '28d'
+                usage_ping_metrics.product_stage in ('manage', 'managed')
+                and usage_ping_metrics.time_frame = '28d'
             then flattened_metrics.metrics_path
         end
     ) as stage_manage_28days_features,
@@ -167,18 +161,16 @@ select
     count(
         distinct case
             when
-                usage_ping_metrics.product_stage in (
-                    'secure', 'devops::secure'
-                ) and usage_ping_metrics.time_frame = 'all'
+                usage_ping_metrics.product_stage in ('secure', 'devops::secure')
+                and usage_ping_metrics.time_frame = 'all'
             then flattened_metrics.metrics_path
         end
     ) as stage_secure_alltime_features,
     count(
         distinct case
             when
-                usage_ping_metrics.product_stage in (
-                    'secure', 'devops::secure'
-                ) and usage_ping_metrics.time_frame = '28d'
+                usage_ping_metrics.product_stage in ('secure', 'devops::secure')
+                and usage_ping_metrics.time_frame = '28d'
             then flattened_metrics.metrics_path
         end
     ) as stage_secure_28days_features,
@@ -375,18 +367,16 @@ select
     count(
         distinct case
             when
-                contains(
-                    usage_ping_metrics.tier, 'free'
-                ) and usage_ping_metrics.time_frame = 'all'
+                contains(usage_ping_metrics.tier, 'free')
+                and usage_ping_metrics.time_frame = 'all'
             then flattened_metrics.metrics_path
         end
     ) as tier_free_alltime_features,
     count(
         distinct case
             when
-                contains(
-                    usage_ping_metrics.tier, 'free'
-                ) and usage_ping_metrics.time_frame = '28d'
+                contains(usage_ping_metrics.tier, 'free')
+                and usage_ping_metrics.time_frame = '28d'
             then flattened_metrics.metrics_path
         end
     ) as tier_free_28days_features,
@@ -394,18 +384,18 @@ select
     count(
         distinct case
             when
-                contains(usage_ping_metrics.tier, 'premium') and not contains(
-                    usage_ping_metrics.tier, 'free'
-                ) and usage_ping_metrics.time_frame = 'all'
+                contains(usage_ping_metrics.tier, 'premium')
+                and not contains(usage_ping_metrics.tier, 'free')
+                and usage_ping_metrics.time_frame = 'all'
             then flattened_metrics.metrics_path
         end
     ) as tier_premium_alltime_features,
     count(
         distinct case
             when
-                contains(usage_ping_metrics.tier, 'premium') and not contains(
-                    usage_ping_metrics.tier, 'free'
-                ) and usage_ping_metrics.time_frame = '28d'
+                contains(usage_ping_metrics.tier, 'premium')
+                and not contains(usage_ping_metrics.tier, 'free')
+                and usage_ping_metrics.time_frame = '28d'
             then flattened_metrics.metrics_path
         end
     ) as tier_premium_28days_features,
@@ -413,18 +403,18 @@ select
     count(
         distinct case
             when
-                contains(usage_ping_metrics.tier, 'ultimate') and not contains(
-                    usage_ping_metrics.tier, 'premium'
-                ) and usage_ping_metrics.time_frame = 'all'
+                contains(usage_ping_metrics.tier, 'ultimate')
+                and not contains(usage_ping_metrics.tier, 'premium')
+                and usage_ping_metrics.time_frame = 'all'
             then flattened_metrics.metrics_path
         end
     ) as tier_ultimate_alltime_features,
     count(
         distinct case
             when
-                contains(usage_ping_metrics.tier, 'ultimate') and not contains(
-                    usage_ping_metrics.tier, 'premium'
-                ) and usage_ping_metrics.time_frame = '28d'
+                contains(usage_ping_metrics.tier, 'ultimate')
+                and not contains(usage_ping_metrics.tier, 'premium')
+                and usage_ping_metrics.time_frame = '28d'
             then flattened_metrics.metrics_path
         end
     ) as tier_ultimate_28days_features,
@@ -445,9 +435,8 @@ select
         sum(
             case
                 when
-                    usage_ping_metrics.product_stage in (
-                        'create', 'devops::create'
-                    ) and usage_ping_metrics.time_frame = 'all'
+                    usage_ping_metrics.product_stage in ('create', 'devops::create')
+                    and usage_ping_metrics.time_frame = 'all'
                 then flattened_metrics.metrics_value
             end
         ),
@@ -479,9 +468,8 @@ select
         sum(
             case
                 when
-                    usage_ping_metrics.product_stage in (
-                        'release', 'releases'
-                    ) and usage_ping_metrics.time_frame = 'all'
+                    usage_ping_metrics.product_stage in ('release', 'releases')
+                    and usage_ping_metrics.time_frame = 'all'
                 then flattened_metrics.metrics_value
             end
         ),
@@ -513,9 +501,8 @@ select
         sum(
             case
                 when
-                    usage_ping_metrics.product_stage in (
-                        'manage', 'managed'
-                    ) and usage_ping_metrics.time_frame = 'all'
+                    usage_ping_metrics.product_stage in ('manage', 'managed')
+                    and usage_ping_metrics.time_frame = 'all'
                 then flattened_metrics.metrics_value
             end
         ),
@@ -525,9 +512,8 @@ select
         sum(
             case
                 when
-                    usage_ping_metrics.product_stage in (
-                        'secure', 'devops::secure'
-                    ) and usage_ping_metrics.time_frame = 'all'
+                    usage_ping_metrics.product_stage in ('secure', 'devops::secure')
+                    and usage_ping_metrics.time_frame = 'all'
                 then flattened_metrics.metrics_value
             end
         ),

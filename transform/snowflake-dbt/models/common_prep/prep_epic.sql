@@ -15,9 +15,7 @@
             ("gitlab_dotcom_award_emoji_source", "gitlab_dotcom_award_emoji_source"),
         ]
     )
-}}
-
-,
+}},
 gitlab_dotcom_epics_dedupe_source as (
 
     select *
@@ -52,8 +50,9 @@ agg_labels as (
 
     select
         prep_label_links.dim_epic_id as dim_epic_id,
-        array_agg(lower(prep_labels.label_title)) within group(
-            order by prep_labels.label_title asc
+        array_agg(
+            lower(prep_labels.label_title)
+        ) within group(order by prep_labels.label_title asc
         ) as labels
     from prep_label_links
     left join prep_labels on prep_label_links.dim_label_id = prep_labels.dim_label_id
@@ -100,9 +99,8 @@ joined as (
         gitlab_dotcom_epics_dedupe_source.confidential::boolean as is_confidential,
         {{ map_state_id("gitlab_dotcom_epics_dedupe_source.state_id") }} as state_name,
         length(gitlab_dotcom_epics_dedupe_source.title)::number as epic_title_length,
-        length(
-            gitlab_dotcom_epics_dedupe_source.description
-        )::number as epic_description_length,
+        length(gitlab_dotcom_epics_dedupe_source.description)::number
+        as epic_description_length,
         iff(
             dim_namespace.visibility_level = 'private',
             'private - masked',
@@ -133,9 +131,8 @@ joined as (
     left join
         prep_user on gitlab_dotcom_epics_dedupe_source.author_id = prep_user.dim_user_id
     left join
-        dim_date on to_date(
-            gitlab_dotcom_epics_dedupe_source.created_at
-        ) = dim_date.date_day
+        dim_date
+        on to_date(gitlab_dotcom_epics_dedupe_source.created_at) = dim_date.date_day
     left join
         gitlab_dotcom_routes_source
         on gitlab_dotcom_routes_source.source_id

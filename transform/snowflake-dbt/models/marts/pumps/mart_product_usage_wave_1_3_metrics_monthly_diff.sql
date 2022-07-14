@@ -10,18 +10,14 @@
             ("subscriptions", "dim_subscription_snapshot_bottom_up"),
         ]
     )
-}}
-
-,
+}},
 original_subscription_dates as (
 
     select distinct dim_subscription_id, subscription_start_date, subscription_end_date
     from subscriptions
     where subscription_version = 1
 
-)
-
-,
+),
 months as (select distinct first_day_of_month, days_in_month_count from dim_date),
 ping_ranges as (
 

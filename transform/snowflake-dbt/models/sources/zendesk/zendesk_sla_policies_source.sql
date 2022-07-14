@@ -12,9 +12,8 @@ with
             filter_any.value['field']::varchar as filter_any_field,
             filter_any.value['operator']::varchar as filter_any_operator,
             filter_any.value['value']::varchar as filter_any_value,
-            policy_metrics.value[
-                'business_hours'
-            ]::varchar as policy_metrics_business_hours,
+            policy_metrics.value['business_hours']::varchar
+            as policy_metrics_business_hours,
             policy_metrics.value['metric']::varchar as policy_metrics_metric,
             policy_metrics.value['priority']::varchar as policy_metrics_priority,
             policy_metrics.value['target']::varchar as policy_metrics_target

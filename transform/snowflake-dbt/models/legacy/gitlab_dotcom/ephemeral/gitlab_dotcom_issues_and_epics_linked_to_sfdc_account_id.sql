@@ -125,7 +125,8 @@ with
         from gitlab_issues_and_epics_zendesk_ticket_id_flattened
         inner join
             zendesk_tickets
-            on gitlab_issues_and_epics_zendesk_ticket_id_flattened.zendesk_ticket_id::number
+            on gitlab_issues_and_epics_zendesk_ticket_id_flattened.zendesk_ticket_id
+            ::number
             = zendesk_tickets.ticket_id
         inner join
             sfdc_accounts on zendesk_tickets.sfdc_account_id = sfdc_accounts.account_id

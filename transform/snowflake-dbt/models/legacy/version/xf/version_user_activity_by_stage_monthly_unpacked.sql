@@ -108,9 +108,7 @@ with
             unpacked_stage_json,
             lateral flatten(input => unpacked_stage_json.stage_activity_count_json) f
 
-    )
-
-    ,
+    ),
     final as (
 
         select *

@@ -12,9 +12,7 @@
             ("dim_service_ping_metric", "dim_service_ping_metric"),
         ]
     )
-}}
-
-,
+}},
 subscription_info as (
 
     select
@@ -86,8 +84,7 @@ joined_counts as (
         sub_combo.total_licensed_users as total_licensed_users,
         sub_combo.total_subscriptions_count as total_subscriptions_count,
         total_subscriptions_count
-        - reported_subscription_count
-        as no_reporting_subscription_count,
+        - reported_subscription_count as no_reporting_subscription_count,
         total_licensed_users - reported_seat_count as no_reporting_seat_count
     from count_tbl
     left join

@@ -1,8 +1,6 @@
 with
     source as (select * from {{ ref("employee_directory_intermediate") }}),
     intermediate as (
-
-
         select distinct
             cost_center, division, department, count(employee_id) as total_employees
         from source

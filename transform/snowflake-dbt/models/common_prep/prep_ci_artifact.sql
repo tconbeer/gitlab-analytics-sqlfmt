@@ -10,9 +10,7 @@
             ("dim_project", "dim_project"),
         ]
     )
-}}
-
-,
+}},
 ci_job_artifacts as (
 
     select *

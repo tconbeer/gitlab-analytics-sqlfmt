@@ -23,9 +23,9 @@ with
         select *
         from {{ ref("zuora_subscription_source") }}
         where
-            is_deleted = false and exclude_from_analysis in (
-                'False', ''
-            ) and subscription_status not in ('Draft')
+            is_deleted = false
+            and exclude_from_analysis in ('False', '')
+            and subscription_status not in ('Draft')
 
     ),
     active_zuora_subscription as (

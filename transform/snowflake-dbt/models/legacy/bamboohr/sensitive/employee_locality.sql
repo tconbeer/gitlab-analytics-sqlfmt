@@ -5,9 +5,7 @@
             ("locality", "dim_locality"),
         ]
     )
-}}
-
-,
+}},
 final as (
 
     select
@@ -18,13 +16,10 @@ final as (
         locality.location_factor
     from bamboohr_locality
     left join
-        locality on lower(bamboohr_locality.locality) = lower(
-            locality.locality
-        ) and date_trunc(
-            'day', bamboohr_locality.uploaded_at
-        ) >= locality.valid_from and date_trunc(
-            'day', bamboohr_locality.uploaded_at
-        ) < locality.valid_to
+        locality
+        on lower(bamboohr_locality.locality) = lower(locality.locality)
+        and date_trunc('day', bamboohr_locality.uploaded_at) >= locality.valid_from
+        and date_trunc('day', bamboohr_locality.uploaded_at) < locality.valid_to
     where
         bamboohr_locality.locality is not null
         -- 1st time we started capturing locality

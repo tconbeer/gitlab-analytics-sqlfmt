@@ -13,7 +13,8 @@ with
         where
             array_contains(
                 'business_technology'::variant, merge_request_department_list
-            ) or array_contains('procurement'::variant, merge_request_department_list)
+            )
+            or array_contains('procurement'::variant, merge_request_department_list)
 
     )
 

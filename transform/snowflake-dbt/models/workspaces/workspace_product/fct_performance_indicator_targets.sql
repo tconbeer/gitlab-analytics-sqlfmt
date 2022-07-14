@@ -65,9 +65,8 @@ final_targets as (
     from first_day_of_month
     inner join monthly_targets_with_intervals
     where
-        reporting_month > target_start_month and reporting_month <= coalesce(
-            target_end_month, current_date
-        )
+        reporting_month > target_start_month
+        and reporting_month <= coalesce(target_end_month, current_date)
 
 ),
 results as (select * from final_targets)

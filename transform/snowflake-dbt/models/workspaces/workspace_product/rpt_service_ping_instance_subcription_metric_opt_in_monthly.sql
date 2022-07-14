@@ -1,5 +1,8 @@
 {{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
+/*
+Determine latest version for each subscription to determine if the potential metric is valid for a given month
+*/
 {{
     simple_cte(
         [
@@ -11,12 +14,7 @@
             ),
         ]
     )
-}}
-
-/*
-Determine latest version for each subscription to determine if the potential metric is valid for a given month
-*/
-,
+}},
 subscriptions_w_versions as (
 
     select
@@ -39,7 +37,8 @@ subscriptions_w_versions as (
                 latest_active_subscription_id,
                 dim_service_ping_instance_id
             order by major_minor_version_id desc
-        ) = 1
+        )
+        = 1
 
 /*
 Grab just the metrics relevant to the subscription based upon version

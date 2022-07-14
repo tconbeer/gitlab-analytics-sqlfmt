@@ -93,9 +93,9 @@ with recursive
             case
                 when
                     (
-                        cro.level_4 is not null and cro.level_4 != '' and (
-                            cro.level_4 like 'ASM%' or cro.level_4 like 'Area Sales%'
-                        )
+                        cro.level_4 is not null
+                        and cro.level_4 != ''
+                        and (cro.level_4 like 'ASM%' or cro.level_4 like 'Area Sales%')
                     )
                 then cro.level_4
                 when (cro.level_3 is not null and cro.level_3 != '')

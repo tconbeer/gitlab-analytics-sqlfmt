@@ -59,10 +59,9 @@ with
             -- 2 quarters before start and full quarter, total rolling 9 months at end
             -- of quarter
             -- till end of quarter
-            snapshot_date <= dateadd(
-                month, 3, close_fiscal_quarter_date
+            snapshot_date <= dateadd(month, 3, close_fiscal_quarter_date)
             -- 2 quarters before start
-            ) and snapshot_date >= dateadd(month, -6, close_fiscal_quarter_date)
+            and snapshot_date >= dateadd(month, -6, close_fiscal_quarter_date)
         -- , 11,12, 13, 14, 15, 16,17,18,19,20,21,22
         group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 

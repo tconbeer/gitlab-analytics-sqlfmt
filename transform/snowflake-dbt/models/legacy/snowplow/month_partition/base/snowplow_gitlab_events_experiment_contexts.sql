@@ -14,15 +14,13 @@ with
         {%- endif %}
 
         where
-            app_id is not null and date_part(
-                month, try_to_timestamp(derived_tstamp)
-            ) = '{{ month_value }}' and date_part(
-                year, try_to_timestamp(derived_tstamp)
-            ) = '{{ year_value }}' and (
-                -- js frontend tracker
-                -- ruby backend tracker
-                (v_tracker like 'js%') or (v_tracker like 'rb%')
-            ) and try_to_timestamp(derived_tstamp) is not null
+            app_id is not null
+            and date_part(month, try_to_timestamp(derived_tstamp)) = '{{ month_value }}'
+            and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
+            -- js frontend tracker
+            -- ruby backend tracker
+            and ( (v_tracker like 'js%') or (v_tracker like 'rb%'))
+            and try_to_timestamp(derived_tstamp) is not null
 
     ),
 
@@ -54,9 +52,8 @@ with
             ) as experiment_migration_keys
         from events_with_context_flattened
         where
-            lower(
-                context_data_schema
-            ) like 'iglu:com.gitlab/gitlab_experiment/jsonschema/%'
+            lower(context_data_schema)
+            like 'iglu:com.gitlab/gitlab_experiment/jsonschema/%'
 
     )
 

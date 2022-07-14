@@ -12,8 +12,8 @@ case
     -- plans is seats
     when
         not (
-            {{ original_unit_of_measure }} = array_construct('Seats') and
-            {{ new_unit_of_measure }} = array_construct('Seats')
+            {{ original_unit_of_measure }} = array_construct('Seats')
+            and {{ new_unit_of_measure }} = array_construct('Seats')
         )
     then null
     else

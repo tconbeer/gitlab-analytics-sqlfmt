@@ -4,9 +4,7 @@ with
     date_details as (select * from {{ ref("wk_sales_date_details") }}),
     report_pipeline_movement_quarter as (
 
-        select * from {{ ref("wk_sales_report_pipeline_movement_quarter") }}
-
-    ),
+        select * from {{ ref("wk_sales_report_pipeline_movement_quarter") }}),
     sfdc_opportunity_snapshot_history_xf as (
 
         select *

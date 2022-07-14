@@ -24,7 +24,9 @@ select
 
 from usage_data, lateral flatten(input => usage_data.stats_used, recursive => true) f
 where
-    is_object(f.value) = false and stats_used is not null and full_ping_name in (
+    is_object(f.value) = false
+    and stats_used is not null
+    and full_ping_name in (
         select full_ping_name from {{ ref("version_usage_stats_list") }}
     )
     {% if is_incremental() %}

@@ -22,9 +22,7 @@
             ("map_saas_event_to_smau", "map_saas_event_to_smau"),
         ]
     )
-}}
-
-,
+}},
 smau as (
 
     select
@@ -61,9 +59,8 @@ smau_joined as (
         smau.*,
         usage_ping_delivery_type as delivery,
         'SMAU' as xmau_level,
-        product_tier not in (
-            'Core', 'CE'
-        ) and usage_ping_delivery_type = 'Self-Managed' as is_paid,
+        product_tier not in ('Core', 'CE')
+        and usage_ping_delivery_type = 'Self-Managed' as is_paid,
         coalesce(
             estimated_value.pct_subscriptions_with_counters, 1
         ) as pct_subscriptions_with_counters
@@ -142,9 +139,8 @@ umau_joined as (
         umau.*,
         usage_ping_delivery_type as delivery,
         'UMAU' as xmau_level,
-        product_tier not in (
-            'Core', 'CE'
-        ) and usage_ping_delivery_type = 'Self-Managed' as is_paid,
+        product_tier not in ('Core', 'CE')
+        and usage_ping_delivery_type = 'Self-Managed' as is_paid,
         coalesce(
             estimated_value.pct_subscriptions_with_counters, 1
         ) as pct_subscriptions_with_counters
@@ -184,10 +180,10 @@ instance_gmau as (
         (
             -- if a specific paid_gmau metric has beeen creeated we don't need to
             -- exclude SaaS
-            (is_paid_gmau = true and usage_ping_delivery_type = 'Self-Managed') or (
-                is_paid_gmau = true and is_gmau = false
-            )
-        ) and product_tier <> 'Core'
+            (is_paid_gmau = true and usage_ping_delivery_type = 'Self-Managed')
+            or (is_paid_gmau = true and is_gmau = false)
+        )
+        and product_tier <> 'Core'
 
         {{ dbt_utils.group_by(n=14) }}
 
@@ -220,9 +216,8 @@ gmau_joined as (
         gmau.*,
         usage_ping_delivery_type as delivery,
         'GMAU' as xmau_level,
-        product_tier not in (
-            'Core', 'CE'
-        ) and usage_ping_delivery_type = 'Self-Managed' as is_paid,
+        product_tier not in ('Core', 'CE')
+        and usage_ping_delivery_type = 'Self-Managed' as is_paid,
         coalesce(
             max(estimated_value.pct_subscriptions_with_counters), 1
         ) as pct_subscriptions_with_counters
@@ -296,9 +291,8 @@ estimated_monthly_metric_value_sum as (
         iff(delivery = 'SaaS', delivery, edition) as edition,
         'version' as data_source,
         sum(monthly_metric_value_sum) as recorded_monthly_metric_value_sum,
-        sum(monthly_metric_value_sum) / max(
-            pct_subscriptions_with_counters
-        ) as estimated_monthly_metric_value_sum
+        sum(monthly_metric_value_sum)
+        / max(pct_subscriptions_with_counters) as estimated_monthly_metric_value_sum
     from xmau {{ dbt_utils.group_by(n=10) }}
 
 ),

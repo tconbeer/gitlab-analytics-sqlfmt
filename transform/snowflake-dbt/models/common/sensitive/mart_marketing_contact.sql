@@ -1,3 +1,4 @@
+-- ------------------------ Start of PQL logic: --------------------------
 {{
     simple_cte(
         [
@@ -20,10 +21,7 @@
             ("project", "prep_project"),
         ]
     )
-}}
-
--- ------------------------ Start of PQL logic: --------------------------
-,
+}},
 namespaces as (
 
     select
@@ -40,9 +38,9 @@ namespaces as (
         gitlab_dotcom_users_source
         on gitlab_dotcom_users_source.user_id = dim_namespace.creator_id
     where
-        dim_namespace.namespace_is_internal = false and lower(
-            gitlab_dotcom_users_source.state
-        ) = 'active' and lower(dim_namespace.namespace_type) = 'group'
+        dim_namespace.namespace_is_internal = false
+        and lower(gitlab_dotcom_users_source.state) = 'active'
+        and lower(dim_namespace.namespace_type) = 'group'
         and dim_namespace.ultimate_parent_namespace_id = dim_namespace.dim_namespace_id
         and date(dim_namespace.created_at) >= '2021-01-27'::date
 
@@ -64,9 +62,8 @@ flattened_members as (
         and members.invite_created_at >= namespaces.namespace_created_at
         -- invite accepted after invite created (removes weird edge cases with
         -- imported projects, etc)
-        and ifnull(
-            members.invite_accepted_at, current_timestamp
-        ) >= members.invite_created_at
+        and ifnull(members.invite_accepted_at, current_timestamp)
+        >= members.invite_created_at
         {{ dbt_utils.group_by(3) }}
 
 ),
@@ -79,16 +76,20 @@ invite_status as (
         iff(memberships.user_id is not null, true, false) as invite_was_successful
     from flattened_members members
     join
+        namespaces
         -- same as namespace_id for group namespaces
+        on members.source_id = namespaces.dim_namespace_id
         -- this blocks namespaces created within two minutes of the namespace creator
         -- accepting their invite
-        namespaces on members.source_id = namespaces.dim_namespace_id and (
-            invite_accepted_at is null or (
+        and (
+            invite_accepted_at is null
+            or (
                 timestampdiff(minute, invite_accepted_at, namespace_created_at) not in (
                     0, 1, 2
                 )
             )
-        ) = true
+        )
+        = true
     left join  -- record added once invite is accepted/user has access
         gitlab_dotcom_memberships memberships
         on members.user_id = memberships.user_id
@@ -126,9 +127,8 @@ latest_trial_by_user as (
     select *
     from customers_db_trials
     qualify
-        row_number() over (
-            partition by gitlab_user_id order by trial_start_date desc
-        ) = 1
+        row_number() over (partition by gitlab_user_id order by trial_start_date desc)
+        = 1
 
 ),
 pqls as (
@@ -162,9 +162,8 @@ pqls as (
         latest_trial_by_user on latest_trial_by_user.gitlab_user_id = leads.user_id
     left join dim_namespace on dim_namespace.dim_namespace_id = leads.namespace_id
     where
-        lower(
-            leads.product_interaction
-        ) = 'saas trial' and leads.is_for_business_use = 'True'
+        lower(leads.product_interaction) = 'saas trial'
+        and leads.is_for_business_use = 'True'
 
 ),
 stages_adopted as (
@@ -201,9 +200,8 @@ pqls_with_product_information as (
     select
         pqls.email,
         pqls.product_interaction as pql_product_interaction,
-        coalesce(
-            pqls.dim_namespace_id, stages_adopted.dim_namespace_id
-        )::int as pql_namespace_id,
+        coalesce(pqls.dim_namespace_id, stages_adopted.dim_namespace_id)::int
+        as pql_namespace_id,
         coalesce(
             pqls.namespace_name, stages_adopted.namespace_name
         ) as pql_namespace_name_masked,
@@ -212,9 +210,8 @@ pqls_with_product_information as (
         stages_adopted.min_subscription_start_date as pql_min_subscription_start_date,
         stages_adopted.list_of_stages as pql_list_stages,
         stages_adopted.active_stage_count as pql_nbr_stages,
-        ifnull(
-            namespaces_with_user_count.current_member_count, 0
-        ) + 1 as pql_nbr_namespace_users,
+        ifnull(namespaces_with_user_count.current_member_count, 0)
+        + 1 as pql_nbr_namespace_users,
         pqls.pql_event_created_at
     from pqls
     left join stages_adopted on pqls.dim_namespace_id = stages_adopted.dim_namespace_id
@@ -222,18 +219,17 @@ pqls_with_product_information as (
         namespaces_with_user_count
         on namespaces_with_user_count.dim_namespace_id = pqls.dim_namespace_id
     where
-        lower(pqls.product_interaction) = 'saas trial' and ifnull(
-            stages_adopted.min_subscription_start_date, current_date
-        ) >= pqls.trial_start_date
+        lower(pqls.product_interaction) = 'saas trial'
+        and ifnull(stages_adopted.min_subscription_start_date, current_date)
+        >= pqls.trial_start_date
 
     union all
 
     select
         pqls.email,
         pqls.product_interaction as pql_product_interaction,
-        coalesce(
-            pqls.dim_namespace_id, stages_adopted.dim_namespace_id
-        )::int as pql_namespace_id,
+        coalesce(pqls.dim_namespace_id, stages_adopted.dim_namespace_id)::int
+        as pql_namespace_id,
         coalesce(
             pqls.namespace_name, stages_adopted.namespace_name
         ) as pql_namespace_name_masked,
@@ -242,9 +238,8 @@ pqls_with_product_information as (
         stages_adopted.min_subscription_start_date as pql_min_subscription_start_date,
         stages_adopted.list_of_stages as pql_list_stages,
         stages_adopted.active_stage_count as pql_nbr_stages,
-        ifnull(
-            namespaces_with_user_count.current_member_count, 0
-        ) + 1 as pql_nbr_namespace_users,
+        ifnull(namespaces_with_user_count.current_member_count, 0)
+        + 1 as pql_nbr_namespace_users,
         pqls.pql_event_created_at
     from pqls
     left join stages_adopted on pqls.dim_namespace_id = stages_adopted.dim_namespace_id
@@ -274,8 +269,8 @@ services_by_marketing_contact_id as (
     select
         marketing_contact_order.dim_marketing_contact_id as dim_marketing_contact_id,
         count(*) as pql_nbr_integrations_installed,
-        array_agg(distinct services.service_type) within group(
-            order by services.service_type
+        array_agg(
+            distinct services.service_type) within group(order by services.service_type
         ) as pql_integrations_installed
     from services
     left join project on services.project_id = project.dim_project_id
@@ -289,8 +284,9 @@ users_role_by_marketing_contact_id as (
 
     select
         marketing_contact_order.dim_marketing_contact_id,
-        array_agg(distinct marketing_contact.job_title) within group(
-            order by marketing_contact.job_title
+        array_agg(
+            distinct marketing_contact.job_title
+        ) within group(order by marketing_contact.job_title
         ) as pql_namespace_creator_job_description
     from marketing_contact_order
     inner join
@@ -320,7 +316,8 @@ paid_subscription_aggregate as (
         count(distinct dim_subscription_id) as nbr_of_paid_subscriptions
     from marketing_contact_order
     where
-        dim_subscription_id is not null and (
+        dim_subscription_id is not null
+        and (
             is_saas_bronze_tier
             or is_saas_premium_tier
             or is_saas_ultimate_tier
@@ -388,20 +385,23 @@ usage_metrics as (
         ) as smau_manage_analytics_total_unique_counts_monthly,
         sum(
             smau_plan_redis_hll_counters_issues_edit_issues_edit_total_unique_counts_monthly
-        ) as smau_plan_redis_hll_counters_issues_edit_issues_edit_total_unique_counts_monthly,
+        )
+        as smau_plan_redis_hll_counters_issues_edit_issues_edit_total_unique_counts_monthly,
         sum(smau_create_repo_writes) as smau_create_repo_writes,
         sum(
             smau_verify_ci_pipelines_users_28_days
         ) as smau_verify_ci_pipelines_users_28_days,
         sum(
             smau_package_redis_hll_counters_user_packages_user_packages_total_unique_counts_monthly
-        ) as smau_package_redis_hll_counters_user_packages_user_packages_total_unique_counts_monthly,
+        )
+        as smau_package_redis_hll_counters_user_packages_user_packages_total_unique_counts_monthly,
         sum(
             smau_release_release_creation_users_28_days
         ) as smau_release_release_creation_users_28_days,
         sum(
             smau_configure_redis_hll_counters_terraform_p_terraform_state_api_unique_users_monthly
-        ) as smau_configure_redis_hll_counters_terraform_p_terraform_state_api_unique_users_monthly,
+        )
+        as smau_configure_redis_hll_counters_terraform_p_terraform_state_api_unique_users_monthly,
         sum(
             smau_monitor_incident_management_activer_user_28_days
         ) as smau_monitor_incident_management_activer_user_28_days,
@@ -488,7 +488,8 @@ prep as (
                         then 1
                         else 0
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as is_group_namespace_owner,
@@ -502,7 +503,8 @@ prep as (
                         then 1
                         else 0
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as is_group_namespace_member,
@@ -516,7 +518,8 @@ prep as (
                         then 1
                         else 0
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as is_individual_namespace_owner,
@@ -530,7 +533,8 @@ prep as (
                         then 1
                         else 0
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as is_customer_db_owner,
@@ -544,7 +548,8 @@ prep as (
                         then 1
                         else 0
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as is_zuora_billing_contact,
@@ -568,7 +573,8 @@ prep as (
                         then marketing_contact_order.is_saas_trial
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as individual_namespace_is_saas_trial,
@@ -580,7 +586,8 @@ prep as (
                         then marketing_contact_order.is_saas_free_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as individual_namespace_is_saas_free_tier,
@@ -592,7 +599,8 @@ prep as (
                         then marketing_contact_order.is_saas_bronze_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as individual_namespace_is_saas_bronze_tier,
@@ -604,7 +612,8 @@ prep as (
                         then marketing_contact_order.is_saas_premium_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as individual_namespace_is_saas_premium_tier,
@@ -616,7 +625,8 @@ prep as (
                         then marketing_contact_order.is_saas_ultimate_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as individual_namespace_is_saas_ultimate_tier,
@@ -631,7 +641,8 @@ prep as (
                         then marketing_contact_order.is_saas_trial
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_member_of_saas_trial,
@@ -646,7 +657,8 @@ prep as (
                         then marketing_contact_order.is_saas_free_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_member_of_saas_free_tier,
@@ -661,7 +673,8 @@ prep as (
                         then marketing_contact_order.is_saas_bronze_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_member_of_saas_bronze_tier,
@@ -676,7 +689,8 @@ prep as (
                         then marketing_contact_order.is_saas_premium_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_member_of_saas_premium_tier,
@@ -691,7 +705,8 @@ prep as (
                         then marketing_contact_order.is_saas_ultimate_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_member_of_saas_ultimate_tier,
@@ -707,7 +722,8 @@ prep as (
                         then marketing_contact_order.is_saas_trial
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_owner_of_saas_trial,
@@ -723,7 +739,8 @@ prep as (
                         then marketing_contact_order.is_saas_free_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_owner_of_saas_free_tier,
@@ -739,7 +756,8 @@ prep as (
                         then marketing_contact_order.is_saas_bronze_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_owner_of_saas_bronze_tier,
@@ -755,7 +773,8 @@ prep as (
                         then marketing_contact_order.is_saas_premium_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_owner_of_saas_premium_tier,
@@ -771,7 +790,8 @@ prep as (
                         then marketing_contact_order.is_saas_ultimate_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as group_owner_of_saas_ultimate_tier,
@@ -787,7 +807,8 @@ prep as (
                         then marketing_contact_order.is_saas_trial
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as responsible_for_group_saas_trial,
@@ -803,7 +824,8 @@ prep as (
                         then marketing_contact_order.is_saas_free_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as responsible_for_group_saas_free_tier,
@@ -819,7 +841,8 @@ prep as (
                         then marketing_contact_order.is_saas_bronze_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as responsible_for_group_saas_bronze_tier,
@@ -835,7 +858,8 @@ prep as (
                         then marketing_contact_order.is_saas_premium_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as responsible_for_group_saas_premium_tier,
@@ -851,7 +875,8 @@ prep as (
                         then marketing_contact_order.is_saas_ultimate_tier
                         else null
                     end
-                ) >= 1
+                )
+                >= 1
             then true
             else false
         end as responsible_for_group_saas_ultimate_tier,
@@ -882,34 +907,41 @@ prep as (
         end as has_namespace_with_public_project,
         case
             when
-                max(
-                    marketing_contact_order.does_free_namespace_have_public_project
-                ) = true
+                max(marketing_contact_order.does_free_namespace_have_public_project)
+                = true
             then true
             else false
         end as has_free_namespace_with_public_project,
         array_agg(
             distinct ifnull(
-                marketing_contact_order.marketing_contact_role || ': ' || ifnull(
-                    marketing_contact_order.saas_product_tier, ''
-                ) || ifnull(marketing_contact_order.self_managed_product_tier, ''),
+                marketing_contact_order.marketing_contact_role
+                || ': ' ||
+                ifnull(marketing_contact_order.saas_product_tier, ''
+                ) || ifnull(
+                    marketing_contact_order.self_managed_product_tier, ''
+                ),
                 'No Role'
             )
         ) as role_tier_text,
         array_agg(
             distinct ifnull(
-                marketing_contact_order.marketing_contact_role || ': ' || ifnull(
+                marketing_contact_order.marketing_contact_role
+                || ': ' ||
+                ifnull(
                     marketing_contact_order.namespace_path,
                     case
                         when
                             marketing_contact_order.self_managed_product_tier
-                            is
-                            not null
+                            is not null
                         then 'Self-Managed'
                         else ''
                     end
-                ) || ' | ' || ifnull(marketing_contact_order.saas_product_tier, '') ||
-                ifnull(marketing_contact_order.self_managed_product_tier, ''),
+                )
+                || ' | ' ||
+                ifnull(marketing_contact_order.saas_product_tier, ''
+                ) ||
+                ifnull(marketing_contact_order.self_managed_product_tier, ''
+                ),
                 'No Namespace'
             )
         ) as role_tier_namespace_text
@@ -988,7 +1020,9 @@ joined as (
                     prep.responsible_for_group_saas_free_tier
                     or prep.individual_namespace_is_saas_free_tier
                     or prep.group_owner_of_saas_free_tier
-                ) and not (
+                )
+                and
+                not (
                     prep.responsible_for_group_saas_ultimate_tier
                     or prep.responsible_for_group_saas_premium_tier
                     or prep.responsible_for_group_saas_bronze_tier

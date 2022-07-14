@@ -84,11 +84,11 @@ with
             base.arr_month,
             base.parent_crm_account_name,
             base.dim_parent_crm_account_id,
-            array_agg(distinct product_category) within group(
-                order by product_category asc
+            array_agg(
+                distinct product_category) within group(order by product_category asc
             ) as product_category,
-            array_agg(distinct delivery) within group(
-                order by delivery asc
+            array_agg(
+                distinct delivery) within group(order by delivery asc
             ) as delivery,
             max(product_ranking) as product_ranking,
             sum(zeroifnull(quantity)) as quantity,

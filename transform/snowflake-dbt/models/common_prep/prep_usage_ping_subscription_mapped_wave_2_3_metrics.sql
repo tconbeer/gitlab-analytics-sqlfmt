@@ -2,9 +2,7 @@
 
 {{ config({"materialized": "incremental", "unique_key": "dim_usage_ping_id"}) }}
 
-{{ simple_cte([("instance_types", "dim_host_instance_type")]) }}
-
-,
+{{ simple_cte([("instance_types", "dim_host_instance_type")]) }},
 prep_usage_ping as (
 
     select *
@@ -34,16 +32,14 @@ final as (
 
     from prep_usage_ping
     left join
-        instance_types on prep_usage_ping.raw_usage_data_payload[
-            'uuid'
-        ]::varchar = instance_types.instance_uuid
-        and prep_usage_ping.raw_usage_data_payload[
-            'hostname'
-        ]::varchar = instance_types.instance_hostname
+        instance_types
+        on prep_usage_ping.raw_usage_data_payload['uuid']::varchar
+        = instance_types.instance_uuid
+        and prep_usage_ping.raw_usage_data_payload['hostname']::varchar
+        = instance_types.instance_hostname
     qualify
-        row_number() over (
-            partition by dim_usage_ping_id order by ping_created_at desc
-        ) = 1
+        row_number() over (partition by dim_usage_ping_id order by ping_created_at desc)
+        = 1
 )
 
 {{

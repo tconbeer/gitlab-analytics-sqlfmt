@@ -37,9 +37,8 @@ with
             }} as run_unique_key
         from flattened
         left join
-            lateral flatten(
-                input => data_by_row['timing']::array, outer => true
-            ) timing on ifnull(timing.value['name'], 'compile') = 'compile'
+            lateral flatten(input => data_by_row['timing']::array, outer => true) timing
+            on ifnull(timing.value['name'], 'compile') = 'compile'
         where dbt_version is not null
 
     ),
@@ -69,9 +68,8 @@ with
             }} as run_unique_key
         from flattened
         left join
-            lateral flatten(
-                input => data_by_row['timing']::array, outer => true
-            ) timing on ifnull(timing.value['name'], 'compile') = 'compile'
+            lateral flatten(input => data_by_row['timing']::array, outer => true) timing
+            on ifnull(timing.value['name'], 'compile') = 'compile'
         where dbt_version is null
     )
 

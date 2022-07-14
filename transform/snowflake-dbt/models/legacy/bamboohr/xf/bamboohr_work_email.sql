@@ -10,7 +10,8 @@ with
             row_number() over (
                 partition by employee_id, date_trunc(day, uploaded_at)
                 order by uploaded_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     intermediate as (
@@ -18,8 +19,7 @@ with
         select
             bamboohr_directory.*,
             last_value(date_trunc(day, bamboohr_directory.uploaded_at)) over
-            (
-                partition by bamboohr_directory.employee_id order by uploaded_at
+            (partition by bamboohr_directory.employee_id order by uploaded_at
             ) as max_uploaded_date,
             dense_rank() over (
                 partition by bamboohr_directory.employee_id order by uploaded_at desc
@@ -31,7 +31,8 @@ with
             row_number() over (
                 partition by bamboohr_directory.employee_id, work_email
                 order by uploaded_at
-            ) = 1
+            )
+            = 1
 
     ),
     final as (

@@ -8,9 +8,7 @@
             ("sfdc_opportunity_source", "sfdc_opportunity_source"),
         ]
     )
-}}
-
-,
+}},
 sheetload_sales_funnel_targets_matrix_source as (
 
     select
@@ -72,7 +70,8 @@ base_scd_spined as (
             row_number() over (
                 partition by user_area, user_segment_geo_region_area, fiscal_year
                 order by date_actual desc
-            ) = 1,
+            )
+            = 1,
             1,
             0
         ) as is_last_user_hierarchy_in_fiscal_year,
@@ -80,7 +79,8 @@ base_scd_spined as (
             row_number() over (
                 partition by user_area, fiscal_year
                 order by valid_to desc, snapshot_date desc
-            ) = 1,
+            )
+            = 1,
             1,
             0
         ) as is_last_user_area_in_fiscal_year
@@ -132,11 +132,11 @@ user_hierarchy_sheetload as (
         on sheetload_sales_funnel_targets_matrix_source.month
         = fiscal_months.fiscal_month_name_fy
     left join
-        final_scd on lower(
+        final_scd
+        on lower(
             sheetload_sales_funnel_targets_matrix_source.user_segment_geo_region_area
-        ) = lower(
-            final_scd.user_segment_geo_region_area
-        ) and fiscal_months.fiscal_year = final_scd.fiscal_year
+        ) = lower(final_scd.user_segment_geo_region_area)
+        and fiscal_months.fiscal_year = final_scd.fiscal_year
     where
         sheetload_sales_funnel_targets_matrix_source.user_area != 'N/A'
         and sheetload_sales_funnel_targets_matrix_source.user_segment is not null
@@ -166,11 +166,11 @@ user_hierarchy_stamped_opportunity as (
     from sfdc_opportunity_source
     inner join dim_date on sfdc_opportunity_source.close_date = dim_date.date_actual
     left join
-        final_scd on lower(
-            sfdc_opportunity_source.user_segment_geo_region_area_stamped
-        ) = lower(
+        final_scd
+        on lower(sfdc_opportunity_source.user_segment_geo_region_area_stamped) = lower(
             final_scd.user_segment_geo_region_area
-        ) and dim_date.fiscal_year = final_scd.fiscal_year
+        )
+        and dim_date.fiscal_year = final_scd.fiscal_year
 
 ),
 unioned as (
@@ -221,17 +221,17 @@ unioned as (
         ) as is_last_user_area_in_fiscal_year
     from final_scd
     full outer join
-        user_hierarchy_stamped_opportunity on lower(
+        user_hierarchy_stamped_opportunity
+        on lower(
             user_hierarchy_stamped_opportunity.user_segment_geo_region_area
-        ) = lower(
-            final_scd.user_segment_geo_region_area
-        ) and user_hierarchy_stamped_opportunity.fiscal_year = final_scd.fiscal_year
+        ) = lower(final_scd.user_segment_geo_region_area)
+        and user_hierarchy_stamped_opportunity.fiscal_year = final_scd.fiscal_year
     full outer join
-        user_hierarchy_sheetload on lower(
-            user_hierarchy_sheetload.user_segment_geo_region_area
-        ) = lower(
+        user_hierarchy_sheetload
+        on lower(user_hierarchy_sheetload.user_segment_geo_region_area) = lower(
             final_scd.user_segment_geo_region_area
-        ) and user_hierarchy_sheetload.fiscal_year = final_scd.fiscal_year
+        )
+        and user_hierarchy_sheetload.fiscal_year = final_scd.fiscal_year
 
 ),
 final as (

@@ -9,8 +9,6 @@ with
 
     ),
     sfdc_opportunity_snapshot_history_xf as (
-
-
         select *
         from {{ ref("wk_sales_sfdc_opportunity_snapshot_history_xf") }}
         where is_edu_oss = 0 and is_deleted = 0
@@ -172,9 +170,8 @@ with
                         = today.current_fiscal_quarter_name
                         and oppty.is_eligible_created_pipeline_flag = 1
                         and (
-                            oppty.is_won = 1 or (
-                                oppty.is_lost = 1 and oppty.is_renewal = 1
-                            )
+                            oppty.is_won = 1
+                            or (oppty.is_lost = 1 and oppty.is_renewal = 1)
                         )
                     then oppty.net_arr
                     else 0

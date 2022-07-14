@@ -16,6 +16,5 @@ from zuora_base_mrr
 where
     subscription_status = 'Active'
     and exclude_from_renewal_report != 'Yes'
-    and date_trunc('year', effective_end_date)::date >= date_trunc(
-        'year', current_date
-    )::date
+    and date_trunc('year', effective_end_date)::date
+    >= date_trunc('year', current_date)::date

@@ -21,10 +21,9 @@ with
         select distinct last_day_of_month
         from {{ ref("dim_date") }}
         where  -- last day we captured before transitioning to new report
-            (
-                -- started capturing again from new report
-                last_day_of_month < '2020-05-20' or last_day_of_month >= '2020-10-31'
-            ) and last_day_of_month <= current_date()
+            -- started capturing again from new report
+            (last_day_of_month < '2020-05-20' or last_day_of_month >= '2020-10-31')
+            and last_day_of_month <= current_date()
 
     ),
     joined as (
@@ -54,9 +53,8 @@ with
             on employee_directory_intermediate.employee_number
             = comp_band.employee_number
             and valid_from <= date_actual
-            and coalesce(
-                valid_to::date, {{ max_date_in_bamboo_analyses() }}
-            ) > date_actual
+            and coalesce(valid_to::date, {{ max_date_in_bamboo_analyses() }})
+            > date_actual
 
     ),
     department_aggregated as (

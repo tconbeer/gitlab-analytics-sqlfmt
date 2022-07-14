@@ -8,9 +8,8 @@
 {% for db in production_databases %}
 {%- if target.name in production_targets -%}
 
-create or replace function "{{ db | trim }}".{{ target.schema }}.id15to18(
-    "input_id" string
-)
+create
+or replace function "{{ db | trim }}".{{ target.schema }}.id15to18("input_id" string)
 
 {%- else -%}
 

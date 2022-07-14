@@ -121,7 +121,8 @@ with
             budget.excess_from_previous_quarter,
             coalesce(
                 promotions_aggregated_fy.total_spend, promotions_aggregated.total_spend
-            ) - budget.annual_comp_review as total_spend
+            )
+            - budget.annual_comp_review as total_spend
         from budget
         left join
             promotions_aggregated

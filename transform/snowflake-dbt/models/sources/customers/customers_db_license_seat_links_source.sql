@@ -22,7 +22,8 @@ with
         qualify
             row_number() over (
                 partition by zuora_subscription_id, report_date order by updated_at desc
-            ) = 1
+            )
+            = 1
 
     )
 

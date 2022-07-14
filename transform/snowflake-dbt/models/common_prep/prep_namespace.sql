@@ -20,9 +20,7 @@
             ("users", "prep_user"),
         ]
     )
-}}
-
-,
+}},
 members as (
 
     select source_id, count(distinct member_id) as member_count
@@ -60,7 +58,8 @@ namespace_lineage as (
             row_number() over (
                 partition by namespace_lineage_historical.namespace_id
                 order by namespace_lineage_historical.snapshot_day desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_current,
@@ -80,7 +79,8 @@ namespace_lineage as (
                 namespace_lineage_historical.parent_id,
                 namespace_lineage_historical.ultimate_parent_id
             order by namespace_lineage_historical.snapshot_day desc
-        ) = 1
+        )
+        = 1
 
 ),
 namespaces as (
@@ -206,7 +206,8 @@ joined as (
                 namespaces.parent_id,
                 namespace_lineage.ultimate_parent_id
             order by namespaces.namespace_updated_at desc
-        ) = 1
+        )
+        = 1
 
 )
 

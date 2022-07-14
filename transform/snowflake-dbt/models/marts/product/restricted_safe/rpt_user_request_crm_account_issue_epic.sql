@@ -77,9 +77,8 @@ with
             sum(link_growth_score) as account_growth_score,
             sum(link_combined_score) as account_combined_score,
             sum(link_priority_score) as account_priority_score,
-            account_priority_score / nullifzero(
-                issue_epic_weight
-            ) as account_weighted_priority_score,
+            account_priority_score
+            / nullifzero(issue_epic_weight) as account_weighted_priority_score,
             iff(
                 account_weighted_priority_score is null,
                 '[Effort is Empty, Input Effort Here](' || issue_epic_url || ')',

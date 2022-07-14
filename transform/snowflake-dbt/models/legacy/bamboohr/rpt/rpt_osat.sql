@@ -38,11 +38,9 @@ with
         select
             *,
             sum_of_rolling_3_month_score
-            / rolling_3_month_respondents
-            as rolling_3_month_osat,
+            / rolling_3_month_respondents as rolling_3_month_osat,
             sum_of_rolling_3_month_buddy_score
-            / rolling_3_month_buddy_respondents
-            as rolling_3_month_buddy_score
+            / rolling_3_month_buddy_respondents as rolling_3_month_buddy_score
         from rolling_3_month
 
     )

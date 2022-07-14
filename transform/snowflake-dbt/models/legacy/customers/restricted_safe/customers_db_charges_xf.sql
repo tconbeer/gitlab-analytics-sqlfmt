@@ -1,8 +1,5 @@
 with
-    zuora_base_mrr as (select * from {{ ref("zuora_base_mrr") }})
-
-
-    ,
+    zuora_base_mrr as (select * from {{ ref("zuora_base_mrr") }}),
     unioned_charges as (
 
         {{
@@ -12,11 +9,7 @@ with
                     ref("customers_db_orders_with_incomplete_charges"),
                 ],
             )
-        }}
-
-    )
-
-    ,
+        }}),
     joined_with_base_mrr as (
 
         select

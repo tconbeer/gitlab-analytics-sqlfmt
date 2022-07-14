@@ -3,7 +3,8 @@ with
     account as (select * from {{ ref("zuora_account") }}),
     rate_plan as (select * from {{ ref("zuora_rate_plan") }}),
     rate_plan_charge as (select * from {{ ref("zuora_rate_plan_charge") }}),
-    arr as (
+    arr as
+    (
         select
             subscription.subscription_id,
             sum(rate_plan_charge.mrr * 12::number) as current_arr
@@ -16,9 +17,9 @@ with
             rate_plan_charge
             on rate_plan_charge.rate_plan_id::varchar = rate_plan.rate_plan_id::varchar
         where  -- DOUBLE CHECK THIS
-            (
-                subscription.subscription_status not in ('Draft', 'Expired')
-            ) and rate_plan_charge.effective_start_date <= current_date and (
+            (subscription.subscription_status not in ('Draft', 'Expired'))
+            and rate_plan_charge.effective_start_date <= current_date
+            and (
                 rate_plan_charge.effective_end_date > current_date
                 or rate_plan_charge.effective_end_date is null
             )

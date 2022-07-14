@@ -54,15 +54,13 @@ with
             common_product_tier_mapping.product_delivery_type as product_delivery_type,
             case
                 when
-                    lower(
-                        zuora_api_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like '%support%'
+                    lower(zuora_api_sandbox_product_rate_plan.product_rate_plan_name)
+                    like '%support%'
                 then 'Support Only'
                 else 'Full Service'
             end as service_type,
-            lower(
-                zuora_api_sandbox_product_rate_plan.product_rate_plan_name
-            ) like '%reporter access%' as is_reporter_license,
+            lower(zuora_api_sandbox_product_rate_plan.product_rate_plan_name)
+            like '%reporter access%' as is_reporter_license,
             zuora_api_sandbox_product.effective_start_date as effective_start_date,
             zuora_api_sandbox_product.effective_end_date as effective_end_date,
             common_product_tier_mapping.product_ranking as product_ranking,
@@ -111,29 +109,29 @@ with
             joined.*,
             case
                 when
-                    lower(product_rate_plan_name) like '%month%' or lower(
-                        product_rate_plan_charge_name
-                    ) like '%month%' or lower(product_name) like '%month%'
+                    lower(product_rate_plan_name) like '%month%'
+                    or lower(product_rate_plan_charge_name) like '%month%'
+                    or lower(product_name) like '%month%'
                 then (billing_list_price * 12)
                 when
-                    lower(product_rate_plan_name) like '%2 year%' or lower(
-                        product_rate_plan_charge_name
-                    ) like '%2 year%' or lower(product_name) like '%2 year%'
+                    lower(product_rate_plan_name) like '%2 year%'
+                    or lower(product_rate_plan_charge_name) like '%2 year%'
+                    or lower(product_name) like '%2 year%'
                 then (billing_list_price / 2)
                 when
-                    lower(product_rate_plan_name) like '%3 year%' or lower(
-                        product_rate_plan_charge_name
-                    ) like '%3 year%' or lower(product_name) like '%3 year%'
+                    lower(product_rate_plan_name) like '%3 year%'
+                    or lower(product_rate_plan_charge_name) like '%3 year%'
+                    or lower(product_name) like '%3 year%'
                 then (billing_list_price / 3)
                 when
-                    lower(product_rate_plan_name) like '%4 year%' or lower(
-                        product_rate_plan_charge_name
-                    ) like '%4 year%' or lower(product_name) like '%4 year%'
+                    lower(product_rate_plan_name) like '%4 year%'
+                    or lower(product_rate_plan_charge_name) like '%4 year%'
+                    or lower(product_name) like '%4 year%'
                 then (billing_list_price / 4)
                 when
-                    lower(product_rate_plan_name) like '%5 year%' or lower(
-                        product_rate_plan_charge_name
-                    ) like '%5 year%' or lower(product_name) like '%5 year%'
+                    lower(product_rate_plan_name) like '%5 year%'
+                    or lower(product_rate_plan_charge_name) like '%5 year%'
+                    or lower(product_name) like '%5 year%'
                 then (billing_list_price / 5)
                 else billing_list_price
             end as annual_billing_list_price

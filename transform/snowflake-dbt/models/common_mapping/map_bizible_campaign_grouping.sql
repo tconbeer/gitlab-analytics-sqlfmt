@@ -89,7 +89,8 @@ with
                 -- based on issue
                 -- https://gitlab.com/gitlab-com/marketing/marketing-strategy-performance/-/issues/246
                 when
-                    dim_parent_campaign_id = '7014M000001dowZQAQ' or (
+                    dim_parent_campaign_id = '7014M000001dowZQAQ'
+                    or (
                         bizible_medium = 'sponsorship'
                         and bizible_touchpoint_source in (
                             'issa',
@@ -102,7 +103,8 @@ with
                 then 'Publishers/Sponsorships'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%smbnurture%'
                             or bizible_form_url like '%smbnurture%'
                             or bizible_referrer_page like '%smbnurture%'
@@ -112,21 +114,25 @@ with
                             or bizible_referrer_page like '%smbagnostic%'
                             or bizible_ad_campaign_name like '%smbagnostic%'
                         )
-                    ) or bizible_ad_campaign_name = 'Nurture - SMB Mixed Use Case'
+                    )
+                    or bizible_ad_campaign_name = 'Nurture - SMB Mixed Use Case'
                 then 'SMB Nurture'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%cicdseeingisbelieving%'
                             or bizible_form_url like '%cicdseeingisbelieving%'
                             or bizible_referrer_page like '%cicdseeingisbelieving%'
                             or bizible_ad_campaign_name like '%cicdseeingisbelieving%'
                         )
-                    ) or dim_parent_campaign_id = '7014M000001dmNAQAY'
+                    )
+                    or dim_parent_campaign_id = '7014M000001dmNAQAY'
                 then 'CI/CD Seeing is Believing'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%simplifydevops%'
                             or bizible_form_url like '%simplifydevops%'
                             or bizible_referrer_page like '%simplifydevops%'
@@ -138,13 +144,15 @@ with
                 then 'Simplify DevOps'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%21q4-jp%'
                             or bizible_form_url like '%21q4-jp%'
                             or bizible_referrer_page like '%21q4-jp%'
                             or bizible_ad_campaign_name like '%21q4-jp%'
                         )
-                    ) or (
+                    )
+                    or (
                         dim_parent_campaign_id = '7014M000001dn8MQAQ'
                         and bizible_ad_campaign_name
                         = '2021_Social_Japan_LinkedIn Lead Gen'
@@ -152,15 +160,18 @@ with
                 then 'Japan-Digital Readiness'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%lower-tco%'
                             or bizible_form_url like '%lower-tco%'
                             or bizible_referrer_page like '%lower-tco%'
                             or bizible_ad_campaign_name like '%operationalefficiencies%'
                             or bizible_ad_campaign_name like '%operationalefficiences%'
                         )
-                    ) or (
-                        dim_parent_campaign_id = '7014M000001dn8MQAQ' and (
+                    )
+                    or (
+                        dim_parent_campaign_id = '7014M000001dn8MQAQ'
+                        and (
                             bizible_ad_campaign_name like '%_Operational Efficiencies%'
                             or bizible_ad_campaign_name like '%operationalefficiencies%'
                         )
@@ -168,14 +179,17 @@ with
                 then 'Increase Operational Efficiencies'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%reduce-cycle-time%'
                             or bizible_form_url like '%reduce-cycle-time%'
                             or bizible_referrer_page like '%reduce-cycle-time%'
                             or bizible_ad_campaign_name like '%betterproductsfaster%'
                         )
-                    ) or (
-                        dim_parent_campaign_id = '7014M000001dn8MQAQ' and (
+                    )
+                    or (
+                        dim_parent_campaign_id = '7014M000001dn8MQAQ'
+                        and (
                             bizible_ad_campaign_name like '%_Better Products Faster%'
                             or bizible_ad_campaign_name like '%betterproductsfaster%'
                         )
@@ -183,14 +197,17 @@ with
                 then 'Deliver Better Products Faster'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%secure-apps%'
                             or bizible_form_url like '%secure-apps%'
                             or bizible_referrer_page like '%secure-apps%'
                             or bizible_ad_campaign_name like '%reducesecurityrisk%'
                         )
-                    ) or (
-                        dim_parent_campaign_id = '7014M000001dn8MQAQ' and (
+                    )
+                    or (
+                        dim_parent_campaign_id = '7014M000001dn8MQAQ'
+                        and (
                             bizible_ad_campaign_name like '%_Reduce Security Risk%'
                             or bizible_ad_campaign_name like '%reducesecurityrisk%'
                         )
@@ -198,14 +215,17 @@ with
                 then 'Reduce Security and Compliance Risk'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%jenkins-alternative%'
                             or bizible_form_url like '%jenkins-alternative%'
                             or bizible_referrer_page like '%jenkins-alternative%'
                             or bizible_ad_campaign_name like '%cicdcmp2%'
                         )
-                    ) or (
-                        dim_parent_campaign_id = '7014M000001dn8MQAQ' and (
+                    )
+                    or (
+                        dim_parent_campaign_id = '7014M000001dn8MQAQ'
+                        and (
                             bizible_ad_campaign_name like '%_Jenkins%'
                             or bizible_ad_campaign_name like '%cicdcmp2%'
                         )
@@ -213,33 +233,38 @@ with
                 then 'Jenkins Take Out'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%single-application-ci%'
                             or bizible_form_url like '%single-application-ci%'
                             or bizible_referrer_page like '%single-application-ci%'
                             or bizible_ad_campaign_name like '%cicdcmp3%'
                         )
-                    ) or (
+                    )
+                    or (
                         dim_parent_campaign_id = '7014M000001dn8MQAQ'
                         and bizible_ad_campaign_name like '%cicdcmp3%'
                     )
                 then 'CI Build & Test Auto'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%github-actions-alternative%'
                             or bizible_form_url like '%github-actions-alternative%'
                             or bizible_referrer_page like '%github-actions-alternative%'
                             or bizible_ad_campaign_name like '%octocat%'
                         )
-                    ) or (
+                    )
+                    or (
                         dim_parent_campaign_id = '7014M000001dn8MQAQ'
                         and bizible_ad_campaign_name ilike '%_OctoCat%'
                     )
                 then 'OctoCat'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page
                             like '%integration-continue-pour-construire-et-tester-plus-rapidement%'
                             or bizible_form_url
@@ -251,14 +276,16 @@ with
                                 and bizible_ad_content like '%french%'
                             )
                         )
-                    ) or (
+                    )
+                    or (
                         dim_parent_campaign_id = '7014M000001dn8MQAQ'
                         and bizible_ad_campaign_name ilike '%Singleappci_French%'
                     )
                 then 'CI Use Case - FR'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page
                             like '%nutze-continuous-integration-fuer-schnelleres-bauen-und-testen%'
                             or bizible_form_url
@@ -270,14 +297,16 @@ with
                                 and bizible_ad_content like '%paesslergerman%'
                             )
                         )
-                    ) or (
+                    )
+                    or (
                         dim_parent_campaign_id = '7014M000001dn8MQAQ'
                         and bizible_ad_campaign_name ilike '%Singleappci_German%'
                     )
                 then 'CI Use Case - DE'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page
                             like '%use-continuous-integration-to-build-and-test-faster%'
                             or bizible_form_url
@@ -290,7 +319,8 @@ with
                     or bizible_ad_campaign_name
                     = '20201013_ActualTechMedia_DeepMonitoringCI'
                     or (
-                        dim_parent_campaign_id = '7014M000001dn8MQAQ' and (
+                        dim_parent_campaign_id = '7014M000001dn8MQAQ'
+                        and (
                             bizible_ad_campaign_name like '%_CI%'
                             or bizible_ad_campaign_name ilike '%singleappci%'
                         )
@@ -298,7 +328,8 @@ with
                 then 'CI Use Case'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page
                             like '%shift-your-security-scanning-left%'
                             or bizible_form_url
@@ -307,9 +338,12 @@ with
                             like '%shift-your-security-scanning-left%'
                             or bizible_ad_campaign_name like '%devsecopsusecase%'
                         )
+                    )
                     -- GCP Partner campaign
-                    ) or dim_parent_campaign_id = '7014M000001dnVOQAY' or (
-                        dim_parent_campaign_id = '7014M000001dn8MQAQ' and (
+                    or dim_parent_campaign_id = '7014M000001dnVOQAY'
+                    or (
+                        dim_parent_campaign_id = '7014M000001dn8MQAQ'
+                        and (
                             bizible_ad_campaign_name ilike '%_DevSecOps%'
                             or bizible_ad_campaign_name like '%devsecopsusecase%'
                         )
@@ -317,7 +351,8 @@ with
                 then 'DevSecOps Use Case'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%aws-gitlab-serverless%'
                             or bizible_landing_page like '%trek10-aws-cicd%'
                             or bizible_form_url like '%aws-gitlab-serverless%'
@@ -325,14 +360,16 @@ with
                             or bizible_referrer_page like '%aws-gitlab-serverless%'
                             or bizible_ad_campaign_name like '%awspartner%'
                         )
-                    ) or (
+                    )
+                    or (
                         dim_parent_campaign_id = '7014M000001dn8MQAQ'
                         and bizible_ad_campaign_name ilike '%_AWS%'
                     )
                 then 'AWS'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page
                             like '%simplify-collaboration-with-version-control%'
                             or bizible_form_url
@@ -341,8 +378,10 @@ with
                             like '%simplify-collaboration-with-version-control%'
                             or bizible_ad_campaign_name like '%vccusecase%'
                         )
-                    ) or (
-                        dim_parent_campaign_id = '7014M000001dn8MQAQ' and (
+                    )
+                    or (
+                        dim_parent_campaign_id = '7014M000001dn8MQAQ'
+                        and (
                             bizible_ad_campaign_name like '%_VCC%'
                             or bizible_ad_campaign_name like '%vccusecase%'
                         )
@@ -350,7 +389,8 @@ with
                 then 'VCC Use Case'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page
                             like '%gitops-infrastructure-automation%'
                             or bizible_form_url
@@ -359,8 +399,10 @@ with
                             like '%gitops-infrastructure-automation%'
                             or bizible_ad_campaign_name like '%iacgitops%'
                         )
-                    ) or (
-                        dim_parent_campaign_id = '7014M000001dn8MQAQ' and (
+                    )
+                    or (
+                        dim_parent_campaign_id = '7014M000001dn8MQAQ'
+                        and (
                             bizible_ad_campaign_name like '%_GitOps%'
                             or bizible_ad_campaign_name like '%iacgitops%'
                         )
@@ -368,34 +410,39 @@ with
                 then 'GitOps Use Case'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_ad_campaign_name like '%evergreen%'
                             or bizible_form_url_raw like '%utm_campaign=evergreen%'
                             or bizible_landing_page_raw like '%utm_campaign=evergreen%'
                             or bizible_referrer_page_raw like '%utm_campaign=evergreen%'
                         )
-                    ) or (
+                    )
+                    or (
                         dim_parent_campaign_id = '7014M000001dn8MQAQ'
                         and bizible_ad_campaign_name ilike '%_Evergreen%'
                     )
                 then 'Evergreen'
                 when
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_ad_campaign_name like 'brand%'
                             or bizible_ad_campaign_name like 'Brand%'
                             or bizible_form_url_raw like '%utm_campaign=brand%'
                             or bizible_landing_page_raw like '%utm_campaign=brand%'
                             or bizible_referrer_page_raw like '%utm_campaign=brand%'
                         )
-                    ) or (
+                    )
+                    or (
                         dim_parent_campaign_id = '7014M000001dn8MQAQ'
                         and bizible_ad_campaign_name ilike '%_Brand%'
                     )
                 then 'Brand'
                 when  -- added 2021-06-04 MSandP: 332
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_landing_page like '%contact-us-ultimate%'
                             or bizible_form_url like '%contact-us-ultimate%'
                             or bizible_referrer_page like '%contact-us-ultimate%'
@@ -405,18 +452,21 @@ with
                 then 'Premium to Ultimate'
                 when  -- added 2021-06-04 MSandP: 346
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_form_url_raw like '%webcast-gitops-multicloudapp%'
                             or bizible_landing_page_raw
                             like '%webcast-gitops-multicloudapp%'
                             or bizible_referrer_page_raw
                             like '%webcast-gitops-multicloudapp%'
                         )
-                    ) or (dim_parent_campaign_id like '%7014M000001dpmf%')
+                    )
+                    or (dim_parent_campaign_id like '%7014M000001dpmf%')
                 then 'GitOps GTM webcast'
                 when  -- added 2021-06-04 MSandP: 346
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_form_url_raw like '%devopsgtm%'
                             or bizible_landing_page_raw like '%devopsgtm%'
                             or bizible_referrer_page_raw like '%devopsgtm%'
@@ -429,7 +479,8 @@ with
 
                 when  -- added 2021-06-04 MSandP: 346
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             (
                                 bizible_form_url_raw like '%utm_campaign=devopsgtm%'
                                 and bizible_form_url_raw
@@ -442,7 +493,8 @@ with
                                 like '%utm_campaign=devopsgtm%'
                                 and bizible_referrer_page_raw
                                 like '%utm_content=partnercredit%'
-                            ) or (
+                            )
+                            or (
                                 bizible_form_url_raw like '%cloud-credits-promo%'
                                 or bizible_landing_page_raw like '%cloud-credits-promo%'
                                 or bizible_referrer_page_raw
@@ -455,14 +507,16 @@ with
                 then 'Cloud Partner Campaign'
                 when  -- added 2021-06-04 MSandP: 346
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             (
                                 bizible_form_url_raw like '%utm_campaign=gitlab14%'
                                 or bizible_landing_page_raw
                                 like '%utm_campaign=gitlab14%'
                                 or bizible_referrer_page_raw
                                 like '%utm_campaign=gitlab14%'
-                            ) or (
+                            )
+                            or (
                                 bizible_form_url_raw like '%the-shift-to-modern-devops%'
                                 or bizible_landing_page_raw
                                 like '%the-shift-to-modern-devops%'
@@ -476,14 +530,16 @@ with
                 then '20210512_ISSAWebcast'
                 when  -- added 2021-08-30 MSandP: 325
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             (
                                 bizible_form_url_raw like '%psdigitaltransformation%'
                                 or bizible_landing_page_raw
                                 like '%psdigitaltransformation%'
                                 or bizible_referrer_page_raw
                                 like '%psdigitaltransformation%'
-                            ) or (
+                            )
+                            or (
                                 bizible_form_url_raw like '%psglobal%'
                                 or bizible_landing_page_raw like '%psglobal%'
                                 or bizible_referrer_page_raw like '%psglobal%'
@@ -493,14 +549,16 @@ with
                 then 'PubSec Nurture'
                 when  -- added 2021-11-22 MSandP: 585
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             (
                                 bizible_form_url_raw like '%whygitlabdevopsplatform%'
                                 or bizible_landing_page_raw
                                 like '%whygitlabdevopsplatform%'
                                 or bizible_referrer_page_raw
                                 like '%whygitlabdevopsplatform%'
-                            ) or (
+                            )
+                            or (
                                 bizible_form_url_raw like '%githubcompete%'
                                 or bizible_landing_page_raw like '%githubcompete%'
                                 or bizible_referrer_page_raw like '%githubcompete%'
@@ -510,18 +568,21 @@ with
                 then 'FY22 GitHub Competitive Campaign'
                 when  -- added 2021-11-22 MSandP: 570
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             (
                                 bizible_form_url_raw like '%devopsgtm%'
                                 or bizible_landing_page_raw like '%devopsgtm%'
                                 or bizible_referrer_page_raw like '%devopsgtm%'
                             )
                         )
-                    ) or dim_campaign_id like '%7014M000001dqb2%'
+                    )
+                    or dim_campaign_id like '%7014M000001dqb2%'
                 then 'DOI Webcast'
                 when  -- MSandP 657
                     (
-                        bizible_touchpoint_type = 'Web Form' and (
+                        bizible_touchpoint_type = 'Web Form'
+                        and (
                             bizible_form_url_raw like '%utm_campaign=cdusecase%'
                             or bizible_landing_page_raw like '%utm_campaign=cdusecase%'
                             or bizible_referrer_page_raw like '%utm_campaign=cdusecase%'
@@ -600,7 +661,8 @@ with
                         'Brand.Corporate Event',
                         'Conference',
                         'Speaking Session'
-                    ) or (
+                    )
+                    or (
                         bizible_medium = 'Field Event (old)'
                         and bizible_marketing_channel_path = 'Other'
                     )
@@ -629,7 +691,8 @@ with
                 when  -- Added to Web Direct
                     bizible_marketing_channel_path in (
                         'Marketing Site.Web Direct', 'Web Direct'
-                    ) or dim_campaign_id in (
+                    )
+                    or dim_campaign_id in (
                         '701610000008ciRAAQ',  -- Trial - GitLab.com
                         '70161000000VwZbAAK',  -- Trial - Self-Managed
                         '70161000000VwZgAAK',  -- Trial - SaaS

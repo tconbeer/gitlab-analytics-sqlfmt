@@ -16,9 +16,8 @@ with
         select *
         from {{ source("snapshots", "sheetload_employee_location_factor_snapshots") }}
         where
-            "Employee_ID" != 'Not In Comp Calc' and "Employee_ID" not in (
-                '$72,124', 'S1453'
-            )
+            "Employee_ID" != 'Not In Comp Calc'
+            and "Employee_ID" not in ('$72,124', 'S1453')
 
     ),
     renamed as (
@@ -34,9 +33,8 @@ with
             "DBT_VALID_TO"::number::timestamp::date as valid_to
         from source
         where
-            lower(
-                bamboo_employee_number
-            ) not like '%not in comp calc%' and location_factor is not null
+            lower(bamboo_employee_number) not like '%not in comp calc%'
+            and location_factor is not null
 
     ),
     employee_locality as (select * from {{ ref("employee_locality") }}),
@@ -71,8 +69,7 @@ with
             locality,
             location_factor as location_factor,
             lead(location_factor) over
-            (
-                partition by bamboo_employee_number order by valid_from
+            (partition by bamboo_employee_number order by valid_from
             ) as next_location_factor,
             valid_from,
             coalesce(valid_to, {{ max_date_in_analysis }}) as valid_to
@@ -91,7 +88,8 @@ with
                     location_factor,
                     next_location_factor
                 order by valid_from
-            ) = 1
+            )
+            = 1
 
     ),
     final as (

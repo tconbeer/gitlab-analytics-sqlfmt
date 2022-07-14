@@ -34,8 +34,11 @@ with
             metrics_path,
             (
                 approx_percentile(monthly_metric_value, 0.75) -
-                approx_percentile(monthly_metric_value, 0.25)
-            ) * 3 + approx_percentile(monthly_metric_value, 0.75) as outer_boundary
+                approx_percentile(monthly_metric_value, 0.25
+                )
+            )
+            * 3
+            + approx_percentile(monthly_metric_value, 0.75) as outer_boundary
         from monthly_usage_data
         where
             monthly_metric_value > 0

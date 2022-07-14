@@ -36,7 +36,8 @@ with
                     dates.first_day_of_month,
                     saas_usage_ping.ping_name
                 order by saas_usage_ping.ping_date desc
-            ) = 1
+            )
+            = 1
 
     ),
     flattened_metrics as (

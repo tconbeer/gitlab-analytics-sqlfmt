@@ -12,9 +12,7 @@
             ("prep_project", "prep_project"),
         ]
     )
-}}
-
-,
+}},
 gitlab_dotcom_releases_dedupe_source as (
 
     select *
@@ -66,9 +64,8 @@ joined as (
         prep_user
         on gitlab_dotcom_releases_dedupe_source.author_id = prep_user.dim_user_id
     left join
-        dim_date on to_date(
-            gitlab_dotcom_releases_dedupe_source.created_at
-        ) = dim_date.date_day
+        dim_date
+        on to_date(gitlab_dotcom_releases_dedupe_source.created_at) = dim_date.date_day
 
 )
 

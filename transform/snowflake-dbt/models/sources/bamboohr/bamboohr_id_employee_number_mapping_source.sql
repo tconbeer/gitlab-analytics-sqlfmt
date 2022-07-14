@@ -6,7 +6,8 @@ with
         qualify
             row_number() over (
                 partition by date_trunc(day, uploaded_at) order by uploaded_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     intermediate as (
@@ -37,12 +38,10 @@ with
             d.value['customCandidateID']::number as greenhouse_candidate_id,
             d.value['customCostCenter']::varchar as cost_center,
             d.value['customGitLabUsername']::varchar as gitlab_username,
-            d.value[
-                'customJobTitleSpeciality'
-            ]::varchar as jobtitle_speciality_single_select,
-            d.value[
-                'customJobTitleSpecialty(Multi-Select)'
-            ]::varchar as jobtitle_speciality_multi_select,
+            d.value['customJobTitleSpeciality']::varchar
+            as jobtitle_speciality_single_select,
+            d.value['customJobTitleSpecialty(Multi-Select)']::varchar
+            as jobtitle_speciality_multi_select,
             -- requiers cleaning becase of an error in the snapshoted source data
             case
                 d.value['customLocality']::varchar
@@ -80,17 +79,20 @@ with
             *, dense_rank() over (order by uploaded_at desc) as uploaded_row_number_desc
         from intermediate
         where
-            hire_date is not null and (
-                lower(first_name) not like '%greenhouse test%' and lower(
-                    last_name
-                ) not like '%test profile%' and lower(last_name) != 'test-gitlab'
-            ) and employee_id != 42039
+            hire_date is not null
+            and (
+                lower(first_name) not like '%greenhouse test%'
+                and lower(last_name) not like '%test profile%'
+                and lower(last_name) != 'test-gitlab'
+            )
+            and employee_id != 42039
         -- The same emplpyee can appear more than once in the same upload.
         qualify
             row_number() over (
                 partition by employee_number, date_trunc(day, uploaded_at)
                 order by uploaded_at desc
-            ) = 1
+            )
+            = 1
 
     )
 

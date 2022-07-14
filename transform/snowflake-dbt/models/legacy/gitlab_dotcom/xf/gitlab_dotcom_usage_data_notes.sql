@@ -61,6 +61,7 @@
 ] -%}
 
 
+/* Source CTEs Start Here */
 {{
     simple_cte(
         [
@@ -75,11 +76,7 @@
             ("blocked_users", "gitlab_dotcom_users_blocked_xf"),
         ]
     )
-}}
-
-
-/* Source CTEs Start Here */
-,
+}},
 epic_notes_source as (select * from {{ ref("gitlab_dotcom_epic_notes_xf") }}),
 issue_notes_source as (
 
@@ -126,9 +123,7 @@ merge_request_notes_source as (
 
 )
 
-{% endfor -%}
-
-,
+{% endfor -%},
 data as (
 
     {% for event_cte in event_ctes %}
@@ -220,9 +215,7 @@ data as (
     {% endif %}
     {% endfor -%}
 
-)
-
-,
+),
 final as (
     select
         data.*,

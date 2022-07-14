@@ -8,9 +8,7 @@
             ("dim_date", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 zuora_account as (
 
     select *
@@ -97,7 +95,8 @@ mrr_by_delivery_type as (
         and (
             rate_plan_charge_filtered.effective_end_month > dim_date.date_actual
             or rate_plan_charge_filtered.effective_end_month is null
-        ) and dim_date.day_of_month = 1
+        )
+        and dim_date.day_of_month = 1
         {{ dbt_utils.group_by(n=10) }}
 
 ),
@@ -171,7 +170,8 @@ final as (
         iff(
             row_number() over (
                 partition by dim_subscription_id order by dim_date_id desc
-            ) = 1,
+            )
+            = 1,
             true,
             false
         ) as is_latest_record_per_subscription

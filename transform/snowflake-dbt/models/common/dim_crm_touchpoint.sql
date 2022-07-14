@@ -153,7 +153,8 @@ with
                         'Brand.Corporate Event',
                         'Conference',
                         'Speaking Session'
-                    ) or (
+                    )
+                    or (
                         combined_touchpoints.bizible_medium = 'Field Event (old)'
                         and combined_touchpoints.bizible_marketing_channel_path
                         = 'Other'
@@ -183,8 +184,9 @@ with
                 when
                     combined_touchpoints.bizible_marketing_channel_path in (
                         'Marketing Site.Web Direct', 'Web Direct'
+                    )
                     -- Added to Web Direct
-                    ) or combined_touchpoints.dim_campaign_id in (
+                    or combined_touchpoints.dim_campaign_id in (
                         '701610000008ciRAAQ',  -- Trial - GitLab.com
                         '70161000000VwZbAAK',  -- Trial - Self-Managed
                         '70161000000VwZgAAK',  -- Trial - SaaS

@@ -6,9 +6,7 @@
             ("mart_usage_event", "mart_usage_event"),
         ]
     )
-}}
-
-,
+}},
 usage_events as (
     select
         {{ dbt_utils.surrogate_key(["event_date", "event_name", "dim_instance_id"]) }}

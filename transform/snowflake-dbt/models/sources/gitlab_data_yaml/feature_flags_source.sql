@@ -27,9 +27,8 @@ with
             data_by_row['milestone']::varchar as milestone,
             data_by_row['default_enabled']::varchar as is_default_enabled,
             data_by_row['group']::varchar as gitlab_group,
-            data_by_row[
-                'introduced_by_url'
-            ]::varchar as introduced_by_merge_request_url,
+            data_by_row['introduced_by_url']::varchar
+            as introduced_by_merge_request_url,
             data_by_row['rollout_issue_url']::varchar as rollout_issue_url,
             snapshot_date,
             rank

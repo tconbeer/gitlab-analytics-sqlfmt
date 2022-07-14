@@ -45,7 +45,8 @@ with
                     job_role_modified,
                     reports_to
                 order by employee_directory.date_actual
-            ) = 1
+            )
+            = 1
 
     ),
     final as (

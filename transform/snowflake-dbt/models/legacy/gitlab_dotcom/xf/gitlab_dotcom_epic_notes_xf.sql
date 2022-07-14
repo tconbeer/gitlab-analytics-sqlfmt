@@ -15,15 +15,9 @@ with
             and updated_at >= (select max(updated_at) from {{ this }})
 
             {% endif %}
-    )
-
-    ,
-    epics as (select * from {{ ref("gitlab_dotcom_epics_xf") }})
-
-    ,
-    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces_xf") }})
-
-    ,
+    ),
+    epics as (select * from {{ ref("gitlab_dotcom_epics_xf") }}),
+    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces_xf") }}),
     internal_namespaces as (
 
         select
@@ -34,9 +28,7 @@ with
             ) as namespace_is_internal
         from {{ ref("gitlab_dotcom_namespaces_xf") }}
 
-    )
-
-    ,
+    ),
     anonymised as (
 
         select

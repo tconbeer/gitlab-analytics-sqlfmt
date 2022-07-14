@@ -4,9 +4,8 @@ with
         select *
         from {{ source("customers", "customers_db_trial_histories") }}
         qualify
-            row_number() over (
-                partition by gl_namespace_id order by updated_at desc
-            ) = 1
+            row_number() over (partition by gl_namespace_id order by updated_at desc)
+            = 1
 
     ),
     renamed as (

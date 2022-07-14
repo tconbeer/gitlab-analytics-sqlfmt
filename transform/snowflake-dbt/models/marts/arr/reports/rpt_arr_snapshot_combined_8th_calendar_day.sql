@@ -13,9 +13,7 @@
             ("zuora_account_source", "zuora_account_source"),
         ]
     )
-}}
-
-,
+}},
 phase_one as (
 
     select

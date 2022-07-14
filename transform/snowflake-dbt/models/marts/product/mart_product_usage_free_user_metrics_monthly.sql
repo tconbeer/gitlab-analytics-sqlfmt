@@ -11,9 +11,7 @@
             ("namespaces", "dim_namespace"),
         ]
     )
-}}
-
-,
+}},
 joined as (
 
     select

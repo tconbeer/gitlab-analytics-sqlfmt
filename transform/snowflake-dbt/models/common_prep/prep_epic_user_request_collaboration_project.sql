@@ -27,7 +27,8 @@ with
         qualify
             row_number() over (
                 partition by group_id, epic_internal_id order by created_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     gitlab_issues as (
@@ -37,7 +38,8 @@ with
         qualify
             row_number() over (
                 partition by project_id, issue_iid order by created_at desc
-            ) = 1
+            )
+            = 1
 
     ),
     collaboration_projects as (
@@ -207,7 +209,8 @@ with
                     unioned_with_user_request_namespace_id.account_id
                 order by
                     unioned_with_user_request_namespace_id.link_last_updated_at desc nulls last
-            ) = 1
+            )
+            = 1
 
     )
 

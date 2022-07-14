@@ -20,9 +20,8 @@ with
 
             case
                 when
-                    projects.visibility_level != 'public' and namespace_id not in (
-                        select * from internal_namespaces
-                    )
+                    projects.visibility_level != 'public'
+                    and namespace_id not in (select * from internal_namespaces)
                 then 'content masked'
                 else label_title
             end as masked_label_title,

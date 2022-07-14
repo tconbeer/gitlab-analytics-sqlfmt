@@ -1,7 +1,5 @@
 with
-    source as (select * from {{ ref("gitlab_dotcom_cluster_projects_dedupe_source") }})
-
-    ,
+    source as (select * from {{ ref("gitlab_dotcom_cluster_projects_dedupe_source") }}),
     renamed as (
 
         select

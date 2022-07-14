@@ -22,7 +22,9 @@ with
             ) as is_incorrect
         from {{ ref(golden_data_model) }} golden_data
         left join
-            {{ ref(dbt_model) }} dbt_model on {%- for column in gr_column_names %}
+            {{ ref(dbt_model) }} dbt_model
+            on
+            {%- for column in gr_column_names %}
             dbt_model.{{ column }}::varchar = golden_data.{{ column }}::varchar
             {% if not loop.last %} and {% endif %}
             {% endfor %}

@@ -11,9 +11,7 @@
             ("sfdc_opportunity_source", "sfdc_opportunity_source"),
         ]
     )
-}}
-
-,
+}},
 epic_notes as (
 
     select noteable_id as epic_id, *
@@ -48,9 +46,8 @@ gitlab_epic_description_parsing as (
         ifnull(epic_last_edited_at, created_at) as updated_at
     from epic_extended
     where
-        epic_description is not null and not (
-            array_size(sfdc_link_array) = 0 and array_size(zendesk_link_array) = 0
-        )
+        epic_description is not null
+        and not (array_size(sfdc_link_array) = 0 and array_size(zendesk_link_array) = 0)
 
 ),
 epic_notes_extended as (
@@ -133,7 +130,8 @@ gitlab_epic_notes_sfdc_links_with_account as (
         ifnull(
             gitlab_epic_notes_sfdc_links.dim_crm_account_id,
             sfdc_opportunity_source.account_id
-        ) is not null
+        )
+        is not null
 
 ),
 gitlab_epic_description_sfdc_links as (
@@ -186,7 +184,8 @@ gitlab_epic_description_sfdc_links_with_account as (
         ifnull(
             gitlab_epic_description_sfdc_links.dim_crm_account_id,
             sfdc_opportunity_source.account_id
-        ) is not null
+        )
+        is not null
 
 ),
 gitlab_epic_notes_zendesk_link as (
@@ -258,7 +257,8 @@ union_links as (
     qualify
         row_number() over (
             partition by epic_id, sfdc_id_18char order by note_updated_at desc
-        ) = 1
+        )
+        = 1
 
     union
 
@@ -275,7 +275,8 @@ union_links as (
     qualify
         row_number() over (
             partition by epic_id, dim_ticket_id order by note_updated_at desc
-        ) = 1
+        )
+        = 1
 
     union
 

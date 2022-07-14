@@ -21,9 +21,7 @@
             ("fct_charge", "fct_charge"),
         ]
     )
-}}
-
-,
+}},
 mart_charge as (
 
     select

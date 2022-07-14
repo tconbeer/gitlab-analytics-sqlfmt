@@ -11,9 +11,7 @@
             ("dim_date", "dim_date"),
         ]
     )
-}}
-
-,
+}},
 ci_stages as (
 
     select *

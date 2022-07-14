@@ -14,9 +14,7 @@
             ("dim_project", "dim_project"),
         ]
     )
-}}
-
-,
+}},
 pipeline_schedule as (
 
     select *

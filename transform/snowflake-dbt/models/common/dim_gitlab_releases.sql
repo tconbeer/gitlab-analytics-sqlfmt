@@ -6,7 +6,8 @@ with
         qualify
             row_number() over (
                 partition by major_minor_version order by snapshot_date desc, rank desc
-            ) = 1
+            )
+            = 1
 
     )
 

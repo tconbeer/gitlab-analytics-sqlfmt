@@ -10,9 +10,7 @@
             ("xmau_metrics", "gitlab_dotcom_xmau_metrics"),
         ]
     )
-}}
-
-,
+}},
 fact_raw as (
 
     select
@@ -80,7 +78,8 @@ paid_flag_by_month as (
         row_number() over (
             partition by dim_namespace_id, reporting_month
             order by event_created_at desc
-        ) = 1
+        )
+        = 1
 
 ),
 fact_w_paid_deduped as (
@@ -123,8 +122,8 @@ total_results as (
         stage_name,
         group_name,
         'total' as user_group,
-        array_agg(distinct event_name) within group(
-            order by event_name
+        array_agg(
+            distinct event_name) within group(order by event_name
         ) as event_name_array,
         count(*) as event_count,
         count(distinct(dim_namespace_id)) as namespace_count,
@@ -144,8 +143,8 @@ free_results as (
         stage_name,
         group_name,
         'free' as user_group,
-        array_agg(distinct event_name) within group(
-            order by event_name
+        array_agg(
+            distinct event_name) within group(order by event_name
         ) as event_name_array,
         count(*) as event_count,
         count(distinct(dim_namespace_id)) as namespace_count,
@@ -166,8 +165,8 @@ paid_results as (
         stage_name,
         group_name,
         'paid' as user_group,
-        array_agg(distinct event_name) within group(
-            order by event_name
+        array_agg(
+            distinct event_name) within group(order by event_name
         ) as event_name_array,
         count(*) as event_count,
         count(distinct(dim_namespace_id)) as namespace_count,

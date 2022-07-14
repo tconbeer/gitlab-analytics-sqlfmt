@@ -2,9 +2,8 @@
 parsed_json as (
 
     select
-        iff(
-            response_values['finished']::number = 1, true, false
-        )::boolean as is_finished,
+        iff(response_values['finished']::number = 1, true, false)::boolean
+        as is_finished,
         response_values['plan']::varchar as user_plan,
         response_values['account_id']::varchar as account_id,
         response_values['recordedDate']::timestamp as recorded_at,

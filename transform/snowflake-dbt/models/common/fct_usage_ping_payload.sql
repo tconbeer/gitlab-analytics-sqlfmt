@@ -9,9 +9,7 @@
     )
 }}
 
-{{ simple_cte([("prep_usage_ping_payload", "prep_usage_ping_payload")]) }}
-
-,
+{{ simple_cte([("prep_usage_ping_payload", "prep_usage_ping_payload")]) }},
 final as (
 
     select

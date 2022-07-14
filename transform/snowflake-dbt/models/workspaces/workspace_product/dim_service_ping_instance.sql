@@ -7,9 +7,7 @@
             ("prep_service_ping_instance", "prep_service_ping_instance"),
         ]
     )
-}}
-
-,
+}},
 usage_data_w_date as (
     select prep_service_ping_instance.*, dim_date.date_id as dim_service_ping_date_id
     from prep_service_ping_instance
@@ -35,7 +33,8 @@ last_ping_of_month_flag as (
                 usage_data_w_date.host_id,
                 dim_date.first_day_of_month
             order by ping_created_at desc
-        ) = 1
+        )
+        = 1
 
 ),
 fct_w_month_flag as (

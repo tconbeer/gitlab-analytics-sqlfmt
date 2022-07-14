@@ -14,9 +14,7 @@
             ("metrics", "map_saas_event_to_smau"),
         ]
     )
-}}
-
-,
+}},
 events as (
 
     select
