@@ -1,29 +1,30 @@
-    
-WITH source AS (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_alert_management_alerts_dedupe_source') }}
-    
-), renamed AS (
+with
+    source as (
 
-    SELECT
-        id::NUMBER                AS alert_management_alert_id,
-        created_at::TIMESTAMP     AS created_at,
-        updated_at::TIMESTAMP     AS updated_at,
-        started_at::TIMESTAMP     AS started_at,
-        ended_at::TIMESTAMP       AS ended_at,
-        events::NUMBER            AS alert_management_alert_events,
-        iid::NUMBER               AS alert_management_alert_iid,
-        severity::NUMBER          AS severity_id,
-        status::NUMBER            AS status_id,
-        issue_id::NUMBER          AS issue_id,
-        project_id::NUMBER        AS project_id,
-        service::VARCHAR          AS alert_management_alert_service,
-        monitoring_tool::VARCHAR  AS monitoring_tool
+        select * from {{ ref("gitlab_dotcom_alert_management_alerts_dedupe_source") }}
 
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as alert_management_alert_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            started_at::timestamp as started_at,
+            ended_at::timestamp as ended_at,
+            events::number as alert_management_alert_events,
+            iid::number as alert_management_alert_iid,
+            severity::number as severity_id,
+            status::number as status_id,
+            issue_id::number as issue_id,
+            project_id::number as project_id,
+            service::varchar as alert_management_alert_service,
+            monitoring_tool::varchar as monitoring_tool
 
-SELECT *
-FROM renamed
+        from source
+
+    )
+
+select *
+from renamed

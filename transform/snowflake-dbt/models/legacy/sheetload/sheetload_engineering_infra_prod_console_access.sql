@@ -1,10 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('sheetload_engineering_infra_prod_console_access_source') }}
+        select *
+        from {{ ref("sheetload_engineering_infra_prod_console_access_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
-
+select *
+from source

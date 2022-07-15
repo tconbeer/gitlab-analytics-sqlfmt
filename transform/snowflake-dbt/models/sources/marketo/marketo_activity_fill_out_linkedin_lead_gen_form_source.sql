@@ -1,26 +1,28 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('marketo', 'activity_fill_out_linkedin_lead_gen_form') }}
+        select *
+        from {{ source("marketo", "activity_fill_out_linkedin_lead_gen_form") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
+        select
 
-      id::NUMBER                                AS marketo_activity_fill_out_linkedin_lead_gen_form_id,
-      lead_id::NUMBER                           AS lead_id,
-      activity_date::TIMESTAMP_TZ               AS activity_date,
-      activity_type_id::NUMBER                  AS activity_type_id,
-      campaign_id::NUMBER                       AS campaign_id,
-      primary_attribute_value_id::NUMBER        AS primary_attribute_value_id,
-      primary_attribute_value::TEXT             AS primary_attribute_value,
-      lead_gen_campaign_name::TEXT              AS lead_gen_campaign_name,
-      lead_gen_creative_id::NUMBER              AS lead_gen_creative_id,
-      lead_gen_account_name::TEXT               AS lead_gen_account_name
+            id::number as marketo_activity_fill_out_linkedin_lead_gen_form_id,
+            lead_id::number as lead_id,
+            activity_date::timestamp_tz as activity_date,
+            activity_type_id::number as activity_type_id,
+            campaign_id::number as campaign_id,
+            primary_attribute_value_id::number as primary_attribute_value_id,
+            primary_attribute_value::text as primary_attribute_value,
+            lead_gen_campaign_name::text as lead_gen_campaign_name,
+            lead_gen_creative_id::number as lead_gen_creative_id,
+            lead_gen_account_name::text as lead_gen_account_name
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

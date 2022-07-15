@@ -1,98 +1,180 @@
-{{config({
-    "schema": "common_mart_marketing"
-  })
-}}
+{{ config({"schema": "common_mart_marketing"}) }}
 
-{{ simple_cte([
-    ('pmg_paid_digital','pmg_paid_digital')
-]) }}
+{{ simple_cte([("pmg_paid_digital", "pmg_paid_digital")]) }},
+final as (
 
-, final AS (
-
-    SELECT *,
-      DATE_TRUNC('month',reporting_date)::date::date AS reporting_date_month_yr,
-      reporting_date::date AS reporting_date_normalized,
-      CASE
-        WHEN campaign LIKE '%_apac_%' THEN 'APAC'
-        WHEN campaign LIKE '%_APAC_%' THEN 'APAC'
-        WHEN campaign LIKE '%_emea_%' THEN 'EMEA'
-        WHEN campaign LIKE'%_EMEA_%' THEN 'EMEA'
-        WHEN campaign LIKE '%_amer_%' THEN 'AMER'
-        WHEN campaign LIKE '%_AMER_%'THEN 'AMER'
-        WHEN campaign LIKE '%_sanfrancisco_%' THEN 'AMER'
-        WHEN campaign LIKE '%_seattle_%'THEN 'AMER'
-        WHEN campaign LIKE '%_lam_%' THEN 'LATAM'
-        WHEN campaign LIKE '%_sam_%' THEN 'LATAM'
-      ELSE 'Global' END AS region_normalized,
-      CASE 
-        WHEN medium = 'cpc' THEN 'Paid Search'
-        WHEN medium = 'display' THEN 'Display'
-        WHEN medium = 'paidsocial' THEN 'Paid Social'
-      ELSE 'Other' END AS mapped_channel,
-      CASE
-        WHEN source = 'google' THEN 'Google'
-        WHEN source = 'bing_yahoo' THEN 'Bing'
-        WHEN source = 'facebook' THEN 'Facebook'
-        WHEN source = 'linkedin' THEN 'LinkedIn'
-        WHEN source = 'twitter' THEN 'Twitter'
-      ELSE 'Other' END AS mapped_source,
-      CONCAT((mapped_channel),'.',(mapped_source)) AS mapped_channel_source,
-      CASE 
-        WHEN mapped_channel_source = 'Other.Other' THEN 'Other'
-        WHEN mapped_channel_source = 'Paid Search.Google' THEN 'Paid Search.AdWords'
-      ELSE mapped_channel_source END AS mapped_channel_source_normalized,
-      CASE 
-        WHEN CONTENT_TYPE = 'Free Trial' THEN 'Free Trial'
-        WHEN team='digital' and medium='sponsorship'  THEN 'Publishers/Sponsorships' -- team=digital  captures the paid ads for digital and not including field 
-        WHEN campaign_code LIKE '%operationalefficiencies%' THEN 'Increase Operational Efficiencies'
-        WHEN campaign_code LIKE '%operationalefficiences%' THEN 'Increase Operational Efficiencies'
-        WHEN campaign_code LIKE '%betterproductsfaster%' THEN 'Deliver Better Products Faster'
-        WHEN campaign_code LIKE '%reducesecurityrisk%' THEN 'Reduce Security and Compliance Risk'
-        WHEN campaign_code LIKE '%cicdcmp2%' THEN 'Jenkins Take Out'
-        WHEN campaign_code LIKE '%cicdcmp3%' THEN 'CI Build & Test Auto'
-        WHEN campaign_code LIKE '%octocat%' THEN 'OctoCat'
-        WHEN campaign_code LIKE '%21q4-jp%' THEN 'Japan-Digital Readiness'
-        WHEN (campaign_code LIKE '%singleappci%' AND campaign LIKE '%france%')THEN 'CI Use Case - FR'
-        WHEN (campaign_code LIKE '%singleappci%' AND campaign LIKE '%germany%')THEN 'CI Use Case - DE'
-        WHEN campaign_code LIKE '%singleappci%' THEN 'CI Use Case'
-        WHEN campaign_code LIKE '%devsecopsusecase%' THEN 'DevSecOps Use Case'
-        WHEN campaign_code LIKE '%awspartner%' THEN 'AWS'
-        WHEN campaign_code LIKE '%vccusecase%' then 'VCC Use Case'
-        WHEN campaign_code LIKE '%iacgitops%' THEN 'GitOps Use Case'
-        WHEN campaign_code LIKE '%evergreen%' THEN 'Evergreen'
-        WHEN campaign_code LIKE 'brand%' THEN 'Brand'
-        WHEN campaign_code LIKE 'Brand%' THEN 'Brand'
-        WHEN campaign_code LIKE '%simplifydevops%' THEN 'Simplify DevOps'
-        WHEN campaign_code LIKE '%premtoultimatesp%' THEN 'Premium to Ultimate'
-        WHEN campaign_code LIKE '%devopsgtm%' THEN 'DevOps GTM'
-        WHEN campaign_code LIKE '%gitlab14%' THEN 'GitLab 14 webcast'
-        WHEN campaign_code LIKE '%devopsgtm%' AND content LIKE '%partnercredit%' THEN 'Cloud Partner  Campaign' 
-        WHEN campaign_code LIKE '%devopsgtm%' AND content LIKE '%introtomlopsdemo%' THEN 'Technical  Demo Series'
-        WHEN campaign_code LIKE '%psdigitaltransformation%' OR campaign_code LIKE '%psglobal%' THEN 'PubSec Nurture'
-      ELSE 'None' END AS integrated_campaign_grouping,
-      CASE 
-        WHEN budget LIKE '%x-ent%' THEN 'Large'
-        WHEN budget LIKE '%x-mm%' THEN 'Mid-Market'
-        WHEN budget LIKE '%x-smb%' THEN 'SMB'
-        WHEN budget LIKE '%x-pr%' THEN 'Prospecting'
-        WHEN budget LIKE '%x-rtg%' THEN 'Retargeting'
-      ELSE NULL
-      END AS utm_segment,
-      IFF(integrated_campaign_grouping <> 'None','Demand Gen','Other') AS touchpoint_segment,
-      CASE
-        WHEN integrated_campaign_grouping IN ('CI Build & Test Auto','CI Use Case','CI Use Case - FR','CI Use Case - DE','CI/CD Seeing is Believing','Jenkins Take Out','OctoCat','Premium to Ultimate') THEN 'CI/CD'
-        WHEN integrated_campaign_grouping IN ('Deliver Better Products Faster','DevSecOps Use Case','Reduce Security and Compliance Risk','Simplify DevOps', 'DevOps GTM', 'Cloud Partner Campaign', 'GitLab 14 webcast', 'Technical Demo Series') THEN 'DevOps'
-        WHEN integrated_campaign_grouping='GitOps Use Case' THEN 'GitOps'
-      ELSE NULL 
-      END AS gtm_motion
-    FROM pmg_paid_digital
+    select
+        *,
+        date_trunc('month', reporting_date)::date::date as reporting_date_month_yr,
+        reporting_date::date as reporting_date_normalized,
+        case
+            when campaign like '%_apac_%'
+            then 'APAC'
+            when campaign like '%_APAC_%'
+            then 'APAC'
+            when campaign like '%_emea_%'
+            then 'EMEA'
+            when campaign like '%_EMEA_%'
+            then 'EMEA'
+            when campaign like '%_amer_%'
+            then 'AMER'
+            when campaign like '%_AMER_%'
+            then 'AMER'
+            when campaign like '%_sanfrancisco_%'
+            then 'AMER'
+            when campaign like '%_seattle_%'
+            then 'AMER'
+            when campaign like '%_lam_%'
+            then 'LATAM'
+            when campaign like '%_sam_%'
+            then 'LATAM'
+            else 'Global'
+        end as region_normalized,
+        case
+            when medium = 'cpc'
+            then 'Paid Search'
+            when medium = 'display'
+            then 'Display'
+            when medium = 'paidsocial'
+            then 'Paid Social'
+            else 'Other'
+        end as mapped_channel,
+        case
+            when source = 'google'
+            then 'Google'
+            when source = 'bing_yahoo'
+            then 'Bing'
+            when source = 'facebook'
+            then 'Facebook'
+            when source = 'linkedin'
+            then 'LinkedIn'
+            when source = 'twitter'
+            then 'Twitter'
+            else 'Other'
+        end as mapped_source,
+        concat( (mapped_channel), '.', (mapped_source)) as mapped_channel_source,
+        case
+            when mapped_channel_source = 'Other.Other'
+            then 'Other'
+            when mapped_channel_source = 'Paid Search.Google'
+            then 'Paid Search.AdWords'
+            else mapped_channel_source
+        end as mapped_channel_source_normalized,
+        case
+            when content_type = 'Free Trial'
+            then 'Free Trial'
+            -- team=digital  captures the paid ads for digital and not including field 
+            when team = 'digital' and medium = 'sponsorship'
+            then 'Publishers/Sponsorships'
+            when campaign_code like '%operationalefficiencies%'
+            then 'Increase Operational Efficiencies'
+            when campaign_code like '%operationalefficiences%'
+            then 'Increase Operational Efficiencies'
+            when campaign_code like '%betterproductsfaster%'
+            then 'Deliver Better Products Faster'
+            when campaign_code like '%reducesecurityrisk%'
+            then 'Reduce Security and Compliance Risk'
+            when campaign_code like '%cicdcmp2%'
+            then 'Jenkins Take Out'
+            when campaign_code like '%cicdcmp3%'
+            then 'CI Build & Test Auto'
+            when campaign_code like '%octocat%'
+            then 'OctoCat'
+            when campaign_code like '%21q4-jp%'
+            then 'Japan-Digital Readiness'
+            when (campaign_code like '%singleappci%' and campaign like '%france%')
+            then 'CI Use Case - FR'
+            when (campaign_code like '%singleappci%' and campaign like '%germany%')
+            then 'CI Use Case - DE'
+            when campaign_code like '%singleappci%'
+            then 'CI Use Case'
+            when campaign_code like '%devsecopsusecase%'
+            then 'DevSecOps Use Case'
+            when campaign_code like '%awspartner%'
+            then 'AWS'
+            when campaign_code like '%vccusecase%'
+            then 'VCC Use Case'
+            when campaign_code like '%iacgitops%'
+            then 'GitOps Use Case'
+            when campaign_code like '%evergreen%'
+            then 'Evergreen'
+            when campaign_code like 'brand%'
+            then 'Brand'
+            when campaign_code like 'Brand%'
+            then 'Brand'
+            when campaign_code like '%simplifydevops%'
+            then 'Simplify DevOps'
+            when campaign_code like '%premtoultimatesp%'
+            then 'Premium to Ultimate'
+            when campaign_code like '%devopsgtm%'
+            then 'DevOps GTM'
+            when campaign_code like '%gitlab14%'
+            then 'GitLab 14 webcast'
+            when campaign_code like '%devopsgtm%' and content like '%partnercredit%'
+            then 'Cloud Partner  Campaign'
+            when campaign_code like '%devopsgtm%' and content like '%introtomlopsdemo%'
+            then 'Technical  Demo Series'
+            when
+                campaign_code like '%psdigitaltransformation%'
+                or campaign_code like '%psglobal%'
+            then 'PubSec Nurture'
+            else 'None'
+        end as integrated_campaign_grouping,
+        case
+            when budget like '%x-ent%'
+            then 'Large'
+            when budget like '%x-mm%'
+            then 'Mid-Market'
+            when budget like '%x-smb%'
+            then 'SMB'
+            when budget like '%x-pr%'
+            then 'Prospecting'
+            when budget like '%x-rtg%'
+            then 'Retargeting'
+            else null
+        end as utm_segment,
+        iff(
+            integrated_campaign_grouping <> 'None', 'Demand Gen', 'Other'
+        ) as touchpoint_segment,
+        case
+            when
+                integrated_campaign_grouping in (
+                    'CI Build & Test Auto',
+                    'CI Use Case',
+                    'CI Use Case - FR',
+                    'CI Use Case - DE',
+                    'CI/CD Seeing is Believing',
+                    'Jenkins Take Out',
+                    'OctoCat',
+                    'Premium to Ultimate'
+                )
+            then 'CI/CD'
+            when
+                integrated_campaign_grouping in (
+                    'Deliver Better Products Faster',
+                    'DevSecOps Use Case',
+                    'Reduce Security and Compliance Risk',
+                    'Simplify DevOps',
+                    'DevOps GTM',
+                    'Cloud Partner Campaign',
+                    'GitLab 14 webcast',
+                    'Technical Demo Series'
+                )
+            then 'DevOps'
+            when integrated_campaign_grouping = 'GitOps Use Case'
+            then 'GitOps'
+            else null
+        end as gtm_motion
+    from pmg_paid_digital
 
 )
 
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@rkohnke",
-    updated_by="@rkohnke",
-    created_date="2022-01-25",
-    updated_date="2022-02-02"
-) }}
+{{
+    dbt_audit(
+        cte_ref="final",
+        created_by="@rkohnke",
+        updated_by="@rkohnke",
+        created_date="2022-01-25",
+        updated_date="2022-02-02",
+    )
+}}

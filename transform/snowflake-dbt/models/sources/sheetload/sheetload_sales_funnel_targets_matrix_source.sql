@@ -1,29 +1,24 @@
-{{ config(
-    tags=["mnpi"]
-) }}
+{{ config(tags=["mnpi"]) }}
 
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "sales_funnel_targets_matrix") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'sales_funnel_targets_matrix') }}
+        select
+            kpi_name::varchar as kpi_name,
+            month::varchar as month,
+            opportunity_source::varchar as opportunity_source,
+            order_type::varchar as order_type,
+            area::varchar as area,
+            replace(allocated_target, ',', '')::float as allocated_target,
+            user_segment::varchar as user_segment,
+            user_geo::varchar as user_geo,
+            user_region::varchar as user_region,
+            user_area::varchar as user_area,
+            to_timestamp(to_numeric("_UPDATED_AT"))::timestamp as last_updated_at
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      kpi_name::VARCHAR                                   AS kpi_name,
-      month::VARCHAR                                      AS month,
-      opportunity_source::VARCHAR                         AS opportunity_source,
-      order_type::VARCHAR                                 AS order_type,
-      area::VARCHAR                                       AS area,
-      REPLACE(allocated_target, ',', '')::FLOAT           AS allocated_target,
-      user_segment::VARCHAR                               AS user_segment,
-      user_geo::VARCHAR                                   AS user_geo,
-      user_region::VARCHAR                                AS user_region,
-      user_area::VARCHAR                                  AS user_area,
-      TO_TIMESTAMP(TO_NUMERIC("_UPDATED_AT"))::TIMESTAMP  AS last_updated_at
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,99 +1,111 @@
-WITH issues AS (
-  
-    SELECT *
-    FROM {{ ref ('gitlab_dotcom_issues_xf') }}
-    WHERE project_id =16492321 --Recruiting for Open Positions
+with
+    issues as (
 
-), users AS (
+        -- Recruiting for Open Positions
+        select * from {{ ref("gitlab_dotcom_issues_xf") }} where project_id = 16492321
 
-    SELECT *
-    FROM {{ ref ('gitlab_dotcom_users') }}
+    ),
+    users as (select * from {{ ref("gitlab_dotcom_users") }}),
+    assignee as (select * from {{ ref("gitlab_dotcom_issue_assignees") }}),
+    agg_assignee as (
 
-), assignee AS (
+        select
+            issue_id,
+            array_agg(lower(user_name)) within group(order by user_name asc) as assignee
+        from assignee
+        left join users on assignee.user_id = users.user_id
+        group by issue_id
 
-    SELECT *
-    FROM {{ ref ('gitlab_dotcom_issue_assignees') }} 
+    ),
+    intermediate as (
 
-), agg_assignee AS (
+        select
+            issues.issue_title,
+            issues.issue_iid,
+            issues.issue_created_at,
+            date_trunc(week, issue_created_at) as issue_created_week,
+            issues.issue_closed_at,
+            date_trunc(week, issues.issue_closed_at) as issue_closed_week,
+            iff(issue_closed_at is not null, 1, 0) as is_issue_closed,
+            issues.state as issue_state,
+            agg_assignee.assignee,
+            issues.issue_description,
+            split_part(
+                issue_description, '**Weekly Check-In Table**', 2
+            ) as issue_description_split,
+            case
+                when
+                    contains(
+                        issue_description,
+                        '[x] Yes, Diversity Sourcing methods were used'::varchar
+                    )
+                    = true
+                then 'Used Diversity Strings'
+                when
+                    contains(
+                        issue_description,
+                        '[x] No, I did not use Diversity Sourcing methods'::varchar
+                    )
+                    = true
+                then 'Did not use'
+                when
+                    contains(issue_description, '[x] Not Actively Sourcing'::varchar)
+                    = true
+                then 'Not Actively Sourcing'
+                else 'No Answer'
+            end as issue_answer
+        from issues
+        left join agg_assignee on agg_assignee.issue_id = issues.issue_id
+        where
+            lower(issue_title) like '%weekly check-in:%'
+            and lower(issue_title) not like '%test%'
 
-    SELECT
-     issue_id,
-     ARRAY_AGG(LOWER(user_name)) WITHIN GROUP (ORDER BY user_name ASC)  AS assignee
-    FROM assignee
-    LEFT JOIN users
-      ON assignee.user_id = users.user_id 
-    GROUP BY issue_id
+    ),
+    split_issue as (
 
-), intermediate AS (
+        select *
+        from
+            intermediate as splittable,
+            lateral split_to_table(splittable.issue_description_split, '#### <summary>')
+    -- -- splitting by year (numeric values)
+    ),
+    cleaned as (
 
-    SELECT 
-      issues.issue_title,
-      issues.issue_iid,
-      issues.issue_created_at,
-      DATE_TRUNC(week,issue_created_at)                                 AS issue_created_week,
-      issues.issue_closed_at,
-      DATE_TRUNC(week,issues.issue_closed_at)                           AS issue_closed_week,
-      IFF(issue_closed_at IS NOT NULL,1,0)                              AS is_issue_closed,
-      issues.state                                                      AS issue_state,
-      agg_assignee.assignee,
-      issues.issue_description,
-      SPLIT_PART(issue_description, '**Weekly Check-In Table**',2)      AS issue_description_split,
-      CASE
-        WHEN CONTAINS(issue_description, '[x] Yes, Diversity Sourcing methods were used'::VARCHAR) = TRUE
-          THEN 'Used Diversity Strings'
-        WHEN CONTAINS(issue_description, '[x] No, I did not use Diversity Sourcing methods'::VARCHAR) = TRUE
-          THEN 'Did not use'
-        WHEN CONTAINS(issue_description, '[x] Not Actively Sourcing'::VARCHAR) = TRUE
-          THEN 'Not Actively Sourcing'
-        ELSE 'No Answer' 
-      END                                                               AS issue_answer
-    FROM issues
-    LEFT JOIN agg_assignee 
-      ON agg_assignee.issue_id = issues.issue_id
-    WHERE LOWER(issue_title) LIKE '%weekly check-in:%'
-      AND LOWER(issue_title) NOT LIKE '%test%'
-  
-), split_issue AS (
+        select
+            *,
+            left(trim(value), 10) as week_of,
+            case
+                when contains(value, '[x] Yes, Diversity sourcing was used')
+                then 'Yes'
+                when contains(value, '[x] Not actively sourcing')
+                then 'Not Actively Sourcing'
+                when contains(value, '[x] No, Did not use')
+                then 'No'
+                else issue_answer
+            end as used_diversity_string
+        from split_issue
 
-    SELECT *
-    FROM intermediate AS splittable, 
-    LATERAL SPLIT_TO_TABLE(splittable.issue_description_split, '#### <summary>') 
-    ---- splitting by year (numeric values)
+    ),
+    final as (
 
-), cleaned AS (
+        select
+            issue_title,
+            issue_iid,
+            issue_created_at,
+            issue_created_week,
+            issue_closed_at,
+            issue_closed_week,
+            week_of,
+            -- -moved to using 1 issue per req and tracking weeks in issue on
+            -- 2020.11.01
+            is_issue_closed,
+            issue_state,
+            issue_description,
+            assignee,
+            used_diversity_string
+        from cleaned
 
-    SELECT *,
-      LEFT(TRIM(value),10)                                              AS week_of,
-      CASE
-        WHEN CONTAINS(value,'[x] Yes, Diversity sourcing was used')
-          THEN 'Yes'
-        WHEN CONTAINS(value, '[x] Not actively sourcing')
-          THEN 'Not Actively Sourcing'
-        WHEN CONTAINS(value,'[x] No, Did not use')
-          THEN 'No'
-        ELSE issue_answer 
-      END                                                               AS used_diversity_string
-    FROM split_issue
+    )
 
-), final AS (
-
-    SELECT
-      issue_title,
-      issue_iid,
-      issue_created_at,
-      issue_created_week,
-      issue_closed_at,
-      issue_closed_week,
-      week_of,
-      ---moved to using 1 issue per req and tracking weeks in issue on 2020.11.01
-      is_issue_closed,
-      issue_state,
-      issue_description,
-      assignee,
-      used_diversity_string
-    FROM cleaned
-  
-)
-
-SELECT *
-FROM final
+select *
+from final

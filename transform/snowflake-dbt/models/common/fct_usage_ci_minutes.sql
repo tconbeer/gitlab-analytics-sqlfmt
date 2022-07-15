@@ -1,216 +1,264 @@
-WITH project_snapshot_monthly_all AS (
+with
+    project_snapshot_monthly_all as (
 
-    --project_snapshot_monthly 
-    SELECT
-      snapshot_month,
-      project_id,
-      namespace_id,
-      visibility_level,
-      shared_runners_enabled
-    FROM {{ ref('gitlab_dotcom_project_historical_monthly') }}
-    WHERE snapshot_month >= '2020-07-01'
-      AND snapshot_month < DATE_TRUNC('month', CURRENT_DATE)
+        -- project_snapshot_monthly 
+        select
+            snapshot_month,
+            project_id,
+            namespace_id,
+            visibility_level,
+            shared_runners_enabled
+        from {{ ref("gitlab_dotcom_project_historical_monthly") }}
+        where
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
-    UNION ALL
-      
-    --project_current
-    SELECT
-      DATE_TRUNC('month', CURRENT_DATE)                         AS snapshot_month,
-      project_id,
-      namespace_id,
-      visibility_level,
-      shared_runners_enabled
-    FROM {{ ref('gitlab_dotcom_projects_source') }}
-    
-), namespace_lineage_monthly_all AS (
+        union all
 
-    --namespace_lineage_monthly
-    SELECT
-      snapshot_month,
-      namespace_id,
-      parent_id,
-      upstream_lineage,
-      ultimate_parent_id
-    FROM {{ ref('gitlab_dotcom_namespace_lineage_historical_monthly') }}
-    WHERE snapshot_month >= '2020-07-01'
-      AND snapshot_month < DATE_TRUNC('month', CURRENT_DATE)
+        -- project_current
+        select
+            date_trunc('month', current_date) as snapshot_month,
+            project_id,
+            namespace_id,
+            visibility_level,
+            shared_runners_enabled
+        from {{ ref("gitlab_dotcom_projects_source") }}
 
-    UNION ALL
-    
-    --namespace_lineage_current
-    SELECT
-      DATE_TRUNC('month', CURRENT_DATE)                         AS snapshot_month,
-      dim_namespace_id,
-      parent_id,
-      upstream_lineage,
-      ultimate_parent_namespace_id
-    FROM {{ ref('prep_namespace_lineage') }}
+    ),
+    namespace_lineage_monthly_all as (
 
-), namespace_snapshots_monthly_all AS (
+        -- namespace_lineage_monthly
+        select
+            snapshot_month,
+            namespace_id,
+            parent_id,
+            upstream_lineage,
+            ultimate_parent_id
+        from {{ ref("gitlab_dotcom_namespace_lineage_historical_monthly") }}
+        where
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
-    --namespace_snapshots_monthly
-    SELECT
-      snapshot_month,
-      namespace_id,
-      parent_id,
-      owner_id,
-      namespace_type,
-      visibility_level,
-      shared_runners_minutes_limit,
-      extra_shared_runners_minutes_limit
-    FROM {{ ref('gitlab_dotcom_namespace_historical_monthly') }}
-    WHERE snapshot_month >= '2020-07-01'
-      AND snapshot_month < DATE_TRUNC('month', CURRENT_DATE)
+        union all
 
-    UNION ALL
-    
-    --namespace_current
-    SELECT 
-      DATE_TRUNC('month', CURRENT_DATE)                         AS snapshot_month,
-      namespace_id,
-      parent_id,
-      owner_id,
-      namespace_type,
-      visibility_level,
-      shared_runners_minutes_limit,
-      extra_shared_runners_minutes_limit
-    FROM {{ ref('gitlab_dotcom_namespaces_source') }} 
+        -- namespace_lineage_current
+        select
+            date_trunc('month', current_date) as snapshot_month,
+            dim_namespace_id,
+            parent_id,
+            upstream_lineage,
+            ultimate_parent_namespace_id
+        from {{ ref("prep_namespace_lineage") }}
 
-), namespace_statistics_monthly_all AS (
+    ),
+    namespace_snapshots_monthly_all as (
 
-    --namespace_statistics_monthly
-    SELECT 
-      snapshot_month,
-      namespace_id,
-      shared_runners_seconds,
-      shared_runners_seconds_last_reset
-    FROM {{ ref('gitlab_dotcom_namespace_statistics_historical_monthly') }}
-    WHERE snapshot_month >= '2020-07-01'
-      AND snapshot_month < DATE_TRUNC('month', CURRENT_DATE)
+        -- namespace_snapshots_monthly
+        select
+            snapshot_month,
+            namespace_id,
+            parent_id,
+            owner_id,
+            namespace_type,
+            visibility_level,
+            shared_runners_minutes_limit,
+            extra_shared_runners_minutes_limit
+        from {{ ref("gitlab_dotcom_namespace_historical_monthly") }}
+        where
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
-    UNION ALL
+        union all
 
-    --namespace_statistics_current
-    SELECT
-      DATE_TRUNC('month', CURRENT_DATE)                         AS snapshot_month,
-      namespace_id,
-      shared_runners_seconds,
-      shared_runners_seconds_last_reset
-    FROM {{ ref('gitlab_dotcom_namespace_statistics_source') }}
-      
-), child_projects_enabled_shared_runners_any AS (
+        -- namespace_current
+        select
+            date_trunc('month', current_date) as snapshot_month,
+            namespace_id,
+            parent_id,
+            owner_id,
+            namespace_type,
+            visibility_level,
+            shared_runners_minutes_limit,
+            extra_shared_runners_minutes_limit
+        from {{ ref("gitlab_dotcom_namespaces_source") }}
 
-    SELECT
-      project_snapshot_monthly_all.snapshot_month,
-      namespace_lineage_monthly_all.ultimate_parent_id,
-      MAX(project_snapshot_monthly_all.shared_runners_enabled)  AS shared_runners_enabled
-    FROM project_snapshot_monthly_all
-    INNER JOIN namespace_lineage_monthly_all
-      ON project_snapshot_monthly_all.namespace_id = namespace_lineage_monthly_all.namespace_id
-      AND project_snapshot_monthly_all.snapshot_month = namespace_lineage_monthly_all.snapshot_month
-    GROUP BY 1, 2
+    ),
+    namespace_statistics_monthly_all as (
 
-), namespace_statistics_monthly_top_level AS (
+        -- namespace_statistics_monthly
+        select
+            snapshot_month,
+            namespace_id,
+            shared_runners_seconds,
+            shared_runners_seconds_last_reset
+        from {{ ref("gitlab_dotcom_namespace_statistics_historical_monthly") }}
+        where
+            snapshot_month >= '2020-07-01'
+            and snapshot_month < date_trunc('month', current_date)
 
-    SELECT
-      namespace_snapshots_monthly_all.snapshot_month            AS namespace_snapshots_snapshot_month,
-      namespace_snapshots_monthly_all.namespace_id              AS namespace_snapshots_namespace_id,
-      namespace_snapshots_monthly_all.parent_id,
-      namespace_snapshots_monthly_all.owner_id,
-      namespace_snapshots_monthly_all.namespace_type,
-      namespace_snapshots_monthly_all.visibility_level,
-      namespace_snapshots_monthly_all.shared_runners_minutes_limit,
-      namespace_snapshots_monthly_all.extra_shared_runners_minutes_limit,
-      namespace_statistics_monthly_all.snapshot_month            AS namespace_statistics_snapshot_month,
-      namespace_statistics_monthly_all.namespace_id              AS namespace_statistics_namespace_id,
-      namespace_statistics_monthly_all.shared_runners_seconds,
-      namespace_statistics_monthly_all.shared_runners_seconds_last_reset
-    FROM namespace_snapshots_monthly_all
-    LEFT JOIN namespace_statistics_monthly_all
-      ON namespace_snapshots_monthly_all.namespace_id = namespace_statistics_monthly_all.namespace_id
-      AND namespace_snapshots_monthly_all.snapshot_month = namespace_statistics_monthly_all.snapshot_month
-      AND namespace_snapshots_monthly_all.parent_id IS NULL  -- Only top level namespaces
-      
-), ci_minutes_logic AS (
-    
-    SELECT
-      namespace_statistics_monthly_top_level.namespace_snapshots_snapshot_month
-                                                                AS snapshot_month,
-      namespace_statistics_monthly_top_level.namespace_snapshots_namespace_id
-                                                                AS namespace_id,
-      IFNULL(child_projects_enabled_shared_runners_any.ultimate_parent_id,
-             namespace_id)                                      AS ultimate_parent_namespace_id,
-      namespace_statistics_monthly_top_level.namespace_type,
-      namespace_statistics_monthly_top_level.visibility_level,
-      IFNULL(child_projects_enabled_shared_runners_any.shared_runners_enabled,
-             False)                                             AS shared_runners_enabled,
-      IFF(snapshot_month >= '2020-10-01',
-          400, 2000)                                            AS gitlab_current_settings_shared_runners_minutes,
-      IFNULL(namespace_statistics_monthly_top_level.shared_runners_minutes_limit,
-             gitlab_current_settings_shared_runners_minutes)    AS monthly_minutes, 
-      IFNULL(namespace_statistics_monthly_top_level.extra_shared_runners_minutes_limit,
-             0)                                                 AS purchased_minutes,
-      IFNULL(namespace_statistics_monthly_top_level.shared_runners_seconds / 60,
-             0)                                                 AS total_minutes_used,
-      IFF(purchased_minutes = 0
-            OR total_minutes_used < monthly_minutes,
-          0, total_minutes_used - monthly_minutes)              AS purchased_minutes_used,
-      total_minutes_used - purchased_minutes_used               AS monthly_minutes_used,    
-      IFF(shared_runners_enabled
-            AND monthly_minutes != 0,
-          True, False)                                          AS shared_runners_minutes_limit_enabled,
-      CASE 
-        WHEN shared_runners_minutes_limit_enabled
-          THEN monthly_minutes::VARCHAR
-        WHEN monthly_minutes = 0
-          THEN 'Unlimited minutes'
-        ELSE 'Not supported minutes'
-      END                                                       AS limit,
-      IFF(monthly_minutes != 0,
-          monthly_minutes, NULL)                                AS limit_based_plan,
-      CASE
-        WHEN NOT shared_runners_minutes_limit_enabled
-          THEN 'Disabled'
-        WHEN monthly_minutes_used < monthly_minutes
-          THEN 'Under Quota'
-        ELSE 'Over Quota'
-      END                                                       AS status,
-      IFF(monthly_minutes_used < monthly_minutes
-            OR monthly_minutes = 0,
-          'Under Quota', 'Over Quota')                          AS status_based_plan,
-      IFF(purchased_minutes_used <= purchased_minutes
-            OR NOT shared_runners_minutes_limit_enabled,
-          'Under Quota', 'Over Quota')                          AS status_purchased
-    FROM namespace_statistics_monthly_top_level
-    LEFT JOIN child_projects_enabled_shared_runners_any
-      ON namespace_statistics_monthly_top_level.namespace_snapshots_namespace_id = child_projects_enabled_shared_runners_any.ultimate_parent_id
-      AND namespace_statistics_monthly_top_level.namespace_snapshots_snapshot_month = child_projects_enabled_shared_runners_any.snapshot_month
+        union all
 
-), final AS (
+        -- namespace_statistics_current
+        select
+            date_trunc('month', current_date) as snapshot_month,
+            namespace_id,
+            shared_runners_seconds,
+            shared_runners_seconds_last_reset
+        from {{ ref("gitlab_dotcom_namespace_statistics_source") }}
 
-    SELECT
-      snapshot_month,
-      namespace_id                                              AS dim_namespace_id,
-      ultimate_parent_namespace_id,
-      namespace_type,
-      visibility_level, 
-      limit,
-      total_minutes_used                                        AS shared_runners_minutes_used_overall,  
-      status,
-      limit_based_plan,
-      monthly_minutes_used                                      AS used,
-      status_based_plan,
-      purchased_minutes                                         AS limit_purchased,
-      purchased_minutes_used                                    AS used_purchased, 
-      status_purchased
-    FROM ci_minutes_logic
+    ),
+    child_projects_enabled_shared_runners_any as (
 
-)
+        select
+            project_snapshot_monthly_all.snapshot_month,
+            namespace_lineage_monthly_all.ultimate_parent_id,
+            max(
+                project_snapshot_monthly_all.shared_runners_enabled
+            ) as shared_runners_enabled
+        from project_snapshot_monthly_all
+        inner join
+            namespace_lineage_monthly_all
+            on project_snapshot_monthly_all.namespace_id
+            = namespace_lineage_monthly_all.namespace_id
+            and project_snapshot_monthly_all.snapshot_month
+            = namespace_lineage_monthly_all.snapshot_month
+        group by 1, 2
 
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@ischweickartDD",
-    updated_by="@ischweickartDD",
-    created_date="2020-12-31",
-    updated_date="2021-06-17"
-) }}
+    ),
+    namespace_statistics_monthly_top_level as (
+
+        select
+            namespace_snapshots_monthly_all.snapshot_month
+            as namespace_snapshots_snapshot_month,
+            namespace_snapshots_monthly_all.namespace_id
+            as namespace_snapshots_namespace_id,
+            namespace_snapshots_monthly_all.parent_id,
+            namespace_snapshots_monthly_all.owner_id,
+            namespace_snapshots_monthly_all.namespace_type,
+            namespace_snapshots_monthly_all.visibility_level,
+            namespace_snapshots_monthly_all.shared_runners_minutes_limit,
+            namespace_snapshots_monthly_all.extra_shared_runners_minutes_limit,
+            namespace_statistics_monthly_all.snapshot_month
+            as namespace_statistics_snapshot_month,
+            namespace_statistics_monthly_all.namespace_id
+            as namespace_statistics_namespace_id,
+            namespace_statistics_monthly_all.shared_runners_seconds,
+            namespace_statistics_monthly_all.shared_runners_seconds_last_reset
+        from namespace_snapshots_monthly_all
+        left join
+            namespace_statistics_monthly_all
+            on namespace_snapshots_monthly_all.namespace_id
+            = namespace_statistics_monthly_all.namespace_id
+            and namespace_snapshots_monthly_all.snapshot_month
+            = namespace_statistics_monthly_all.snapshot_month
+            -- Only top level namespaces
+            and namespace_snapshots_monthly_all.parent_id is null
+
+    ),
+    ci_minutes_logic as (
+
+        select
+            namespace_statistics_monthly_top_level.namespace_snapshots_snapshot_month
+            as snapshot_month,
+            namespace_statistics_monthly_top_level.namespace_snapshots_namespace_id
+            as namespace_id,
+            ifnull(
+                child_projects_enabled_shared_runners_any.ultimate_parent_id,
+                namespace_id
+            ) as ultimate_parent_namespace_id,
+            namespace_statistics_monthly_top_level.namespace_type,
+            namespace_statistics_monthly_top_level.visibility_level,
+            ifnull(
+                child_projects_enabled_shared_runners_any.shared_runners_enabled, false
+            ) as shared_runners_enabled,
+            iff(
+                snapshot_month >= '2020-10-01', 400, 2000
+            ) as gitlab_current_settings_shared_runners_minutes,
+            ifnull(
+                namespace_statistics_monthly_top_level.shared_runners_minutes_limit,
+                gitlab_current_settings_shared_runners_minutes
+            ) as monthly_minutes,
+            ifnull(
+                namespace_statistics_monthly_top_level.extra_shared_runners_minutes_limit,
+                0
+            ) as purchased_minutes,
+            ifnull(
+                namespace_statistics_monthly_top_level.shared_runners_seconds / 60, 0
+            ) as total_minutes_used,
+            iff(
+                purchased_minutes = 0 or total_minutes_used < monthly_minutes,
+                0,
+                total_minutes_used - monthly_minutes
+            ) as purchased_minutes_used,
+            total_minutes_used - purchased_minutes_used as monthly_minutes_used,
+            iff(
+                shared_runners_enabled and monthly_minutes != 0, true, false
+            ) as shared_runners_minutes_limit_enabled,
+            case
+                when shared_runners_minutes_limit_enabled
+                then monthly_minutes::varchar
+                when monthly_minutes = 0
+                then 'Unlimited minutes'
+                else 'Not supported minutes'
+            end as
+        limit
+            ,
+            iff(monthly_minutes != 0, monthly_minutes, null) as limit_based_plan,
+            case
+                when not shared_runners_minutes_limit_enabled
+                then 'Disabled'
+                when monthly_minutes_used < monthly_minutes
+                then 'Under Quota'
+                else 'Over Quota'
+            end as status,
+            iff(
+                monthly_minutes_used < monthly_minutes or monthly_minutes = 0,
+                'Under Quota',
+                'Over Quota'
+            ) as status_based_plan,
+            iff(
+                purchased_minutes_used <= purchased_minutes
+                or not shared_runners_minutes_limit_enabled,
+                'Under Quota',
+                'Over Quota'
+            ) as status_purchased
+        from namespace_statistics_monthly_top_level
+        left join
+            child_projects_enabled_shared_runners_any
+            on namespace_statistics_monthly_top_level.namespace_snapshots_namespace_id
+            = child_projects_enabled_shared_runners_any.ultimate_parent_id
+            and namespace_statistics_monthly_top_level.namespace_snapshots_snapshot_month
+            = child_projects_enabled_shared_runners_any.snapshot_month
+
+    ),
+    final as (
+
+        select
+            snapshot_month,
+            namespace_id as dim_namespace_id,
+            ultimate_parent_namespace_id,
+            namespace_type,
+            visibility_level,
+        limit
+            ,
+            total_minutes_used as shared_runners_minutes_used_overall,
+            status,
+            limit_based_plan,
+            monthly_minutes_used as used,
+            status_based_plan,
+            purchased_minutes as limit_purchased,
+            purchased_minutes_used as used_purchased,
+            status_purchased
+        from ci_minutes_logic
+
+    )
+
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@ischweickartDD",
+            updated_by="@ischweickartDD",
+            created_date="2020-12-31",
+            updated_date="2021-06-17",
+        )
+    }}

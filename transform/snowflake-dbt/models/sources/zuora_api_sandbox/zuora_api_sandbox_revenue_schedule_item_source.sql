@@ -1,39 +1,40 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('zuora_api_sandbox', 'revenue_schedule_item') }}
+        select * from {{ source("zuora_api_sandbox", "revenue_schedule_item") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      --Primary Keys
-      id::VARCHAR                           AS revenue_schedule_item_id,
+        select
+            -- Primary Keys
+            id::varchar as revenue_schedule_item_id,
 
-      --Foreign Keys
-      accountid::VARCHAR                    AS account_id,
-      parentaccountid::VARCHAR              AS parent_account_id,
-      accountingperiodid::VARCHAR           AS accounting_period_id,
-      amendmentid::VARCHAR                  AS amendment_id,
-      subscriptionid::VARCHAR               AS subscription_id,
-      productid::VARCHAR                    AS product_id,
-      rateplanchargeid::VARCHAR             AS rate_plan_charge_id,
-      rateplanid::VARCHAR                   AS rate_plan_id,
-      soldtocontactid::VARCHAR              AS sold_to_contact_id,
+            -- Foreign Keys
+            accountid::varchar as account_id,
+            parentaccountid::varchar as parent_account_id,
+            accountingperiodid::varchar as accounting_period_id,
+            amendmentid::varchar as amendment_id,
+            subscriptionid::varchar as subscription_id,
+            productid::varchar as product_id,
+            rateplanchargeid::varchar as rate_plan_charge_id,
+            rateplanid::varchar as rate_plan_id,
+            soldtocontactid::varchar as sold_to_contact_id,
 
-      --Info
-      amount::FLOAT                         AS revenue_schedule_item_amount,
-      billtocontactid::VARCHAR              AS bill_to_contact_id,
-      currency::VARCHAR                     AS currency,
-      createdbyid::VARCHAR                  AS created_by_id,
-      createddate::TIMESTAMP_TZ             AS created_date,
-      defaultpaymentmethodid::VARCHAR       AS default_payment_method_id,
-      deleted::BOOLEAN                      AS is_deleted,
-      updatedbyid::VARCHAR                  AS updated_by_id,
-      updateddate::TIMESTAMP_TZ             AS updated_date
+            -- Info
+            amount::float as revenue_schedule_item_amount,
+            billtocontactid::varchar as bill_to_contact_id,
+            currency::varchar as currency,
+            createdbyid::varchar as created_by_id,
+            createddate::timestamp_tz as created_date,
+            defaultpaymentmethodid::varchar as default_payment_method_id,
+            deleted::boolean as is_deleted,
+            updatedbyid::varchar as updated_by_id,
+            updateddate::timestamp_tz as updated_date
 
-      FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

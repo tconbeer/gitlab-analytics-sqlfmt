@@ -1,77 +1,83 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-{{config({
-    "materialized": "table"
-  })
-}}
+{{ config({"materialized": "table"}) }}
 
-{{ simple_cte([
-    ('pi_targets', 'performance_indicators_yaml_historical'),
-    ('dim_date', 'dim_date'),
-    ])
+{{
+    simple_cte(
+        [
+            ("pi_targets", "performance_indicators_yaml_historical"),
+            ("dim_date", "dim_date"),
+        ]
+    )
+}},
+first_day_of_month as (
 
-}}
-, first_day_of_month AS (
+    select distinct first_day_of_month as reporting_month from dim_date
 
-    SELECT DISTINCT first_day_of_month                                        AS reporting_month
-    FROM dim_date
+),
+most_recent_yml_record as (
+    -- just grabs the most recent record of each metrics_path that dont have a null
+    -- estimated target
+    select *
+    from pi_targets
+    where pi_monthly_estimated_targets is not null
+    qualify
+        row_number() over (partition by pi_metric_name order by snapshot_date desc) = 1
 
-), most_recent_yml_record AS (
-    -- just grabs the most recent record of each metrics_path that dont have a null estimated target
-    SELECT *
-    FROM pi_targets
-    WHERE pi_monthly_estimated_targets IS NOT NULL
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY pi_metric_name ORDER BY snapshot_date DESC) = 1
+),
+flattened_monthly_targets as (
+    -- flatten the json record from the yml file to get the target value and end month
+    -- for each key:value pair
+    select
+        pi_metric_name, parse_json(d.path) [0]::timestamp as target_end_month, d.value
+    from
+        most_recent_yml_record,
+        lateral flatten(
+            input => parse_json(pi_monthly_estimated_targets), outer => true
+        ) d
 
-) , flattened_monthly_targets AS (
-    -- flatten the json record from the yml file to get the target value and end month for each key:value pair
-    SELECT
-        pi_metric_name,
-        PARSE_JSON(d.path)[0]::TIMESTAMP                                      AS target_end_month,
-        d.value
-    FROM most_recent_yml_record,
-    LATERAL FLATTEN(INPUT => parse_json(pi_monthly_estimated_targets), OUTER => TRUE) d
-
-), monthly_targets_with_intervals AS (
-    -- Calculate the reporting intervals for the pi_metric_name. Each row will have a start and end date
-    SELECT
-      *,
-      -- check if the row above the current row has a target_end_date:
+),
+monthly_targets_with_intervals as (
+    -- Calculate the reporting intervals for the pi_metric_name. Each row will have a
+    -- start and end date
+    select
+        *,
+        -- check if the row above the current row has a target_end_date:
         -- TRUE: then the start month = target_end_date from previous ROW_NUMBER
         -- FALSE: then make the start_month a year ago from TODAY
-      COALESCE(
-          LAG(target_end_month) OVER (PARTITION BY 1 ORDER BY target_end_month),
-          DATEADD('month', -12, CURRENT_DATE)
-              )                                                               AS target_start_month
-    FROM flattened_monthly_targets
+        coalesce(
+            lag(target_end_month) over (partition by 1 order by target_end_month),
+            dateadd('month', -12, current_date)
+        ) as target_start_month
+    from flattened_monthly_targets
 
-), final_targets as (
+),
+final_targets as (
     -- join each metric_name and value to the reporting_month it corresponds WITH
-    -- join IF reporting_month greater than metric start_month and reporting_month less than or equal to the target end month/ CURRENT_DATE
-    SELECT
-        {{ dbt_utils.surrogate_key(['reporting_month', 'pi_metric_name']) }}  AS fct_performance_indicator_targets_id,
+    -- join IF reporting_month greater than metric start_month and reporting_month
+    -- less than or equal to the target end month/ CURRENT_DATE
+    select
+        {{ dbt_utils.surrogate_key(["reporting_month", "pi_metric_name"]) }}
+        as fct_performance_indicator_targets_id,
         reporting_month,
         pi_metric_name,
-        value                                                                 AS target_value
-    FROM first_day_of_month
-    INNER JOIN monthly_targets_with_intervals
-    WHERE reporting_month > target_start_month
-        AND reporting_month <= COALESCE(target_end_month, CURRENT_DATE)
+        value as target_value
+    from first_day_of_month
+    inner join monthly_targets_with_intervals
+    where
+        reporting_month > target_start_month
+        and reporting_month <= coalesce(target_end_month, current_date)
 
-), results AS (
-
-    SELECT *
-    FROM final_targets
-
-)
+),
+results as (select * from final_targets)
 
 
-{{ dbt_audit(
-    cte_ref="results",
-    created_by="@dihle",
-    updated_by="@dihle",
-    created_date="2022-04-20",
-    updated_date="2022-04-20"
-) }}
+{{
+    dbt_audit(
+        cte_ref="results",
+        created_by="@dihle",
+        updated_by="@dihle",
+        created_date="2022-04-20",
+        updated_date="2022-04-20",
+    )
+}}

@@ -1,38 +1,37 @@
-{{ config({
-    "alias": "customers_db_orders_snapshots"
-    })
-}}
+{{ config({"alias": "customers_db_orders_snapshots"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('snapshots', 'customers_db_orders_snapshots') }}
+        select * from {{ source("snapshots", "customers_db_orders_snapshots") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT 
-      dbt_scd_id::VARCHAR                                     AS order_snapshot_id,
-      id::NUMBER                                              AS order_id,
-      customer_id::NUMBER                                     AS customer_id,
-      product_rate_plan_id::VARCHAR                           AS product_rate_plan_id,
-      subscription_id::VARCHAR                                AS subscription_id,
-      subscription_name::VARCHAR                              AS subscription_name,
-      {{zuora_slugify("subscription_name")}}::VARCHAR         AS subscription_name_slugify,
-      start_date::TIMESTAMP                                   AS order_start_date,
-      end_date::TIMESTAMP                                     AS order_end_date,
-      quantity::NUMBER                                        AS order_quantity,
-      created_at::TIMESTAMP                                   AS order_created_at,
-      updated_at::TIMESTAMP                                   AS order_updated_at,
-      TRY_TO_DECIMAL(NULLIF(gl_namespace_id, ''))::VARCHAR    AS gitlab_namespace_id,
-      NULLIF(gl_namespace_name, '')::VARCHAR                  AS gitlab_namespace_name,
-      amendment_type::VARCHAR                                 AS amendment_type,
-      trial::BOOLEAN                                          AS order_is_trial,
-      last_extra_ci_minutes_sync_at::TIMESTAMP                AS last_extra_ci_minutes_sync_at,
-      "DBT_VALID_FROM"::TIMESTAMP                             AS valid_from,
-      "DBT_VALID_TO"::TIMESTAMP                               AS valid_to
-    FROM source
+        select
+            dbt_scd_id::varchar as order_snapshot_id,
+            id::number as order_id,
+            customer_id::number as customer_id,
+            product_rate_plan_id::varchar as product_rate_plan_id,
+            subscription_id::varchar as subscription_id,
+            subscription_name::varchar as subscription_name,
+            {{ zuora_slugify("subscription_name") }}::varchar
+            as subscription_name_slugify,
+            start_date::timestamp as order_start_date,
+            end_date::timestamp as order_end_date,
+            quantity::number as order_quantity,
+            created_at::timestamp as order_created_at,
+            updated_at::timestamp as order_updated_at,
+            try_to_decimal(nullif(gl_namespace_id, ''))::varchar as gitlab_namespace_id,
+            nullif(gl_namespace_name, '')::varchar as gitlab_namespace_name,
+            amendment_type::varchar as amendment_type,
+            trial::boolean as order_is_trial,
+            last_extra_ci_minutes_sync_at::timestamp as last_extra_ci_minutes_sync_at,
+            "DBT_VALID_FROM"::timestamp as valid_from,
+            "DBT_VALID_TO"::timestamp as valid_to
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

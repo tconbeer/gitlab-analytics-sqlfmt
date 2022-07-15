@@ -1,107 +1,120 @@
 -- depends_on: {{ ref('zuora_excluded_accounts') }}
+with
+    source as (select * from {{ source("snapshots", "zuora_subscription_snapshots") }}),
+    renamed as (
 
-WITH source AS (
+        select
+            id as subscription_id,
+            subscriptionversionamendmentid as amendment_id,
+            name as subscription_name,
+            {{ zuora_slugify("name") }} as subscription_name_slugify,
+            -- keys
+            accountid as account_id,
+            creatoraccountid as creator_account_id,
+            creatorinvoiceownerid as creator_invoice_owner_id,
+            invoiceownerid as invoice_owner_id,
+            nullif(opportunityid__c, '') as sfdc_opportunity_id,
+            nullif(originalid, '') as original_id,
+            nullif(previoussubscriptionid, '') as previous_subscription_id,
+            nullif(recurlyid__c, '') as sfdc_recurly_id,
+            cpqbundlejsonid__qt as cpq_bundle_json_id,
 
-    SELECT *
-    FROM {{ source('snapshots', 'zuora_subscription_snapshots') }}
+            -- info
+            status as subscription_status,
+            autorenew as auto_renew_native_hist,
+            autorenew__c as auto_renew_customerdot_hist,
+            version as version,
+            termtype as term_type,
+            notes as notes,
+            isinvoiceseparate as is_invoice_separate,
+            currentterm as current_term,
+            currenttermperiodtype as current_term_period_type,
+            endcustomerdetails__c as sfdc_end_customer_details,
+            eoastarterbronzeofferaccepted__c as eoa_starter_bronze_offer_accepted,
 
-), renamed AS (
+            -- Supersonics fields
+            iff(
+                length(trim(turnoncloudlicensing__c)) > 0, turnoncloudlicensing__c, null
+            ) as turn_on_cloud_licensing,
+            -- turnonusagepingrequiredmetrics__c           AS
+            -- turn_on_usage_ping_required_metrics,
+            iff(
+                length(trim(turnonoperationalmetrics__c)) > 0,
+                turnonoperationalmetrics__c,
+                null
+            ) as turn_on_operational_metrics,
+            iff(
+                length(trim(contractoperationalmetrics__c)) > 0,
+                contractoperationalmetrics__c,
+                null
+            ) as contract_operational_metrics,
+            iff(
+                length(trim(contractautorenew__c)) > 0, contractautorenew__c, null
+            ) as contract_auto_renewal,
+            iff(
+                length(trim(turnonautorenew__c)) > 0, turnonautorenew__c, null
+            ) as turn_on_auto_renewal,
+            iff(
+                length(trim(contractseatreconciliation__c)) > 0,
+                contractseatreconciliation__c,
+                null
+            ) as contract_seat_reconciliation,
+            iff(
+                length(trim(turnonseatreconciliation__c)) > 0,
+                turnonseatreconciliation__c,
+                null
+            ) as turn_on_seat_reconciliation,
 
-    SELECT
-      id                                          AS subscription_id,
-      subscriptionversionamendmentid              AS amendment_id,
-      name                                        AS subscription_name,
-        {{zuora_slugify("name")}}                 AS subscription_name_slugify,
-      --keys
-      accountid                                   AS account_id,
-      creatoraccountid                            AS creator_account_id,
-      creatorinvoiceownerid                       AS creator_invoice_owner_id,
-      invoiceownerid                              AS invoice_owner_id,
-      nullif(opportunityid__c, '')                AS sfdc_opportunity_id,
-      nullif(originalid, '')                      AS original_id,
-      nullif(previoussubscriptionid, '')          AS previous_subscription_id,
-      nullif(recurlyid__c, '')                    AS sfdc_recurly_id,
-      cpqbundlejsonid__qt                         AS cpq_bundle_json_id,
+            -- key_dates
+            cancelleddate as cancelled_date,
+            contractacceptancedate as contract_acceptance_date,
+            contracteffectivedate as contract_effective_date,
+            initialterm as initial_term,
+            initialtermperiodtype as initial_term_period_type,
+            termenddate as term_end_date,
+            termstartdate as term_start_date,
+            subscriptionenddate as subscription_end_date,
+            subscriptionstartdate as subscription_start_date,
+            serviceactivationdate as service_activiation_date,
+            opportunityclosedate__qt as opportunity_close_date,
+            originalcreateddate as original_created_date,
 
-      -- info
-      status                                      AS subscription_status,
-      autorenew                                   AS auto_renew_native_hist,
-      autorenew__c                                AS auto_renew_customerdot_hist,
-      version                                     AS version,
-      termtype                                    AS term_type,
-      notes                                       AS notes,
-      isinvoiceseparate                           AS is_invoice_separate,
-      currentterm                                 AS current_term,
-      currenttermperiodtype                       AS current_term_period_type,
-      endcustomerdetails__c                       AS sfdc_end_customer_details,
-      eoastarterbronzeofferaccepted__c            AS eoa_starter_bronze_offer_accepted,
+            -- foreign synced info
+            opportunityname__qt as opportunity_name,
+            purchase_order__c as sfdc_purchase_order,
+            -- purchaseorder__c                            AS sfdc_purchase_order_,
+            quotebusinesstype__qt as quote_business_type,
+            quotenumber__qt as quote_number,
+            quotetype__qt as quote_type,
 
-      --Supersonics fields
-      IFF(LENGTH(TRIM(turnoncloudlicensing__c)) > 0, turnoncloudlicensing__c, NULL)
-                                                  AS turn_on_cloud_licensing,
-      -- turnonusagepingrequiredmetrics__c           AS turn_on_usage_ping_required_metrics,
-      IFF(LENGTH(TRIM(turnonoperationalmetrics__c)) > 0, turnonoperationalmetrics__c, NULL)
-                                                  AS turn_on_operational_metrics,
-      IFF(LENGTH(TRIM(contractoperationalmetrics__c)) > 0, contractoperationalmetrics__c, NULL)
-                                                  AS contract_operational_metrics,
-      IFF(LENGTH(TRIM(contractautorenew__c)) > 0, contractautorenew__c, NULL)
-                                                  AS contract_auto_renewal,
-      IFF(LENGTH(TRIM(turnonautorenew__c)) > 0, turnonautorenew__c, NULL)
-                                                  AS turn_on_auto_renewal,
-      IFF(LENGTH(TRIM(contractseatreconciliation__c)) > 0, contractseatreconciliation__c, NULL)
-                                                  AS contract_seat_reconciliation,
-      IFF(LENGTH(TRIM(turnonseatreconciliation__c)) > 0, turnonseatreconciliation__c, NULL)
-                                                  AS turn_on_seat_reconciliation,
+            -- renewal info
+            renewalsetting as renewal_setting,
+            renewal_subscription__c__c as zuora_renewal_subscription_name,
 
-      --key_dates
-      cancelleddate                               AS cancelled_date,
-      contractacceptancedate                      AS contract_acceptance_date,
-      contracteffectivedate                       AS contract_effective_date,
-      initialterm                                 AS initial_term,
-      initialtermperiodtype                       AS initial_term_period_type,
-      termenddate                                 AS term_end_date,
-      termstartdate                               AS term_start_date,
-      subscriptionenddate                         AS subscription_end_date,
-      subscriptionstartdate                       AS subscription_start_date,
-      serviceactivationdate                       AS service_activiation_date,
-      opportunityclosedate__qt                    AS opportunity_close_date,
-      originalcreateddate                         AS original_created_date,
+            split(
+                nullif({{ zuora_slugify("renewal_subscription__c__c") }}, ''), '|'
+            ) as zuora_renewal_subscription_name_slugify,
+            renewalterm as renewal_term,
+            renewaltermperiodtype as renewal_term_period_type,
+            exclude_from_renewal_report__c__c as exclude_from_renewal_report,
 
-      --foreign synced info
-      opportunityname__qt                         AS opportunity_name,
-      purchase_order__c                           AS sfdc_purchase_order,
-      --purchaseorder__c                            AS sfdc_purchase_order_,
-      quotebusinesstype__qt                       AS quote_business_type,
-      quotenumber__qt                             AS quote_number,
-      quotetype__qt                               AS quote_type,
+            -- metadata
+            updatedbyid as updated_by_id,
+            updateddate as updated_date,
+            createdbyid as created_by_id,
+            createddate as created_date,
+            deleted as is_deleted,
+            excludefromanalysis__c as exclude_from_analysis,
 
-      --renewal info
-      renewalsetting                              AS renewal_setting,
-      renewal_subscription__c__c                  AS zuora_renewal_subscription_name,
+            -- snapshot metadata
+            dbt_scd_id,
+            dbt_updated_at,
+            dbt_valid_from,
+            dbt_valid_to
 
-      split(nullif({{zuora_slugify("renewal_subscription__c__c")}}, ''), '|')
-                                                  AS zuora_renewal_subscription_name_slugify,
-      renewalterm                                 AS renewal_term,
-      renewaltermperiodtype                       AS renewal_term_period_type,
-      exclude_from_renewal_report__c__c           AS exclude_from_renewal_report,
+        from source
 
-      --metadata
-      updatedbyid                                 AS updated_by_id,
-      updateddate                                 AS updated_date,
-      createdbyid                                 AS created_by_id,
-      createddate                                 AS created_date,
-      deleted                                     AS is_deleted,
-      excludefromanalysis__c                      AS exclude_from_analysis,
+    )
 
-      -- snapshot metadata
-      dbt_scd_id,
-      dbt_updated_at,
-      dbt_valid_from,
-      dbt_valid_to
-
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

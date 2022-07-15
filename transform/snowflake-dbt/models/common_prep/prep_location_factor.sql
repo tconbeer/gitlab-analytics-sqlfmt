@@ -1,87 +1,136 @@
-  WITH source AS (
+with
+    source as (select * from {{ ref("location_factors_yaml_flatten_source") }}),
+    organized as (
 
-    SELECT *
-    FROM {{ ref('location_factors_yaml_flatten_source') }}
+        select
+            valid_from,
+            valid_to,
+            is_current,
+            country_level_1 as country,
+            -- Idenitfy type based on where the data is from the flattend structure.
+            case
+                when area_level_1 is not null
+                then 'type_1'
+                when states_or_provinces_metro_areas_name_level_2 is not null
+                then 'type_2'
+                when metro_areas_sub_location_level_2 is not null
+                then 'type_3'
+                when
+                    states_or_provinces_metro_areas_name_level_2 is null
+                    and states_or_provinces_name_level_2 is not null
+                then 'type_4'
+                when
+                    metro_areas_sub_location_level_2 is null
+                    and metro_areas_name_level_2 is not null
+                then 'type_5'
+                else 'type_6'
+            end as type,
+            case
+                type
+                when 'type_1'
+                then area_level_1
+                when 'type_2'
+                then
+                    states_or_provinces_metro_areas_name_level_2
+                    || ', '
+                    || states_or_provinces_name_level_2
+                when 'type_3'
+                then
+                    metro_areas_name_level_2 || ', ' || metro_areas_sub_location_level_2
+                when 'type_4'
+                then states_or_provinces_name_level_2
+                when 'type_5'
+                then metro_areas_name_level_2
+                else null
+            end as area_raw,
+            listagg(distinct area_raw, ',') over (partition by country) as area_list,
+            -- Prefer All to Everyere else for areas without as it is what is currentl
+            -- added in the application.
+            case
+                when contains(area_list, 'All')
+                then 'All'
+                when contains(area_list, 'Everywhere else')
+                then 'Everywhere else'
+                else null
+            end as other_area,
+            -- Cleaning basic spelling erros in the source data and apply a derived
+            -- area prefix if there is none.
+            case
+                when area_raw is null
+                then other_area
+                when contains(area_raw, 'Zurig')
+                then regexp_replace(area_raw, 'Zurig', 'Zurich')
+                when contains(area_raw, 'Edinbugh')
+                then regexp_replace(area_raw, 'Edinbugh', 'Edinburgh')
+                else area_raw
+            end as area_clean,
+            -- Adjusting factor to match what is found in the geozone source data
+            coalesce(
+                states_or_provinces_metro_areas_factor_level_2,
+                states_or_provinces_factor_level_2,
+                metro_areas_factor_level_2,
+                factor_level_1,
+                locationfactor_level_1
+            )
+            * 0.01 as factor
+        from source
 
-), organized AS (
+    ),
+    grouping as (
 
-    SELECT
-      valid_from,
-      valid_to,
-      is_current,
-      country_level_1                                                                     AS country,
-      -- Idenitfy type based on where the data is from the flattend structure.
-      CASE
-        WHEN area_level_1 IS NOT NULL THEN 'type_1'
-        WHEN states_or_provinces_metro_areas_name_level_2 IS NOT NULL THEN 'type_2'
-        WHEN metro_areas_sub_location_level_2 IS NOT NULL THEN 'type_3'
-        WHEN states_or_provinces_metro_areas_name_level_2 IS NULL AND states_or_provinces_name_level_2 IS NOT NULL
-          THEN 'type_4'
-        WHEN metro_areas_sub_location_level_2 IS NULL AND metro_areas_name_level_2 IS NOT NULL THEN 'type_5'
-        ELSE 'type_6'
-      END                                                                                 AS type,
-      CASE type
-        WHEN 'type_1' THEN area_level_1
-        WHEN 'type_2' THEN states_or_provinces_metro_areas_name_level_2 || ', ' || states_or_provinces_name_level_2
-        WHEN 'type_3' THEN metro_areas_name_level_2 || ', ' || metro_areas_sub_location_level_2
-        WHEN 'type_4' THEN states_or_provinces_name_level_2
-        WHEN 'type_5' THEN metro_areas_name_level_2
-        ELSE NULL
-      END                                                                                 AS area_raw,
-      LISTAGG(DISTINCT area_raw, ',') OVER (PARTITION BY country)                         AS area_list,
-      -- Prefer All to Everyere else for areas without as it is what is currentl added in the application.
-      CASE
-        WHEN CONTAINS(area_list, 'All') THEN 'All'
-        WHEN CONTAINS(area_list, 'Everywhere else') THEN 'Everywhere else'
-        ELSE NULL
-      END                                                                                 AS other_area,
-      -- Cleaning basic spelling erros in the source data and apply a derived area prefix if there is none.
-      CASE
-        WHEN area_raw IS NULL THEN other_area
-        WHEN contains(area_raw,'Zurig') THEN regexp_replace(area_raw,'Zurig','Zurich')
-        WHEN contains(area_raw,'Edinbugh') THEN regexp_replace(area_raw,'Edinbugh','Edinburgh')
-        ELSE area_raw
-      END                                                                                 AS area_clean,
-      -- Adjusting factor to match what is found in the geozone source data
-      COALESCE(states_or_provinces_metro_areas_factor_level_2, states_or_provinces_factor_level_2,
-               metro_areas_factor_level_2, factor_level_1, locationfactor_level_1) * 0.01 AS factor
-    FROM source
-
-), grouping AS (
-
-    SELECT
-      country,
-      area_clean                                                                                    AS area,
-      area || ', ' || country                                                                       AS locality,
-      factor,
-      valid_from,
-      valid_to,
-      is_current,
-      /* Filling in NULLs with a value for the inequality check in the next step of the gaps and islands problem
+        select
+            country,
+            area_clean as area,
+            area || ', ' || country as locality,
+            factor,
+            valid_from,
+            valid_to,
+            is_current,
+            /* Filling in NULLs with a value for the inequality check in the next step of the gaps and islands problem
       (finding groups based on when the factor changes and not just the value of the factor)
       */
-      LAG(factor, 1, 0) OVER (PARTITION BY locality ORDER BY valid_from)                            AS lag_factor,
-      CONDITIONAL_TRUE_EVENT(factor != lag_factor) OVER (PARTITION BY locality ORDER BY valid_from) AS locality_group,
-      LEAD(valid_from,1) OVER (PARTITION BY locality ORDER BY valid_from)                           AS next_entry
-    FROM organized
+            lag(factor, 1, 0) over (
+                partition by locality order by valid_from
+            ) as lag_factor,
+            conditional_true_event(factor != lag_factor) over (
+                partition by locality order by valid_from
+            ) as locality_group,
+            lead(valid_from, 1) over (
+                partition by locality order by valid_from
+            ) as next_entry
+        from organized
 
-), final AS (
+    ),
+    final as (
 
-    SELECT DISTINCT
-      country                                                                                           AS location_factor_country,
-      area                                                                                              AS location_factor_area,
-      locality,
-      factor                                                                                            AS location_factor,
-      MIN(valid_from) OVER (PARTITION BY locality,locality_group)::DATE                                 AS first_file_date,
-      MAX(valid_to) OVER (PARTITION BY locality,locality_group)::DATE                                   AS last_file_date,
-      -- Fixed date represents when location factor becan to be collected in source data.
-      IFF(locality_group = 1, LEAST('2020-03-24',first_file_date),first_file_date)                      AS valid_from,
-      MAX(COALESCE(next_entry,{{ var('tomorrow') }})) OVER (PARTITION BY locality,locality_group)::DATE AS valid_to,
-      BOOLOR_AGG(is_current) OVER (PARTITION BY locality,locality_group)                                AS is_current_file
-    FROM grouping
-    WHERE factor IS NOT NULL
+        select distinct
+            country as location_factor_country,
+            area as location_factor_area,
+            locality,
+            factor as location_factor,
+            min(valid_from) over (
+                partition by locality, locality_group
+            )::date as first_file_date,
+            max(valid_to) over (
+                partition by locality, locality_group
+            )::date as last_file_date,
+            -- Fixed date represents when location factor becan to be collected in
+            -- source data.
+            iff(
+                locality_group = 1,
+                least('2020-03-24', first_file_date),
+                first_file_date
+            ) as valid_from,
+            max(coalesce(next_entry,{{ var("tomorrow") }})) over (
+                partition by locality, locality_group
+            )::date as valid_to,
+            boolor_agg(is_current) over (
+                partition by locality, locality_group
+            ) as is_current_file
+        from grouping
+        where factor is not null
 
-)
+    )
 
-SELECT *
-FROM final
+select *
+from final
