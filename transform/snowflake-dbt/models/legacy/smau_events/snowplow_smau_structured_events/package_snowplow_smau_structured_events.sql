@@ -17,10 +17,8 @@ with
             {% if is_incremental() %}
             and derived_tstamp >= (select max({{ this }}.event_date) from {{ this }})
             {% endif %}
-            and
-            (
-                event_action in
-                (
+            and (
+                event_action in (
                     'delete_repository',
                     'delete_tag',
                     'delete_tag_bulk',
@@ -30,8 +28,7 @@ with
 
                 or
 
-                event_label in
-                (
+                event_label in (
                     'bulk_registry_tag_delete',
                     'registry_repository_delete',
                     'registry_tag_delete'

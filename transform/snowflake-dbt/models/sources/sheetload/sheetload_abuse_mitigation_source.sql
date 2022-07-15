@@ -6,8 +6,7 @@ with
             nullif(email_domain, '')::varchar as email_domain,
             nullif(account_creation_date, '')::varchar::date as account_creation_date,
             nullif(account_creation_time, '')::varchar::time as account_creation_time,
-            nullif(account_creation_timestamp, '')::varchar
-            ::timestamp
+            nullif(account_creation_timestamp, '')::varchar::timestamp
             as account_creation_timestamp,
             nullif(category, '')::varchar as category,
             nullif(description, '')::varchar as description,
@@ -16,8 +15,7 @@ with
             try_to_number(mitigation_month) as mitigation_month,
             nullif(mitigation_date, '')::varchar::date as mitigation_date,
             nullif(mitigation_time, '')::varchar::time as mitigation_time,
-            nullif(mitigation_timestamp, '')::varchar
-            ::timestamp
+            nullif(mitigation_timestamp, '')::varchar::timestamp
             as mitigation_timestamp,
             nullif(timezone, '')::varchar as timezone,
             try_to_decimal(time_to_mitigate) as time_to_mitigate,

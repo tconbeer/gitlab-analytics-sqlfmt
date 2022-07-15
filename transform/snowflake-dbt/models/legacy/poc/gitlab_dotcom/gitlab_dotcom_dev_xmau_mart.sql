@@ -11,7 +11,9 @@ with
     ),
     gitlab_dotcom_xmau_metrics as (
 
-        select * from {{ ref("gitlab_dotcom_xmau_metrics") }}),
+        select * from {{ ref("gitlab_dotcom_xmau_metrics") }}
+
+    ),
     events as (
 
         select

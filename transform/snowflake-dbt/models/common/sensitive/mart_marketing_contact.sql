@@ -915,8 +915,8 @@ prep as (
         array_agg(
             distinct ifnull(
                 marketing_contact_order.marketing_contact_role
-                || ': ' ||
-                ifnull(marketing_contact_order.saas_product_tier, ''
+                || ': ' || ifnull(
+                    marketing_contact_order.saas_product_tier, ''
                 ) || ifnull(
                     marketing_contact_order.self_managed_product_tier, ''
                 ),
@@ -926,8 +926,7 @@ prep as (
         array_agg(
             distinct ifnull(
                 marketing_contact_order.marketing_contact_role
-                || ': ' ||
-                ifnull(
+                || ': ' || ifnull(
                     marketing_contact_order.namespace_path,
                     case
                         when
@@ -937,10 +936,10 @@ prep as (
                         else ''
                     end
                 )
-                || ' | ' ||
-                ifnull(marketing_contact_order.saas_product_tier, ''
-                ) ||
-                ifnull(marketing_contact_order.self_managed_product_tier, ''
+                || ' | ' || ifnull(
+                    marketing_contact_order.saas_product_tier, ''
+                ) || ifnull(
+                    marketing_contact_order.self_managed_product_tier, ''
                 ),
                 'No Namespace'
             )
@@ -1021,8 +1020,7 @@ joined as (
                     or prep.individual_namespace_is_saas_free_tier
                     or prep.group_owner_of_saas_free_tier
                 )
-                and
-                not (
+                and not (
                     prep.responsible_for_group_saas_ultimate_tier
                     or prep.responsible_for_group_saas_premium_tier
                     or prep.responsible_for_group_saas_bronze_tier

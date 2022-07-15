@@ -3,7 +3,9 @@ with
     orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }}),
     orders_with_valid_charges as (
 
-        select * from {{ ref("customers_db_orders_with_valid_charges") }}),
+        select * from {{ ref("customers_db_orders_with_valid_charges") }}
+
+    ),
     trials as (select * from {{ ref("customers_db_trials") }}),
     zuora_rp as (select * from {{ ref("zuora_rate_plan") }}),
     zuora_rpc as (select * from {{ ref("zuora_rate_plan_charge") }}),

@@ -4,10 +4,14 @@ with
     customers as (select * from {{ ref("customers_db_customers") }}),
     customers_db_latest_trial_per_namespace as (
 
-        select * from {{ ref("customers_db_latest_trial_per_namespace") }}),
+        select * from {{ ref("customers_db_latest_trial_per_namespace") }}
+
+    ),
     gitlab_subscriptions as (
 
-        select * from {{ ref("gitlab_dotcom_gitlab_subscriptions_snapshots_base") }}),
+        select * from {{ ref("gitlab_dotcom_gitlab_subscriptions_snapshots_base") }}
+
+    ),
     namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }}),
     orders_snapshots as (select * from {{ ref("customers_db_orders_snapshots_base") }}),
     users as (select * from {{ ref("gitlab_dotcom_users") }}),
@@ -21,7 +25,9 @@ with
     ),
     ci_minutes_charges as (
 
-        select * from zuora_rate_plan where rate_plan_name = '1,000 CI Minutes'),
+        select * from zuora_rate_plan where rate_plan_name = '1,000 CI Minutes'
+
+    ),
     orders_shapshots_excluding_ci_minutes as (
 
         select orders_snapshots.*

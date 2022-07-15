@@ -42,8 +42,7 @@ with
             subscription_name_slugify,
             term_start_date,
             term_end_date,
-            last_value(auto_renew_native_hist) over
-            (
+            last_value(auto_renew_native_hist) over (
                 partition by subscription_name_slugify, term_start_date, term_end_date
                 order by version
             ) as last_auto_renew

@@ -1,7 +1,9 @@
 with
     resource_label_events as (
 
-        select * from {{ ref("gitlab_dotcom_resource_label_events") }}),
+        select * from {{ ref("gitlab_dotcom_resource_label_events") }}
+
+    ),
     epics as (select * from {{ ref("gitlab_dotcom_epics") }}),
     issues as (select * from {{ ref("gitlab_dotcom_issues_xf") }}),
     mrs as (select * from {{ ref("gitlab_dotcom_merge_requests_xf") }}),

@@ -242,8 +242,7 @@ with
             and (
                 counter_data.major_version
                 < monthly_subscription_optin_counts.major_version
-                or
-                (
+                or (
                     counter_data.major_version
                     = monthly_subscription_optin_counts.major_version
                     and counter_data.minor_version

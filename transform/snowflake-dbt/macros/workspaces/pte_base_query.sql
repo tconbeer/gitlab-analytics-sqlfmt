@@ -1013,8 +1013,7 @@ select
     end as crm_account_tsp_account_employees_change_pct,
     coalesce(crm_account_tsp_account_employees, 0) - coalesce(
         crm_account_tsp_account_employees_prev, 0
-    ) as crm_account_tsp_account_employees_change_cnt
-    ,
+    ) as crm_account_tsp_account_employees_change_cnt,
     case
         when num_of_subs_prev > 0
         then (num_of_subs - num_of_subs_prev) / num_of_subs_prev
@@ -1036,8 +1035,7 @@ select
     - coalesce(cancelled_subs_prev, 0) as cancelled_subs_change_cnt,
     coalesce(p1.self_managed_instance_count, 0) - coalesce(
         p2.self_managed_instance_count_prev, 0
-    ) as self_managed_instance_change_cnt
-    ,
+    ) as self_managed_instance_change_cnt,
     coalesce(p1.saas_instance_count, 0)
     - coalesce(p2.saas_instance_count_prev, 0) as saas_instance_change_cnt,
     coalesce(p1.others_instance_count, 0)
@@ -1048,12 +1046,10 @@ select
     - coalesce(p2.is_premium_product_tier_prev, 0) as premium_product_tier_change_cnt,
     coalesce(p1.is_starter_bronze_product_tier, 0) - coalesce(
         p2.is_starter_bronze_product_tier_prev, 0
-    ) as starter_bronze_product_tier_change_cnt
-    ,
+    ) as starter_bronze_product_tier_change_cnt,
     coalesce(p1.is_service_type_full_service, 0) - coalesce(
         p2.is_service_type_full_service_prev, 0
-    ) as service_type_full_service_change_cnt
-    ,
+    ) as service_type_full_service_change_cnt,
     coalesce(p1.is_service_type_support_only, 0) - coalesce(
         p2.is_service_type_support_only_prev, 0
     ) as service_type_support_only_change_cnt

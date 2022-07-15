@@ -244,8 +244,8 @@ with
                 compensation_update_id = 20263,
                 null,
                 round(
-                    (coalesce(ote_change, 0) + change_in_comp_usd) /
-                    (prior_compensation_value_usd + coalesce(prior_ote_usd, 0)
+                    (coalesce(ote_change, 0) + change_in_comp_usd) / (
+                        prior_compensation_value_usd + coalesce(prior_ote_usd, 0)
                     ),
                     2
                 )

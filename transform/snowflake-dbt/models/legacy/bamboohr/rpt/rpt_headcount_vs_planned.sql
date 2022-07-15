@@ -138,14 +138,12 @@ with
 
         select
             *,
-            sum(planned_hires) over
-            (
+            sum(planned_hires) over (
                 partition by fiscal_year, breakout_type, division, department
                 order by month_date
                 rows between unbounded preceding and current row
             ) as cumulative_planned_hires,
-            sum(hires_actual) over
-            (
+            sum(hires_actual) over (
                 partition by fiscal_year, breakout_type, division, department
                 order by month_date
                 rows between unbounded preceding and current row

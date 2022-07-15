@@ -125,8 +125,8 @@ with
                 < rolling_12_month_separations_management,
                 null,
                 1 - (
-                    rolling_12_month_separations_management /
-                    nullif(rolling_12_month_headcount_management, 0
+                    rolling_12_month_separations_management / nullif(
+                        rolling_12_month_headcount_management, 0
                     )
                 )
             ) as retention_management,
@@ -146,8 +146,8 @@ with
                 rolling_12_month_headcount_staff < rolling_12_month_separations_staff,
                 null,
                 1 - (
-                    rolling_12_month_separations_management /
-                    nullif(rolling_12_month_headcount_staff, 0
+                    rolling_12_month_separations_management / nullif(
+                        rolling_12_month_headcount_staff, 0
                     )
                 )
             ) as retention_staff,

@@ -44,8 +44,7 @@ case
 
     when
         {{ original_mrr }} > {{ new_mrr }}
-        and
-        (
+        and (
             {{ original_product_category }} = {{ new_product_category }}
             and {{ original_seat_quantity }} <= {{ new_seat_quantity }}
         )
@@ -53,8 +52,7 @@ case
 
     when
         {{ original_mrr }} < {{ new_mrr }}
-        and
-        (
+        and (
             {{ original_product_category }} = {{ new_product_category }}
             and {{ original_seat_quantity }} >= {{ new_seat_quantity }}
         )

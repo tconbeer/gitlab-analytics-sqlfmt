@@ -2,8 +2,8 @@
 
 create masking policy if
 not exists "{{database}}".{{ schema }}.hide_boolean_column_values as (val boolean)
-returns boolean ->
-case when current_role() in ('DATA_OBSERVABILITY') then null else val
+returns boolean -> case
+    when current_role() in ('DATA_OBSERVABILITY') then null else val
 end
 ;
 

@@ -19,8 +19,7 @@ with
             app_id is not null
             and date_part(month, try_to_timestamp(derived_tstamp)) = '{{ month_value }}'
             and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
-            and
-            (
+            and (
                 (
                     -- js backend tracker
                     v_tracker like 'js%'
@@ -73,8 +72,8 @@ select
         google_analytics_id = '',
         null,
         split_part(google_analytics_id, '.', 3)
-        || '.' ||
-        split_part(google_analytics_id, '.', 4
+        || '.' || split_part(
+            google_analytics_id, '.', 4
         )
     )::varchar as google_analytics_client_id,
     context_data['project_id']::number as project_id,

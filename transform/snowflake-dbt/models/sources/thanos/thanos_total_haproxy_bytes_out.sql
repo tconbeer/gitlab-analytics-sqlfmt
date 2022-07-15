@@ -4,8 +4,7 @@ with
 
         select
             pq_2.value['metric'] ['backend']::varchar as metric_backend,
-            parse_json(pq_2.value['value'] [0]::float)::number
-            ::timestamp
+            parse_json(pq_2.value['value'] [0]::float)::number::timestamp
             as metric_created_at,
             nullif(pq_2.value['value'] [1], 'NaN')::float as metric_value,
             pq_1.value['data'] ['resultType']::varchar as result_type,

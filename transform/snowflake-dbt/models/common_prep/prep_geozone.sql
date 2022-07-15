@@ -42,12 +42,10 @@ with
             state_or_province as geozone_state_or_province,
             min(valid_from) over (
                 partition by country, state_or_province, locality_group
-            )::date
-            as first_file_date,
+            )::date as first_file_date,
             max(valid_to) over (
                 partition by country, state_or_province, locality_group
-            )::date
-            as last_file_date,
+            )::date as last_file_date,
             -- Fixed date represents when location factor becan to be collected in
             -- source data.
             iff(
@@ -57,8 +55,7 @@ with
             ) as valid_from,
             max(coalesce(next_entry,{{ var("tomorrow") }})) over (
                 partition by country, state_or_province, locality_group
-            )::date
-            as valid_to,
+            )::date as valid_to,
             boolor_agg(is_current) over (
                 partition by country, state_or_province, locality_group
             ) as is_current_file

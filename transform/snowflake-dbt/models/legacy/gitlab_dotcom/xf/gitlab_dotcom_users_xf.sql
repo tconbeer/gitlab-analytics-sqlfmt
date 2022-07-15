@@ -25,7 +25,9 @@ with
     ),
     highest_paid_subscription_plan as (
 
-        select * from {{ ref("gitlab_dotcom_highest_paid_subscription_plan") }}),
+        select * from {{ ref("gitlab_dotcom_highest_paid_subscription_plan") }}
+
+    ),
     customers_with_trial as (
 
         select

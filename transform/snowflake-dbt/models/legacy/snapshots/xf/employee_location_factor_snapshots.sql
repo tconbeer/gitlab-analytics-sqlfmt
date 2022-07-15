@@ -68,8 +68,8 @@ with
             bamboo_employee_number as bamboo_employee_number,
             locality,
             location_factor as location_factor,
-            lead(location_factor) over
-            (partition by bamboo_employee_number order by valid_from
+            lead(location_factor) over (
+                partition by bamboo_employee_number order by valid_from
             ) as next_location_factor,
             valid_from,
             coalesce(valid_to, {{ max_date_in_analysis }}) as valid_to

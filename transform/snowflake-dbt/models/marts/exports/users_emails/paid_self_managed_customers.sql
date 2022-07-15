@@ -75,8 +75,7 @@ with
             work_email as email,
             subscription.product_category as plan_title,
             iff(
-                subscription.account_id in
-                (
+                subscription.account_id in (
                     select account_id
                     from
                         zuora_subscription_product_category_self_managed_only_current_month
@@ -106,8 +105,7 @@ with
 
             iff(
                 contacts.state = 'inactive'
-                or subscription.account_id not in
-                (
+                or subscription.account_id not in (
                     select account_id
                     from
                         zuora_subscription_product_category_self_managed_only_current_month

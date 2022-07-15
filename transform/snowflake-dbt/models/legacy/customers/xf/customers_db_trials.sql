@@ -15,7 +15,9 @@ with
     ),
     ci_minutes_charges as (
 
-        select * from zuora_rate_plan where rate_plan_name = '1,000 CI Minutes'),
+        select * from zuora_rate_plan where rate_plan_name = '1,000 CI Minutes'
+
+    ),
     orders_shapshots_excluding_ci_minutes as (
 
         select

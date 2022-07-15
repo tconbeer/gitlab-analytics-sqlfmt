@@ -18,8 +18,8 @@ with
 
         select
             bamboohr_directory.*,
-            last_value(date_trunc(day, bamboohr_directory.uploaded_at)) over
-            (partition by bamboohr_directory.employee_id order by uploaded_at
+            last_value(date_trunc(day, bamboohr_directory.uploaded_at)) over (
+                partition by bamboohr_directory.employee_id order by uploaded_at
             ) as max_uploaded_date,
             dense_rank() over (
                 partition by bamboohr_directory.employee_id order by uploaded_at desc

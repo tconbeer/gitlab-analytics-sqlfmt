@@ -44,8 +44,7 @@ with
             end as secure_ci_job_type
         from ci_builds
         where
-            ci_build_name ilike
-            any (
+            ci_build_name ilike any (
                 '%apifuzzer_fuzz%',
                 '%container_scanning%',
                 '%dast%',

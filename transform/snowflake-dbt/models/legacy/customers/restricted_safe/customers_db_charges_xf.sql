@@ -9,7 +9,9 @@ with
                     ref("customers_db_orders_with_incomplete_charges"),
                 ],
             )
-        }}),
+        }}
+
+    ),
     joined_with_base_mrr as (
 
         select

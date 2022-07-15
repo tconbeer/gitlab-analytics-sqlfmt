@@ -244,8 +244,8 @@ with recursive
             iff(compensation_change_reason is not null, true, false) as is_promotion,
             bamboohr_discretionary_bonuses_xf.total_discretionary_bonuses
             as discretionary_bonus,
-            row_number() over
-            (partition by employee_directory.employee_id order by date_actual
+            row_number() over (
+                partition by employee_directory.employee_id order by date_actual
             ) as tenure_days
         from date_details
         left join

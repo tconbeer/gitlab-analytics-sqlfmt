@@ -2,8 +2,8 @@
 
 create masking policy if
 not exists "{{database}}".{{ schema }}.hide_variant_column_values as (val variant)
-returns variant ->
-case when current_role() in ('DATA_OBSERVABILITY') then null else val
+returns variant -> case
+    when current_role() in ('DATA_OBSERVABILITY') then null else val
 end
 ;
 

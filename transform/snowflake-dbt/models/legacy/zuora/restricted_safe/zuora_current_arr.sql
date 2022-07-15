@@ -3,8 +3,7 @@ with
     account as (select * from {{ ref("zuora_account") }}),
     rate_plan as (select * from {{ ref("zuora_rate_plan") }}),
     rate_plan_charge as (select * from {{ ref("zuora_rate_plan_charge") }}),
-    arr as
-    (
+    arr as (
         select
             subscription.subscription_id,
             sum(rate_plan_charge.mrr * 12::number) as current_arr

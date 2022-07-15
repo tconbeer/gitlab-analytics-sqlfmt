@@ -199,15 +199,13 @@ with
             is_milestone_stage,
             stage_entered_on,
             stage_exited_on,
-            lead(application_stage) over
-            (
+            lead(application_stage) over (
                 partition by
                     stage_order_revamped.application_id,
                     stage_order_revamped.candidate_id
                 order by row_number_stages_desc_updated desc
             ) as next_stage,
-            lead(stage_entered_on) over
-            (
+            lead(stage_entered_on) over (
                 partition by
                     stage_order_revamped.application_id,
                     stage_order_revamped.candidate_id

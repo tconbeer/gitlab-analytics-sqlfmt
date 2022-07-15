@@ -33,8 +33,8 @@ with
             created_month as reporting_month,
             metrics_path,
             (
-                approx_percentile(monthly_metric_value, 0.75) -
-                approx_percentile(monthly_metric_value, 0.25
+                approx_percentile(monthly_metric_value, 0.75) - approx_percentile(
+                    monthly_metric_value, 0.25
                 )
             )
             * 3

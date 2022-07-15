@@ -22,8 +22,7 @@ with
         where
             snowplow_page_views_90.referer_url_host = 'about.gitlab.com'
             and page_url_path = '/subscriptions/new'
-            and
-            rlike (
+            and rlike (
                 page_url_query,
                 '(.)*plan_id=(2c92a0ff5a840412015aa3cde86f2ba6|2c92a0fd5a840403015aa6d9ea2c46d6|2c92a0fc5a83f01d015aa6db83c45aac)(.)*'
             )
@@ -40,8 +39,7 @@ with
                     '/subscriptions/([a-zA-Z0-9\-]{1,})/success/create_subscription'
                 )
                 -- SaaS packages have these 3 plan_id
-                and
-                rlike (
+                and rlike (
                     snowplow_page_views_90.referer_url_query,
                     '(.)*plan_id=(2c92a0ff5a840412015aa3cde86f2ba6|2c92a0fd5a840403015aa6d9ea2c46d6|2c92a0fc5a83f01d015aa6db83c45aac)(.)*'
                 )
