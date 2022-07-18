@@ -1,19 +1,16 @@
-WITH source AS (
+with
+    source as (select * from {{ source("snowflake", "grants_to_user") }}),
+    intermediate as (
 
-    SELECT *
-    FROM {{ source('snowflake','grants_to_user') }}
+        select
+            role as role_name,
+            granted_to as granted_to_type,
+            grantee_name,
+            to_timestamp_ntz(_uploaded_at::number) as snapshot_date,
+            created_on
+        from source
 
-), intermediate AS (
+    )
 
-    SELECT
-        role                                    AS role_name,
-        granted_to                              AS granted_to_type,
-        grantee_name,
-        TO_TIMESTAMP_NTZ(_uploaded_at::NUMBER)  AS snapshot_date,
-        created_on
-    FROM source
-
-)
-
-SELECT *
-FROM intermediate
+select *
+from intermediate

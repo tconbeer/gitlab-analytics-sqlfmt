@@ -1,7 +1,11 @@
 {%- macro bamboohr_division_grouping(division) -%}
 
-     CASE WHEN {{division}} IN ('Engineering', 'Meltano') THEN 'Engineering/Meltano'
-           WHEN {{division}} IN ('CEO', 'People Group') THEN 'People Group/CEO'
-           ELSE {{division}} END  
+case
+    when {{ division }} in ('Engineering', 'Meltano')
+    then 'Engineering/Meltano'
+    when {{ division }} in ('CEO', 'People Group')
+    then 'People Group/CEO'
+    else {{ division }}
+end
 
 {%- endmacro -%}

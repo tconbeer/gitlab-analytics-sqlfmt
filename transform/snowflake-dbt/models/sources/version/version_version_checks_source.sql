@@ -1,33 +1,31 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "id"}) }}
 
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('version', 'version_checks') }}
-    {% if is_incremental() %}
-    WHERE updated_at >= (SELECT MAX(updated_at) FROM {{this}})
-    {% endif %}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+        select *
+        from {{ source("version", "version_checks") }}
+        {% if is_incremental() %}
+        where updated_at >= (select max(updated_at) from {{ this }})
+        {% endif %}
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER                 AS id,
-      host_id::NUMBER            AS host_id,
-      created_at::TIMESTAMP      AS created_at,
-      updated_at::TIMESTAMP      AS updated_at,
-      gitlab_version::VARCHAR    AS gitlab_version,
-      referer_url::VARCHAR       AS referer_url,
-      PARSE_JSON(request_data)   AS request_data
-    FROM source
+        select
+            id::number as id,
+            host_id::number as host_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            gitlab_version::varchar as gitlab_version,
+            referer_url::varchar as referer_url,
+            parse_json(request_data) as request_data
+        from source
 
-)
+    )
 
-SELECT * 
-FROM renamed
-ORDER BY updated_at
+select *
+from renamed
+order by updated_at

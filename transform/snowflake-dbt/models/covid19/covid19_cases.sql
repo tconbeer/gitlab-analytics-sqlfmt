@@ -1,23 +1,20 @@
-WITH source AS (
+with
+    source as (select * from {{ source("covid19", "cases") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('covid19', 'cases') }}
+        select
+            country_region::varchar as country_region,
+            province_state::varchar as province_state,
+            date::date as date,
+            case_type::varchar as case_type,
+            cases::number as case_count,
+            long::float as longitude,
+            lat::float as latitude,
+            difference::number as case_count_change,
+            last_updated_date::timestamp as last_updated_date
+        from source
 
-), renamed AS (
+    )
 
-    SELECT 
-      country_region::VARCHAR       AS country_region,
-      province_state::VARCHAR       AS province_state,
-      date::DATE                    AS date,
-      case_type::VARCHAR            AS case_type,
-      cases::NUMBER                 AS case_count,
-      long::FLOAT                   AS longitude,
-      lat::FLOAT                    AS latitude,
-      difference::NUMBER            AS case_count_change,
-      last_updated_date::TIMESTAMP  AS last_updated_date
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

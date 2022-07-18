@@ -1,9 +1,4 @@
-WITH base AS (
+with base as (select * from {{ ref("driveload_email_domain_classification_source") }})
 
-    SELECT *
-    FROM {{ ref('driveload_email_domain_classification_source') }}
-
-)
-
-SELECT *
-FROM base
+select *
+from base

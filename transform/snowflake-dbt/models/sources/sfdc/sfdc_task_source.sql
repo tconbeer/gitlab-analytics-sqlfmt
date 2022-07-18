@@ -1,36 +1,33 @@
-WITH source AS (
+with
+    source as (select * from {{ source("salesforce", "task") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('salesforce', 'task') }}
+        select
+            id as task_id,
 
-), renamed AS(
+            -- keys
+            accountid as account_id,
+            ownerid as owner_id,
+            whoid as lead_or_contact_id,
+            whatid as account_or_opportunity_id,
 
-    SELECT
-      id                            AS task_id,
+            -- info
+            description as full_comments,
+            subject as task_subject,
+            activitydate as task_date,
+            isdeleted as is_deleted,
+            status as status,
+            type as type,
+            createddate as task_created_date,
 
-      --keys
-      accountid                     AS account_id,
-      ownerid                       AS owner_id,
-      whoid                         AS lead_or_contact_id,
-      whatid                        AS account_or_opportunity_id,
+            assigned_employee_number__c as assigned_employee_number,
+            -- Original issue: https://gitlab.com/gitlab-data/analytics/-/issues/6577
+            persona_functions__c as persona_functions,
+            persona_levels__c as persona_levels,
+            sa_activity_type__c as sa_activity_type
 
-      --info
-      description                   AS full_comments,
-      subject                       AS task_subject,
-      activitydate                  AS task_date,
-      isdeleted                     AS is_deleted,
-      status                        AS status,              
-      type                          AS type,
-      createddate                   AS task_created_date,
+        from source
+    )
 
-      assigned_employee_number__c   AS assigned_employee_number,
-      -- Original issue: https://gitlab.com/gitlab-data/analytics/-/issues/6577
-      persona_functions__c          AS persona_functions,
-      persona_levels__c             AS persona_levels,
-      sa_activity_type__c           AS sa_activity_type
-
-    FROM source
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

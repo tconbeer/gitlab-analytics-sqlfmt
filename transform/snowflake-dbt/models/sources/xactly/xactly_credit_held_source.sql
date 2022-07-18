@@ -1,30 +1,27 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_credit_held") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('xactly', 'xc_credit_held') }}
+        select
 
-), renamed AS (
+            created_by_id::float as created_by_id,
+            created_by_name::varchar as created_by_name,
+            created_date::varchar as created_date,
+            credit_held_id::float as credit_held_id,
+            credit_id::float as credit_id,
+            held_date::varchar as held_date,
+            is_active::varchar as is_active,
+            is_held::varchar as is_held,
+            modified_by_id::float as modified_by_id,
+            modified_by_name::varchar as modified_by_name,
+            modified_date::varchar as modified_date,
+            release_group_id::float as release_group_id,
+            run_id::float as run_id,
+            trans_id::float as trans_id
 
-    SELECT
+        from source
 
-      created_by_id::FLOAT                  AS created_by_id,
-      created_by_name::VARCHAR              AS created_by_name,
-      created_date::VARCHAR                 AS created_date,
-      credit_held_id::FLOAT                 AS credit_held_id,
-      credit_id::FLOAT                      AS credit_id,
-      held_date::VARCHAR                    AS held_date,
-      is_active::VARCHAR                    AS is_active,
-      is_held::VARCHAR                      AS is_held,
-      modified_by_id::FLOAT                 AS modified_by_id,
-      modified_by_name::VARCHAR             AS modified_by_name,
-      modified_date::VARCHAR                AS modified_date,
-      release_group_id::FLOAT               AS release_group_id,
-      run_id::FLOAT                         AS run_id,
-      trans_id::FLOAT                       AS trans_id
+    )
 
-    FROM source
-    
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed
