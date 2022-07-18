@@ -1,9 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT {{ hash_sensitive_columns('bizible_crm_events_source') }}
-    FROM {{ ref('bizible_crm_events_source') }}
+        select {{ hash_sensitive_columns("bizible_crm_events_source") }}
+        from {{ ref("bizible_crm_events_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

@@ -1,18 +1,19 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      id                   AS account_to_email_id,
-      account_id           AS account_id,
-      email                AS email,
-      modified_date        AS modified_date,
-      created_date         AS created_date,
-      is_deleted           AS is_deleted,
-      _created_date        AS _created_date,
-      _modified_date       AS _modified_date,
-      _deleted_date        AS _deleted_date
-    FROM {{ source('bizible', 'biz_account_to_emails') }}
-    
-)
+        select
+            id as account_to_email_id,
+            account_id as account_id,
+            email as email,
+            modified_date as modified_date,
+            created_date as created_date,
+            is_deleted as is_deleted,
+            _created_date as _created_date,
+            _modified_date as _modified_date,
+            _deleted_date as _deleted_date
+        from {{ source("bizible", "biz_account_to_emails") }}
 
-SELECT *
-FROM source
+    )
+
+select *
+from source

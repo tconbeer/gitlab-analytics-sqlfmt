@@ -1,18 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "fmm_kpi_targets") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'fmm_kpi_targets') }}
+        select
+            field_segment::varchar as field_segment,
+            region::varchar as region,
+            kpi::varchar as kpi,
+            goal::number as goal
+        from source
 
-), renamed as (
+    )
 
-    SELECT
-      field_segment::VARCHAR                     AS field_segment,
-      region::VARCHAR                            AS region,
-      kpi::VARCHAR                               AS kpi,
-      goal::NUMBER                               AS goal
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

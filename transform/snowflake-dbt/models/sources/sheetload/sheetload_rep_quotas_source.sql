@@ -1,37 +1,42 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "rep_quotas") }}),
+    final as (
 
-    SELECT * 
-    FROM {{ source('sheetload','rep_quotas') }}
-    
-), final AS (
+        select
+            bamboo_employee_id,
+            sfdc_user_id,
+            calendar_month::date as calendar_month,
+            fiscal_quarter::number as fiscal_quarter,
+            fiscal_year::number as fiscal_year,
+            adjusted_start_date::date as adjusted_start_date,
+            case
+                when trim(full_quota) in ('NA', '#N/A')
+                then 0
+                else zeroifnull(trim(full_quota)::number(16, 5))
+            end as full_quota,
+            case
+                when trim(ramping_quota) in ('', '#N/A')
+                then 0
+                else zeroifnull(trim(ramping_quota)::number(16, 5))
+            end as ramping_quota,
+            zeroifnull(
+                nullif(trim(ramping_percent), '')::number(3, 2)
+            ) as ramping_percent,
+            zeroifnull(
+                nullif(trim(seasonality_percent), '')::number(3, 2)
+            ) as seasonality_percent,
+            zeroifnull(
+                nullif(trim(gross_iacv_attainment), '')::number(16, 2)
+            ) as gross_iacv_attainment,
+            zeroifnull(
+                nullif(trim(net_iacv_attainment), '')::number(16, 2)
+            ) as net_iacv_attainment,
+            sales_rep,
+            team,
+            type
+        from source
 
-    SELECT 
-      bamboo_employee_id,
-      sfdc_user_id,
-      calendar_month::DATE                                             AS calendar_month,
-      fiscal_quarter::NUMBER                                           AS fiscal_quarter,
-      fiscal_year::NUMBER                                              AS fiscal_year,
-      adjusted_start_date::DATE                                        AS adjusted_start_date,
-      CASE
-        WHEN TRIM(full_quota) IN ('NA', '#N/A')
-          THEN 0
-        ELSE ZEROIFNULL(TRIM(full_quota)::NUMBER(16,5))
-      END                                                              AS full_quota,
-      CASE
-        WHEN TRIM(ramping_quota) IN ('', '#N/A')
-          THEN 0
-        ELSE ZEROIFNULL(TRIM(ramping_quota)::NUMBER(16,5))
-      END                                                              AS ramping_quota,
-      ZEROIFNULL(NULLIF(TRIM(ramping_percent),'')::NUMBER(3,2))        AS ramping_percent,
-      ZEROIFNULL(NULLIF(TRIM(seasonality_percent),'')::NUMBER(3,2))    AS seasonality_percent,
-      ZEROIFNULL(NULLIF(TRIM(gross_iacv_attainment),'')::NUMBER(16,2)) AS gross_iacv_attainment,
-      ZEROIFNULL(NULLIF(TRIM(net_iacv_attainment),'')::NUMBER(16,2))   AS net_iacv_attainment,
-      sales_rep,
-      team,
-      type
-    FROM source
-      
-) 
+    )
 
-SELECT * 
-FROM final
+select *
+from final

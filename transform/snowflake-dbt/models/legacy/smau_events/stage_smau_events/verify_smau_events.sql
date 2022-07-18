@@ -1,16 +1,17 @@
-WITH verify_snowplow_smau_pageviews_events AS (
-  
-  SELECT
-    user_snowplow_domain_id,
-    user_custom_id       AS gitlab_user_id,
-    event_date,
-    event_type,
-    event_surrogate_key  AS event_surrogate_key,
-    'snowplow_pageviews' AS source_type
-  
-  FROM {{ ref('verify_snowplow_smau_pageviews_events')}}
-  
-)
+with
+    verify_snowplow_smau_pageviews_events as (
 
-SELECT * 
-FROM verify_snowplow_smau_pageviews_events
+        select
+            user_snowplow_domain_id,
+            user_custom_id as gitlab_user_id,
+            event_date,
+            event_type,
+            event_surrogate_key as event_surrogate_key,
+            'snowplow_pageviews' as source_type
+
+        from {{ ref("verify_snowplow_smau_pageviews_events") }}
+
+    )
+
+select *
+from verify_snowplow_smau_pageviews_events

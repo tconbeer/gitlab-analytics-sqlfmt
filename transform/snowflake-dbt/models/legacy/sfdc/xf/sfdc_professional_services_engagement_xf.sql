@@ -1,26 +1,22 @@
-with sfdc_ps_engagement AS (
+with
+    sfdc_ps_engagement as (
 
-    SELECT * 
-    FROM {{ref('sfdc_professional_services_engagement')}}
+        select * from {{ ref("sfdc_professional_services_engagement") }}
 
-), sfdc_users AS (
+    ),
+    sfdc_users as (select * from {{ ref("sfdc_users_xf") }}),
+    joined as (
 
-    SELECT * 
-    FROM {{ref('sfdc_users_xf')}}
+        select
+            sfdc_ps_engagement.*,
+            sfdc_users.name as ps_engagement_owner,
+            sfdc_users.manager_name as ps_engagement_owner_manager,
+            sfdc_users.department as ps_engagement_owner_department,
+            sfdc_users.title as ps_engagement_owner_title
+        from sfdc_ps_engagement
+        left join sfdc_users on sfdc_ps_engagement.owner_id = sfdc_users.user_id
 
-), joined as (
+    )
 
-    SELECT 
-      sfdc_ps_engagement.*,
-      sfdc_users.name         AS ps_engagement_owner,
-      sfdc_users.manager_name AS ps_engagement_owner_manager,
-      sfdc_users.department   AS ps_engagement_owner_department,
-      sfdc_users.title        AS ps_engagement_owner_title
-    FROM sfdc_ps_engagement
-    LEFT JOIN sfdc_users
-      ON sfdc_ps_engagement.owner_id = sfdc_users.user_id
-
-)
-
-SELECT * 
-FROM joined
+select *
+from joined
