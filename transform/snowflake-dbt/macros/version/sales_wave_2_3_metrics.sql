@@ -593,7 +593,7 @@ as auto_devops_pipelines_28_days_user,
         "raw_usage_data_payload['counts']['ci_runners_project_type_active']"
     )
 }} as active_project_runners_all_time_event,
-raw_usage_data_payload['gitaly'] ['version']::varchar as gitaly_version,
+raw_usage_data_payload['gitaly']['version']::varchar as gitaly_version,
 {{ null_negative_numbers("raw_usage_data_payload['gitaly']['servers']") }}
 as gitaly_servers_all_time_event
 

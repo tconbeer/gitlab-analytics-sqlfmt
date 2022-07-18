@@ -12,7 +12,7 @@ with
             iff(
                 unstruct_event = 'masked',
                 'masked',
-                try_parse_json(unstruct_event) ['data'] ['data']
+                try_parse_json(unstruct_event)['data']['data']
             )::variant as unstruct_event_data,
             v_tracker::varchar as v_tracker,
             dvce_created_tstamp::timestamp as dvce_created_tstamp,

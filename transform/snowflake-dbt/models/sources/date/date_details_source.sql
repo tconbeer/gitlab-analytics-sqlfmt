@@ -125,9 +125,8 @@ with
 
             (
                 fiscal_year
-                || '-' || decode(
-                    fiscal_quarter, 1, 'Q1', 2, 'Q2', 3, 'Q3', 4, 'Q4'
-                )
+                || '-'
+                || decode(fiscal_quarter, 1, 'Q1', 2, 'Q2', 3, 'Q3', 4, 'Q4')
             ) as fiscal_quarter_name,
             ('FY' || substr(fiscal_quarter_name, 3, 7)) as fiscal_quarter_name_fy,
             dense_rank() over (

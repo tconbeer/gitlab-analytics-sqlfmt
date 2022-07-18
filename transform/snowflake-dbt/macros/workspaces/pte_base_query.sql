@@ -1052,10 +1052,8 @@ select
     ) as service_type_full_service_change_cnt,
     coalesce(p1.is_service_type_support_only, 0) - coalesce(
         p2.is_service_type_support_only_prev, 0
-    ) as service_type_support_only_change_cnt
-
     -- Salesforce Opportunity Fields
-    ,
+    ) as service_type_support_only_change_cnt,
     coalesce(o.num_opportunities, 0) as opportunities_cnt,
     coalesce(o.sales_path_sales_assisted_cnt, 0) as sales_path_sales_assisted_cnt,
     coalesce(o.sales_path_web_direct_cnt, 0) as sales_path_web_direct_cnt,

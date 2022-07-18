@@ -25,8 +25,8 @@ with
             split_part(major_minor_version, '.', 1) as major_version,
             split_part(major_minor_version, '.', 2) as minor_version,
             try_to_date(data_by_row['date']::text, 'MMMM DDnd, YYYY') as release_date,
-            data_by_row['manager_americas'] [0]::varchar as release_manager_americas,
-            data_by_row['manager_apac_emea'] [0]::varchar as release_manager_emea,
+            data_by_row['manager_americas'][0]::varchar as release_manager_americas,
+            data_by_row['manager_apac_emea'][0]::varchar as release_manager_emea,
             rank,
             snapshot_date
         from intermediate

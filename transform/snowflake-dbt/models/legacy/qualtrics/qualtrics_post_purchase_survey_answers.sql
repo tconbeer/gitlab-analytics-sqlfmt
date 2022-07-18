@@ -9,7 +9,7 @@ with
         select
             *,
             ifnull(
-                answer_choices[0] ['1'] ['TextEntry'] = 'on',
+                answer_choices[0]['1']['TextEntry'] = 'on',
                 ifnull(array_size(answer_choices) = 0, true)
             ) as is_free_text
         from {{ ref("qualtrics_question") }}
@@ -47,7 +47,7 @@ with
     final as (
 
         select
-            get(answer_choices, d.value) ['Display']::varchar as answer_display,
+            get(answer_choices, d.value)['Display']::varchar as answer_display,
             d.value::varchar || question_id as answer_id,
             distribution_channel,
             has_finished_survey,

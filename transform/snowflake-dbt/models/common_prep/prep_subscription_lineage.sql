@@ -14,9 +14,8 @@ with recursive
                 array_to_string(zuora_renewal_subscription_name_slugify, ',') is null,
                 subscription_name_slugify,
                 subscription_name_slugify
-                || ',' || array_to_string(
-                    zuora_renewal_subscription_name_slugify, ','
-                )
+                || ','
+                || array_to_string(zuora_renewal_subscription_name_slugify, ',')
             ) as lineage,
             renewal.value::varchar as zuora_renewal_subscription_name_slugify
         from

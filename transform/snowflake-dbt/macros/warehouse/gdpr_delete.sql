@@ -34,9 +34,8 @@ with
 
         select
             lower(table_catalog)
-            || '.' || lower(
-                table_schema
-            )
+            || '.'
+            || lower(table_schema)
             || '.'
             || lower(table_name) as fqd_name,
             listagg(column_name, ',') as email_column_names
@@ -92,9 +91,8 @@ with
 
         select
             lower(table_catalog)
-            || '.' || lower(
-                table_schema
-            )
+            || '.'
+            || lower(table_schema)
             || '.'
             || lower(table_name) as fqd_name,
             listagg(column_name, ',') as email_column_names
@@ -111,9 +109,8 @@ with
 
         select
             lower(table_catalog)
-            || '.' || lower(
-                table_schema
-            )
+            || '.'
+            || lower(table_schema)
             || '.'
             || lower(table_name) as fqd_name,
             listagg(column_name, ',') as non_email_column_names

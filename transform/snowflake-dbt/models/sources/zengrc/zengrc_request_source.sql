@@ -25,15 +25,13 @@ with
             type::varchar as zengrc_object_type,
             updated_at::timestamp as request_updated_at,
             __loaded_at::timestamp as request_loaded_at,
-            parse_json(custom_attributes) ['209'] ['value']::varchar as arr_impact,
-            parse_json(custom_attributes) ['68'] ['value']::varchar as audit_period,
-            parse_json(custom_attributes) ['173'] ['value']::varchar
-            as caa_activity_type,
-            parse_json(custom_attributes) ['70'] ['value']::boolean
-            as is_external_audit,
-            parse_json(custom_attributes) ['59'] ['value']::varchar as gitlab_assignee,
-            parse_json(custom_attributes) ['60'] ['value']::varchar as gitlab_issue_url,
-            parse_json(custom_attributes) ['69'] ['value']::varchar as priority_level
+            parse_json(custom_attributes)['209']['value']::varchar as arr_impact,
+            parse_json(custom_attributes)['68']['value']::varchar as audit_period,
+            parse_json(custom_attributes)['173']['value']::varchar as caa_activity_type,
+            parse_json(custom_attributes)['70']['value']::boolean as is_external_audit,
+            parse_json(custom_attributes)['59']['value']::varchar as gitlab_assignee,
+            parse_json(custom_attributes)['60']['value']::varchar as gitlab_issue_url,
+            parse_json(custom_attributes)['69']['value']::varchar as priority_level
 
         from source
 

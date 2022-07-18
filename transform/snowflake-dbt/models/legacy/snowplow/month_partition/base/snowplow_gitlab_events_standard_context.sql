@@ -72,9 +72,8 @@ select
         google_analytics_id = '',
         null,
         split_part(google_analytics_id, '.', 3)
-        || '.' || split_part(
-            google_analytics_id, '.', 4
-        )
+        || '.'
+        || split_part(google_analytics_id, '.', 4)
     )::varchar as google_analytics_client_id,
     context_data['project_id']::number as project_id,
     context_data['user_id']::varchar as pseudonymized_user_id,

@@ -6,7 +6,7 @@ case
     when event_name in ('value', 'elements')
     then 'masked'
     when event_name = '{{ match_text }}'
-    then try_parse_json(unstruct_event) ['data'] ['data'] ['{{ column }}']
+    then try_parse_json(unstruct_event)['data']['data']['{{ column }}']
     else null
 end as {{ field_prefix }}_{{ column }}
 {%- if not loop.last %}, {% endif %}

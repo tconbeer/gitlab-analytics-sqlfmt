@@ -93,8 +93,8 @@ renamed as (
             then 'Starter'
             else null
         end as edition_type,
-        usage_activity_by_stage_monthly[
-            'manage'] ['events'
+        usage_activity_by_stage_monthly['manage'][
+            'events'
         ] as monthly_active_users_last_28_days
 
     from joined

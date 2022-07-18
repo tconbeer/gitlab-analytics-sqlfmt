@@ -4,7 +4,10 @@
 with
     source as (select * from {{ ref("greenhouse_departments_source") }}),
     greenhouse_departments(
-        department_name, department_id, hierarchy_id, hierarchy_name
+        department_name,
+        department_id,
+        hierarchy_id,
+        hierarchy_name
     ) as (
         select
             department_name,

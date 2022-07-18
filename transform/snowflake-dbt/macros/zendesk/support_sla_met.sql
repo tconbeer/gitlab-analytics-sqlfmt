@@ -23,9 +23,8 @@ case
         and hour({{ created_at }}) >= 20
         and {{ first_reply_time }}
         <= {{ minutes_before_day_end }}
-        + 2880 + (
-            240 - {{ minutes_before_day_end }}
-        )
+        + 2880
+        + (240 - {{ minutes_before_day_end }})
     then true
     -- Logic for high priority tickets submitted over the weekend. Minutes elapsed
     -- over the weekend (2880) + allotted SLA minutes
@@ -47,9 +46,8 @@ case
         and hour({{ created_at }}) >= 16
         and {{ first_reply_time }}
         <= {{ minutes_before_day_end }}
-        + 2880 + (
-            480 - {{ minutes_before_day_end }}
-        )
+        + 2880
+        + (480 - {{ minutes_before_day_end }})
     then true
     -- Logic for normal priority tickets submitted over the weekend. Minutes elapsed
     -- over the weekend + allotted SLA minutes
@@ -70,9 +68,8 @@ case
         and hour({{ created_at }}) > 0
         and {{ first_reply_time }}
         <= {{ minutes_before_day_end }}
-        + 2880 + (
-            1440 - {{ minutes_before_day_end }}
-        )
+        + 2880
+        + (1440 - {{ minutes_before_day_end }})
     then true
     -- Logic for low priority tickets submitted over the weekend. Minutes elapsed over
     -- the weekend (2880) + allotted SLA minutes

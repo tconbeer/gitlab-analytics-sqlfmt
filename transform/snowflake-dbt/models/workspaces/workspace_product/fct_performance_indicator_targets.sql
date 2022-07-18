@@ -28,8 +28,7 @@ most_recent_yml_record as (
 flattened_monthly_targets as (
     -- flatten the json record from the yml file to get the target value and end month
     -- for each key:value pair
-    select
-        pi_metric_name, parse_json(d.path) [0]::timestamp as target_end_month, d.value
+    select pi_metric_name, parse_json(d.path)[0]::timestamp as target_end_month, d.value
     from
         most_recent_yml_record,
         lateral flatten(

@@ -22,7 +22,7 @@ with
             jsontext['real_size']::varchar as real_size,
             jsontext['removed_lines']::number as removed_lines,
             jsontext['plain_diff_path']::varchar as plain_diff_url_path,
-            jsontext['merge_request_diff'] ['created_at']::timestamp
+            jsontext['merge_request_diff']['created_at']::timestamp
             as merge_request_updated_at,
             jsontext['diff_files']::array as file_diffs,
             jsontext['target_branch_name'] as target_branch_name,

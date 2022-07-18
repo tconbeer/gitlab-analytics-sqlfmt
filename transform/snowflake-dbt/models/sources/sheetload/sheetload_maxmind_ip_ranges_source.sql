@@ -5,9 +5,9 @@ with
         select
             network_start_ip::varchar as ip_range_first_ip,
             network_last_ip::varchar as ip_range_last_ip,
-            parse_ip(ip_range_first_ip, 'inet') ['ip_fields'] [0]::number
+            parse_ip(ip_range_first_ip, 'inet')['ip_fields'][0]::number
             as ip_range_first_ip_numeric,
-            parse_ip(ip_range_last_ip, 'inet') ['ip_fields'] [0]::number
+            parse_ip(ip_range_last_ip, 'inet')['ip_fields'][0]::number
             as ip_range_last_ip_numeric,
             geoname_id::number as geoname_id,
             registered_country_geoname_id::number as registered_country_geoname_id,

@@ -6,9 +6,7 @@ usage_ping_metrics as (
     select distinct
         trim(lower(flattened_payload.path)) as metric_path,
         replace(metric_path, '.', '_') as metric_path_column_name,
-        'raw_usage_data_payload[''' || replace(
-            metric_path, '.', ''']['''
-        )
+        'raw_usage_data_payload[''' || replace(metric_path, '.', '''][''')
         || ''']' as full_metric_path,
         split_part(metric_path, '.', 1) as main_json_name,
         split_part(metric_path, '.', -1) as feature_name

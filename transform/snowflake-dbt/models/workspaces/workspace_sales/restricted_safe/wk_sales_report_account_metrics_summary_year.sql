@@ -774,9 +774,7 @@ with
                 when
                     coalesce(arr.product_ultimate_arr, 0) > coalesce(
                         arr.product_starter_arr, 0
-                    ) + coalesce(
-                        arr.product_premium_arr, 0
-                    )
+                    ) + coalesce(arr.product_premium_arr, 0)
                 then 1
                 else 0
             end as is_ultimate_customer_flag,
@@ -785,9 +783,7 @@ with
                 when
                     coalesce(arr.product_ultimate_arr, 0) < coalesce(
                         arr.product_starter_arr, 0
-                    ) + coalesce(
-                        arr.product_premium_arr, 0
-                    )
+                    ) + coalesce(arr.product_premium_arr, 0)
                 then 1
                 else 0
             end as is_premium_customer_flag,

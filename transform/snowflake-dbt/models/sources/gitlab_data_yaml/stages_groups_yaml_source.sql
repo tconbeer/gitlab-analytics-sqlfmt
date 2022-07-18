@@ -8,7 +8,7 @@ with
                     from=ref("stages_yaml_source"), except=["STAGE_GROUPS"]
                 )
             }}, d.value as data_by_row
-        from source, lateral flatten(input => parse_json(stage_groups::variant) [0]) d
+        from source, lateral flatten(input => parse_json(stage_groups::variant)[0]) d
 
     ),
     groups_parsed_out as (

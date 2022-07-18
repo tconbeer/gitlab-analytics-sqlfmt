@@ -10,9 +10,7 @@ final as (
         stage_name,
         group_name,
         metrics_path,
-        'raw_usage_data_payload[''' || replace(
-            metrics_path, '.', ''']['''
-        )
+        'raw_usage_data_payload[''' || replace(metrics_path, '.', '''][''')
         || ''']' as sql_friendly_path,
         clean_metrics_name,
         periscope_metrics_name,

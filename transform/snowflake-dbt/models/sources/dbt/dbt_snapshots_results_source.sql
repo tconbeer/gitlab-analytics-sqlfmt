@@ -14,10 +14,10 @@ with
 
         select
             d.value as data_by_row,
-            jsontext['metadata'] ['dbt_version']::varchar as dbt_version,
-            jsontext['metadata'] ['dbt_schema_version']::varchar as schema_version,
+            jsontext['metadata']['dbt_version']::varchar as dbt_version,
+            jsontext['metadata']['dbt_schema_version']::varchar as schema_version,
             coalesce(
-                jsontext['metadata'] ['generated_at'], jsontext['generated_at']
+                jsontext['metadata']['generated_at'], jsontext['generated_at']
             )::timestamp_ntz as generated_at,
             uploaded_at
         from source
@@ -54,7 +54,7 @@ with
 
         select
             data_by_row['execution_time']::float as model_execution_time,
-            data_by_row['node'] ['unique_id']::varchar as model_unique_id,
+            data_by_row['node']['unique_id']::varchar as model_unique_id,
             case
                 when data_by_row['skip']::boolean = true
                 then 'skipped'

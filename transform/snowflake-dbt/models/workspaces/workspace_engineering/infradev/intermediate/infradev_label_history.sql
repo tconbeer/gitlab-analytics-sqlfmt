@@ -50,7 +50,7 @@ with
             severity.label_title as severity_label,
             team.label_title as team_label,
             'S' || right(severity_label, 1) as severity,
-            split(team_label, '::') [array_size(split(team_label, '::')) - 1]::varchar
+            split(team_label, '::')[array_size(split(team_label, '::')) - 1]::varchar
             as assigned_team,
             severity.label_added_at as severity_label_added_at,
             team.label_added_at as team_label_added_at,

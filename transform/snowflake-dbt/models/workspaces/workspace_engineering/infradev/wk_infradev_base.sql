@@ -29,9 +29,7 @@ select
     issues.labels,
     issues.issue_title,
     namespace_path.full_namespace_path,
-    '[' || replace(
-        replace(left(issues.issue_title, 64), '[', ''), ']', ''
-    )
+    '[' || replace(replace(left(issues.issue_title, 64), '[', ''), ']', '')
     || '](https://gitlab.com/'
     || namespace_path.full_namespace_path
     || '/'

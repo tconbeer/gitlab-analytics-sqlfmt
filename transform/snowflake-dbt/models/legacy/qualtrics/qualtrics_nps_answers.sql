@@ -13,7 +13,7 @@ with
         select
             *,
             ifnull(
-                answer_choices[0] ['1'] ['TextEntry'] = 'on',
+                answer_choices[0]['1']['TextEntry'] = 'on',
                 ifnull(array_size(answer_choices) = 0, true)
             ) as is_free_text
         from {{ ref("qualtrics_question") }}

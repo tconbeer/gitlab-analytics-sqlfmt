@@ -23,7 +23,7 @@ with
         from source
         inner join lateral flatten(jsontext['sources']) s
         where
-            jsontext['metadata'] ['dbt_version'] is null
+            jsontext['metadata']['dbt_version'] is null
             -- impossible to know what freshness is, so filtered out
             and s.value['state']::varchar != 'runtime error'
             and s.value['max_loaded_at']::timestamp is not null  -- latest_load_at
@@ -47,13 +47,13 @@ with
             s.value['snapshotted_at']::timestamp as freshness_observed_at,
             {{ dbt_utils.surrogate_key(["schema_table_name", "freshness_observed_at"]) }}
             as freshness_unique_key,
-            jsontext['metadata'] ['dbt_version']::varchar as dbt_version,
-            jsontext['metadata'] ['dbt_schema_version']::varchar as schema_version,
+            jsontext['metadata']['dbt_version']::varchar as dbt_version,
+            jsontext['metadata']['dbt_schema_version']::varchar as schema_version,
             uploaded_at
         from source
         inner join lateral flatten(jsontext['results']) s
         where
-            jsontext['metadata'] ['dbt_version'] is not null
+            jsontext['metadata']['dbt_version'] is not null
             and s.value['max_loaded_at']::timestamp is not null  -- latest_load_at
             -- freshness_observed_at
             and s.value['snapshotted_at']::timestamp is not null

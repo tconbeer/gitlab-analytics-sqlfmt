@@ -50,9 +50,7 @@ with
             'division_breakout' as department,
             department_division_mapping.division,
             sum(headcount) as planned_headcount,
-            planned_headcount - lag(
-                planned_headcount
-            ) over (
+            planned_headcount - lag(planned_headcount) over (
                 partition by department_division_mapping.division
                 order by source.month_date
             ) as planned_hires
@@ -71,9 +69,7 @@ with
             source.department as department,
             department_division_mapping.division,
             sum(headcount) as planned_headcount,
-            planned_headcount - lag(
-                planned_headcount
-            ) over (
+            planned_headcount - lag(planned_headcount) over (
                 partition by department_division_mapping.division, source.department
                 order by source.month_date
             ) as planned_hires

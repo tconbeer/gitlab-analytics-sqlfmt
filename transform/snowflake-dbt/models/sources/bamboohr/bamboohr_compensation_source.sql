@@ -22,8 +22,8 @@ with
             data_by_row['type']::varchar as compensation_type,
             data_by_row['reason']::varchar as compensation_change_reason,
             data_by_row['paidPer']::varchar as pay_rate,
-            data_by_row['rate'] ['value']::float as compensation_value,
-            data_by_row['rate'] ['currency']::varchar as compensation_currency,
+            data_by_row['rate']['value']::float as compensation_value,
+            data_by_row['rate']['currency']::varchar as compensation_currency,
             uploaded_at
         from intermediate
 

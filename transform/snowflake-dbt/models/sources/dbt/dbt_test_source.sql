@@ -14,9 +14,9 @@ with
 
         select
             d.value as data_by_row,
-            jsontext['metadata'] ['dbt_version']::varchar as dbt_version,
-            jsontext['metadata'] ['dbt_schema_version']::varchar as schema_version,
-            jsontext['metadata'] ['generated_at']::timestamp_ntz as generated_at,
+            jsontext['metadata']['dbt_version']::varchar as dbt_version,
+            jsontext['metadata']['dbt_schema_version']::varchar as schema_version,
+            jsontext['metadata']['generated_at']::timestamp_ntz as generated_at,
             uploaded_at
         from source
         inner join
@@ -30,11 +30,11 @@ with
             data_by_row['name']::varchar as name,
             data_by_row['alias']::varchar as alias,
             ifnull(
-                data_by_row['test_metadata'] ['name']::varchar, 'custom'
+                data_by_row['test_metadata']['name']::varchar, 'custom'
             ) as test_type,
             data_by_row['package_name']::varchar as package_name,
             data_by_row['tags']::array as tags,
-            lower(data_by_row['config'] ['severity']::varchar) as severity,
+            lower(data_by_row['config']['severity']::varchar) as severity,
             data_by_row['refs']::array as referrences,
             data_by_row['depends_on'] as depends_on,
             {{ dbt_utils.surrogate_key(["unique_id", "generated_at"]) }}

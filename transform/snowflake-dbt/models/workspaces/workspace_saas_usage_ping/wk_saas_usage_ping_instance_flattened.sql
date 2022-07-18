@@ -13,7 +13,7 @@ flattened as (
     select
         saas_usage_ping_gitlab_dotcom_id as saas_usage_ping_gitlab_dotcom_id,
         ping_date as ping_date,
-        coalesce(try_parse_json(path) [0]::text, path::text) as metric_path,
+        coalesce(try_parse_json(path)[0]::text, path::text) as metric_path,
         value::text as metric_value,
         recorded_at as recorded_at,
         version as version,

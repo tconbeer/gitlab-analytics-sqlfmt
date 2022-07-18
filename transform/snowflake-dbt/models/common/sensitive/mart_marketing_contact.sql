@@ -915,18 +915,17 @@ prep as (
         array_agg(
             distinct ifnull(
                 marketing_contact_order.marketing_contact_role
-                || ': ' || ifnull(
-                    marketing_contact_order.saas_product_tier, ''
-                ) || ifnull(
-                    marketing_contact_order.self_managed_product_tier, ''
-                ),
+                || ': '
+                || ifnull(marketing_contact_order.saas_product_tier, '')
+                || ifnull(marketing_contact_order.self_managed_product_tier, ''),
                 'No Role'
             )
         ) as role_tier_text,
         array_agg(
             distinct ifnull(
                 marketing_contact_order.marketing_contact_role
-                || ': ' || ifnull(
+                || ': '
+                || ifnull(
                     marketing_contact_order.namespace_path,
                     case
                         when
@@ -936,11 +935,9 @@ prep as (
                         else ''
                     end
                 )
-                || ' | ' || ifnull(
-                    marketing_contact_order.saas_product_tier, ''
-                ) || ifnull(
-                    marketing_contact_order.self_managed_product_tier, ''
-                ),
+                || ' | '
+                || ifnull(marketing_contact_order.saas_product_tier, '')
+                || ifnull(marketing_contact_order.self_managed_product_tier, ''),
                 'No Namespace'
             )
         ) as role_tier_namespace_text

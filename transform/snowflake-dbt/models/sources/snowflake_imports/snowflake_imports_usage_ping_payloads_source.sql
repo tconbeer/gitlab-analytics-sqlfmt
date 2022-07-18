@@ -8,20 +8,20 @@ with
             jsontext['container_registry_enabled']::boolean
             as is_container_registry_enabled,
             jsontext['counts']::variant as counts,
-            jsontext['database'] ['adapter']::varchar as database_adapter,
-            jsontext['database'] ['version']::varchar as database_version,
+            jsontext['database']['adapter']::varchar as database_adapter,
+            jsontext['database']['version']::varchar as database_version,
             jsontext['edition']::varchar as edition,
             jsontext['elasticsearch_enabled']::boolean as is_elasticsearch_enabled,
             jsontext['geo_enabled']::boolean as is_geo_enabled,
-            jsontext['gitaly'] ['filesystems']::varchar as gitaly_filesystems,
-            jsontext['gitaly'] ['servers']::number as gitaly_servers,
-            jsontext['gitaly'] ['version']::varchar as gitaly_version,
-            jsontext['gitlab_pages'] ['enabled']::boolean as is_gitlab_pages_enabled,
-            jsontext['gitlab_pages'] ['version']::varchar as gitlab_pages_version,
+            jsontext['gitaly']['filesystems']::varchar as gitaly_filesystems,
+            jsontext['gitaly']['servers']::number as gitaly_servers,
+            jsontext['gitaly']['version']::varchar as gitaly_version,
+            jsontext['gitlab_pages']['enabled']::boolean as is_gitlab_pages_enabled,
+            jsontext['gitlab_pages']['version']::varchar as gitlab_pages_version,
             jsontext['gitlab_shared_runners_enabled']::boolean
             as is_gitlab_shared_runners_enabled,
             coalesce(
-                jsontext['git_version']::varchar, jsontext['git'] ['version']::varchar
+                jsontext['git_version']::varchar, jsontext['git']['version']::varchar
             ) as git_version,
             jsontext['gravatar_enabled']::boolean as is_gravatar_enabled,
             jsontext['historical_max_users']::number as historical_max_users,

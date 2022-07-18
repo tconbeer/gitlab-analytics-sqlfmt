@@ -108,12 +108,10 @@ with
             area as location_factor_area,
             locality,
             factor as location_factor,
-            min(valid_from) over (
-                partition by locality, locality_group
-            )::date as first_file_date,
-            max(valid_to) over (
-                partition by locality, locality_group
-            )::date as last_file_date,
+            min(valid_from) over (partition by locality, locality_group)::date
+            as first_file_date,
+            max(valid_to) over (partition by locality, locality_group)::date
+            as last_file_date,
             -- Fixed date represents when location factor becan to be collected in
             -- source data.
             iff(
