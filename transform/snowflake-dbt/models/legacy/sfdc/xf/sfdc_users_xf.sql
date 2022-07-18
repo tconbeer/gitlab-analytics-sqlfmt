@@ -1,139 +1,151 @@
-WITH RECURSIVE users AS (
+with recursive
+    users as (select * from {{ ref("sfdc_users") }}),
+    user_role as (select * from {{ ref("sfdc_user_roles") }}),
+    base as (
 
-    SELECT *
-    FROM {{ref('sfdc_users')}}
+        select
+            users.name as name,
+            users.department as department,
+            users.title as title,
+            users.team,  -- team,
+            users.user_id,  -- user_id
+            case  -- only expose GitLab.com email addresses of internal employees
+                when users.user_email like '%gitlab.com' then users.user_email else null
+            end as user_email,
+            manager.name as manager_name,
+            manager.user_id as manager_id,
+            user_role.name as role_name,
+            users.start_date,  -- start_date
+            users.is_active  -- is_active
+        from users
+        left outer join user_role on users.user_role_id = user_role.id
+        left outer join users as manager on manager.user_id = users.manager_id
 
-), user_role AS (
+    ),
+    managers as (
 
-    SELECT *
-    FROM {{ref('sfdc_user_roles')}}
+        select
+            user_id, name, role_name, manager_name, manager_id, 0 as level, '' as path
+        from base
+        where role_name = 'CRO'
 
-), base AS (
+        union all
 
-    SELECT
-      users.name            AS name,
-      users.department      AS department,
-      users.title           AS title,
-      users.team,           --team,
-      users.user_id,        --user_id
-      CASE --only expose GitLab.com email addresses of internal employees
-        WHEN users.user_email LIKE '%gitlab.com' THEN users.user_email 
-        ELSE NULL END       AS user_email,
-      manager.name          AS manager_name,
-      manager.user_id       AS manager_id,
-      user_role.name        AS role_name,
-      users.start_date,      --start_date
-      users.is_active        --is_active
-    FROM users
-    LEFT OUTER JOIN user_role 
-      ON users.user_role_id = user_role.id
-    LEFT OUTER JOIN users AS manager 
-      ON manager.user_id = users.manager_id
+        select
+            users.user_id,
+            users.name,
+            users.role_name,
+            users.manager_name,
+            users.manager_id,
+            level + 1,
+            path || managers.role_name || '::'
+        from base users
+        inner join managers on users.manager_id = managers.user_id
 
-),  managers AS (
-    
-    SELECT
-      user_id,
-      name,
-      role_name,
-      manager_name,
-      manager_id,
-      0 AS level,
-      '' AS path
-    FROM base
-    WHERE role_name = 'CRO'
+    ),
+    cro_sfdc_hierarchy as (
 
-    UNION ALL
+        select
+            user_id,
+            name,
+            role_name,
+            manager_name,
+            split_part(path, '::', 1)::varchar(50) as level_1,
+            split_part(path, '::', 2)::varchar(50) as level_2,
+            split_part(path, '::', 3)::varchar(50) as level_3,
+            split_part(path, '::', 4)::varchar(50) as level_4,
+            split_part(path, '::', 5)::varchar(50) as level_5
+        from managers
 
-    SELECT
-      users.user_id,
-      users.name,
-      users.role_name,
-      users.manager_name,
-      users.manager_id,
-      level + 1,
-      path || managers.role_name || '::'
-    FROM base users
-    INNER JOIN managers
-      ON users.manager_id = managers.user_id
+    ),
+    final as (
+        select
+            base.*,
 
-), cro_sfdc_hierarchy AS (
+            -- account owner hierarchies levels
+            trim(cro.level_2) as sales_team_level_2,
+            trim(cro.level_3) as sales_team_level_3,
+            trim(cro.level_4) as sales_team_level_4,
+            case
+                when trim(cro.level_2) is not null then trim(cro.level_2) else 'n/a'
+            end as sales_team_vp_level,
+            case
+                when (trim(cro.level_3) is not null and trim(cro.level_3) != '')
+                then trim(cro.level_3)
+                else 'n/a'
+            end as sales_team_rd_level,
+            case
+                when cro.level_3 like 'ASM%'
+                then cro.level_3
+                when cro.level_4 like 'ASM%' or cro.level_4 like 'Area Sales%'
+                then cro.level_4
+                else 'n/a'
+            end as sales_team_asm_level,
+            case
+                when
+                    (
+                        cro.level_4 is not null
+                        and cro.level_4 != ''
+                        and (cro.level_4 like 'ASM%' or cro.level_4 like 'Area Sales%')
+                    )
+                then cro.level_4
+                when (cro.level_3 is not null and cro.level_3 != '')
+                then cro.level_3
+                when (cro.level_2 is not null and cro.level_2 != '')
+                then cro.level_2
+                else 'n/a'
+            end as sales_min_hierarchy_level,
+            case
+                when sales_min_hierarchy_level in ('ASM - APAC - Japan', 'RD APAC')
+                then 'APAC'
+                when
+                    sales_min_hierarchy_level in (
+                        'ASM - Civilian',
+                        'ASM - DoD - USAF+COCOMS+4th Estate',
+                        'ASM - NSG',
+                        'ASM - SLED',
+                        'ASM-DOD- Army+Navy+Marines+SI''s',
+                        'CD PubSec',
+                        'RD PubSec'
+                    )
+                then 'PUBSEC'
+                when
+                    sales_min_hierarchy_level in (
+                        'ASM - EMEA - DACH',
+                        'ASM - EMEA - North',
+                        'ASM - MM - EMEA',
+                        'ASM-SMB-EMEA',
+                        'CD EMEA',
+                        'RD EMEA'
+                    )
+                then 'EMEA'
+                when
+                    sales_min_hierarchy_level in (
+                        'ASM - MM - East',
+                        'ASM - US East - Southeast',
+                        'ASM-SMB-AMER-East',
+                        'Area Sales Manager - US East - Central',
+                        'Area Sales Manager - US East - Named Accounts',
+                        'Area Sales Manager - US East - Northeast',
+                        'RD US East'
+                    )
+                then 'US East'
+                when
+                    sales_min_hierarchy_level in (
+                        'ASM - MM - West',
+                        'ASM - US West - NorCal',
+                        'ASM - US West - PacNW',
+                        'ASM - US West - SoCal+Rockies',
+                        'ASM-SMB-AMER-West',
+                        'RD US West'
+                    )
+                then 'US West'
+                else 'n/a'
+            end as sales_region,
+            case when cro.level_2 like 'VP%' then 1 else 0 end as is_lvl_2_vp_flag
+        from base
+        left join cro_sfdc_hierarchy cro on cro.user_id = base.user_id
+    )
 
-    SELECT
-      user_id,
-      name,
-      role_name,
-      manager_name,
-      SPLIT_PART(path, '::', 1)::VARCHAR(50) AS level_1,
-      SPLIT_PART(path, '::', 2)::VARCHAR(50) AS level_2,
-      SPLIT_PART(path, '::', 3)::VARCHAR(50) AS level_3,
-      SPLIT_PART(path, '::', 4)::VARCHAR(50) AS level_4,
-      SPLIT_PART(path, '::', 5)::VARCHAR(50) AS level_5
-    FROM managers
-
-), final AS (
-    SELECT 
-      base.*,
-
-      -- account owner hierarchies levels
-      TRIM(cro.level_2)                                                                               AS sales_team_level_2,
-      TRIM(cro.level_3)                                                                               AS sales_team_level_3,
-      TRIM(cro.level_4)                                                                               AS sales_team_level_4,
-      CASE 
-        WHEN TRIM(cro.level_2) IS NOT NULL
-          THEN TRIM(cro.level_2)
-        ELSE 'n/a'
-      END                                                                                             AS sales_team_vp_level,
-      CASE 
-        WHEN (TRIM(cro.level_3) IS NOT NULL  AND TRIM(cro.level_3) != '')
-          THEN TRIM(cro.level_3)
-        ELSE 'n/a'
-      END                                                                                             AS sales_team_rd_level,
-      CASE 
-        WHEN cro.level_3 LIKE 'ASM%' 
-          THEN cro.level_3
-        WHEN cro.level_4 LIKE 'ASM%' OR cro.level_4 LIKE 'Area Sales%' 
-          THEN cro.level_4
-          ELSE 'n/a'
-      END                                                                                             AS sales_team_asm_level,
-      CASE 
-        WHEN (cro.level_4 IS NOT NULL 
-          AND cro.level_4 != ''
-          AND (cro.level_4 LIKE 'ASM%' OR cro.level_4 LIKE 'Area Sales%') )
-            THEN cro.level_4 
-        WHEN (cro.level_3 IS NOT NULL AND cro.level_3 != '')
-          THEN cro.level_3
-        WHEN (cro.level_2 IS NOT NULL AND cro.level_2 != '')
-          THEN cro.level_2
-        ELSE 'n/a'
-      END                                                                                             AS sales_min_hierarchy_level,
-        CASE 
-          WHEN sales_min_hierarchy_level IN ('ASM - APAC - Japan', 'RD APAC')
-            THEN 'APAC'
-          WHEN sales_min_hierarchy_level IN ('ASM - Civilian','ASM - DoD - USAF+COCOMS+4th Estate'
-                                            , 'ASM - NSG', 'ASM - SLED', 'ASM-DOD- Army+Navy+Marines+SI''s'  
-                                            , 'CD PubSec', 'RD PubSec' )
-            THEN 'PUBSEC'
-          WHEN sales_min_hierarchy_level IN ('ASM - EMEA - DACH', 'ASM - EMEA - North', 'ASM - MM - EMEA' 
-                                            , 'ASM-SMB-EMEA', 'CD EMEA', 'RD EMEA')
-            THEN 'EMEA'
-          WHEN sales_min_hierarchy_level IN ('ASM - MM - East','ASM - US East - Southeast', 'ASM-SMB-AMER-East'
-                                            , 'Area Sales Manager - US East - Central', 'Area Sales Manager - US East - Named Accounts' 
-                                            , 'Area Sales Manager - US East - Northeast', 'RD US East')
-            THEN 'US East'
-          WHEN sales_min_hierarchy_level IN ('ASM - MM - West','ASM - US West - NorCal','ASM - US West - PacNW'
-                                            ,'ASM - US West - SoCal+Rockies', 'ASM-SMB-AMER-West','RD US West')
-            THEN 'US West'
-            ELSE 'n/a' END                                                                            AS sales_region,
-        CASE 
-          WHEN cro.level_2 LIKE 'VP%' 
-            THEN 1
-          ELSE 0
-        END                                                                                           AS is_lvl_2_vp_flag
-    FROM base
-    LEFT JOIN cro_sfdc_hierarchy cro
-        ON cro.user_id = base.user_id
-)
-
-SELECT *
-FROM final
+select *
+from final

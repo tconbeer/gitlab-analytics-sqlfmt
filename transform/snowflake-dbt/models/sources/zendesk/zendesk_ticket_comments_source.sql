@@ -1,39 +1,38 @@
-{{ config({
-    "schema": "sensitive",
-    "database": env_var('SNOWFLAKE_PREP_DATABASE'),
-    })
+{{
+    config(
+        {
+            "schema": "sensitive",
+            "database": env_var("SNOWFLAKE_PREP_DATABASE"),
+        }
+    )
 }}
 
-WITH source AS (
+with
+    source as (select * from {{ source("zendesk", "ticket_comments") }}),
 
-    SELECT *
-    FROM {{ source('zendesk', 'ticket_comments') }}
+    renamed as (
 
-),
+        select
 
-renamed AS (
+            -- ids
+            audit_id,
+            author_id,
+            id as ticket_comment_id,
+            ticket_id,
 
-    SELECT
+            -- field
+            body as comment_body,
+            html_body as comment_html_body,
+            plain_body as comment_plain_body,
+            public as is_public,
+            "TYPE" as comment_type,
 
-        --ids
-        audit_id,
-        author_id,
-        id                                                  AS ticket_comment_id,
-        ticket_id,
+            -- dates
+            created_at
 
-        --field
-        body                                                AS comment_body,
-        html_body                                           AS comment_html_body,
-        plain_body                                          AS comment_plain_body,
-        public                                              AS is_public,
-        "TYPE"                                              AS comment_type,
+        from source
 
-        --dates
-        created_at
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

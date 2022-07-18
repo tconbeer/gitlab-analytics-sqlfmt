@@ -1,27 +1,24 @@
-    
-WITH source AS (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_pages_domains_dedupe_source') }}
-    
-), renamed AS (
-  
-    SELECT
-    
-      id::NUMBER                             AS pages_domain_id,
-      project_id::NUMBER                     AS project_id,
-      verified_at::TIMESTAMP                  AS verified_at,
-      verification_code::VARCHAR              AS verification_code,
-      enabled_until::TIMESTAMP                AS enabled_until,
-      remove_at::TIMESTAMP                    AS remove_at,
-      auto_ssl_enabled::BOOLEAN               AS is_auto_ssl_enabled,
-      certificate_valid_not_before::TIMESTAMP AS certificate_valid_not_before,
-      certificate_valid_not_after::TIMESTAMP  AS certificate_valid_not_after,
-      certificate_source::VARCHAR             AS certificate_source
-    
-    FROM source
-      
-)
+with
+    source as (select * from {{ ref("gitlab_dotcom_pages_domains_dedupe_source") }}),
+    renamed as (
 
-SELECT * 
-FROM renamed
+        select
+
+            id::number as pages_domain_id,
+            project_id::number as project_id,
+            verified_at::timestamp as verified_at,
+            verification_code::varchar as verification_code,
+            enabled_until::timestamp as enabled_until,
+            remove_at::timestamp as remove_at,
+            auto_ssl_enabled::boolean as is_auto_ssl_enabled,
+            certificate_valid_not_before::timestamp as certificate_valid_not_before,
+            certificate_valid_not_after::timestamp as certificate_valid_not_after,
+            certificate_source::varchar as certificate_source
+
+        from source
+
+    )
+
+select *
+from renamed

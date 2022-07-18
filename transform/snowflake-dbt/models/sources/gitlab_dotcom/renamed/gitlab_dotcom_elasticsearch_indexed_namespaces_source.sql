@@ -1,19 +1,21 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_elasticsearch_indexed_namespaces_dedupe_source') }}
+        select *
+        from {{ ref("gitlab_dotcom_elasticsearch_indexed_namespaces_dedupe_source") }}
 
-), types_cast AS (
+    ),
+    types_cast as (
 
-    SELECT
-      namespace_id::NUMBER            AS namespace_id,
-      created_at::TIMESTAMP           AS created_at,
-      updated_at::TIMESTAMP           AS updated_at,
-      _uploaded_at::NUMBER::TIMESTAMP AS uploaded_at,
-      _task_instance::VARCHAR         AS task_instance_name
-    FROM source
+        select
+            namespace_id::number as namespace_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            _uploaded_at::number::timestamp as uploaded_at,
+            _task_instance::varchar as task_instance_name
+        from source
 
-)
+    )
 
-SELECT *
-FROM types_cast
+select *
+from types_cast

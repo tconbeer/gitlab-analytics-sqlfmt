@@ -1,25 +1,22 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "scorecard_question_answers") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'scorecard_question_answers') }}
+        select
 
-), renamed as (
+            -- keys
+            scorecard_id::number as scorecard_id,
+            application_id::number as application_id,
 
-	SELECT
+            -- info
+            question::varchar as scorecard_question,
+            answer::varchar as scorecard_answer,
+            created_at::timestamp as scorecard_question_answer_created_at,
+            updated_at::varchar::timestamp as scorecard_question_answer_updated_at
 
-            --keys
-            scorecard_id::NUMBER                AS scorecard_id,
-            application_id::NUMBER              AS application_id,
+        from source
 
-            --info
-            question::varchar                   AS scorecard_question,
-            answer::varchar                     AS scorecard_answer,
-            created_at::timestamp               AS scorecard_question_answer_created_at,
-            updated_at::varchar::timestamp      AS scorecard_question_answer_updated_at
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

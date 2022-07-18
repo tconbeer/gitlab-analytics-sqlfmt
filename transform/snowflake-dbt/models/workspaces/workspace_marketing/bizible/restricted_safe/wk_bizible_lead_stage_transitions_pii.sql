@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("bizible_lead_stage_transitions_source_pii") }})
 
-    SELECT *
-    FROM {{ ref('bizible_lead_stage_transitions_source_pii') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

@@ -1,20 +1,22 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_namespace_statistics_dedupe_source') }}
-  
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_namespace_statistics_dedupe_source") }}
 
-    SELECT
+    ),
+    renamed as (
 
-      id::NUMBER                                      AS namespace_statistics_id,
-      namespace_id::NUMBER                            AS namespace_id,
-      shared_runners_seconds::NUMBER                  AS shared_runners_seconds,
-      shared_runners_seconds_last_reset::TIMESTAMP     AS shared_runners_seconds_last_reset
+        select
 
-    FROM source
+            id::number as namespace_statistics_id,
+            namespace_id::number as namespace_id,
+            shared_runners_seconds::number as shared_runners_seconds,
+            shared_runners_seconds_last_reset::timestamp
+            as shared_runners_seconds_last_reset
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("sheetload_job_roles_prior_to_2020_02_source") }})
 
-    SELECT *
-    FROM {{ ref('sheetload_job_roles_prior_to_2020_02_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source
