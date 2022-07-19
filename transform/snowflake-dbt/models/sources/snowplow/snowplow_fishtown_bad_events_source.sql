@@ -1,9 +1,4 @@
-WITH source as (
+with source as (select * from {{ source("fishtown_snowplow", "bad_events") }})
 
-    SELECT *
-    FROM {{ source('fishtown_snowplow', 'bad_events') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

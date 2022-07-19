@@ -1,25 +1,26 @@
-    
-WITH source AS (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_clusters_applications_prometheus_dedupe_source') }}
-    
-), 
+with
+    source as (
 
-renamed AS (
-    
-    SELECT
-      id::NUMBER              AS clusters_applications_prometheus_id,
-      cluster_id::NUMBER      AS cluster_id,
-      created_at::TIMESTAMP    AS created_at,
-      updated_at::TIMESTAMP    AS updated_at,
-      status::NUMBER          AS status,
-      version::VARCHAR         AS version,
-      status_reason::VARCHAR   AS status_reason
-    FROM source
+        select *
+        from {{ ref("gitlab_dotcom_clusters_applications_prometheus_dedupe_source") }}
 
-)
+    ),
+
+    renamed as (
+
+        select
+            id::number as clusters_applications_prometheus_id,
+            cluster_id::number as cluster_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            status::number as status,
+            version::varchar as version,
+            status_reason::varchar as status_reason
+        from source
+
+    )
 
 
-SELECT *
-FROM renamed
+select *
+from renamed

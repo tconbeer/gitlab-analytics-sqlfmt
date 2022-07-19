@@ -1,9 +1,12 @@
 {%- macro monthly_change(column) -%}
 
-    CASE
-      WHEN {{ column }} - lag({{ column }}) OVER (PARTITION BY uuid ORDER BY created_at) >= 0
-        THEN {{ column }} - lag({{ column }}) OVER (PARTITION BY uuid ORDER BY created_at)
-      ELSE {{ column }}
-    END AS {{ column }}_change
+case
+    when
+        {{ column }}
+        - lag({{ column }}) over (partition by uuid order by created_at)
+        >= 0
+    then {{ column }} - lag({{ column }}) over (partition by uuid order by created_at)
+    else {{ column }}
+end as {{ column }}_change
 
 {%- endmacro -%}

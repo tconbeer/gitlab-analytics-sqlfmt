@@ -1,20 +1,7 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zendesk_community_relations", "tags") }}),
 
-    SELECT *
-    FROM {{ source('zendesk_community_relations', 'tags') }}
+    renamed as (select count as tag_count, name as tag_name from source)
 
-),
-
-renamed AS (
-
-    SELECT
-
-      count AS tag_count,
-      name  AS tag_name
-
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

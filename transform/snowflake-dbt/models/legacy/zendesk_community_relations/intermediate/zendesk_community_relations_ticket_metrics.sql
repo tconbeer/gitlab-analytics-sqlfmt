@@ -1,20 +1,21 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('zendesk_community_relations_ticket_metrics_source') }}
+        select * from {{ ref("zendesk_community_relations_ticket_metrics_source") }}
 
-),
+    ),
 
-renamed AS (
+    renamed as (
 
-    SELECT
-      *,
-      reply_time_in_minutes_during_calendar_hours  AS sla_reply_time_calendar_hours,
-      reply_time_in_minutes_during_business_hours  AS sla_reply_time_business_hours
+        select
+            *,
+            reply_time_in_minutes_during_calendar_hours
+            as sla_reply_time_calendar_hours,
+            reply_time_in_minutes_during_business_hours as sla_reply_time_business_hours
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,14 +1,12 @@
-{{ config({
-    "schema": "legacy"
-    })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('sheetload_location_factor_temporary_2020_december_source') }}
+        select *
+        from {{ ref("sheetload_location_factor_temporary_2020_december_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

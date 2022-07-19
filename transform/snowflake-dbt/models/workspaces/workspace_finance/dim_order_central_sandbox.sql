@@ -1,30 +1,34 @@
-WITH base AS (
+with
+    base as (
 
-    SELECT *
-    FROM {{ref('zuora_central_sandbox_order_source')}}
-    WHERE is_deleted = FALSE
+        select *
+        from {{ ref("zuora_central_sandbox_order_source") }}
+        where is_deleted = false
 
-), final AS (
+    ),
+    final as (
 
-    SELECT
-      
-      order_id              AS dim_order_id,
-      description           AS order_description,
-      created_date          AS order_created_date,
-      order_date,
-      order_number,
-      state                 AS order_state,
-      status                AS order_status,
-      created_by_migration  AS is_created_by_migration
+        select
 
-    FROM base
+            order_id as dim_order_id,
+            description as order_description,
+            created_date as order_created_date,
+            order_date,
+            order_number,
+            state as order_state,
+            status as order_status,
+            created_by_migration as is_created_by_migration
 
-)
+        from base
 
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@michellecooper",
-    updated_by="@michellecooper",
-    created_date="2022-03-31",
-    updated_date="2022-03-31"
-) }}
+    )
+
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@michellecooper",
+            updated_by="@michellecooper",
+            created_date="2022-03-31",
+            updated_date="2022-03-31",
+        )
+    }}

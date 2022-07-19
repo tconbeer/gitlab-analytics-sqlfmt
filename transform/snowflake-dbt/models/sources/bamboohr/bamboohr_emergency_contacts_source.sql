@@ -1,28 +1,30 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('bamboohr', 'emergency_contacts') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
+        select *
+        from {{ source("bamboohr", "emergency_contacts") }}
+        order by uploaded_at desc
+        limit 1
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-    SELECT d.value AS data_by_row
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), OUTER => true) d
-  
-), renamed AS (
+        select d.value as data_by_row
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-    SELECT
-      data_by_row['employeeId']::NUMBER 		AS employee_id,
-      data_by_row['id']::NUMBER 				AS emergency_contact_id,
-	  data_by_row['name']::VARCHAR 	            AS full_name,
-      data_by_row['homePhone']::VARCHAR 		AS home_phone,
-	  data_by_row['mobilePhone']::VARCHAR 		AS mobile_phone,
-	  data_by_row['workPhone']::VARCHAR			AS work_phone
-    FROM intermediate
+    ),
+    renamed as (
 
-)
+        select
+            data_by_row['employeeId']::number as employee_id,
+            data_by_row['id']::number as emergency_contact_id,
+            data_by_row['name']::varchar as full_name,
+            data_by_row['homePhone']::varchar as home_phone,
+            data_by_row['mobilePhone']::varchar as mobile_phone,
+            data_by_row['workPhone']::varchar as work_phone
+        from intermediate
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed
