@@ -193,7 +193,7 @@ select
         then 0
         when lower(charge_type) != 'recurring'
         then 0
-        else ( (annual_price - list_price) / nullif(list_price, 0)) * -1
+        else ((annual_price - list_price) / nullif(list_price, 0)) * -1
     end as discount,
     case
         when lower(charge_type) != 'recurring' then 0 else quantity * list_price

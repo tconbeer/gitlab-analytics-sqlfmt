@@ -226,7 +226,7 @@ with
                 null
             ) as new_hire_location_factor,
             discretionary_bonus,
-            round( (tenure_days / 30), 2) as tenure_months,
+            round((tenure_days / 30), 2) as tenure_months,
             iff(
                 tenure_months between 0 and 6 and dates.end_date = date_actual, 1, 0
             ) as tenure_zero_to_six_months,

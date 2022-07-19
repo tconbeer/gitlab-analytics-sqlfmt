@@ -107,7 +107,7 @@ with
             arr_net__c as net_arr,
             case
                 when closedate::date >= '2018-02-01'
-                then coalesce( (net_iacv__c * ratio_net_iacv_to_net_arr), net_iacv__c)
+                then coalesce((net_iacv__c * ratio_net_iacv_to_net_arr), net_iacv__c)
                 else null
             end as net_arr_converted,
             case

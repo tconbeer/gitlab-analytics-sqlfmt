@@ -100,7 +100,7 @@ with
             iff(
                 hire_plan.planned_headcount = 0,
                 null,
-                round( (headcount.headcount_actual / hire_plan.planned_headcount), 4)
+                round((headcount.headcount_actual / hire_plan.planned_headcount), 4)
             ) as actual_headcount_vs_planned_headcount,
 
             new_hire,
@@ -151,7 +151,7 @@ with
             iff(
                 cumulative_planned_hires = 0,
                 null,
-                round( (cumulative_hires_actual / cumulative_planned_hires), 2)
+                round((cumulative_hires_actual / cumulative_planned_hires), 2)
             ) as cumulative_hires_vs_plan
         from joined
         where

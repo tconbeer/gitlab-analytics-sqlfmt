@@ -19,7 +19,7 @@ with
             and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
             -- js frontend tracker
             -- ruby backend tracker
-            and ( (v_tracker like 'js%') or (v_tracker like 'rb%'))
+            and ((v_tracker like 'js%') or (v_tracker like 'rb%'))
             and try_to_timestamp(derived_tstamp) is not null
 
     ),

@@ -52,7 +52,7 @@ final as (
             then 'Twitter'
             else 'Other'
         end as mapped_source,
-        concat( (mapped_channel), '.', (mapped_source)) as mapped_channel_source,
+        concat((mapped_channel), '.', (mapped_source)) as mapped_channel_source,
         case
             when mapped_channel_source = 'Other.Other'
             then 'Other'
