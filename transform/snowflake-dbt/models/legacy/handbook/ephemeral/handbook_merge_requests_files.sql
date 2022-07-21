@@ -1,25 +1,21 @@
-{{ config({
-    "materialized": "ephemeral"
-    })
-}}
+{{ config({"materialized": "ephemeral"}) }}
 
-WITH base AS (
+with
+    -- explodes the files in the list of diffs
+    base as (select * from {{ ref("handbook_merge_requests_source") }}),
+    exploded_file_paths as (
 
-    SELECT *
-    FROM {{ ref('handbook_merge_requests_source') }}
+        select
+            file_diffs.value:file_path::varchar as handbook_file_edited,
+            base.plain_diff_url_path as plain_diff_url_path,
+            base.merge_request_version_diffs as merge_request_version_diffs,
+            base.source_branch_name as source_branch_name
+        from base
+        inner join table(flatten(input => file_diffs, outer => true)) as file_diffs
+        where
+            lower(file_diffs.value:file_path) like '%/handbook/%'
+            or lower(file_diffs.value:file_path) like '%data/performance_indicators%'
 
-), exploded_file_paths AS ( -- explodes the files in the list of diffs
-    
-    SELECT 
-      file_diffs.value:file_path::VARCHAR AS handbook_file_edited,
-      base.plain_diff_url_path            AS plain_diff_url_path,
-      base.merge_request_version_diffs    AS merge_request_version_diffs,
-      base.source_branch_name             AS source_branch_name
-    FROM base
-    INNER JOIN TABLE(FLATTEN(INPUT => file_diffs, outer => true)) AS file_diffs
-    WHERE LOWER(file_diffs.value:file_path) LIKE '%/handbook/%'
-    OR LOWER(file_diffs.value:file_path) LIKE '%data/performance_indicators%'
-
-)
-SELECT * 
-FROM exploded_file_paths
+    )
+select *
+from exploded_file_paths

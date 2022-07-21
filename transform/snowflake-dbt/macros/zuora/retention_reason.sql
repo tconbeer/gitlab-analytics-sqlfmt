@@ -1,62 +1,89 @@
-{%- macro retention_reason(original_mrr, original_product_category, original_product_ranking,
-                           original_seat_quantity, new_mrr, new_product_category, new_product_ranking,
-                           new_seat_quantity) -%}
+{%- macro retention_reason(
+    original_mrr,
+    original_product_category,
+    original_product_ranking,
+    original_seat_quantity,
+    new_mrr,
+    new_product_category,
+    new_product_ranking,
+    new_seat_quantity
+) -%}
 
-	CASE
-      WHEN {{ original_mrr }} > {{ new_mrr }} AND
-          {{ original_product_category }} = {{ new_product_category }} AND
-          {{ original_seat_quantity }} > {{ new_seat_quantity }} AND
-          {{ original_mrr }} / {{ original_seat_quantity }} > {{ new_mrr }} / {{ new_seat_quantity }}
-        THEN 'Price Change/Seat Change Mix'           
+case
+    when
+        {{ original_mrr }} > {{ new_mrr }}
+        and {{ original_product_category }} = {{ new_product_category }}
+        and {{ original_seat_quantity }} > {{ new_seat_quantity }}
+        and {{ original_mrr }}
+        / {{ original_seat_quantity }}
+        > {{ new_mrr }}
+        / {{ new_seat_quantity }}
+    then 'Price Change/Seat Change Mix'
 
-      WHEN  {{ original_mrr }} < {{ new_mrr }} AND
-          {{ original_product_category }} = {{ new_product_category }} AND
-          {{ original_seat_quantity }} < {{ new_seat_quantity }} AND
-          {{ original_mrr }} / {{ original_seat_quantity }} < {{ new_mrr }} / {{ new_seat_quantity }}
-        THEN 'Price Change/Seat Change Mix'
+    when
+        {{ original_mrr }} < {{ new_mrr }}
+        and {{ original_product_category }} = {{ new_product_category }}
+        and {{ original_seat_quantity }} < {{ new_seat_quantity }}
+        and {{ original_mrr }}
+        / {{ original_seat_quantity }}
+        < {{ new_mrr }}
+        / {{ new_seat_quantity }}
+    then 'Price Change/Seat Change Mix'
 
-      WHEN {{ original_mrr }} > {{ new_mrr }} AND
-          {{ original_product_category }} = {{ new_product_category }} AND
-          {{ original_seat_quantity }} > {{ new_seat_quantity }}
-        THEN 'Seat Change'            
+    when
+        {{ original_mrr }} > {{ new_mrr }}
+        and {{ original_product_category }} = {{ new_product_category }}
+        and {{ original_seat_quantity }} > {{ new_seat_quantity }}
+    then 'Seat Change'
 
-      WHEN {{ original_mrr }} < {{ new_mrr }} AND
-          {{ original_product_category }} = {{ new_product_category }} AND
-          {{ original_seat_quantity }} < {{ new_seat_quantity }}
-        THEN 'Seat Change'
+    when
+        {{ original_mrr }} < {{ new_mrr }}
+        and {{ original_product_category }} = {{ new_product_category }}
+        and {{ original_seat_quantity }} < {{ new_seat_quantity }}
+    then 'Seat Change'
 
-      WHEN {{ original_mrr }} > {{ new_mrr }} AND
-          ({{ original_product_category }} = {{ new_product_category }} AND
-          {{ original_seat_quantity }} <= {{ new_seat_quantity }})
-        THEN 'Price Change'           
+    when
+        {{ original_mrr }} > {{ new_mrr }}
+        and (
+            {{ original_product_category }} = {{ new_product_category }}
+            and {{ original_seat_quantity }} <= {{ new_seat_quantity }}
+        )
+    then 'Price Change'
 
-      WHEN {{ original_mrr }} < {{ new_mrr }} AND
-          ({{ original_product_category }} = {{ new_product_category }} AND
-          {{ original_seat_quantity }} >= {{ new_seat_quantity }})
-        THEN 'Price Change'
+    when
+        {{ original_mrr }} < {{ new_mrr }}
+        and (
+            {{ original_product_category }} = {{ new_product_category }}
+            and {{ original_seat_quantity }} >= {{ new_seat_quantity }}
+        )
+    then 'Price Change'
 
-      WHEN {{ original_mrr }} > {{ new_mrr }} AND
-          {{ original_product_ranking }} < {{ new_product_ranking }} AND 
-          {{ original_seat_quantity }} = {{ new_seat_quantity }}
-        THEN 'Price Change' 
+    when
+        {{ original_mrr }} > {{ new_mrr }}
+        and {{ original_product_ranking }} < {{ new_product_ranking }}
+        and {{ original_seat_quantity }} = {{ new_seat_quantity }}
+    then 'Price Change'
 
-      WHEN {{ original_mrr }} < {{ new_mrr }} AND
-          {{ original_product_ranking }} > {{ new_product_ranking }} AND 
-          {{ original_seat_quantity }} = {{ new_seat_quantity }}
-        THEN 'Price Change'               
+    when
+        {{ original_mrr }} < {{ new_mrr }}
+        and {{ original_product_ranking }} > {{ new_product_ranking }}
+        and {{ original_seat_quantity }} = {{ new_seat_quantity }}
+    then 'Price Change'
 
-      WHEN {{ original_product_category }} != {{ new_product_category }} AND
-          {{ original_seat_quantity }} = {{ new_seat_quantity }}
-        THEN 'Product Change'
+    when
+        {{ original_product_category }} != {{ new_product_category }}
+        and {{ original_seat_quantity }} = {{ new_seat_quantity }}
+    then 'Product Change'
 
-      WHEN {{ original_product_category }} != {{ new_product_category }} AND
-          {{ original_seat_quantity }} != {{ new_seat_quantity }}
-        THEN 'Product Change/Seat Change Mix'
+    when
+        {{ original_product_category }} != {{ new_product_category }}
+        and {{ original_seat_quantity }} != {{ new_seat_quantity }}
+    then 'Product Change/Seat Change Mix'
 
-      WHEN {{ new_mrr }} = 0 AND {{ original_mrr }} > 0
-        THEN 'Cancelled'
+    when {{ new_mrr }} = 0 and {{ original_mrr }} > 0
+    then 'Cancelled'
 
-      ELSE 'Unknown' 
-      END                      AS retention_reason
+    else 'Unknown'
+end as retention_reason
 
 {%- endmacro -%}

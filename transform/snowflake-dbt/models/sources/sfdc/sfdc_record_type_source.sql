@@ -1,24 +1,20 @@
-WITH source AS (
+with
+    source as (select * from {{ source("salesforce", "record_type") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('salesforce', 'record_type') }}
+        select
+            id as record_type_id,
+            developername as record_type_name,
+            -- keys
+            businessprocessid as business_process_id,
+            -- info
+            name as record_type_label,
+            description as record_type_description,
+            sobjecttype as record_type_modifying_object_type
 
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-         id                AS record_type_id,
-         developername     AS record_type_name,
-        --keys
-         businessprocessid AS business_process_id,
-        --info
-         name              AS record_type_label,
-         description       AS record_type_description,
-         sobjecttype       AS record_type_modifying_object_type
-
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

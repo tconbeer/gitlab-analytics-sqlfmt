@@ -1,19 +1,32 @@
 {%- macro arr_buckets(arr) -%}
 
-    CASE
-      WHEN {{ arr }} < 0                        THEN '[00] < 0'
-      WHEN {{ arr }} BETWEEN 0 AND 250          THEN '[01] 0-250'
-      WHEN {{ arr }} BETWEEN 250 AND 500        THEN '[02] 250-500'
-      WHEN {{ arr }} BETWEEN 500 AND 1000       THEN '[03] 500-1K'
-      WHEN {{ arr }} BETWEEN 1000 AND 2500      THEN '[04] 1K-2.5K'
-      WHEN {{ arr }} BETWEEN 2500 AND 5000      THEN '[05] 2.5K-5K'
-      WHEN {{ arr }} BETWEEN 5000 AND 10000     THEN '[06] 5K-10K'
-      WHEN {{ arr }} BETWEEN 10000 AND 25000    THEN '[07] 10K-25K'
-      WHEN {{ arr }} BETWEEN 25000 AND 50000    THEN '[08] 25K-50K'
-      WHEN {{ arr }} BETWEEN 50000 AND 100000   THEN '[09] 50K-100K'
-      WHEN {{ arr }} BETWEEN 100000 AND 500000  THEN '[10] 100K-500K'
-      WHEN {{ arr }} BETWEEN 500000 AND 1000000 THEN '[11] 500K-1M'
-      WHEN {{ arr }} > 1000000                  THEN '[12] 1M+'
-    END
+case
+    when {{ arr }} < 0
+    then '[00] < 0'
+    when {{ arr }} between 0 and 250
+    then '[01] 0-250'
+    when {{ arr }} between 250 and 500
+    then '[02] 250-500'
+    when {{ arr }} between 500 and 1000
+    then '[03] 500-1K'
+    when {{ arr }} between 1000 and 2500
+    then '[04] 1K-2.5K'
+    when {{ arr }} between 2500 and 5000
+    then '[05] 2.5K-5K'
+    when {{ arr }} between 5000 and 10000
+    then '[06] 5K-10K'
+    when {{ arr }} between 10000 and 25000
+    then '[07] 10K-25K'
+    when {{ arr }} between 25000 and 50000
+    then '[08] 25K-50K'
+    when {{ arr }} between 50000 and 100000
+    then '[09] 50K-100K'
+    when {{ arr }} between 100000 and 500000
+    then '[10] 100K-500K'
+    when {{ arr }} between 500000 and 1000000
+    then '[11] 500K-1M'
+    when {{ arr }} > 1000000
+    then '[12] 1M+'
+end
 
 {%- endmacro -%}

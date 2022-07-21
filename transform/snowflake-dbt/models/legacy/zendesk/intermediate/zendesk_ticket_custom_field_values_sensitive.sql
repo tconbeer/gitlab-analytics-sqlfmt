@@ -1,24 +1,25 @@
-{{ config({
-    "schema": "sensitive",
-    "database": env_var('SNOWFLAKE_PREP_DATABASE'),
-    })
+{{
+    config(
+        {
+            "schema": "sensitive",
+            "database": env_var("SNOWFLAKE_PREP_DATABASE"),
+        }
+    )
 }}
 
-WITH zendesk_tickets AS (
+with
+    zendesk_tickets as (select * from {{ ref("zendesk_tickets_source") }}),
+    custom_fields as (
 
-    SELECT *
-    FROM {{ref('zendesk_tickets_source')}}
+        select
+            d.value['id'] as ticket_custom_field_id,
+            d.value['value'] as ticket_custom_field_value,
+            ticket_id as ticket_id
+        from
+            zendesk_tickets,
+            lateral flatten(input => ticket_custom_field_values, outer => true) d
 
-), custom_fields AS (
+    )
 
-    SELECT 
-      d.value['id']     AS ticket_custom_field_id,
-      d.value['value']  AS ticket_custom_field_value,
-      ticket_id         AS ticket_id
-    FROM zendesk_tickets,
-    LATERAL FLATTEN(INPUT => ticket_custom_field_values, outer => true) d
-    
-)
-
-SELECT *
-FROM custom_fields
+select *
+from custom_fields

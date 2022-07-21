@@ -1,171 +1,259 @@
-WITH bamboohr_compensation AS (
+with
+    bamboohr_compensation as (select * from {{ ref("bamboohr_compensation_source") }}),
+    bamboohr_compensation_changes as (
 
-    SELECT *
-    FROM {{ ref('bamboohr_compensation_source') }}
+        select
+            *,
+            row_number() over (
+                partition by employee_id order by effective_date
+            ) as rank_by_effective_date,
+            row_number() over (
+                partition by employee_id order by compensation_update_id
+            ) as rank_by_id,
+            case
+                when rank_by_effective_date != rank_by_id
+                then
+                    lag(compensation_value) over (
+                        partition by employee_id order by effective_date
+                    )
+                else
+                    lag(compensation_value) over (
+                        partition by employee_id order by compensation_update_id
+                    )
+            end as prior_compensation_value,
+            case
+                when rank_by_effective_date != rank_by_id
+                then
+                    lag(compensation_currency) over (
+                        partition by employee_id order by effective_date
+                    )
+                else
+                    lag(compensation_currency) over (
+                        partition by employee_id order by compensation_update_id
+                    )
+            end as prior_compensation_currency,
+            row_number() over (
+                partition by employee_id, effective_date order by compensation_update_id
+            ) as rank_compensation_change_effective_date
+        from bamboohr_compensation
 
-), bamboohr_compensation_changes AS (
+    ),
+    pay_frequency as (
 
-    SELECT *,
-      ROW_NUMBER() OVER (PARTITION BY employee_id ORDER BY effective_date) AS rank_by_effective_date,
-      ROW_NUMBER() OVER (PARTITION BY employee_id ORDER BY compensation_update_id)                             AS rank_by_id,
-      CASE WHEN rank_by_effective_date != rank_by_id
-           THEN LAG(compensation_value) OVER (PARTITION BY employee_id ORDER BY effective_date)
-           ELSE LAG(compensation_value) OVER (PARTITION BY employee_id ORDER BY compensation_update_id) END    AS prior_compensation_value,
-      CASE WHEN rank_by_effective_date != rank_by_id
-           THEN LAG(compensation_currency) OVER (PARTITION BY employee_id ORDER BY effective_date)
-           ELSE LAG(compensation_currency) OVER (PARTITION BY employee_id ORDER BY compensation_update_id) END AS prior_compensation_currency,
-      ROW_NUMBER() OVER (PARTITION BY employee_id, effective_date ORDER BY compensation_update_id)             AS rank_compensation_change_effective_date    
-    FROM bamboohr_compensation
+        select
+            *,
+            row_number() over (
+                partition by employee_id order by effective_date
+            ) as pay_frequency_row_number
+        from {{ ref("bamboohr_job_role") }}
+        where pay_frequency is not null
 
-), pay_frequency AS (
+    ),
+    ote as (
 
-    SELECT *,
-     ROW_NUMBER() OVER (PARTITION BY employee_id ORDER BY effective_date) AS pay_frequency_row_number
-    FROM {{ ref('bamboohr_job_role') }}
-    WHERE pay_frequency IS NOT NULL
-  
-), ote AS (
+        select
+            *,
+            row_number() over (
+                partition by employee_id, effective_date
+                order by target_earnings_update_id
+            ) as rank_ote_effective_date
+        from {{ ref("bamboohr_ote_source") }}
 
-    SELECT *,
-      ROW_NUMBER() OVER (PARTITION BY employee_id, effective_date ORDER BY target_earnings_update_id)   AS rank_ote_effective_date
-    FROM {{ ref('bamboohr_ote_source') }}
+    ),
+    employee_directory as (select * from {{ ref("employee_directory_intermediate") }}),
+    currency_conversion as (
 
-), employee_directory AS (
+        select
+            *,
+            lag(currency_conversion_factor) over (
+                partition by employee_id order by conversion_id
+            ) as prior_conversion_factor,
+            row_number() over (
+                partition by employee_id order by conversion_id
+            ) as rank_conversion_id
+        from {{ ref("bamboohr_currency_conversion_source") }}
 
-    SELECT *
-    FROM {{ ref('employee_directory_intermediate') }}
+    ),
+    currency_conversion_factor_periods as (
 
-), currency_conversion AS (
+        select
+            *,
+            lead(annual_amount_usd_value) over (
+                partition by employee_id order by conversion_id
+            ) as next_usd_value,
+            lead(dateadd(day, -1, effective_date)) over (
+                partition by employee_id order by conversion_id
+            ) as next_effective_date
+        from currency_conversion
+        where
+            currency_conversion_factor <> prior_conversion_factor
+            or rank_conversion_id = 1
 
-    SELECT *,
-      LAG(currency_conversion_factor) OVER (PARTITION BY employee_id ORDER BY conversion_ID)        AS prior_conversion_factor,
-      ROW_NUMBER() OVER (PARTITION BY employee_id ORDER BY conversion_ID)                           AS rank_conversion_id
-    FROM {{ ref('bamboohr_currency_conversion_source') }}
-  
-), currency_conversion_factor_periods AS (
+    ),
+    joined as (
 
-    SELECT *,
-      LEAD(annual_amount_usd_value) OVER (PARTITION BY employee_id ORDER BY conversion_ID)          AS next_usd_value,
-      LEAD(DATEADD(day,-1,effective_date)) OVER (PARTITION BY employee_id ORDER BY conversion_ID)   AS next_effective_date
-    FROM currency_conversion
-    WHERE currency_conversion_factor <> prior_conversion_factor
-      OR rank_conversion_id = 1
+        select
+            employee_directory.employee_number,
+            employee_directory.full_name,
+            bamboohr_compensation_changes.*,
+            employee_directory.division_mapped_current as division,
+            employee_directory.division_grouping,
+            employee_directory.department_modified as department,
+            employee_directory.department_grouping,
+            employee_directory.job_title,
+            case
+                when
+                    bamboohr_compensation_changes.employee_id in (
+                        40955, 40647, 41234, 40985, 41027, 40782, 40540
+                    )
+                    and bamboohr_compensation_changes.effective_date <= '2020-06-01'
+                then 12
+                -- we didn't capture pay frequency prior to 2020.07 and in 2020.07 the
+                -- pay frequency had changed for these individuals
+                when
+                    bamboohr_compensation_changes.employee_id = '40874'
+                    and bamboohr_compensation_changes.effective_date < '2019-12-31'
+                then 12
+                -- This team member has a pay frequency of 12 prior to the 2019.12.31
+                -- and the current pay frequency for 2020
+                else
+                    coalesce(
+                        pay_frequency.pay_frequency, pay_frequency_initial.pay_frequency
+                    )
+            end as pay_frequency,
+            currency_conversion_factor,
+            ote.variable_pay,
+            ote.annual_amount_usd_value as ote_usd,
+            ote.prior_annual_amount_usd as prior_ote_usd,
+            ote.change_in_annual_amount_usd as ote_change,
+            rank_ote_effective_date,
+            currency_conversion_factor_periods.annual_amount_usd_value,
+            currency_conversion_factor_periods.next_usd_value
+        from bamboohr_compensation_changes
+        left join
+            employee_directory
+            on bamboohr_compensation_changes.employee_id
+            = employee_directory.employee_id
+            and bamboohr_compensation_changes.effective_date
+            = employee_directory.date_actual
+        left join
+            pay_frequency
+            on bamboohr_compensation_changes.employee_id = pay_frequency.employee_id
+            and bamboohr_compensation_changes.effective_date
+            between pay_frequency.effective_date and pay_frequency.next_effective_date
+        left join
+            pay_frequency as pay_frequency_initial
+            on bamboohr_compensation_changes.employee_id
+            = pay_frequency_initial.employee_id
+            and pay_frequency_initial.pay_frequency_row_number = 1
+        left join
+            currency_conversion_factor_periods
+            on bamboohr_compensation_changes.employee_id
+            = currency_conversion_factor_periods.employee_id
+            and bamboohr_compensation_changes.effective_date
+            between currency_conversion_factor_periods.effective_date and coalesce(
+                currency_conversion_factor_periods.next_effective_date, current_date()
+            )
+        left join
+            ote
+            on bamboohr_compensation_changes.employee_id = ote.employee_id
+            and bamboohr_compensation_changes.effective_date = ote.effective_date
+            and bamboohr_compensation_changes.rank_compensation_change_effective_date
+            = ote.rank_ote_effective_date
 
-), joined AS (
+    ),
+    intermediate as (
 
-    SELECT 
-      employee_directory.employee_number,
-      employee_directory.full_name,
-      bamboohr_compensation_changes.*,
-      employee_directory.division_mapped_current                                    AS division,
-      employee_directory.division_grouping,
-      employee_directory.department_modified                                        AS department,
-      employee_directory.department_grouping,
-      employee_directory.job_title,
-      CASE 
-        WHEN bamboohr_compensation_changes.employee_id IN (40955, 40647, 41234, 40985, 
-                                                   41027, 40782, 40540) 
-            AND bamboohr_compensation_changes.effective_date <='2020-06-01' 
-          THEN 12
-        --we didn't capture pay frequency prior to 2020.07 and in 2020.07 the pay frequency had changed for these individuals  
-        WHEN bamboohr_compensation_changes.employee_id ='40874' AND bamboohr_compensation_changes.effective_date < '2019-12-31' 
-          THEN 12
-        --This team member has a pay frequency of 12 prior to the 2019.12.31 and the current pay frequency for 2020
-        ELSE COALESCE(pay_frequency.pay_frequency, pay_frequency_initial.pay_frequency) END AS pay_frequency,    
-      currency_conversion_factor,
-      ote.variable_pay,
-      ote.annual_amount_usd_value AS ote_usd,
-      ote.prior_annual_amount_usd AS prior_ote_usd,
-      ote.change_in_annual_amount_usd AS ote_change,
-      rank_ote_effective_date,
-      currency_conversion_factor_periods.annual_amount_usd_value,
-      currency_conversion_factor_periods.next_usd_value
-    FROM bamboohr_compensation_changes
-    LEFT JOIN employee_directory
-      ON bamboohr_compensation_changes.employee_id = employee_directory.employee_id
-      AND bamboohr_compensation_changes.effective_date = employee_directory.date_actual
-    LEFT JOIN pay_frequency
-      ON bamboohr_compensation_changes.employee_id = pay_frequency.employee_id
-      AND bamboohr_compensation_changes.effective_date BETWEEN pay_frequency.effective_date                                                        AND pay_frequency.next_effective_date
-    LEFT JOIN pay_frequency AS pay_frequency_initial 
-      ON bamboohr_compensation_changes.employee_id = pay_frequency_initial.employee_id
-      AND pay_frequency_initial.pay_frequency_row_number = 1 
-    LEFT JOIN currency_conversion_factor_periods
-      ON bamboohr_compensation_changes.employee_id = currency_conversion_factor_periods.employee_id
-      AND bamboohr_compensation_changes.effective_date BETWEEN currency_conversion_factor_periods.effective_date                                                            AND COALESCE(currency_conversion_factor_periods.next_effective_date, CURRENT_DATE())
-    LEFT JOIN ote
-      ON bamboohr_compensation_changes.employee_id = ote.employee_id
-      AND bamboohr_compensation_changes.effective_date = ote.effective_date
-      AND bamboohr_compensation_changes.rank_compensation_change_effective_date = ote.rank_ote_effective_date
-   
-), intermediate AS (
+        select
+            compensation_update_id,
+            employee_number,
+            employee_id,
+            full_name,
+            division,
+            division_grouping,
+            department,
+            department_grouping,
+            job_title,
+            compensation_change_reason,
+            effective_date,
+            currency_conversion_factor,
+            lag(currency_conversion_factor) over (
+                partition by employee_id order by compensation_update_id
+            ) as prior_currency_conversion_factor,
+            pay_frequency,
+            lag(pay_frequency) over (
+                partition by employee_id order by compensation_update_id
+            ) as prior_pay_frequency,
+            compensation_value as new_compensation_value,
+            prior_compensation_value as prior_compensation_value,
+            compensation_currency as new_compensation_currency,
+            prior_compensation_currency,
+            variable_pay,
+            ote_usd,
+            prior_ote_usd,
+            ote_change,
+            next_usd_value,
+            annual_amount_usd_value
+        from joined
 
-    SELECT 
-      compensation_update_id,
-      employee_number,
-      employee_id,
-      full_name,
-      division,
-      division_grouping,
-      department,
-      department_grouping,
-      job_title,
-      compensation_change_reason,
-      effective_date,
-      currency_conversion_factor,
-      LAG(currency_conversion_factor) 
-        OVER (PARTITION BY employee_id ORDER BY compensation_update_id)                  AS prior_currency_conversion_factor,
-      pay_frequency,
-      LAG(pay_frequency) OVER (PARTITION BY employee_id ORDER BY compensation_update_id) AS prior_pay_frequency,
-      compensation_value                                                                 AS new_compensation_value,
-      prior_compensation_value                                                           AS prior_compensation_value,
-      compensation_currency                                                              AS new_compensation_currency,
-      prior_compensation_currency,
-      variable_pay,
-      ote_usd,
-      prior_ote_usd,
-      ote_change,
-      next_usd_value,
-      annual_amount_usd_value
-    FROM joined 
-  
-), promotions AS (
+    ),
+    promotions as (
 
-    SELECT 
-      compensation_update_id,
-      effective_date                                                                                  AS promotion_date,
-      DATE_TRUNC(month, effective_date)                                                               AS promotion_month,
-      employee_number,
-      employee_id,
-      full_name,
-      division,
-      division_grouping,
-      department,
-      department_grouping,
-      job_title,
-      variable_pay,
-      IFF(compensation_update_id = 21917, next_usd_value, 
-            new_compensation_value * pay_frequency * currency_conversion_factor)                      AS new_compensation_value_usd,
-      CASE 
-        WHEN compensation_update_id = 21917
-          THEN annual_amount_usd_value
-        WHEN new_compensation_currency = prior_compensation_currency 
-           THEN prior_compensation_value * prior_pay_frequency * currency_conversion_factor 
-           ELSE prior_compensation_value * prior_pay_frequency * prior_currency_conversion_factor END AS prior_compensation_value_usd,
-      new_compensation_value_usd - prior_compensation_value_usd                                       AS change_in_comp_usd,
-      COALESCE(ote_usd,0)                                                                             AS ote_usd,
-      COALESCE(prior_ote_usd,0)                                                                       AS prior_ote_usd,
-      COALESCE(ote_change,0)                                                                          AS ote_change,
-      IFF(compensation_update_id = 20263, NULL,  ---incorrectly labeled 
-        COALESCE(ote_change,0) + change_in_comp_usd)                                                  AS total_change_in_comp,
-      IFF(compensation_update_id = 20263, NULL,
-        ROUND((COALESCE(ote_change,0) + change_in_comp_usd)/
-        (prior_compensation_value_usd+ COALESCE(prior_ote_usd,0)),2))                                 AS percent_change_in_comp
-    FROM intermediate
-    WHERE compensation_change_reason = 'Promotion'
-      AND job_title NOT LIKE '%VP%'
+        select
+            compensation_update_id,
+            effective_date as promotion_date,
+            date_trunc(month, effective_date) as promotion_month,
+            employee_number,
+            employee_id,
+            full_name,
+            division,
+            division_grouping,
+            department,
+            department_grouping,
+            job_title,
+            variable_pay,
+            iff(
+                compensation_update_id = 21917,
+                next_usd_value,
+                new_compensation_value * pay_frequency * currency_conversion_factor
+            ) as new_compensation_value_usd,
+            case
+                when compensation_update_id = 21917
+                then annual_amount_usd_value
+                when new_compensation_currency = prior_compensation_currency
+                then
+                    prior_compensation_value
+                    * prior_pay_frequency
+                    * currency_conversion_factor
+                else
+                    prior_compensation_value
+                    * prior_pay_frequency
+                    * prior_currency_conversion_factor
+            end as prior_compensation_value_usd,
+            new_compensation_value_usd
+            - prior_compensation_value_usd as change_in_comp_usd,
+            coalesce(ote_usd, 0) as ote_usd,
+            coalesce(prior_ote_usd, 0) as prior_ote_usd,
+            coalesce(ote_change, 0) as ote_change,
+            iff(  -- -incorrectly labeled 
+                compensation_update_id = 20263,
+                null,
+                coalesce(ote_change, 0) + change_in_comp_usd
+            ) as total_change_in_comp,
+            iff(
+                compensation_update_id = 20263,
+                null,
+                round(
+                    (coalesce(ote_change, 0) + change_in_comp_usd) / (
+                        prior_compensation_value_usd + coalesce(prior_ote_usd, 0)
+                    ),
+                    2
+                )
+            ) as percent_change_in_comp
+        from intermediate
+        where compensation_change_reason = 'Promotion' and job_title not like '%VP%'
 
-)
+    )
 
-SELECT *
-FROM promotions 
+select *
+from promotions

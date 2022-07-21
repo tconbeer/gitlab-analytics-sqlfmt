@@ -1,54 +1,61 @@
-WITH merge_requests AS (
+with
+    merge_requests as (select * from {{ ref("gitlab_dotcom_merge_requests_xf") }}),
+    mr_files as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_merge_requests_xf') }}
+        select
+            marketing_site_file_edited,
+            regexp_replace(plain_diff_url_path, '[^0-9]+', '')::number
+            as merge_request_iid
+        from {{ ref("marketing_site_merge_requests_files") }}
 
-), mr_files AS (
-    
-    SELECT 
-      marketing_site_file_edited,
-      REGEXP_REPLACE(plain_diff_url_path, '[^0-9]+', '')::NUMBER AS merge_request_iid
-    FROM {{ ref('marketing_site_merge_requests_files') }}
+    ),
+    file_classifications as (
 
-), file_classifications AS (
+        select marketing_site_path, file_classification
+        from {{ ref("marketing_site_file_classification_mapping") }}
 
-    SELECT 
-      marketing_site_path,
-      file_classification
-    FROM {{ ref('marketing_site_file_classification_mapping') }}
+    ),
+    joined_to_mr as (
 
-), joined_to_mr AS (
+        select
+            merge_requests.merge_request_state as merge_request_state,
+            merge_requests.updated_at as merge_request_updated_at,
+            merge_requests.created_at as merge_request_created_at,
+            merge_requests.merge_request_last_edited_at as merge_request_last_edited_at,
+            merge_requests.merged_at as merge_request_merged_at,
+            mr_files.merge_request_iid as merge_request_iid,
+            mr_files.marketing_site_file_edited as merge_request_path,
+            ifnull(
+                file_classifications.file_classification, 'unclassified'
+            ) as file_classification
+        from mr_files
+        inner join
+            merge_requests
+            -- marketing site project
+            on mr_files.merge_request_iid = merge_requests.merge_request_iid
+            and merge_requests.project_id = 7764
+        left join
+            file_classifications
+            on lower(mr_files.marketing_site_file_edited)
+            like '%'
+            || file_classifications.marketing_site_path
+            || '%'
+        where merge_requests.is_merge_to_master
 
-    SELECT 
-      merge_requests.merge_request_state                               AS merge_request_state,
-      merge_requests.updated_at                                        AS merge_request_updated_at,
-      merge_requests.created_at                                        AS merge_request_created_at,
-      merge_requests.merge_request_last_edited_at                      AS merge_request_last_edited_at,
-      merge_requests.merged_at                                         AS merge_request_merged_at,
-      mr_files.merge_request_iid                                       AS merge_request_iid,
-      mr_files.marketing_site_file_edited                              AS merge_request_path, 
-      IFNULL(file_classifications.file_classification, 'unclassified') AS file_classification
-    FROM mr_files
-    INNER JOIN merge_requests
-      ON mr_files.merge_request_iid = merge_requests.merge_request_iid AND merge_requests.project_id = 7764 --marketing site project
-    LEFT JOIN file_classifications
-      ON LOWER(mr_files.marketing_site_file_edited) LIKE '%' || file_classifications.marketing_site_path || '%'
-    WHERE merge_requests.is_merge_to_master 
+    ),
+    renamed as (
 
-), renamed AS (
+        select
+            merge_request_state,
+            merge_request_updated_at,
+            merge_request_created_at,
+            merge_request_last_edited_at,
+            merge_request_merged_at,
+            merge_request_iid,
+            merge_request_path,
+            array_agg(distinct file_classification) as merge_request_department_list
+        from joined_to_mr {{ dbt_utils.group_by(n=7) }}
 
-    SELECT
-      merge_request_state,
-      merge_request_updated_at,
-      merge_request_created_at,
-      merge_request_last_edited_at,
-      merge_request_merged_at,                
-      merge_request_iid,
-      merge_request_path, 
-      ARRAY_AGG(DISTINCT file_classification) AS merge_request_department_list
-    FROM joined_to_mr
-    {{ dbt_utils.group_by(n=7) }} 
-
-)
-SELECT * 
-FROM renamed
+    )
+select *
+from renamed

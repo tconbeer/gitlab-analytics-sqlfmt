@@ -1,9 +1,1 @@
-WITH source AS (
-
-	SELECT *
-	FROM {{ ref('ga360_session_source') }}
-
-)
-
-SELECT *
-FROM source
+with source as (select * from {{ ref("ga360_session_source") }}) select * from source
