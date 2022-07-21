@@ -77,11 +77,8 @@ with
         left join
             gitlab_subscriptions
             on namespace_lineage.ultimate_parent_id = gitlab_subscriptions.namespace_id
-            and epics.created_at between gitlab_subscriptions.valid_from and {{
-                coalesce_to_infinity(
-                    "gitlab_subscriptions.valid_to"
-                )
-            }}
+            and epics.created_at between gitlab_subscriptions.valid_from and
+            {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
     )
 
 select *

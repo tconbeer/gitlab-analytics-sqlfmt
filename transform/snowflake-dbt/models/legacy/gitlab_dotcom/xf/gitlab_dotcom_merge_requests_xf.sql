@@ -154,11 +154,8 @@ with
         left join
             gitlab_subscriptions
             on projects.ultimate_parent_id = gitlab_subscriptions.namespace_id
-            and merge_requests.created_at between gitlab_subscriptions.valid_from and {{
-                coalesce_to_infinity(
-                    "gitlab_subscriptions.valid_to"
-                )
-            }}
+            and merge_requests.created_at between gitlab_subscriptions.valid_from and
+            {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
 
     )
 

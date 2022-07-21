@@ -151,11 +151,8 @@ with
         left join
             gitlab_subscriptions
             on namespace_lineage.ultimate_parent_id = gitlab_subscriptions.namespace_id
-            and projects.created_at between gitlab_subscriptions.valid_from and {{
-                coalesce_to_infinity(
-                    "gitlab_subscriptions.valid_to"
-                )
-            }}
+            and projects.created_at between gitlab_subscriptions.valid_from and
+            {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
         left join
             active_services on projects.project_id = active_services.project_id
             {{ dbt_utils.group_by(n=70) }}

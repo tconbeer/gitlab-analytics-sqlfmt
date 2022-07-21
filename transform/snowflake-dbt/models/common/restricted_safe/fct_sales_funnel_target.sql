@@ -27,21 +27,28 @@ target_matrix as (
         as dim_sales_qualified_source_id,
         {{ get_keyed_nulls("order_type.dim_order_type_id") }} as dim_order_type_id
     from {{ ref("sheetload_sales_funnel_targets_matrix_source") }}
-    left join date on {{
+    left join
+        date
+        on {{
             sales_funnel_text_slugify(
                 "sheetload_sales_funnel_targets_matrix_source.month"
             )
         }} = {{ sales_funnel_text_slugify("date.fiscal_month_name_fy") }}
-    left join sales_qualified_source on {{
+    left join
+        sales_qualified_source
+        on {{
             sales_funnel_text_slugify(
                 "sheetload_sales_funnel_targets_matrix_source.opportunity_source"
             )
-        }} = {{
+        }}
+        = {{
             sales_funnel_text_slugify(
                 "sales_qualified_source.sales_qualified_source_name"
             )
         }}
-    left join order_type on {{
+    left join
+        order_type
+        on {{
             sales_funnel_text_slugify(
                 "sheetload_sales_funnel_targets_matrix_source.order_type"
             )
@@ -92,11 +99,9 @@ unioned_targets as (
     from target_matrix
     left join
         fy22_user_hierarchy
-        on {{ sales_funnel_text_slugify("target_matrix.area") }} = {{
-            sales_funnel_text_slugify(
-                "fy22_user_hierarchy.crm_opp_owner_area_stamped"
-            )
-        }}
+        on {{ sales_funnel_text_slugify("target_matrix.area") }}
+        =
+        {{ sales_funnel_text_slugify("fy22_user_hierarchy.crm_opp_owner_area_stamped") }}
     where target_matrix.fiscal_year = 2022
 
     union all
@@ -124,7 +129,8 @@ unioned_targets as (
     left join
         fy23_and_beyond_user_hierarchy
         on {{ sales_funnel_text_slugify("target_matrix.area") }}
-        = {{
+        =
+        {{
             sales_funnel_text_slugify(
                 "fy23_and_beyond_user_hierarchy.crm_opp_owner_sales_segment_geo_region_area_stamped"
             )

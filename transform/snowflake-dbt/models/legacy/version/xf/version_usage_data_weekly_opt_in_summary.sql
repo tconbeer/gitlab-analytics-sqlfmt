@@ -40,11 +40,9 @@ with
             min(usage_data.created_at) as min_usage_data_created_at,
             max(usage_data.created_at) as max_usage_data_created_at
         from week_spine
-        left join licenses on week_spine.week between licenses.license_start_date and {{
-                coalesce_to_infinity(
-                    "licenses.license_expire_date"
-                )
-            }}
+        left join
+            licenses on week_spine.week between licenses.license_start_date and
+            {{ coalesce_to_infinity("licenses.license_expire_date") }}
         left join
             usage_data
             on licenses.license_md5 = usage_data.license_md5
