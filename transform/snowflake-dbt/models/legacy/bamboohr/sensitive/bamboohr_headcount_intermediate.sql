@@ -52,8 +52,8 @@ with
 
         union all
 
-        select 
-      distinct employee_id, 'no_eeoc' as eeoc_field_name, 'no_eeoc' as eeoc_value
+        select distinct
+            employee_id, 'no_eeoc' as eeoc_field_name, 'no_eeoc' as eeoc_value
         from mapping
 
     ),

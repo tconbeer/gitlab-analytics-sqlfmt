@@ -3,8 +3,7 @@
 with
     skeleton as (
 
-        select 
-      distinct first_day_of_month, last_day_of_month
+        select distinct first_day_of_month, last_day_of_month
         from {{ ref("date_details") }}
         where date_day = last_day_of_month and last_day_of_month < current_date()
 

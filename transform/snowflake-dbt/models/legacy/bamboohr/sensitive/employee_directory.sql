@@ -39,8 +39,7 @@ with
     ),
     location_factor as (
 
-        select 
-      distinct
+        select distinct
             bamboo_employee_number,
             first_value(location_factor) over (
                 partition by bamboo_employee_number order by valid_from
@@ -65,8 +64,7 @@ with
     ),
     final as (
 
-        select 
-      distinct
+        select distinct
             mapping.employee_id,
             mapping.employee_number,
             mapping.first_name,

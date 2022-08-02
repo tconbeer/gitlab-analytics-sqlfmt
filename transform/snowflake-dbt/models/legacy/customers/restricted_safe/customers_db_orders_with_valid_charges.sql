@@ -102,9 +102,9 @@ with
             is_started_with_trial,
             trial_start_date,
             array_agg(customer_id)
-            within group(order  by customer_id asc) as customer_id_list,
+            within group(order by customer_id asc) as customer_id_list,
             array_agg(gitlab_namespace_id)
-            within group(order  by customer_id asc) as gitlab_namespace_id_list
+            within group(order by customer_id asc) as gitlab_namespace_id_list
         from joined {{ dbt_utils.group_by(n=9) }}
 
     )

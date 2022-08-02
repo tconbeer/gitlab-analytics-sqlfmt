@@ -96,7 +96,7 @@ final as (
         normalized_monthly_metric_value,
         has_timed_out
     from monthly
-    left  join dim_date on monthly.ping_created_month = dim_date.date_day
+    left join dim_date on monthly.ping_created_month = dim_date.date_day
 
 )
 

@@ -24,8 +24,7 @@ with
     ),
     unioned as (
 
-        select 
-      distinct
+        select distinct
             dates.date_actual,
             'division_grouping_breakout' as field_name,
             division_grouping as field_value
@@ -36,8 +35,7 @@ with
 
         union all
 
-        select 
-      distinct
+        select distinct
             dates.date_actual,
             'department_grouping_breakout' as field_name,
             department_grouping as field_value

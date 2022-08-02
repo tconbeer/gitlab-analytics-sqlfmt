@@ -18,8 +18,7 @@ with
     ),
     renamed as (
 
-        select 
-      distinct
+        select distinct
             jsontext['line']::varchar as base64_event,
             to_array(jsontext['errors']) as error_array,
             jsontext['failure_tstamp']::timestamp as failure_timestamp,

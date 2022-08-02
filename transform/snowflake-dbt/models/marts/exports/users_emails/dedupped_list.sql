@@ -41,7 +41,7 @@ with
     ),
     unioned_list_no_dup_state as (
 
-        select  distinct
+        select distinct
             user_id::number as user_id,
             full_name,
             first_name,

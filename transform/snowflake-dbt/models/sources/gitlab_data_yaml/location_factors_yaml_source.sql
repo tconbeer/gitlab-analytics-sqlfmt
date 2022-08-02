@@ -122,7 +122,7 @@ with
         from other
         where country != 'United States'
 
-        union  all
+        union all
 
         select area as metro_area, country, location_factor, snapshot_date, rank
         from countries_without_metro_areas

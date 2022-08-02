@@ -35,7 +35,7 @@ with
             min(customers.customer_id) as first_customer_id,
             min(customers.customer_created_at) as first_customer_created_at,
             array_agg(customers.customer_id)
-            within group(order  by customers.customer_id) as customer_id_list,
+            within group(order by customers.customer_id) as customer_id_list,
             max(iff(order_id is not null, true, false)) as has_started_trial,
             min(trial_start_date) as has_started_trial_at
         from customers

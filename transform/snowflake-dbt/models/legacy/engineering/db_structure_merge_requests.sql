@@ -16,8 +16,7 @@ with
     ),
     changes_to_db_structure as (
 
-        select 
-      distinct
+        select distinct
             'gitlab.com' || plain_diff_url_path as mr_path,
             mr_information.merge_request_updated_at,
             merged_at

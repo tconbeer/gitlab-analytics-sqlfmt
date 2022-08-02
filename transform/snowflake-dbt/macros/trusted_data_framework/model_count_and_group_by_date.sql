@@ -11,8 +11,7 @@ with
 
     )
 
-select
-    distinct db.grouped_date as date_day, ifnull(db.num_rows, 0) as rowcount
+select distinct db.grouped_date as date_day, ifnull(db.num_rows, 0) as rowcount
 from model_data db
 
 {% endmacro %}
