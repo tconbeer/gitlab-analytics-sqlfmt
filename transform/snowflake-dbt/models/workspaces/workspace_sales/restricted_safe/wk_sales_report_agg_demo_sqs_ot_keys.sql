@@ -1,186 +1,336 @@
-{{ config(alias='report_agg_demo_sqs_ot_keys') }}
+{{ config(alias="report_agg_demo_sqs_ot_keys") }}
 
-WITH sfdc_account_xf AS (
+with
+    sfdc_account_xf as (select * from {{ ref("sfdc_accounts_xf") }}),
+    opportunity as (select * from {{ ref("sfdc_opportunity") }}),
+    sfdc_opportunity_xf as (
 
-    SELECT *
-    FROM {{ref('sfdc_accounts_xf')}}
+        select
 
-), opportunity AS (
+            lower(opportunity.user_segment_stamped) as report_opportunity_user_segment,
+            lower(opportunity.user_geo_stamped) as report_opportunity_user_geo,
+            lower(opportunity.user_region_stamped) as report_opportunity_user_region,
+            lower(opportunity.user_area_stamped) as report_opportunity_user_area,
+            lower(opportunity.order_type_stamped) as order_type_stamped,
 
-  SELECT *
-  FROM {{ref('sfdc_opportunity')}}
+            case
+                when opportunity.sales_qualified_source = 'BDR Generated'
+                then 'SDR Generated'
+                else coalesce(opportunity.sales_qualified_source, 'other')
+            end as sales_qualified_source,
 
-), sfdc_opportunity_xf AS ( 
+            -- medium level grouping of the order type field
+            case
+                when opportunity.order_type_stamped = '1. New - First Order'
+                then '1. New'
+                when
+                    opportunity.order_type_stamped in (
+                        '2. New - Connected', '3. Growth'
+                    )
+                then '2. Growth'
+                when opportunity.order_type_stamped in ('4. Contraction')
+                then '3. Contraction'
+                when
+                    opportunity.order_type_stamped in (
+                        '5. Churn - Partial', '6. Churn - Final'
+                    )
+                then '4. Churn'
+                else '5. Other'
+            end as deal_category,
 
-    SELECT 
+            case
+                when opportunity.order_type_stamped = '1. New - First Order'
+                then '1. New'
+                when
+                    opportunity.order_type_stamped in (
+                        '2. New - Connected',
+                        '3. Growth',
+                        '5. Churn - Partial',
+                        '6. Churn - Final',
+                        '4. Contraction'
+                    )
+                then '2. Growth'
+                else '3. Other'
+            end as deal_group,
 
-        LOWER(opportunity.user_segment_stamped)       AS report_opportunity_user_segment,
-        LOWER(opportunity.user_geo_stamped)           AS report_opportunity_user_geo,
-        LOWER(opportunity.user_region_stamped)        AS report_opportunity_user_region,
-        LOWER(opportunity.user_area_stamped)          AS report_opportunity_user_area,
-        LOWER(opportunity.order_type_stamped)         AS order_type_stamped,
-  
-        CASE
-          WHEN opportunity.sales_qualified_source = 'BDR Generated'
-              THEN 'SDR Generated'
-          ELSE COALESCE(opportunity.sales_qualified_source,'other')
-        END                                                           AS sales_qualified_source,
+            account.account_owner_user_segment,
+            account.account_owner_user_geo,
+            account.account_owner_user_region,
+            account.account_owner_user_area
 
-        -- medium level grouping of the order type field
-        CASE 
-          WHEN opportunity.order_type_stamped = '1. New - First Order' 
-            THEN '1. New'
-          WHEN opportunity.order_type_stamped IN ('2. New - Connected', '3. Growth') 
-            THEN '2. Growth' 
-          WHEN opportunity.order_type_stamped IN ('4. Contraction')
-            THEN '3. Contraction'
-          WHEN opportunity.order_type_stamped IN ('5. Churn - Partial','6. Churn - Final')
-            THEN '4. Churn'
-          ELSE '5. Other' 
-        END                                                                   AS deal_category,
-
-        CASE 
-          WHEN opportunity.order_type_stamped = '1. New - First Order' 
-            THEN '1. New'
-          WHEN opportunity.order_type_stamped IN ('2. New - Connected', '3. Growth', '5. Churn - Partial','6. Churn - Final','4. Contraction') 
-            THEN '2. Growth' 
-          ELSE '3. Other'
-        END                                                                   AS deal_group,
-
-        account.account_owner_user_segment,
-        account.account_owner_user_geo, 
-        account.account_owner_user_region,
-        account.account_owner_user_area
-  
-    FROM opportunity
-    LEFT JOIN sfdc_account_xf account
-        ON account.account_id = opportunity.account_id
-
-
-), eligible AS (
-
-  SELECT         
-        LOWER(report_opportunity_user_segment)       AS report_opportunity_user_segment,
-        LOWER(report_opportunity_user_geo)           AS report_opportunity_user_geo,
-        LOWER(report_opportunity_user_region)        AS report_opportunity_user_region,
-        LOWER(report_opportunity_user_area)          AS report_opportunity_user_area,
-        
-        LOWER(sales_qualified_source)           AS sales_qualified_source,
-        LOWER(order_type_stamped)               AS order_type_stamped,
-  
-        LOWER(deal_category)                    AS deal_category,
-        LOWER(deal_group)                       AS deal_group,
-
-        LOWER(CONCAT(report_opportunity_user_segment, '-',report_opportunity_user_geo, '-',report_opportunity_user_region, '-',report_opportunity_user_area))                                                          AS report_user_segment_geo_region_area,
-        LOWER(CONCAT(report_opportunity_user_segment, '-',report_opportunity_user_geo, '-',report_opportunity_user_region, '-',report_opportunity_user_area, '-', sales_qualified_source, '-', order_type_stamped))    AS report_user_segment_geo_region_area_sqs_ot
-  FROM sfdc_opportunity_xf
-  
-  UNION ALL
-  
-  SELECT         
-        LOWER(account_owner_user_segment)       AS report_opportunity_user_segment,
-        LOWER(account_owner_user_geo)           AS report_opportunity_user_geo,
-        LOWER(account_owner_user_region)        AS report_opportunity_user_region,
-        LOWER(account_owner_user_area)          AS report_opportunity_user_area,
-        
-        LOWER(sales_qualified_source)           AS sales_qualified_source,
-        LOWER(order_type_stamped)               AS order_type_stamped,
-  
-        LOWER(deal_category)                    AS deal_category,
-        LOWER(deal_group)                       AS deal_group,
-  
-        LOWER(CONCAT(account_owner_user_segment,'-',account_owner_user_geo,'-',account_owner_user_region,'-',account_owner_user_area))                                                          AS report_user_segment_geo_region_area,
-        LOWER(CONCAT(account_owner_user_segment,'-',account_owner_user_geo,'-',account_owner_user_region,'-',account_owner_user_area, '-', sales_qualified_source, '-', order_type_stamped))    AS report_user_segment_geo_region_area_sqs_ot
-  FROM sfdc_opportunity_xf
-  
-  
-), valid_keys AS (
-
-  SELECT DISTINCT 
-
-        -- Segment
-        -- Sales Qualified Source
-        -- Order Type
-
-        -- Segment - Geo
-        -- Segment - Geo - Region
-
-        -- Segment - Geo - Order Type Group 
-        -- Segment - Geo - Sales Qualified Source
-
-        -- Segment - Geo - Region - Order Type Group 
-        -- Segment - Geo - Region - Sales Qualified Source
-        -- Segment - Geo - Region - Area
-
-        -- Segment - Geo - Region - Area - Order Type Group 
-        -- Segment - Geo - Region - Area - Sales Qualified Source
-
-        eligible.*,
-
-        report_opportunity_user_segment   AS key_segment,
-        sales_qualified_source            AS key_sqs,
-        deal_group                        AS key_ot,
-
-        report_opportunity_user_segment || '_' || sales_qualified_source             AS key_segment_sqs,
-        report_opportunity_user_segment || '_' || deal_group                         AS key_segment_ot,    
-
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo                                               AS key_segment_geo,
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo || '_' ||  sales_qualified_source             AS key_segment_geo_sqs,
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo || '_' ||  deal_group                         AS key_segment_geo_ot,      
+        from opportunity
+        left join sfdc_account_xf account on account.account_id = opportunity.account_id
 
 
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo || '_' || report_opportunity_user_region                                     AS key_segment_geo_region,
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo || '_' || report_opportunity_user_region || '_' ||  sales_qualified_source   AS key_segment_geo_region_sqs,
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo || '_' || report_opportunity_user_region || '_' ||  deal_group               AS key_segment_geo_region_ot,   
+    ),
+    eligible as (
 
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo || '_' || report_opportunity_user_region || '_' || report_opportunity_user_area                                       AS key_segment_geo_region_area,
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo || '_' || report_opportunity_user_region || '_' || report_opportunity_user_area || '_' ||  sales_qualified_source     AS key_segment_geo_region_area_sqs,
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo || '_' || report_opportunity_user_region || '_' || report_opportunity_user_area || '_' ||  deal_group                 AS key_segment_geo_region_area_ot,
+        select
+            lower(report_opportunity_user_segment) as report_opportunity_user_segment,
+            lower(report_opportunity_user_geo) as report_opportunity_user_geo,
+            lower(report_opportunity_user_region) as report_opportunity_user_region,
+            lower(report_opportunity_user_area) as report_opportunity_user_area,
+
+            lower(sales_qualified_source) as sales_qualified_source,
+            lower(order_type_stamped) as order_type_stamped,
+
+            lower(deal_category) as deal_category,
+            lower(deal_group) as deal_group,
+
+            lower(
+                concat(
+                    report_opportunity_user_segment,
+                    '-',
+                    report_opportunity_user_geo,
+                    '-',
+                    report_opportunity_user_region,
+                    '-',
+                    report_opportunity_user_area
+                )
+            ) as report_user_segment_geo_region_area,
+            lower(
+                concat(
+                    report_opportunity_user_segment,
+                    '-',
+                    report_opportunity_user_geo,
+                    '-',
+                    report_opportunity_user_region,
+                    '-',
+                    report_opportunity_user_area,
+                    '-',
+                    sales_qualified_source,
+                    '-',
+                    order_type_stamped
+                )
+            ) as report_user_segment_geo_region_area_sqs_ot
+        from sfdc_opportunity_xf
+
+        union all
+
+        select
+            lower(account_owner_user_segment) as report_opportunity_user_segment,
+            lower(account_owner_user_geo) as report_opportunity_user_geo,
+            lower(account_owner_user_region) as report_opportunity_user_region,
+            lower(account_owner_user_area) as report_opportunity_user_area,
+
+            lower(sales_qualified_source) as sales_qualified_source,
+            lower(order_type_stamped) as order_type_stamped,
+
+            lower(deal_category) as deal_category,
+            lower(deal_group) as deal_group,
+
+            lower(
+                concat(
+                    account_owner_user_segment,
+                    '-',
+                    account_owner_user_geo,
+                    '-',
+                    account_owner_user_region,
+                    '-',
+                    account_owner_user_area
+                )
+            ) as report_user_segment_geo_region_area,
+            lower(
+                concat(
+                    account_owner_user_segment,
+                    '-',
+                    account_owner_user_geo,
+                    '-',
+                    account_owner_user_region,
+                    '-',
+                    account_owner_user_area,
+                    '-',
+                    sales_qualified_source,
+                    '-',
+                    order_type_stamped
+                )
+            ) as report_user_segment_geo_region_area_sqs_ot
+        from sfdc_opportunity_xf
 
 
-        report_opportunity_user_segment || '_' || report_opportunity_user_geo || '_' || report_opportunity_user_area                                       AS key_segment_geo_area,
+    ),
+    valid_keys as (
 
-        COALESCE(report_opportunity_user_segment ,'other')                                    AS sales_team_cro_level,
-     
-        -- NF: This code replicates the reporting structured of FY22, to keep current tools working
-        CASE 
-          WHEN report_opportunity_user_segment = 'large'
-            AND report_opportunity_user_geo = 'emea'
-              THEN 'large_emea'
-          WHEN report_opportunity_user_segment = 'mid-market'
-            AND report_opportunity_user_region = 'amer'
-            AND lower(report_opportunity_user_area) LIKE '%west%'
-              THEN 'mid-market_west'
-          WHEN report_opportunity_user_segment = 'mid-market'
-            AND report_opportunity_user_region = 'amer'
-            AND lower(report_opportunity_user_area) NOT LIKE '%west%'
-              THEN 'mid-market_east'
-          WHEN report_opportunity_user_segment = 'smb'
-            AND report_opportunity_user_region = 'amer'
-            AND lower(report_opportunity_user_area) LIKE '%west%'
-              THEN 'smb_west'
-          WHEN report_opportunity_user_segment = 'smb'
-            AND report_opportunity_user_region = 'amer'
-            AND lower(report_opportunity_user_area) NOT LIKE '%west%'
-              THEN 'smb_east'
-          WHEN report_opportunity_user_segment = 'smb'
-            AND report_opportunity_user_region = 'latam'
-              THEN 'smb_east'
-          WHEN (report_opportunity_user_segment IS NULL
-                OR report_opportunity_user_region IS NULL)
-              THEN 'other'
-          WHEN CONCAT(report_opportunity_user_segment,'_',report_opportunity_user_region) like '%other%'
-            THEN 'other'
-          ELSE CONCAT(report_opportunity_user_segment,'_',report_opportunity_user_region)
-        END                                                                           AS sales_team_rd_asm_level,
+        select distinct
 
-        COALESCE(CONCAT(report_opportunity_user_segment,'_',report_opportunity_user_geo),'other')                                                                      AS sales_team_vp_level,
-        COALESCE(CONCAT(report_opportunity_user_segment,'_',report_opportunity_user_geo,'_',report_opportunity_user_region),'other')                                   AS sales_team_avp_rd_level,
-        COALESCE(CONCAT(report_opportunity_user_segment,'_',report_opportunity_user_geo,'_',report_opportunity_user_region,'_',report_opportunity_user_area),'other')  AS sales_team_asm_level
+            -- Segment
+            -- Sales Qualified Source
+            -- Order Type
+            -- Segment - Geo
+            -- Segment - Geo - Region
+            -- Segment - Geo - Order Type Group 
+            -- Segment - Geo - Sales Qualified Source
+            -- Segment - Geo - Region - Order Type Group 
+            -- Segment - Geo - Region - Sales Qualified Source
+            -- Segment - Geo - Region - Area
+            -- Segment - Geo - Region - Area - Order Type Group 
+            -- Segment - Geo - Region - Area - Sales Qualified Source
+            eligible.*,
 
-  FROM eligible
-  
- )
- 
- SELECT *
- FROM valid_keys
+            report_opportunity_user_segment as key_segment,
+            sales_qualified_source as key_sqs,
+            deal_group as key_ot,
+
+            report_opportunity_user_segment
+            || '_'
+            || sales_qualified_source as key_segment_sqs,
+            report_opportunity_user_segment || '_' || deal_group as key_segment_ot,
+
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo as key_segment_geo,
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo
+            || '_'
+            || sales_qualified_source as key_segment_geo_sqs,
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo
+            || '_'
+            || deal_group as key_segment_geo_ot,
+
+
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo
+            || '_'
+            || report_opportunity_user_region as key_segment_geo_region,
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo
+            || '_'
+            || report_opportunity_user_region
+            || '_'
+            || sales_qualified_source as key_segment_geo_region_sqs,
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo
+            || '_'
+            || report_opportunity_user_region
+            || '_'
+            || deal_group as key_segment_geo_region_ot,
+
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo
+            || '_'
+            || report_opportunity_user_region
+            || '_'
+            || report_opportunity_user_area as key_segment_geo_region_area,
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo
+            || '_'
+            || report_opportunity_user_region
+            || '_'
+            || report_opportunity_user_area
+            || '_'
+            || sales_qualified_source as key_segment_geo_region_area_sqs,
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo
+            || '_'
+            || report_opportunity_user_region
+            || '_'
+            || report_opportunity_user_area
+            || '_'
+            || deal_group as key_segment_geo_region_area_ot,
+
+
+            report_opportunity_user_segment
+            || '_'
+            || report_opportunity_user_geo
+            || '_'
+            || report_opportunity_user_area as key_segment_geo_area,
+
+            coalesce(report_opportunity_user_segment, 'other') as sales_team_cro_level,
+
+            -- NF: This code replicates the reporting structured of FY22, to keep
+            -- current tools working
+            case
+                when
+                    report_opportunity_user_segment = 'large'
+                    and report_opportunity_user_geo = 'emea'
+                then 'large_emea'
+                when
+                    report_opportunity_user_segment = 'mid-market'
+                    and report_opportunity_user_region = 'amer'
+                    and lower(report_opportunity_user_area) like '%west%'
+                then 'mid-market_west'
+                when
+                    report_opportunity_user_segment = 'mid-market'
+                    and report_opportunity_user_region = 'amer'
+                    and lower(report_opportunity_user_area) not like '%west%'
+                then 'mid-market_east'
+                when
+                    report_opportunity_user_segment = 'smb'
+                    and report_opportunity_user_region = 'amer'
+                    and lower(report_opportunity_user_area) like '%west%'
+                then 'smb_west'
+                when
+                    report_opportunity_user_segment = 'smb'
+                    and report_opportunity_user_region = 'amer'
+                    and lower(report_opportunity_user_area) not like '%west%'
+                then 'smb_east'
+                when
+                    report_opportunity_user_segment = 'smb'
+                    and report_opportunity_user_region = 'latam'
+                then 'smb_east'
+                when
+                    (
+                        report_opportunity_user_segment is null
+                        or report_opportunity_user_region is null
+                    )
+                then 'other'
+                when
+                    concat(
+                        report_opportunity_user_segment,
+                        '_',
+                        report_opportunity_user_region
+                    )
+                    like '%other%'
+                then 'other'
+                else
+                    concat(
+                        report_opportunity_user_segment,
+                        '_',
+                        report_opportunity_user_region
+                    )
+            end as sales_team_rd_asm_level,
+
+            coalesce(
+                concat(
+                    report_opportunity_user_segment, '_', report_opportunity_user_geo
+                ),
+                'other'
+            ) as sales_team_vp_level,
+            coalesce(
+                concat(
+                    report_opportunity_user_segment,
+                    '_',
+                    report_opportunity_user_geo,
+                    '_',
+                    report_opportunity_user_region
+                ),
+                'other'
+            ) as sales_team_avp_rd_level,
+            coalesce(
+                concat(
+                    report_opportunity_user_segment,
+                    '_',
+                    report_opportunity_user_geo,
+                    '_',
+                    report_opportunity_user_region,
+                    '_',
+                    report_opportunity_user_area
+                ),
+                'other'
+            ) as sales_team_asm_level
+
+        from eligible
+
+    )
+
+select *
+from valid_keys

@@ -1,19 +1,20 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_resource_weight_events_dedupe_source') }}
-  
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_resource_weight_events_dedupe_source") }}
 
-    SELECT
-      id                                             AS resource_weight_event_id,
-      user_id::NUMBER                               AS user_id,
-      issue_id::NUMBER                              AS issue_id,
-      weight::NUMBER                                AS weight,
-      created_at::TIMESTAMP                          AS created_at
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id as resource_weight_event_id,
+            user_id::number as user_id,
+            issue_id::number as issue_id,
+            weight::number as weight,
+            created_at::timestamp as created_at
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

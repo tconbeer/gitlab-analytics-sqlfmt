@@ -1,19 +1,16 @@
-WITH source AS (
+with
+    source as (select * from {{ source("salesforce", "bizible_person") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('salesforce', 'bizible_person') }}
+        select
+            id as person_id,
+            bizible2__lead__c as bizible_lead_id,
+            bizible2__contact__c as bizible_contact_id,
 
-), renamed AS (
+            isdeleted::boolean as is_deleted
 
-    SELECT
-      id                              AS person_id,
-      bizible2__lead__c               AS bizible_lead_id,
-      bizible2__contact__c            AS bizible_contact_id,
+        from source
+    )
 
-      isdeleted::BOOLEAN              AS is_deleted
-      
-    FROM source
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

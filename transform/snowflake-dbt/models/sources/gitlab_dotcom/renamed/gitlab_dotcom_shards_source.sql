@@ -1,17 +1,7 @@
-WITH source AS (
-
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_shards_dedupe_source') }}
-  
-), renamed AS (
-
-  SELECT
-    id::NUMBER                      AS shard_id,
-    name::VARCHAR                   AS shard_name
-  FROM source
-
-)
+with
+    source as (select * from {{ ref("gitlab_dotcom_shards_dedupe_source") }}),
+    renamed as (select id::number as shard_id, name::varchar as shard_name from source)
 
 
-SELECT *
-FROM renamed
+select *
+from renamed

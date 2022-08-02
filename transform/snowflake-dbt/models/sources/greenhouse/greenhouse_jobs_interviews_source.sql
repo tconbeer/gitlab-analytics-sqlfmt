@@ -1,27 +1,24 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "jobs_interviews") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'jobs_interviews') }}
+        select
 
-), renamed as (
+            -- keys
+            id::number as job_interview_id,
+            job_id::number as job_id,
+            stage_id::number as interview_stage_id,
+            interview_id::number as interview_id,
 
-	SELECT
+            -- info
+            "order"::number as interview_order,
+            estimated_duration::number as estimated_duration,
+            created_at::timestamp as interview_created_at,
+            updated_at::timestamp as interview_updated_at
 
-            --keys
-            id::NUMBER                  AS job_interview_id,
-            job_id::NUMBER              AS job_id,
-            stage_id::NUMBER            AS interview_stage_id,
-            interview_id::NUMBER        AS interview_id,
+        from source
 
-            --info
-            "order"::NUMBER                AS interview_order,
-            estimated_duration::NUMBER     AS estimated_duration,
-            created_at::timestamp       AS interview_created_at,
-            updated_at::timestamp       AS interview_updated_at
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

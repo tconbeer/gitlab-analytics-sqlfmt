@@ -1,26 +1,23 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "jobs_stages") }}),
+    renamed as (
 
-	SELECT *
-  	FROM {{ source('greenhouse', 'jobs_stages') }}
+        select
+            -- keys
+            job_id::number as job_id,
+            stage_id::number as job_stage_id,
 
-), renamed as (
+            -- info
+            "order"::number as job_stage_order,
+            name::varchar as job_stage_name,
+            stage_alert_setting::varchar as job_stage_alert_setting,
+            created_at::timestamp as job_stage_created_at,
+            updated_at::timestamp as job_stage_updated_at,
+            milestones::varchar as job_stage_milestone
 
-	SELECT
-            --keys
-            job_id::NUMBER                  AS job_id,
-            stage_id::NUMBER                AS job_stage_id,
+        from source
 
-            --info
-            "order"::NUMBER                    AS job_stage_order,
-            name::varchar                   AS job_stage_name,
-            stage_alert_setting::varchar    AS job_stage_alert_setting,
-            created_at::timestamp           AS job_stage_created_at,
-            updated_at::timestamp           AS job_stage_updated_at,
-            milestones::varchar             AS job_stage_milestone
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

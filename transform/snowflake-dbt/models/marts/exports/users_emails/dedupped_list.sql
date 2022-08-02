@@ -1,55 +1,65 @@
-WITH unioned_list as (
-    SELECT
-        saas_free_users.*,
-        'SaaS Free User' AS bucket
-    FROM static.sensitive.free_gitlab_com__20200617 as saas_free_users
+with
+    unioned_list as (
+        select saas_free_users.*, 'SaaS Free User' as bucket
+        from static.sensitive.free_gitlab_com__20200617 as saas_free_users
 
-    UNION
+        union
 
-    SELECT
-        saas_paid_users.*,
-        'SaaS Paid User' AS bucket
-    FROM static.sensitive.paid_gitlab_com__20200617 as saas_paid_users
-  
-    LEFT JOIN static.sensitive.ree_gitlab_com__20200617 as saas_free_users
-        ON saas_free_users.notification_email = saas_paid_users.notification_email
-        AND saas_free_users.full_name = saas_paid_users.full_name
-  
-    WHERE saas_free_users.notification_email IS NULL
+        select saas_paid_users.*, 'SaaS Paid User' as bucket
+        from static.sensitive.paid_gitlab_com__20200617 as saas_paid_users
 
-    UNION
+        left join
+            static.sensitive.ree_gitlab_com__20200617 as saas_free_users
+            on saas_free_users.notification_email = saas_paid_users.notification_email
+            and saas_free_users.full_name = saas_paid_users.full_name
 
-    SELECT
-        self_managed_paid_users.*,
-        'Self-Managed' AS bucket
-    FROM static.sensitive.self_managed_gitlab_com__20200617 as self_managed_paid_users
-  
-    LEFT JOIN static.sensitive.paid_gitlab_com__20200617 as saas_paid_users
-        ON saas_paid_users.notification_email = self_managed_paid_users.notification_email
-        AND saas_paid_users.full_name         = self_managed_paid_users.full_name
-  
-    LEFT JOIN static.sensitive.free_gitlab_com__20200617 as saas_free_users
-        ON saas_free_users.notification_email = self_managed_paid_users.notification_email
-        AND saas_free_users.full_name         = self_managed_paid_users.full_name
-  
-    WHERE saas_free_users.notification_email IS NULL
-        AND saas_paid_users.notification_email IS NULL
+        where saas_free_users.notification_email is null
 
-), unioned_list_no_dup_state AS (
-    
-   SELECT  DISTINCT
-      user_id::NUMBER AS user_id,
-      full_name,
-      first_name,
-      last_name,
-      notification_email,
-      plan_title,
-      state,
-      bucket
-   FROM unioned_list
-   QUALIFY ROW_NUMBER() OVER(PARTITION BY full_name, notification_email, plan_title ORDER BY state) = 1 -- Given a combination of email and email, if there are multiple states, only pick where active, if not inactive, if not it's only blocked
+        union
 
-)
+        select self_managed_paid_users.*, 'Self-Managed' as bucket
+        from
+            static.sensitive.self_managed_gitlab_com__20200617
+            as self_managed_paid_users
 
-SELECT *
-FROM unioned_list_no_dup_state
+        left join
+            static.sensitive.paid_gitlab_com__20200617 as saas_paid_users
+            on saas_paid_users.notification_email
+            = self_managed_paid_users.notification_email
+            and saas_paid_users.full_name = self_managed_paid_users.full_name
+
+        left join
+            static.sensitive.free_gitlab_com__20200617 as saas_free_users
+            on saas_free_users.notification_email
+            = self_managed_paid_users.notification_email
+            and saas_free_users.full_name = self_managed_paid_users.full_name
+
+        where
+            saas_free_users.notification_email is null
+            and saas_paid_users.notification_email is null
+
+    ),
+    unioned_list_no_dup_state as (
+
+        select distinct
+            user_id::number as user_id,
+            full_name,
+            first_name,
+            last_name,
+            notification_email,
+            plan_title,
+            state,
+            bucket
+        from unioned_list
+        -- Given a combination of email and email, if there are multiple states, only
+        -- pick where active, if not inactive, if not it's only blocked
+        qualify
+            row_number() over (
+                partition by full_name, notification_email, plan_title order by state
+            )
+            = 1
+
+    )
+
+select *
+from unioned_list_no_dup_state

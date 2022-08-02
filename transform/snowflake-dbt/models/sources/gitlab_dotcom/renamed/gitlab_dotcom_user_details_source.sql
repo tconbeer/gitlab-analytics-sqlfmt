@@ -1,18 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_user_details_dedupe_source") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_user_details_dedupe_source') }}
+        select
+            user_id::number as user_id,
+            job_title::varchar as job_title,
+            other_role::varchar as other_role,
+            registration_objective::number as registration_objective
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      user_id::NUMBER                     AS user_id,
-      job_title::VARCHAR                  AS job_title,
-      other_role::VARCHAR                 AS other_role,
-      registration_objective::NUMBER      AS registration_objective
-    FROM source
-    
-)
-
-SELECT  *
-FROM renamed
+select *
+from renamed

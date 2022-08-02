@@ -1,42 +1,42 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-WITH schedule_source AS (
+with
+    schedule_source as (
 
-    SELECT *
-    FROM {{ ref('zuora_revenue_revenue_contract_schedule_source') }}
+        select * from {{ ref("zuora_revenue_revenue_contract_schedule_source") }}
 
-), final AS (
+    ),
+    final as (
 
-    SELECT DISTINCT
-      
-      -- ids
-      revenue_contract_schedule_id      AS dim_revenue_contract_schedule_id, 
-      
-      -- dates
-      exchange_rate_date,
-      post_date,
+        select distinct
 
-      -- currency
-      transactional_currency,
-      schedule_type,
-      
-      -- metadata
-      revenue_contract_schedule_created_by,
-      revenue_contract_schedule_created_date,
-      revenue_contract_schedule_updated_by,
-      revenue_contract_schedule_updated_date
+            -- ids
+            revenue_contract_schedule_id as dim_revenue_contract_schedule_id,
 
-    FROM schedule_source
+            -- dates
+            exchange_rate_date,
+            post_date,
 
-)
+            -- currency
+            transactional_currency,
+            schedule_type,
 
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@michellecooper",
-    updated_by="@michellecooper",
-    created_date="2021-06-21",
-    updated_date="2021-06-21",
-    ) 
- }}
+            -- metadata
+            revenue_contract_schedule_created_by,
+            revenue_contract_schedule_created_date,
+            revenue_contract_schedule_updated_by,
+            revenue_contract_schedule_updated_date
+
+        from schedule_source
+
+    )
+
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@michellecooper",
+            updated_by="@michellecooper",
+            created_date="2021-06-21",
+            updated_date="2021-06-21",
+        )
+    }}

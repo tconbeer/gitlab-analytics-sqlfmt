@@ -1,78 +1,90 @@
 -- depends_on: {{ ref('projects_part_of_product_ops') }}
 -- depends_on: {{ ref('engineering_productivity_metrics_projects_to_include') }}
--- These data models are required for this data model based on https://gitlab.com/gitlab-data/analytics/-/blob/master/transform/snowflake-dbt/models/staging/gitlab_ops/xf/gitlab_ops_merge_requests_xf.sql
+-- These data models are required for this data model based on
+-- https://gitlab.com/gitlab-data/analytics/-/blob/master/transform/snowflake-dbt/models/staging/gitlab_ops/xf/gitlab_ops_merge_requests_xf.sql
 -- This data model is missing a lot of other source data models
-WITH merge_requests AS (
+with
+    merge_requests as (
 
-    SELECT 
-      {{ dbt_utils.star(from=ref('gitlab_ops_merge_requests'), except=["created_at", "updated_at"]) }},
-      created_at                                                                           AS merge_request_created_at,
-      updated_at                                                                           AS merge_request_updated_at
-    FROM {{ref('gitlab_ops_merge_requests')}} merge_requests
+        select
+            {{
+                dbt_utils.star(
+                    from=ref("gitlab_ops_merge_requests"),
+                    except=["created_at", "updated_at"],
+                )
+            }},
+            created_at as merge_request_created_at,
+            updated_at as merge_request_updated_at
+        from {{ ref("gitlab_ops_merge_requests") }} merge_requests
 
-), label_links AS (
+    ),
+    label_links as (
 
-    SELECT *
-    FROM {{ref('gitlab_ops_label_links')}}
-    WHERE is_currently_valid = True
-      AND target_type = 'MergeRequest'
+        select *
+        from {{ ref("gitlab_ops_label_links") }}
+        where is_currently_valid = true and target_type = 'MergeRequest'
 
-), all_labels AS (
+    ),
+    all_labels as (select * from {{ ref("gitlab_ops_labels_xf") }}),
+    agg_labels as (
 
-    SELECT *
-    FROM {{ref('gitlab_ops_labels_xf')}}
+        select
+            merge_requests.merge_request_id,
+            array_agg(lower(masked_label_title)) within group (
+                order by masked_label_title asc
+            ) as labels
+        from merge_requests
+        left join label_links on merge_requests.merge_request_id = label_links.target_id
+        left join all_labels on label_links.label_id = all_labels.label_id
+        group by merge_requests.merge_request_id
 
-), agg_labels AS (
+    ),
+    latest_merge_request_metric as (
 
-    SELECT
-      merge_requests.merge_request_id,
-      ARRAY_AGG(LOWER(masked_label_title)) WITHIN GROUP (ORDER BY masked_label_title ASC)  AS labels
-    FROM merge_requests
-    LEFT JOIN label_links
-      ON merge_requests.merge_request_id = label_links.target_id
-    LEFT JOIN all_labels
-      ON label_links.label_id = all_labels.label_id
-    GROUP BY merge_requests.merge_request_id
+        select max(merge_request_metric_id) as target_id
+        from {{ ref("gitlab_dotcom_merge_request_metrics") }}
+        group by merge_request_id
 
-),  latest_merge_request_metric AS (
+    ),
+    merge_request_metrics as (
 
-    SELECT MAX(merge_request_metric_id) AS target_id
-    FROM {{ref('gitlab_dotcom_merge_request_metrics')}}
-    GROUP BY merge_request_id
+        select *
+        from {{ ref("gitlab_ops_merge_request_metrics") }}
+        inner join latest_merge_request_metric on merge_request_metric_id = target_id
 
-),  merge_request_metrics AS (
+    ),
+    projects as (select * from {{ ref("gitlab_ops_projects_xf") }}),
+    joined as (
 
-    SELECT *
-    FROM {{ref('gitlab_ops_merge_request_metrics')}}
-    INNER JOIN latest_merge_request_metric
-    ON merge_request_metric_id = target_id
+        select
+            merge_requests.*,
+            merge_request_metrics.merged_at,
+            projects.namespace_id,
+            array_to_string(agg_labels.labels, '|') as masked_label_title,
+            agg_labels.labels,
+            iff(
+                merge_requests.target_project_id in (
+                    {{ is_project_included_in_engineering_metrics() }}
+                ),
+                true,
+                false
+            ) as is_included_in_engineering_metrics,
+            iff(
+                merge_requests.target_project_id in (
+                    {{ is_project_part_of_product_ops() }}
+                ),
+                true,
+                false
+            ) as is_part_of_product_ops
+        from merge_requests
+        left join
+            merge_request_metrics
+            on merge_requests.merge_request_id = merge_request_metrics.merge_request_id
+        left join
+            agg_labels on merge_requests.merge_request_id = agg_labels.merge_request_id
+        left join projects on merge_requests.target_project_id = projects.project_id
 
-), projects AS (
+    )
 
-    SELECT *
-    FROM {{ref('gitlab_ops_projects_xf')}}
-
-), joined AS (
-
-    SELECT
-      merge_requests.*,
-      merge_request_metrics.merged_at,
-      projects.namespace_id,
-      ARRAY_TO_STRING(agg_labels.labels,'|')                                        AS masked_label_title,
-      agg_labels.labels, 
-     IFF(merge_requests.target_project_id IN ({{is_project_included_in_engineering_metrics()}}),
-        TRUE, FALSE)                                                                AS is_included_in_engineering_metrics,
-      IFF(merge_requests.target_project_id IN ({{is_project_part_of_product_ops()}}),
-        TRUE, FALSE)                                                                AS is_part_of_product_ops
-    FROM merge_requests
-    LEFT JOIN merge_request_metrics
-        ON merge_requests.merge_request_id = merge_request_metrics.merge_request_id
-    LEFT JOIN agg_labels
-      ON merge_requests.merge_request_id = agg_labels.merge_request_id
-    LEFT JOIN projects
-        ON merge_requests.target_project_id = projects.project_id
-
-)
-
-SELECT *
-FROM joined
+select *
+from joined

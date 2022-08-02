@@ -1,39 +1,34 @@
-{{ config(
-    tags=["mnpi"]
-) }}
+{{ config(tags=["mnpi"]) }}
 
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "transaction_lines") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'transaction_lines') }}
+        select
+            {{ dbt_utils.surrogate_key(["transaction_id", "transaction_line_id"]) }}
+            as transaction_lines_unique_id,
+            -- Primary Key
+            transaction_id::float as transaction_id,
+            transaction_line_id::float as transaction_line_id,
 
-), renamed AS (
+            -- Foreign Keys
+            account_id::float as account_id,
+            class_id::float as class_id,
+            department_id::float as department_id,
+            subsidiary_id::float as subsidiary_id,
+            company_id::float as company_id,
 
-    SELECT
-      {{ dbt_utils.surrogate_key(['transaction_id', 'transaction_line_id']) }}
-                                        AS transaction_lines_unique_id,
-      --Primary Key
-      transaction_id::FLOAT             AS transaction_id,
-      transaction_line_id::FLOAT        AS transaction_line_id,
+            -- info
+            memo::varchar as memo,
+            receipt_url::varchar as receipt_url,
+            amount::float as amount,
+            gross_amount::float as gross_amount,
 
-      --Foreign Keys
-      account_id::FLOAT                 AS account_id,
-      class_id::FLOAT                   AS class_id,
-      department_id::FLOAT              AS department_id,
-      subsidiary_id::FLOAT              AS subsidiary_id,
-      company_id::FLOAT                 AS company_id,
+            lower(non_posting_line)::varchar as non_posting_line
 
-      -- info
-      memo::VARCHAR                     AS memo,
-      receipt_url::VARCHAR              AS receipt_url,
-      amount::FLOAT                     AS amount,
-      gross_amount::FLOAT               AS gross_amount,
+        from source
 
-      LOWER(non_posting_line)::VARCHAR  AS non_posting_line
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed
