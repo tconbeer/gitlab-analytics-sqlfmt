@@ -269,8 +269,8 @@ services_by_marketing_contact_id as (
     select
         marketing_contact_order.dim_marketing_contact_id as dim_marketing_contact_id,
         count(*) as pql_nbr_integrations_installed,
-        array_agg(
-            distinct services.service_type) within group(order by services.service_type
+        array_agg(distinct services.service_type) within group (
+            order by services.service_type
         ) as pql_integrations_installed
     from services
     left join project on services.project_id = project.dim_project_id
@@ -284,9 +284,8 @@ users_role_by_marketing_contact_id as (
 
     select
         marketing_contact_order.dim_marketing_contact_id,
-        array_agg(
-            distinct marketing_contact.job_title
-        ) within group(order by marketing_contact.job_title
+        array_agg(distinct marketing_contact.job_title) within group (
+            order by marketing_contact.job_title
         ) as pql_namespace_creator_job_description
     from marketing_contact_order
     inner join

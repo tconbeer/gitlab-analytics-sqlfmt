@@ -11,7 +11,9 @@ with
 
         select
             issue_id,
-            array_agg(lower(user_name)) within group(order by user_name asc) as assignee
+            array_agg(lower(user_name)) within group (
+                order by user_name asc
+            ) as assignee
         from assignee
         left join users on assignee.user_id = users.user_id
         group by issue_id

@@ -48,9 +48,8 @@ agg_labels as (
 
     select
         gitlab_dotcom_issues_source.issue_id as dim_issue_id,
-        array_agg(
-            lower(prep_labels.label_title)
-        ) within group(order by prep_labels.label_title asc
+        array_agg(lower(prep_labels.label_title)) within group (
+            order by prep_labels.label_title asc
         ) as labels
     from gitlab_dotcom_issues_source
     left join

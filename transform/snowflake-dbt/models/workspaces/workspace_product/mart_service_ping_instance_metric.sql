@@ -86,12 +86,10 @@ license_subscriptions as (
         max(
             iff(product_rate_plan_name ilike any ('%edu%', '%oss%'), true, false)
         ) as is_program_subscription,
-        array_agg(distinct dim_product_detail.product_tier_name)
-        within group(
+        array_agg(distinct dim_product_detail.product_tier_name) within group (
             order by dim_product_detail.product_tier_name asc
         ) as product_category_array,
-        array_agg(distinct product_rate_plan_name)
-        within group(
+        array_agg(distinct product_rate_plan_name) within group (
             order by product_rate_plan_name asc
         ) as product_rate_plan_name_array,
         sum(quantity) as quantity,

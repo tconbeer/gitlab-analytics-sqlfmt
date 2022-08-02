@@ -15,8 +15,8 @@ with
 
         select
             epics.epic_id,
-            array_agg(
-                lower(masked_label_title)) within group(order by masked_label_title asc
+            array_agg(lower(masked_label_title)) within group (
+                order by masked_label_title asc
             ) as labels
         from epics
         left join label_links on epics.epic_id = label_links.target_id

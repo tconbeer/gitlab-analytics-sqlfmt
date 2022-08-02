@@ -20,15 +20,14 @@ with
             quarters_since_subscription_cohort_start
             as quarters_since_zuora_subscription_cohort_start,
 
-            array_agg(
-                distinct product_tier_name) within group(order by product_tier_name asc
+            array_agg(distinct product_tier_name) within group (
+                order by product_tier_name asc
             ) as original_product_category,
-            array_agg(
-                distinct product_delivery_type
-            ) within group(order by product_delivery_type asc
+            array_agg(distinct product_delivery_type) within group (
+                order by product_delivery_type asc
             ) as original_delivery,
-            array_agg(
-                distinct unit_of_measure) within group(order by unit_of_measure asc
+            array_agg(distinct unit_of_measure) within group (
+                order by unit_of_measure asc
             ) as original_unit_of_measure,
 
             max(  -- Need to account for the 'other' categories

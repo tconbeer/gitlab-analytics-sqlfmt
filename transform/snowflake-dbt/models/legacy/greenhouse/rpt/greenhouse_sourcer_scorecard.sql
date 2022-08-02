@@ -32,7 +32,7 @@ with
         select
             reporting_month,
             field_name,
-            percentile_cont(0.1) within group(order by value) as outlier
+            percentile_cont(0.1) within group (order by value) as outlier
         from greenhouse_metrics_unpivoted
         where value is not null
         group by 1, 2
@@ -43,12 +43,12 @@ with
         select
             greenhouse_metrics_unpivoted.reporting_month,
             greenhouse_metrics_unpivoted.field_name,
-            percentile_cont(0.25) within group(order by value) as percentile_25th,
-            percentile_cont(0.50) within group(order by value) as percentile_50th,
-            percentile_cont(0.75) within group(order by value) as percentile_75th,
-            percentile_cont(0.80) within group(order by value) as percentile_80th,
-            percentile_cont(0.90) within group(order by value) as ninetieth_percentile,
-            percentile_cont(1.00) within group(order by value) as percentile_max
+            percentile_cont(0.25) within group (order by value) as percentile_25th,
+            percentile_cont(0.50) within group (order by value) as percentile_50th,
+            percentile_cont(0.75) within group (order by value) as percentile_75th,
+            percentile_cont(0.80) within group (order by value) as percentile_80th,
+            percentile_cont(0.90) within group (order by value) as ninetieth_percentile,
+            percentile_cont(1.00) within group (order by value) as percentile_max
         from greenhouse_metrics_unpivoted
         left join
             outlier

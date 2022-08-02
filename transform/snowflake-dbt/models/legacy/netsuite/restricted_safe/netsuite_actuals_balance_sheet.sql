@@ -97,9 +97,8 @@ with
 
         select
             base.accounting_period_id,
-            array_agg(
-                multiplier.accounting_period_id
-            ) within group(order by multiplier.accounting_period_id
+            array_agg(multiplier.accounting_period_id) within group (
+                order by multiplier.accounting_period_id
             ) as accounting_periods_to_include_for
         from accounting_periods as base
         inner join

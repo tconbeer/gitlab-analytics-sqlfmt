@@ -89,9 +89,8 @@ unioned as (
     select
         join_ping_to_subscriptions.dim_usage_ping_id,
         first_subscription.dim_subscription_id,
-        array_agg(
-            join_ping_to_subscriptions.dim_subscription_id
-        ) within group(order by subscription_start_date asc
+        array_agg(join_ping_to_subscriptions.dim_subscription_id) within group (
+            order by subscription_start_date asc
         ) as other_dim_subscription_id_array,
         'Match between Usage Ping and Active Subscription' as match_type
     from join_ping_to_subscriptions

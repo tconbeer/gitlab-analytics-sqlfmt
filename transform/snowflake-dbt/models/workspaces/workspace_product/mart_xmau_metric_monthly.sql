@@ -122,8 +122,8 @@ total_results as (
         stage_name,
         group_name,
         'total' as user_group,
-        array_agg(
-            distinct event_name) within group(order by event_name
+        array_agg(distinct event_name) within group (
+            order by event_name
         ) as event_name_array,
         count(*) as event_count,
         count(distinct(dim_namespace_id)) as namespace_count,
@@ -143,8 +143,8 @@ free_results as (
         stage_name,
         group_name,
         'free' as user_group,
-        array_agg(
-            distinct event_name) within group(order by event_name
+        array_agg(distinct event_name) within group (
+            order by event_name
         ) as event_name_array,
         count(*) as event_count,
         count(distinct(dim_namespace_id)) as namespace_count,
@@ -165,8 +165,8 @@ paid_results as (
         stage_name,
         group_name,
         'paid' as user_group,
-        array_agg(
-            distinct event_name) within group(order by event_name
+        array_agg(distinct event_name) within group (
+            order by event_name
         ) as event_name_array,
         count(*) as event_count,
         count(distinct(dim_namespace_id)) as namespace_count,

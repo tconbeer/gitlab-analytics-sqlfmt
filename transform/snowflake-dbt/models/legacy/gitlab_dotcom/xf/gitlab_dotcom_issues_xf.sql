@@ -35,8 +35,8 @@ with
 
         select
             issues.issue_id,
-            array_agg(
-                lower(masked_label_title)) within group(order by masked_label_title asc
+            array_agg(lower(masked_label_title)) within group (
+                order by masked_label_title asc
             ) as labels
         from issues
         left join label_links on issues.issue_id = label_links.target_id

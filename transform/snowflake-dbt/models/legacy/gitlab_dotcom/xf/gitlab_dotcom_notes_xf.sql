@@ -30,8 +30,8 @@ with
 
         select
             note_id,
-            array_agg(
-                action_type) within group(order by action_type asc
+            array_agg(action_type) within group (
+                order by action_type asc
             ) as action_type_array
         from {{ ref("gitlab_dotcom_system_note_metadata") }}
         group by 1

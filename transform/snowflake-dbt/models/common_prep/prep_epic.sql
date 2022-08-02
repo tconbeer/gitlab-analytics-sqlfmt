@@ -50,9 +50,8 @@ agg_labels as (
 
     select
         prep_label_links.dim_epic_id as dim_epic_id,
-        array_agg(
-            lower(prep_labels.label_title)
-        ) within group(order by prep_labels.label_title asc
+        array_agg(lower(prep_labels.label_title)) within group (
+            order by prep_labels.label_title asc
         ) as labels
     from prep_label_links
     left join prep_labels on prep_label_links.dim_label_id = prep_labels.dim_label_id

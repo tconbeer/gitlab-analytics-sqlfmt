@@ -62,12 +62,12 @@ with
                 iff(crm_opp_is_closed = false, crm_opp_seats, 0)
             ) as sum_linked_crm_opp_open_seats,
 
-            array_agg(distinct nullif(dim_crm_opportunity_id, md5(-1)))
-            within group(
+            array_agg(distinct nullif(dim_crm_opportunity_id, md5(-1))) within group (
                 order by nullif(dim_crm_opportunity_id, md5(-1))
             ) as opportunity_id_array,
-            array_agg(distinct nullif(dim_ticket_id, -1))
-            within group(order by nullif(dim_ticket_id, -1)) as zendesk_ticket_id_array,
+            array_agg(distinct nullif(dim_ticket_id, -1)) within group (
+                order by nullif(dim_ticket_id, -1)
+            ) as zendesk_ticket_id_array,
 
             sum(link_retention_score) as account_retention_score,
             sum(link_growth_score) as account_growth_score,
@@ -113,28 +113,23 @@ with
 
             -- Account additive fields
             count(distinct dim_crm_account_id) as unique_accounts,
-            array_agg(
-                distinct crm_account_name) within group(order by crm_account_name
+            array_agg(distinct crm_account_name) within group (
+                order by crm_account_name
             ) as crm_account_name_array,
-            array_agg(
-                distinct crm_account_health_score_color
-            ) within group(order by crm_account_health_score_color
+            array_agg(distinct crm_account_health_score_color) within group (
+                order by crm_account_health_score_color
             ) as crm_account_health_score_color_array,
-            array_agg(
-                distinct parent_crm_account_sales_segment
-            ) within group(order by parent_crm_account_sales_segment
+            array_agg(distinct parent_crm_account_sales_segment) within group (
+                order by parent_crm_account_sales_segment
             ) as crm_account_parent_sales_segment_array,
-            array_agg(
-                distinct technical_account_manager
-            ) within group(order by technical_account_manager
+            array_agg(distinct technical_account_manager) within group (
+                order by technical_account_manager
             ) as crm_account_tam_array,
-            array_agg(
-                distinct crm_account_owner_team
-            ) within group(order by crm_account_owner_team
+            array_agg(distinct crm_account_owner_team) within group (
+                order by crm_account_owner_team
             ) as crm_account_owner_team_array,
-            array_agg(
-                distinct strategic_account_leader
-            ) within group(order by strategic_account_leader
+            array_agg(distinct strategic_account_leader) within group (
+                order by strategic_account_leader
             ) as crm_account_strategic_account_leader_array,
 
             sum(customer_reach) as sum_customer_reach,
@@ -179,12 +174,12 @@ with
             count(
                 distinct iff(crm_opp_is_closed = false, dim_crm_opportunity_id, null)
             ) as unique_open_opportunities,
-            array_agg(distinct nullif(dim_crm_opportunity_id, md5(-1)))
-            within group(
+            array_agg(distinct nullif(dim_crm_opportunity_id, md5(-1))) within group (
                 order by nullif(dim_crm_opportunity_id, md5(-1))
             ) as opportunity_id_array,
-            array_agg(distinct nullif(dim_ticket_id, -1))
-            within group(order by nullif(dim_ticket_id, -1)) as zendesk_ticket_id_array
+            array_agg(distinct nullif(dim_ticket_id, -1)) within group (
+                order by nullif(dim_ticket_id, -1)
+            ) as zendesk_ticket_id_array
 
         from mart_user_request
         group by 1, 2

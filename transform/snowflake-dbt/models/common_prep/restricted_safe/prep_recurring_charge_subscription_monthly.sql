@@ -124,10 +124,8 @@ mrr_by_subscription as (
         sum(subscription.quantity) as total_quantity,
         array_agg(
             subscription.product_delivery_type || ': ' || subscription.unit_of_measure
-        )
-        within group(
-            order by subscription.product_delivery_type desc
-        ) as unit_of_measure
+        ) within group (order by subscription.product_delivery_type desc)
+        as unit_of_measure
     from mrr_by_delivery_type subscription
     left join
         mrr_by_delivery_type sm

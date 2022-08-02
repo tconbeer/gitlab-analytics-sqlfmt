@@ -66,12 +66,12 @@ with
                 iff(crm_opp_is_closed = false, crm_opp_seats, 0)
             ) as sum_linked_crm_opp_open_seats,
 
-            array_agg(distinct nullif(dim_crm_opportunity_id, md5(-1)))
-            within group(
+            array_agg(distinct nullif(dim_crm_opportunity_id, md5(-1))) within group (
                 order by nullif(dim_crm_opportunity_id, md5(-1))
             ) as opportunity_id_array,
-            array_agg(distinct nullif(dim_ticket_id, -1))
-            within group(order by nullif(dim_ticket_id, -1)) as zendesk_ticket_id_array,
+            array_agg(distinct nullif(dim_ticket_id, -1)) within group (
+                order by nullif(dim_ticket_id, -1)
+            ) as zendesk_ticket_id_array,
 
             sum(link_retention_score) as account_retention_score,
             sum(link_growth_score) as account_growth_score,
