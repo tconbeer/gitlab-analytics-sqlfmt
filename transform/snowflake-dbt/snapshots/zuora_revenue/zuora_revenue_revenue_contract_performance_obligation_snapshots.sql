@@ -1,15 +1,20 @@
 {% snapshot zuora_revenue_revenue_contract_performance_obligation_snapshots %}
 
+{{
+    config(
+        strategy="timestamp",
+        unique_key="rc_pob_id",
+        updated_at="incr_updt_dt",
+    )
+}}
+
+select *
+from
     {{
-        config(
-          strategy='timestamp',
-          unique_key='rc_pob_id',
-          updated_at='incr_updt_dt',
+        source(
+            "zuora_revenue", "zuora_revenue_revenue_contract_performance_obligation"
         )
     }}
-
-    SELECT *
-    FROM {{ source('zuora_revenue','zuora_revenue_revenue_contract_performance_obligation') }}
-    QUALIFY RANK() OVER (PARTITION BY rc_pob_id ORDER BY incr_updt_dt DESC) = 1
+qualify rank() over (partition by rc_pob_id order by incr_updt_dt desc) = 1
 
 {% endsnapshot %}

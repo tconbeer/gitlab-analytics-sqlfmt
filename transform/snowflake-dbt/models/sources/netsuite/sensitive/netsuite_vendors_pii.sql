@@ -1,16 +1,13 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("netsuite_vendors_source") }}),
+    entity_pii as (
 
-    SELECT *
-    FROM {{ ref('netsuite_vendors_source') }}
+        select
+            vendor_id,
+            {{ nohash_sensitive_columns("netsuite_vendors_source", "vendor_name") }}
+        from source
 
-), entity_pii AS (
+    )
 
-    SELECT
-      vendor_id,
-      {{ nohash_sensitive_columns('netsuite_vendors_source', 'vendor_name') }}
-    FROM source
-
-)
-
-SELECT *
-FROM entity_pii
+select *
+from entity_pii

@@ -1,35 +1,28 @@
-{{ config(
-    tags=["product", "mnpi_exception"],
-    materialized = "table"
-) }}
-
-{{ simple_cte([
-    ('mart_arr', 'mart_arr')
-    ])
-
-}}
+{{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
 -- Determine monthly sub and user count
+{{ simple_cte([("mart_arr", "mart_arr")]) }},
+subscription_info as (
 
-, subscription_info AS (
-
-  SELECT
-    {{ dbt_utils.surrogate_key(['arr_month']) }}          AS rpt_service_ping_instance_subcription_opt_in_monthly_id,
-    arr_month                                             AS arr_month,
-    SUM(arr)                                              AS arr,
-    SUM(quantity)                                         AS total_licensed_users,
-    COUNT(DISTINCT dim_subscription_id)                   AS total_subscription_count
-  FROM mart_arr
-  WHERE product_tier_name != 'Storage'
-    AND product_delivery_type = 'Self-Managed'
-  GROUP BY 1,2
-    ORDER BY 2 DESC
+    select
+        {{ dbt_utils.surrogate_key(["arr_month"]) }}
+        as rpt_service_ping_instance_subcription_opt_in_monthly_id,
+        arr_month as arr_month,
+        sum(arr) as arr,
+        sum(quantity) as total_licensed_users,
+        count(distinct dim_subscription_id) as total_subscription_count
+    from mart_arr
+    where product_tier_name != 'Storage' and product_delivery_type = 'Self-Managed'
+    group by 1, 2
+    order by 2 desc
 
 )
- {{ dbt_audit(
-     cte_ref="subscription_info",
-     created_by="@icooper-acp",
-     updated_by="@icooper-acp",
-     created_date="2022-04-07",
-     updated_date="2022-04-15"
- ) }}
+{{
+    dbt_audit(
+        cte_ref="subscription_info",
+        created_by="@icooper-acp",
+        updated_by="@icooper-acp",
+        created_date="2022-04-07",
+        updated_date="2022-04-15",
+    )
+}}

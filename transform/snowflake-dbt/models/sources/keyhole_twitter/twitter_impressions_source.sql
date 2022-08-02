@@ -1,17 +1,14 @@
-WITH source AS (
+with
+    source as (select * from {{ source("keyhole_twitter", "impressions") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('keyhole_twitter', 'impressions') }}
+        select
+            field::timestamp as impression_month,
+            value::int as impressions,
+            _updated_at::float as updated_at
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      field::TIMESTAMP                      AS impression_month,
-      value::INT                            AS impressions,
-      _updated_at::FLOAT                    AS updated_at
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

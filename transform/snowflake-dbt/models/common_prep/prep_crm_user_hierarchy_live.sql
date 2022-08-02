@@ -1,39 +1,39 @@
-WITH sfdc_user AS (
+with
+    sfdc_user as (select * from {{ ref("prep_crm_user") }} where is_active = 'TRUE'),
+    final_sales_hierarchy as (
 
-    SELECT *
-    FROM {{ ref('prep_crm_user') }}
-    WHERE is_active = 'TRUE'
+        select distinct
 
-), final_sales_hierarchy AS (
+            {{ dbt_utils.surrogate_key(["crm_user_sales_segment_geo_region_area"]) }}
+            as dim_crm_user_hierarchy_live_id,
+            dim_crm_user_sales_segment_id,
+            crm_user_sales_segment,
+            crm_user_sales_segment_grouped,
+            dim_crm_user_geo_id,
+            crm_user_geo,
+            dim_crm_user_region_id,
+            crm_user_region,
+            dim_crm_user_area_id,
+            crm_user_area,
+            crm_user_sales_segment_geo_region_area,
+            crm_user_sales_segment_region_grouped
 
-    SELECT DISTINCT
+        from sfdc_user
+        where
+            crm_user_sales_segment is not null
+            and crm_user_geo is not null
+            and crm_user_region is not null
+            and crm_user_area is not null
+            and crm_user_region <> 'Sales Admin'
 
-      {{ dbt_utils.surrogate_key(['crm_user_sales_segment_geo_region_area']) }}   AS dim_crm_user_hierarchy_live_id,
-      dim_crm_user_sales_segment_id,
-      crm_user_sales_segment,
-      crm_user_sales_segment_grouped,
-      dim_crm_user_geo_id,
-      crm_user_geo,
-      dim_crm_user_region_id,
-      crm_user_region,
-      dim_crm_user_area_id,
-      crm_user_area,
-      crm_user_sales_segment_geo_region_area,
-      crm_user_sales_segment_region_grouped
+    )
 
-    FROM sfdc_user
-    WHERE crm_user_sales_segment IS NOT NULL
-      AND crm_user_geo IS NOT NULL
-      AND crm_user_region IS NOT NULL
-      AND crm_user_area IS NOT NULL
-      AND crm_user_region <> 'Sales Admin'
-
-)
-
-{{ dbt_audit(
-    cte_ref="final_sales_hierarchy",
-    created_by="@mcooperDD",
-    updated_by="@michellecooper",
-    created_date="2020-12-18",
-    updated_date="2022-02-11"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="final_sales_hierarchy",
+            created_by="@mcooperDD",
+            updated_by="@michellecooper",
+            created_date="2020-12-18",
+            updated_date="2022-02-11",
+        )
+    }}

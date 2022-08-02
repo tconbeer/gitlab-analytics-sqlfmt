@@ -1,32 +1,34 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('engineering', 'commit_stats') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
+        select *
+        from {{ source("engineering", "commit_stats") }}
+        order by uploaded_at desc
+        limit 1
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-    SELECT d.value as data_by_row
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), outer => true) d
+        select d.value as data_by_row
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      data_by_row['backendCoverage']::float           AS backend_coverage,
-      data_by_row['backendCoverageAbsolute']::NUMBER  AS backend_coverage_absolute,
-      data_by_row['backendCoverageTotal']::NUMBER     AS backend_coverage_total,
-      data_by_row['commitDate']::date                 AS commit_date,
-      data_by_row['jestCoverage']::float              AS jest_coverage,
-      data_by_row['jestCoverageAbsolute']::NUMBER     AS jest_coverage_absolute,
-      data_by_row['jestCoverageTotal']::NUMBER        AS jest_coverage_total,
-      data_by_row['karmaCoverage']::float             AS karma_coverage,
-      data_by_row['karmaCoverageAbsolute']::NUMBER    AS karma_coverage_absolute,
-      data_by_row['karmaCoverageTotal']::NUMBER       AS karma_coverage_total
-    FROM intermediate
+        select
+            data_by_row['backendCoverage']::float as backend_coverage,
+            data_by_row['backendCoverageAbsolute']::number as backend_coverage_absolute,
+            data_by_row['backendCoverageTotal']::number as backend_coverage_total,
+            data_by_row['commitDate']::date as commit_date,
+            data_by_row['jestCoverage']::float as jest_coverage,
+            data_by_row['jestCoverageAbsolute']::number as jest_coverage_absolute,
+            data_by_row['jestCoverageTotal']::number as jest_coverage_total,
+            data_by_row['karmaCoverage']::float as karma_coverage,
+            data_by_row['karmaCoverageAbsolute']::number as karma_coverage_absolute,
+            data_by_row['karmaCoverageTotal']::number as karma_coverage_total
+        from intermediate
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed
