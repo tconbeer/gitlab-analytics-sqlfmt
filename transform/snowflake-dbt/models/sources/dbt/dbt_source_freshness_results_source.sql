@@ -15,8 +15,11 @@ with
             s.value['max_loaded_at_time_ago_in_s']::float as time_since_loaded_seconds,
             s.value['state']::varchar as source_freshness_state,
             s.value['snapshotted_at']::timestamp as freshness_observed_at,
-            {{ dbt_utils.surrogate_key(["schema_table_name", "freshness_observed_at"]) }}
-            as freshness_unique_key,
+            {{
+                dbt_utils.surrogate_key(
+                    ["schema_table_name", "freshness_observed_at"]
+                )
+            }} as freshness_unique_key,
             'PRE 0.19.0' as dbt_version,
             'https://schemas.getdbt.com/dbt/sources/v0.json' as schema_version,
             uploaded_at
@@ -45,8 +48,11 @@ with
             s.value['max_loaded_at_time_ago_in_s']::float as time_since_loaded_seconds,
             s.value['status']::varchar as source_freshness_state,
             s.value['snapshotted_at']::timestamp as freshness_observed_at,
-            {{ dbt_utils.surrogate_key(["schema_table_name", "freshness_observed_at"]) }}
-            as freshness_unique_key,
+            {{
+                dbt_utils.surrogate_key(
+                    ["schema_table_name", "freshness_observed_at"]
+                )
+            }} as freshness_unique_key,
             jsontext['metadata']['dbt_version']::varchar as dbt_version,
             jsontext['metadata']['dbt_schema_version']::varchar as schema_version,
             uploaded_at

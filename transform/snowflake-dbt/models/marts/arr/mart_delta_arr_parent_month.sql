@@ -162,7 +162,11 @@ with
                     "quantity", "previous_quantity", "arr", "previous_arr"
                 )
             }},
-            {{ reason_for_quantity_change_seat_change("quantity", "previous_quantity") }}
+            {{
+                reason_for_quantity_change_seat_change(
+                    "quantity", "previous_quantity"
+                )
+            }}
         from type_of_arr_change
 
     ),

@@ -88,7 +88,11 @@ with
         select
             {{
                 dbt_utils.surrogate_key(
-                    ["reporting_month", "major_minor_version", "reworked_main_edition"]
+                    [
+                        "reporting_month",
+                        "major_minor_version",
+                        "reworked_main_edition",
+                    ]
                 )
             }} as month_version_id, *
         from joined

@@ -27,8 +27,11 @@ with
             {{ get_keyed_nulls("opportunity_fields.dim_crm_user_id") }}
             as dim_crm_user_id,
             {{ get_keyed_nulls("order_type.dim_order_type_id") }} as dim_order_type_id,
-            {{ get_keyed_nulls("sales_qualified_source.dim_sales_qualified_source_id") }}
-            as dim_sales_qualified_source_id,
+            {{
+                get_keyed_nulls(
+                    "sales_qualified_source.dim_sales_qualified_source_id"
+                )
+            }} as dim_sales_qualified_source_id,
             {{ get_keyed_nulls("deal_path.dim_deal_path_id") }} as dim_deal_path_id,
             crm_account_dimensions.dim_parent_crm_account_id,
             crm_account_dimensions.dim_crm_account_id,

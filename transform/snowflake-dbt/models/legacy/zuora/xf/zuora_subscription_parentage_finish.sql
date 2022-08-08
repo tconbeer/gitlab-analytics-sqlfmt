@@ -1,8 +1,6 @@
 {{ config({"schema": "legacy"}) }}
 
-{% set partition_statement = (
-    "OVER ( PARTITION BY child_sub ORDER BY cohort_month, ultimate_parent_sub)"
-) %}
+{% set partition_statement = "OVER ( PARTITION BY child_sub ORDER BY cohort_month, ultimate_parent_sub)" %}
 -- we have this second "order by" in case of two parents having the same cohort month.
 with
     base as (select * from {{ ref("zuora_subscription_parentage_start") }}),

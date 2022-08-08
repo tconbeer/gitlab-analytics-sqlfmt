@@ -7,7 +7,10 @@
             ("plans", "gitlab_dotcom_plans_source"),
             ("prep_project", "prep_project"),
             ("prep_user", "prep_user"),
-            ("gitlab_dotcom_ci_pipelines_source", "gitlab_dotcom_ci_pipelines_source"),
+            (
+                "gitlab_dotcom_ci_pipelines_source",
+                "gitlab_dotcom_ci_pipelines_source",
+            ),
             ("dim_date", "dim_date"),
         ]
     )

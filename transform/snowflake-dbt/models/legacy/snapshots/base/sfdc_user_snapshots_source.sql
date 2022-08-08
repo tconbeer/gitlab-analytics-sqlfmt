@@ -29,8 +29,11 @@ with
             case
                 when user_segment in ('Large', 'PubSec') then 'Large' else user_segment
             end as user_segment_grouped,
-            {{ sales_segment_region_grouped("user_segment", "user_geo", "user_region") }}
-            as user_segment_region_grouped,
+            {{
+                sales_segment_region_grouped(
+                    "user_segment", "user_geo", "user_region"
+                )
+            }} as user_segment_region_grouped,
 
             -- metadata
             createdbyid as created_by_id,

@@ -6,7 +6,10 @@
             ("dim_dates", "dim_date"),
             ("rpt", "bamboohr_rpt_headcount_aggregation"),
             ("rpt_headcount_vs_planned", "rpt_headcount_vs_planned"),
-            ("rpt_team_members_out_of_comp_band", "rpt_team_members_out_of_comp_band"),
+            (
+                "rpt_team_members_out_of_comp_band",
+                "rpt_team_members_out_of_comp_band",
+            ),
             ("rpt_osat", "rpt_osat"),
             ("rpt_recruiting_kpis", "rpt_recruiting_kpis"),
             ("rpt_cost_per_hire", "rpt_cost_per_hire"),

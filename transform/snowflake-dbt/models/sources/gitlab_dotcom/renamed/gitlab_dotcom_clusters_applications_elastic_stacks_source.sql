@@ -4,7 +4,11 @@ with
 
         select *
         from
-            {{ ref("gitlab_dotcom_clusters_applications_elastic_stacks_dedupe_source") }}
+            {{
+                ref(
+                    "gitlab_dotcom_clusters_applications_elastic_stacks_dedupe_source"
+                )
+            }}
 
     ),
 

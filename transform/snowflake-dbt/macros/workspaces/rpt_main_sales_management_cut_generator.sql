@@ -38,7 +38,10 @@
     simple_cte(
         [
             ("dim_date", "dim_date"),
-            ("rpt_crm_opportunity_closed_period", "rpt_crm_opportunity_closed_period"),
+            (
+                "rpt_crm_opportunity_closed_period",
+                "rpt_crm_opportunity_closed_period",
+            ),
             (
                 "rpt_crm_opportunity_accepted_period",
                 "rpt_crm_opportunity_accepted_period",

@@ -176,7 +176,11 @@ with
                     "net_retention_quantity", "prior_year_quantity"
                 )
             }},
-            {{ type_of_arr_change("net_retention_arr", "prior_year_arr", "row_number") }},
+            {{
+                type_of_arr_change(
+                    "net_retention_arr", "prior_year_arr", "row_number"
+                )
+            }},
             {{
                 reason_for_arr_change_seat_change(
                     "net_retention_quantity",

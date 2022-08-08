@@ -122,8 +122,11 @@ as user_container_scanning_jobs_28_days_user,
         "raw_usage_data_payload['object_store']['packages']['enabled']"
     )
 }} as object_store_packages_enabled,
-{{ null_negative_numbers("raw_usage_data_payload['counts']['projects_with_packages']") }}
-as projects_with_packages_all_time_event,
+{{
+    null_negative_numbers(
+        "raw_usage_data_payload['counts']['projects_with_packages']"
+    )
+}} as projects_with_packages_all_time_event,
 {{
     null_negative_numbers(
         "raw_usage_data_payload['usage_activity_by_stage_monthly']['package']['projects_with_packages']"
@@ -198,8 +201,11 @@ as secret_detection_jobs_all_time_event,
         "raw_usage_data_payload['counts']['projects_jenkins_active']"
     )
 }} as projects_jenkins_active_all_time_event,
-{{ null_negative_numbers("raw_usage_data_payload['counts']['projects_bamboo_active']") }}
-as projects_bamboo_active_all_time_event,
+{{
+    null_negative_numbers(
+        "raw_usage_data_payload['counts']['projects_bamboo_active']"
+    )
+}} as projects_bamboo_active_all_time_event,
 {{ null_negative_numbers("raw_usage_data_payload['counts']['projects_jira_active']") }}
 as projects_jira_active_all_time_event,
 {{
@@ -214,8 +220,11 @@ as projects_jira_active_all_time_event,
     )
 }}
 as jira_imports_28_days_event,
-{{ null_negative_numbers("raw_usage_data_payload['counts']['projects_github_active']") }}
-as projects_github_active_all_time_event,
+{{
+    null_negative_numbers(
+        "raw_usage_data_payload['counts']['projects_github_active']"
+    )
+}} as projects_github_active_all_time_event,
 {{
     null_negative_numbers(
         "raw_usage_data_payload['counts']['projects_jira_server_active']"

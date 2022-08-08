@@ -52,7 +52,11 @@ ping_ranges as (
         {{ usage_ping_month_range("projects_github_active_all_time_event") }},
         {{ usage_ping_month_range("projects_jira_server_active_all_time_event") }},
         {{ usage_ping_month_range("projects_jira_dvcs_cloud_active_all_time_event") }},
-        {{ usage_ping_month_range("projects_with_repositories_enabled_all_time_event") }},
+        {{
+            usage_ping_month_range(
+                "projects_with_repositories_enabled_all_time_event"
+            )
+        }},
         {{ usage_ping_month_range("protected_branches_all_time_event") }},
         {{ usage_ping_month_range("remote_mirrors_all_time_event") }},
         {{ usage_ping_month_range("clusters_applications_cilium_all_time_event") }},
@@ -213,7 +217,11 @@ diffs as (
                 "coverage_fuzzing_pipeline_usage_28_days_event"
             )
         }},
-        {{ usage_ping_over_ping_difference("api_fuzzing_pipeline_usage_28_days_event") }},
+        {{
+            usage_ping_over_ping_difference(
+                "api_fuzzing_pipeline_usage_28_days_event"
+            )
+        }},
         {{
             usage_ping_over_ping_difference(
                 "container_scanning_pipeline_usage_28_days_event"
@@ -309,7 +317,11 @@ smoothed_diffs as (
         {{ usage_ping_over_ping_smoothed("projects_jira_active_all_time_event") }},
         {{ usage_ping_over_ping_smoothed("projects_drone_ci_active_all_time_event") }},
         {{ usage_ping_over_ping_smoothed("projects_github_active_all_time_event") }},
-        {{ usage_ping_over_ping_smoothed("projects_jira_server_active_all_time_event") }},
+        {{
+            usage_ping_over_ping_smoothed(
+                "projects_jira_server_active_all_time_event"
+            )
+        }},
         {{
             usage_ping_over_ping_smoothed(
                 "projects_jira_dvcs_cloud_active_all_time_event"
@@ -334,7 +346,11 @@ smoothed_diffs as (
                 "requirements_with_test_report_all_time_event"
             )
         }},
-        {{ usage_ping_over_ping_smoothed("requirement_test_reports_ci_all_time_event") }},
+        {{
+            usage_ping_over_ping_smoothed(
+                "requirement_test_reports_ci_all_time_event"
+            )
+        }},
         {{
             usage_ping_over_ping_smoothed(
                 "projects_imported_from_github_all_time_event"
@@ -502,7 +518,11 @@ final as (
                 "projects_imported_from_github_all_time_event"
             )
         }},
-        {{ usage_ping_over_ping_estimated("projects_jira_cloud_active_all_time_event") }},
+        {{
+            usage_ping_over_ping_estimated(
+                "projects_jira_cloud_active_all_time_event"
+            )
+        }},
         {{
             usage_ping_over_ping_estimated(
                 "projects_jira_dvcs_server_active_all_time_event"
@@ -567,7 +587,11 @@ final as (
         }},
         {{ usage_ping_over_ping_estimated("web_ide_edit_28_days_user") }},
         {{ usage_ping_over_ping_estimated("auto_devops_pipelines_all_time_event") }},
-        {{ usage_ping_over_ping_estimated("projects_prometheus_active_all_time_event") }},
+        {{
+            usage_ping_over_ping_estimated(
+                "projects_prometheus_active_all_time_event"
+            )
+        }},
         {{ usage_ping_over_ping_estimated("jira_issue_imports_all_time_event") }},
         {{ usage_ping_over_ping_estimated("author_epic_all_time_user") }},
         {{ usage_ping_over_ping_estimated("author_issue_all_time_user") }},

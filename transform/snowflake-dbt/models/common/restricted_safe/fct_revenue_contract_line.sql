@@ -102,10 +102,16 @@ with
             as unbilled_reversal_period_date_id,
             {{ get_date_id("lines_source.deferred_period_id") }}
             as deferred_period_date_id,
-            {{ get_date_id("pob.revenue_contract_performance_obligation_created_date") }}
-            as revenue_contract_performance_obligation_created_date_id,
-            {{ get_date_id("pob.revenue_contract_performance_obligation_updated_date") }}
-            as revenue_contract_performance_obligation_updated_date_id,
+            {{
+                get_date_id(
+                    "pob.revenue_contract_performance_obligation_created_date"
+                )
+            }} as revenue_contract_performance_obligation_created_date_id,
+            {{
+                get_date_id(
+                    "pob.revenue_contract_performance_obligation_updated_date"
+                )
+            }} as revenue_contract_performance_obligation_updated_date_id,
 
             -- attributes
             pob.revenue_contract_performance_obligation_name,
