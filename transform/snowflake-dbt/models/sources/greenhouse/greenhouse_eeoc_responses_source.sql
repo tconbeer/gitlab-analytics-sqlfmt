@@ -1,29 +1,25 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "eeoc_responses") }}),
+    renamed as (
 
-    SELECT *
+        select
 
-      FROM {{ source('greenhouse', 'eeoc_responses') }}
+            -- key
+            application_id::number as application_id,
 
-), renamed as (
-
-    SELECT
-
-            --key
-            application_id::NUMBER      AS application_id,
-
-            --info
-            status::varchar             AS candidate_status,
-            race::varchar               AS candidate_race,
-            gender::varchar             AS candidate_gender,
-            disability_status::varchar  AS candidate_disability_status,
-            veteran_status::varchar     AS candidate_veteran_status,
-            submitted_at::timestamp     AS eeoc_response_submitted_at
+            -- info
+            status::varchar as candidate_status,
+            race::varchar as candidate_race,
+            gender::varchar as candidate_gender,
+            disability_status::varchar as candidate_disability_status,
+            veteran_status::varchar as candidate_veteran_status,
+            submitted_at::timestamp as eeoc_response_submitted_at
 
 
-    FROM source
-    WHERE eeoc_response_submitted_at IS NOT NULL
+        from source
+        where eeoc_response_submitted_at is not null
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

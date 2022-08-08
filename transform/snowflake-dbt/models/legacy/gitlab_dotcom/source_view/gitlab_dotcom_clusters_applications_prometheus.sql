@@ -1,9 +1,9 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_clusters_applications_prometheus_source') }}
+        select * from {{ ref("gitlab_dotcom_clusters_applications_prometheus_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

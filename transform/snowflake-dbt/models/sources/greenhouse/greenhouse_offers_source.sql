@@ -1,30 +1,27 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "offers") }}),
+    renamed as (
 
-	SELECT *
-  	FROM {{ source('greenhouse', 'offers') }}
+        select
+            id as offer_id,
 
-), renamed as (
+            -- keys
+            application_id,
 
-	SELECT
-			id 											AS offer_id,
+            -- info
+            status as offer_status,
+            created_by,
+            start_date::date as start_date,
 
-	    --keys
-	    application_id,
+            created_at::timestamp as created_at,
+            sent_at::timestamp as sent_at,
+            resolved_at::timestamp as resolved_at,
+            updated_at::timestamp as updated_at
 
-	    --info
-	    status 									AS offer_status,
-	    created_by,
-	    start_date::date 				AS start_date,
+        from source
+        where offer_status != 'deprecated'
 
-	    created_at::timestamp 	AS created_at,
-	    sent_at::timestamp 			AS sent_at,
-	    resolved_at::timestamp 	AS resolved_at,
-	    updated_at::timestamp 	AS updated_at
+    )
 
-	FROM source
-	WHERE offer_status != 'deprecated'
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

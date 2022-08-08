@@ -1,20 +1,21 @@
-    
-WITH source AS (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_project_auto_devops_dedupe_source') }}
-  
-), renamed AS (
+with
+    source as (
 
-    SELECT
-      id::NUMBER                      AS project_auto_devops_id,
-      project_id::NUMBER              AS project_id,
-      created_at::TIMESTAMP            AS created_at,
-      updated_at::TIMESTAMP            AS updated_at,
-      enabled::BOOLEAN                 AS has_auto_devops_enabled
+        select * from {{ ref("gitlab_dotcom_project_auto_devops_dedupe_source") }}
 
-    FROM source
-)
+    ),
+    renamed as (
 
-SELECT *
-FROM renamed
+        select
+            id::number as project_auto_devops_id,
+            project_id::number as project_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            enabled::boolean as has_auto_devops_enabled
+
+        from source
+    )
+
+select *
+from renamed

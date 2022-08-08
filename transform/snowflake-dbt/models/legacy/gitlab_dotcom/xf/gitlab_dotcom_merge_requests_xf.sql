@@ -1,126 +1,163 @@
 -- depends_on: {{ ref('engineering_productivity_metrics_projects_to_include') }}
 -- depends_on: {{ ref('projects_part_of_product') }}
+with
+    merge_requests as (
 
-WITH merge_requests AS (
+        select
+            {{
+                dbt_utils.star(
+                    from=ref("gitlab_dotcom_merge_requests"),
+                    except=["created_at", "updated_at"],
+                )
+            }},
+            created_at as merge_request_created_at,
+            updated_at as merge_request_updated_at
+        from {{ ref("gitlab_dotcom_merge_requests") }} merge_requests
+        where {{ filter_out_blocked_users("merge_requests", "author_id") }}
 
-    SELECT 
-      {{ dbt_utils.star(from=ref('gitlab_dotcom_merge_requests'), except=["created_at", "updated_at"]) }},
-      created_at AS merge_request_created_at,
-      updated_at  AS merge_request_updated_at
-    FROM {{ref('gitlab_dotcom_merge_requests')}} merge_requests
-    WHERE {{ filter_out_blocked_users('merge_requests', 'author_id') }}
+    ),
+    label_links as (
 
-), label_links AS (
+        select *
+        from {{ ref("gitlab_dotcom_label_links") }}
+        where is_currently_valid = true and target_type = 'MergeRequest'
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_label_links')}}
-    WHERE is_currently_valid = True
-      AND target_type = 'MergeRequest'
+    ),
+    all_labels as (select * from {{ ref("gitlab_dotcom_labels_xf") }}),
+    agg_labels as (
 
-), all_labels AS (
+        select
+            merge_requests.merge_request_id,
+            array_agg(lower(masked_label_title)) within group (
+                order by masked_label_title asc
+            ) as labels
+        from merge_requests
+        left join label_links on merge_requests.merge_request_id = label_links.target_id
+        left join all_labels on label_links.label_id = all_labels.label_id
+        group by merge_requests.merge_request_id
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_labels_xf')}}
+    ),
+    latest_merge_request_metric as (
 
-), agg_labels AS (
+        select max(merge_request_metric_id) as target_id
+        from {{ ref("gitlab_dotcom_merge_request_metrics") }}
+        group by merge_request_id
 
-    SELECT
-      merge_requests.merge_request_id,
-      ARRAY_AGG(LOWER(masked_label_title)) WITHIN GROUP (ORDER BY masked_label_title ASC) AS labels
-    FROM merge_requests
-    LEFT JOIN label_links
-      ON merge_requests.merge_request_id = label_links.target_id
-    LEFT JOIN all_labels
-      ON label_links.label_id = all_labels.label_id
-    GROUP BY merge_requests.merge_request_id
+    ),
+    merge_request_metrics as (
 
-),  latest_merge_request_metric AS (
+        select *
+        from {{ ref("gitlab_dotcom_merge_request_metrics") }}
+        inner join latest_merge_request_metric on merge_request_metric_id = target_id
 
-    SELECT MAX(merge_request_metric_id) AS target_id
-    FROM {{ref('gitlab_dotcom_merge_request_metrics')}}
-    GROUP BY merge_request_id
+    ),
+    milestones as (select * from {{ ref("gitlab_dotcom_milestones") }}),
+    projects as (select * from {{ ref("gitlab_dotcom_projects_xf") }}),
+    author_namespaces as (
 
-),  merge_request_metrics AS (
+        select *
+        from {{ ref("gitlab_dotcom_namespaces_xf") }}
+        where namespace_type = 'User'
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_merge_request_metrics')}}
-    INNER JOIN latest_merge_request_metric
-    ON merge_request_metric_id = target_id
+    ),
+    gitlab_subscriptions as (
 
-), milestones AS (
+        select *
+        from {{ ref("gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base") }}
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_milestones')}}
+    ),
+    joined as (
 
-), projects AS (
+        select
+            merge_requests.*,
+            iff(
+                projects.visibility_level != 'public'
+                and projects.namespace_is_internal = false,
+                'content masked',
+                milestones.milestone_title
+            ) as milestone_title,
+            iff(
+                projects.visibility_level != 'public'
+                and projects.namespace_is_internal = false,
+                'content masked',
+                milestones.milestone_description
+            ) as milestone_description,
+            projects.namespace_id,
+            projects.ultimate_parent_id,
+            projects.ultimate_parent_plan_id,
+            projects.ultimate_parent_plan_title,
+            projects.ultimate_parent_plan_is_paid,
+            projects.namespace_is_internal,
+            author_namespaces.namespace_path as author_namespace_path,
+            array_to_string(agg_labels.labels, '|') as masked_label_title,
+            agg_labels.labels,
+            merge_request_metrics.merged_at,
+            iff(
+                merge_requests.target_project_id in (
+                    {{ is_project_included_in_engineering_metrics() }}
+                ),
+                true,
+                false
+            ) as is_included_in_engineering_metrics,
+            iff(
+                merge_requests.target_project_id in (
+                    {{ is_project_part_of_product() }}
+                ),
+                true,
+                false
+            ) as is_part_of_product,
+            iff(
+                projects.namespace_is_internal is not null
+                and array_contains(
+                    'community contribution'::variant, agg_labels.labels
+                ),
+                true,
+                false
+            ) as is_community_contributor_related,
+            timestampdiff(
+                hours,
+                merge_requests.merge_request_created_at,
+                merge_request_metrics.merged_at
+            ) as hours_to_merged_status,
+            regexp_count(
+                merge_requests.merge_request_description,
+                '([-+*]|[\d+\.]) [\[]( |[xX])[\]]',
+                1,
+                'm'
+            ) as total_checkboxes,
+            regexp_count(
+                merge_requests.merge_request_description,
+                '([-+*]|[\d+\.]) [\[][xX][\]]',
+                1,
+                'm'
+            ) as completed_checkboxes,
+            -- Original regex,
+            -- (?:(?:>\s{0,4})*)(?:\s*(?:[-+*]|(?:\d+\.)))+\s+(\[\s\]|\[[xX]\])(\s.+),
+            -- found in
+            -- https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/models/concerns/taskable.rb
+            case
+                when gitlab_subscriptions.is_trial
+                then 'trial'
+                else coalesce(gitlab_subscriptions.plan_id, 34)::varchar
+            end as plan_id_at_merge_request_creation
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_projects_xf')}}
+        from merge_requests
+        left join
+            agg_labels on merge_requests.merge_request_id = agg_labels.merge_request_id
+        left join
+            merge_request_metrics
+            on merge_requests.merge_request_id = merge_request_metrics.merge_request_id
+        left join milestones on merge_requests.milestone_id = milestones.milestone_id
+        left join projects on merge_requests.target_project_id = projects.project_id
+        left join
+            author_namespaces on merge_requests.author_id = author_namespaces.owner_id
+        left join
+            gitlab_subscriptions
+            on projects.ultimate_parent_id = gitlab_subscriptions.namespace_id
+            and merge_requests.created_at between gitlab_subscriptions.valid_from and
+            {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
 
-), author_namespaces AS (
+    )
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_namespaces_xf')}}
-    WHERE namespace_type = 'User'
-
-), gitlab_subscriptions AS (
-
-    SELECT *
-    FROM {{ref('gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base')}}
-
-), joined AS (
-
-    SELECT
-      merge_requests.*, 
-      IFF(projects.visibility_level != 'public' AND projects.namespace_is_internal = FALSE,
-        'content masked', milestones.milestone_title)                                       AS milestone_title,
-      IFF(projects.visibility_level != 'public' AND projects.namespace_is_internal = FALSE,
-        'content masked', milestones.milestone_description)                                 AS milestone_description,
-      projects.namespace_id,
-      projects.ultimate_parent_id,
-      projects.ultimate_parent_plan_id,
-      projects.ultimate_parent_plan_title,
-      projects.ultimate_parent_plan_is_paid,
-      projects.namespace_is_internal,
-      author_namespaces.namespace_path                                                      AS author_namespace_path,
-      ARRAY_TO_STRING(agg_labels.labels,'|')                                                AS masked_label_title,
-      agg_labels.labels,
-      merge_request_metrics.merged_at,
-      IFF(merge_requests.target_project_id IN ({{is_project_included_in_engineering_metrics()}}),
-        TRUE, FALSE)                                                                        AS is_included_in_engineering_metrics,
-      IFF(merge_requests.target_project_id IN ({{is_project_part_of_product()}}),
-        TRUE, FALSE)                                                                        AS is_part_of_product,
-      IFF(projects.namespace_is_internal IS NOT NULL
-          AND ARRAY_CONTAINS('community contribution'::variant, agg_labels.labels),
-        TRUE, FALSE)                                                                        AS is_community_contributor_related,
-      TIMESTAMPDIFF(HOURS, merge_requests.merge_request_created_at,
-        merge_request_metrics.merged_at)                                                    AS hours_to_merged_status,
-      regexp_count(merge_requests.merge_request_description,'([-+*]|[\d+\.]) [\[]( |[xX])[\]]',1,'m') AS total_checkboxes,
-      regexp_count(merge_requests.merge_request_description,'([-+*]|[\d+\.]) [\[][xX][\]]',1,'m')     AS completed_checkboxes,
-      -- Original regex, (?:(?:>\s{0,4})*)(?:\s*(?:[-+*]|(?:\d+\.)))+\s+(\[\s\]|\[[xX]\])(\s.+), found in https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/models/concerns/taskable.rb
-
-    CASE
-      WHEN gitlab_subscriptions.is_trial
-        THEN 'trial'
-      ELSE COALESCE(gitlab_subscriptions.plan_id, 34)::VARCHAR
-    END AS plan_id_at_merge_request_creation
-
-    FROM merge_requests
-      LEFT JOIN agg_labels
-        ON merge_requests.merge_request_id = agg_labels.merge_request_id
-      LEFT JOIN merge_request_metrics
-        ON merge_requests.merge_request_id = merge_request_metrics.merge_request_id
-      LEFT JOIN milestones
-        ON merge_requests.milestone_id = milestones.milestone_id
-      LEFT JOIN projects
-        ON merge_requests.target_project_id = projects.project_id
-      LEFT JOIN author_namespaces
-        ON merge_requests.author_id = author_namespaces.owner_id
-      LEFT JOIN gitlab_subscriptions
-        ON projects.ultimate_parent_id = gitlab_subscriptions.namespace_id
-        AND merge_requests.created_at BETWEEN gitlab_subscriptions.valid_from AND {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
-
-)
-
-SELECT *
-FROM joined
+select *
+from joined
