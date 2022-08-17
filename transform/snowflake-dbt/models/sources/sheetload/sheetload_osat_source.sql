@@ -1,22 +1,20 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "osat") }}),
+    renamed as (
 
-    SELECT * 
-    FROM {{ source('sheetload','osat') }}
-    
-), renamed AS (
+        select
+            try_to_timestamp_ntz("TIMESTAMP")::date as completed_date,
+            "EMPLOYEE_NAME"::varchar as employee_name,
+            "DIVISION"::varchar as division,
+            nullif("SATISFACTION_SCORE", '')::number as satisfaction_score,
+            nullif("RECOMMEND_TO_FRIEND", '')::number as recommend_to_friend,
+            nullif(onboarding_buddy_experience_score, '')::number
+            as buddy_experience_score,
+            try_to_timestamp_ntz("HIRE_DATE")::date as hire_date
 
-    SELECT
-      TRY_TO_TIMESTAMP_NTZ("TIMESTAMP")::DATE              AS completed_date,
-      "EMPLOYEE_NAME"::VARCHAR                             AS employee_name,
-      "DIVISION"::VARCHAR                                  AS division,
-      NULLIF("SATISFACTION_SCORE",'')::NUMBER              AS satisfaction_score,
-      NULLIF("RECOMMEND_TO_FRIEND",'')::NUMBER             AS recommend_to_friend,
-      NULLIF(ONBOARDING_BUDDY_EXPERIENCE_SCORE,'')::NUMBER AS buddy_experience_score,
-      TRY_TO_TIMESTAMP_NTZ("HIRE_DATE")::DATE              AS hire_date
+        from source
 
-    FROM source
- 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

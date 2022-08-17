@@ -1,27 +1,26 @@
-WITH bamboohr AS (
+with
+    bamboohr as (select * from {{ ref("employee_directory") }}),
+    source as (select * from {{ ref("sheetload_osat_source") }}),
+    final as (
 
-    SELECT *
-    FROM {{ ref('employee_directory') }}
-  
-), source AS (
+        select
+            source.completed_date,
+            coalesce(
+                date_trunc(month, source.hire_date),
+                date_trunc(month, bamboohr.hire_date)
+            ) as hire_month,
+            source.division,
+            source.satisfaction_score,
+            source.recommend_to_friend,
+            source.buddy_experience_score
+        from source
+        left join
+            bamboohr
+            on source.employee_name = concat(
+                bamboohr.first_name, ' ', bamboohr.last_name
+            )
+        where source.completed_date is not null
 
-    SELECT *
-    FROM {{ ref('sheetload_osat_source') }}
-
-), final AS (
-
-    SELECT
-      source.completed_date,
-      COALESCE(DATE_TRUNC(month, source.hire_date), DATE_TRUNC(month, bamboohr.hire_date)) AS hire_month,
-      source.division,
-      source.satisfaction_score,
-      source.recommend_to_friend,
-      source.buddy_experience_score
-    FROM source
-    LEFT JOIN bamboohr
-      ON source.employee_name = CONCAT(bamboohr.first_name, ' ', bamboohr.last_name)
-    WHERE source.completed_date IS NOT NULL
-
-)
-SELECT *
-FROM final
+    )
+select *
+from final

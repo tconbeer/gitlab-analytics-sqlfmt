@@ -1,25 +1,22 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "offices") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'offices') }}
+        select
 
-), renamed as (
+            -- keys
+            id::number as office_id,
+            organization_id::number as organization_id,
+            parent_id::number as office_parent_id,
 
-	SELECT
+            -- info
+            name::varchar as office_name,
+            created_at::timestamp as office_created_at,
+            updated_at::timestamp as office_updated_at
 
-            --keys
-            id::NUMBER                          AS office_id,
-            organization_id::NUMBER             AS organization_id,
-            parent_id::NUMBER                   AS office_parent_id,
+        from source
 
-            --info
-            name::varchar                       AS office_name,
-            created_at::timestamp               AS office_created_at,
-            updated_at::timestamp               AS office_updated_at
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

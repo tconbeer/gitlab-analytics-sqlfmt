@@ -1,10 +1,9 @@
 -- Will write to custom schemas not on prod
-
 {% macro generate_schema_name(custom_schema_name, node) -%}
 
-    {%- set production_targets = production_targets() -%}
+{%- set production_targets = production_targets() -%}
 
-    {#
+{#
         Definitions:
             - custom_schema_name: schema provided via dbt_project.yml or model config
             - target.name: name of the target (dev for local development, prod for production, etc.)
@@ -25,15 +24,10 @@
         (zuora, dev, preparation) = zuora
 
     #}
+{%- if custom_schema_name is none -%} {{ target.schema.lower() | trim }}
 
-    {%- if custom_schema_name is none -%}
+{%- else -%} {{ custom_schema_name.lower() | trim }}
 
-        {{ target.schema.lower() | trim }}
+{%- endif -%}
 
-    {%- else -%}
-
-        {{ custom_schema_name.lower() | trim }}
-
-    {%- endif -%}
-    
 {%- endmacro %}

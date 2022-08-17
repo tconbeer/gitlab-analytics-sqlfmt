@@ -1,18 +1,17 @@
 {% macro test_unique_where_currently_valid(model, column_name) %}
 
-WITH data AS (
+with
+    data as (
 
-    SELECT
-      {{ column_name }} AS id,
-      COUNT(*)          AS count_valid_rows
-    FROM {{ model }}
-    WHERE is_currently_valid = True
-    GROUP BY 1
+        select {{ column_name }} as id, count(*) as count_valid_rows
+        from {{ model }}
+        where is_currently_valid = true
+        group by 1
 
-)
+    )
 
-SELECT COUNT(*)
-FROM data
-WHERE count_valid_rows != 1
+select count(*)
+from data
+where count_valid_rows != 1
 
 {% endmacro %}

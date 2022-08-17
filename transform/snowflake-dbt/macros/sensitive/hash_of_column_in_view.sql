@@ -8,14 +8,10 @@
         )['ciphertext']::VARCHAR
     {% endset %}
 
-    {% set results = run_query(salt_query) %}
+{% set results = run_query(salt_query) %}
 
-    sha2(
-        TRIM(
-            LOWER(
-                {{column|lower}} ||  '{{results.columns[0].values()[0]}}'
-            )
-        )
-    ) AS {{column|lower}}_hash,
+sha2(
+    trim(lower({{ column | lower }} || '{{results.columns[0].values()[0]}}'))
+) as {{ column | lower }}_hash,
 
 {% endmacro %}

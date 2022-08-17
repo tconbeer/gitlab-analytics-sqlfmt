@@ -1,25 +1,21 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "candidates_tags") }}),
+    renamed as (
 
-    SELECT *
+        select
+            -- keys
+            id::number as candidate_tag_id,
+            tag_id::number as tag_id,
+            candidate_id::number as candidate_id,
 
-      FROM {{ source('greenhouse', 'candidates_tags') }}
-
-), renamed as (
-
-    SELECT
-			--keys
-			  id::NUMBER 				    AS candidate_tag_id,
-    		tag_id::NUMBER			   AS tag_id,
-    		candidate_id::NUMBER	 AS candidate_id,
-
-    		--info
-    		created_at::timestamp  AS candidate_tag_created_at,
-    		updated_at::timestamp  AS candidate_tag_updated_at
+            -- info
+            created_at::timestamp as candidate_tag_created_at,
+            updated_at::timestamp as candidate_tag_updated_at
 
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

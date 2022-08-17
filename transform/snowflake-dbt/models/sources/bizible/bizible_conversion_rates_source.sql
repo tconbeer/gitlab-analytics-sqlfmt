@@ -1,23 +1,24 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      id              AS conversion_rate_id,
-      currency_id     AS currency_id,
-      source_iso_code AS source_iso_code,
-      start_date      AS start_date,
-      end_date        AS end_date,
-      conversion_rate AS conversion_rate,
-      is_current      AS is_current,
-      created_date    AS created_date,
-      modified_date   AS modified_date,
-      is_deleted      AS is_deleted,
-      _created_date   AS _created_date,
-      _modified_date  AS _modified_date,
-      _deleted_date   AS _deleted_date
+        select
+            id as conversion_rate_id,
+            currency_id as currency_id,
+            source_iso_code as source_iso_code,
+            start_date as start_date,
+            end_date as end_date,
+            conversion_rate as conversion_rate,
+            is_current as is_current,
+            created_date as created_date,
+            modified_date as modified_date,
+            is_deleted as is_deleted,
+            _created_date as _created_date,
+            _modified_date as _modified_date,
+            _deleted_date as _deleted_date
 
-    FROM {{ source('bizible', 'biz_conversion_rates') }}
- 
+        from {{ source("bizible", "biz_conversion_rates") }}
+
     )
 
-SELECT *
-FROM source
+select *
+from source

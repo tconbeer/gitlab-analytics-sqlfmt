@@ -1,52 +1,49 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_central_sandbox", "invoice_item") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_central_sandbox', 'invoice_item') }}
-
-), renamed AS (
-
-    SELECT
-      -- keys
-      id                            AS invoice_item_id,
-      invoice_id                    AS invoice_id,
-      applied_to_invoice_item_id    AS applied_to_invoice_item_id,
-      rate_plan_charge_id           AS rate_plan_charge_id,
-      subscription_id               AS subscription_id,
+        select
+            -- keys
+            id as invoice_item_id,
+            invoice_id as invoice_id,
+            applied_to_invoice_item_id as applied_to_invoice_item_id,
+            rate_plan_charge_id as rate_plan_charge_id,
+            subscription_id as subscription_id,
 
 
-      -- invoice item metadata
-      accounting_code               AS accounting_code,
-      product_id                    AS product_id,
-      product_rate_plan_charge_id   AS product_rate_plan_charge_id,
-      service_end_date              AS service_end_date,
-      service_start_date            AS service_start_date,
+            -- invoice item metadata
+            accounting_code as accounting_code,
+            product_id as product_id,
+            product_rate_plan_charge_id as product_rate_plan_charge_id,
+            service_end_date as service_end_date,
+            service_start_date as service_start_date,
 
 
-      -- financial info
-      charge_amount                 AS charge_amount,
-      charge_date                   AS charge_date,
-      charge_name                   AS charge_name,
-      processing_type               AS processing_type,
-      quantity                      AS quantity,
-      sku                           AS sku,
-      tax_amount                    AS tax_amount,
-      tax_code                      AS tax_code,
-      tax_exempt_amount             AS tax_exempt_amount,
-      tax_mode                      AS tax_mode,
-      uom                           AS unit_of_measure,
-      unit_price                    AS unit_price,
+            -- financial info
+            charge_amount as charge_amount,
+            charge_date as charge_date,
+            charge_name as charge_name,
+            processing_type as processing_type,
+            quantity as quantity,
+            sku as sku,
+            tax_amount as tax_amount,
+            tax_code as tax_code,
+            tax_exempt_amount as tax_exempt_amount,
+            tax_mode as tax_mode,
+            uom as unit_of_measure,
+            unit_price as unit_price,
 
-      -- metadata
-      created_by_id                 AS created_by_id,
-      created_date                  AS created_date,
-      updated_by_id                 AS updated_by_id,
-      updated_date                  AS updated_date,
-      _FIVETRAN_DELETED             AS is_deleted
+            -- metadata
+            created_by_id as created_by_id,
+            created_date as created_date,
+            updated_by_id as updated_by_id,
+            updated_date as updated_date,
+            _fivetran_deleted as is_deleted
 
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed
