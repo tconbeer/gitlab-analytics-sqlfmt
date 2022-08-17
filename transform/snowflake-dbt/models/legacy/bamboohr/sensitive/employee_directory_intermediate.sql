@@ -59,8 +59,8 @@ with recursive
                 left join
                     department_info
                     on employee_directory.employee_id = department_info.employee_id
-                    and date_details.date_actual between department_info.effective_date
-                    and coalesce(
+                    and date_details.date_actual
+                    between department_info.effective_date and coalesce(
                         department_info.effective_end_date,
                         {{ max_date_in_bamboo_analyses() }}
                     )
@@ -100,7 +100,8 @@ with recursive
         left join
             job_role
             on job_role.employee_id = department_info.employee_id
-            and date_details.date_actual between job_role.effective_date and coalesce(
+            and date_details.date_actual
+            between job_role.effective_date and coalesce(
                 job_role.next_effective_date, {{ max_date_in_bamboo_analyses() }}
             )
         where job_role.job_grade is not null
@@ -256,8 +257,10 @@ with recursive
         left join
             department_info
             on employee_directory.employee_id = department_info.employee_id
-            and date_actual between effective_date
-            and coalesce(effective_end_date::date, {{ max_date_in_bamboo_analyses() }})
+            and date_actual
+            between effective_date and coalesce(
+                effective_end_date::date, {{ max_date_in_bamboo_analyses() }}
+            )
         left join
             direct_reports
             on direct_reports.date = date_details.date_actual
@@ -276,7 +279,8 @@ with recursive
                 date_details.date_actual = valid_from_date
                 and employment_status = 'Terminated'
                 or date_details.date_actual
-                between employment_status.valid_from_date and employment_status.valid_to_date
+                between employment_status.valid_from_date
+                and employment_status.valid_to_date
             )
         left join
             employment_status_records_check
@@ -287,13 +291,15 @@ with recursive
             on department_info.department = cost_center_prior_to_bamboo.department
             and department_info.division = cost_center_prior_to_bamboo.division
             and date_details.date_actual
-            between cost_center_prior_to_bamboo.effective_start_date
-            and coalesce(cost_center_prior_to_bamboo.effective_end_date, '2020-05-07')
+            between cost_center_prior_to_bamboo.effective_start_date and coalesce(
+                cost_center_prior_to_bamboo.effective_end_date, '2020-05-07'
+            )
         -- -Starting 2020.05.08 we start capturing cost_center in bamboohr
         left join
             job_role
             on employee_directory.employee_id = job_role.employee_id
-            and date_details.date_actual between job_role.effective_date and coalesce(
+            and date_details.date_actual
+            between job_role.effective_date and coalesce(
                 job_role.next_effective_date, {{ max_date_in_bamboo_analyses() }}
             )
         left join
@@ -311,8 +317,7 @@ with recursive
             on employee_directory.employee_id
             = sheetload_engineering_speciality.employee_id
             and date_details.date_actual
-            between sheetload_engineering_speciality.speciality_start_date
-            and coalesce(
+            between sheetload_engineering_speciality.speciality_start_date and coalesce(
                 sheetload_engineering_speciality.speciality_end_date, '2020-09-30'
             )
         -- -Post 2020.09.30 we will capture engineering speciality from bamboohr

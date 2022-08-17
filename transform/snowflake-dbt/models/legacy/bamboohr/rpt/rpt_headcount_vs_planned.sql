@@ -155,8 +155,8 @@ with
             ) as cumulative_hires_vs_plan
         from joined
         where
-            month_date between dateadd(
-                month, -24, current_date()) and dateadd(month, 12, current_date()
+            month_date between dateadd(month, -24, current_date()) and dateadd(
+                month, 12, current_date()
             )
     )
 

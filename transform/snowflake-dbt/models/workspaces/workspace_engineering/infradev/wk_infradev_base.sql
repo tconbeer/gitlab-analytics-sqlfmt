@@ -67,7 +67,5 @@ left join
     label_groups
     on issues.dim_issue_id = label_groups.dim_issue_id
     and dates.date_actual between date_trunc(
-        'day',
-        label_groups.label_group_valid_from
-    ) and date_trunc('day', label_groups.label_group_valid_to
-    )
+        'day', label_groups.label_group_valid_from
+    ) and date_trunc('day', label_groups.label_group_valid_to)

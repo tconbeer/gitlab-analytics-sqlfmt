@@ -27,10 +27,8 @@ with
         where
             day_of_month = 1
             and date_actual between date_trunc(
-                month,
-                dateadd(month, -15, current_date())
-            ) and date_trunc(month, current_date()
-            )
+                month, dateadd(month, -15, current_date())
+            ) and date_trunc(month, current_date())
 
     ),
     three_month_rolling as (

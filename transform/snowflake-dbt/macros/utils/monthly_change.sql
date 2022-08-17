@@ -2,8 +2,7 @@
 
 case
     when
-        {{ column }}
-        - lag({{ column }}) over (partition by uuid order by created_at)
+        {{ column }} - lag({{ column }}) over (partition by uuid order by created_at)
         >= 0
     then {{ column }} - lag({{ column }}) over (partition by uuid order by created_at)
     else {{ column }}

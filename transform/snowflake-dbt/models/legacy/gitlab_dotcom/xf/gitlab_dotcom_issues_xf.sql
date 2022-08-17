@@ -215,8 +215,9 @@ with
         left join
             gitlab_subscriptions
             on namespace_lineage.ultimate_parent_id = gitlab_subscriptions.namespace_id
-            and issues.created_at between gitlab_subscriptions.valid_from and
-            {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
+            and issues.created_at
+            between gitlab_subscriptions.valid_from
+            and {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
         left join issue_metrics on issues.issue_id = issue_metrics.issue_id
         left join first_events_weight on issues.issue_id = first_events_weight.issue_id
         left join derived_close_date on issues.issue_id = derived_close_date.issue_id

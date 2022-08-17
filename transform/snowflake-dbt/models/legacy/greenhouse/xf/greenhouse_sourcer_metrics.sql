@@ -5,8 +5,8 @@ with
         from {{ ref("date_details") }}
         where
             date_actual between date_trunc(
-                month, dateadd(month, -5, current_date())) and current_date(
-            )
+                month, dateadd(month, -5, current_date())
+            ) and current_date()
             and day_of_month = 1
 
     ),
@@ -18,10 +18,8 @@ with
         where
             department like '%Recruiting%'
             and date_actual between date_trunc(
-                month,
-                dateadd(month, -12, current_date())
-            ) and date_trunc(month, current_date()
-            )
+                month, dateadd(month, -12, current_date())
+            ) and date_trunc(month, current_date())
 
     ),
     recruiting_data as (

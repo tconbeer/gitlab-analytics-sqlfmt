@@ -104,8 +104,7 @@ with
             month_spine
             on month_spine.first_day_of_month between date_trunc(
                 'month', order_start_date
-            )
-            and dateadd(month, -1, date_trunc('month', order_end_date))
+            ) and dateadd(month, -1, date_trunc('month', order_end_date))
         -- only storage rate plan, 10GiB of storage
         where product_rate_plan_id = '2c92a00f7279a6f5017279d299d01cf9'
         group by 1, 2

@@ -19,9 +19,10 @@ with
                 input => pq.jsontext['stage_group_error_budget_availability']
             ) pq_1,
             lateral flatten(
-                input => pq.jsontext['stage_group_error_budget_availability']['body'][
-                    'data'
-                ]['result'],
+                input
+                => pq.jsontext['stage_group_error_budget_availability']['body']['data'][
+                    'result'
+                ],
                 outer => true
             ) pq_2
         where result_type is not null and status_type is not null

@@ -33,10 +33,8 @@ namespace_lineage_daily as (
     inner join
         dates
         on dates.date_actual between date_trunc(
-            'day',
-            namespace_lineage.lineage_valid_from
-        ) and date_trunc('day', namespace_lineage.lineage_valid_to
-        )
+            'day', namespace_lineage.lineage_valid_from
+        ) and date_trunc('day', namespace_lineage.lineage_valid_to)
     qualify
         row_number() over (
             partition by dates.date_actual, namespace_id
@@ -75,8 +73,9 @@ with_plans as (
         on namespace_lineage_daily.ultimate_parent_id
         = namespace_subscription_snapshots.namespace_id
         and namespace_lineage_daily.snapshot_day
-        between namespace_subscription_snapshots.valid_from::date
-        and ifnull(namespace_subscription_snapshots.valid_to::date, current_date)
+        between namespace_subscription_snapshots.valid_from::date and ifnull(
+            namespace_subscription_snapshots.valid_to::date, current_date
+        )
     qualify
         row_number() over (
             partition by namespace_lineage_daily.namespace_id, snapshot_day

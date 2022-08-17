@@ -189,7 +189,8 @@ stages_adopted as (
         -- based on the selection chose for the `free_or_trial` filter
         and events.plan_name_at_event_date in ('trial', 'free', 'ultimate_trial')
         and xmau.smau = true
-        and events.event_date between namespaces.namespace_created_at_date and ifnull(
+        and events.event_date
+        between namespaces.namespace_created_at_date and ifnull(
             subscriptions.min_subscription_start_date, current_date
         )
         {{ dbt_utils.group_by(7) }}

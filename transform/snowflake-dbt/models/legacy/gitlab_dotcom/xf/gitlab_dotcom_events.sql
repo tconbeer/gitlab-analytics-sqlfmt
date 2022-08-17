@@ -49,7 +49,8 @@ with
         left join
             gitlab_subscriptions
             on projects.ultimate_parent_id = gitlab_subscriptions.namespace_id
-            and source.created_at between gitlab_subscriptions.valid_from
+            and source.created_at
+            between gitlab_subscriptions.valid_from
             and {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
         left join plans on gitlab_subscriptions.plan_id = plans.plan_id
         left join users on source.author_id = users.user_id

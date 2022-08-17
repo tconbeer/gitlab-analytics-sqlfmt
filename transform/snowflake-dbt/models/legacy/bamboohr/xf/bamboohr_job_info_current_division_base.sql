@@ -27,9 +27,8 @@ with
         from bamboo_mapping
         left join job_info on job_info.employee_id = bamboo_mapping.employee_id
         where
-            current_date() between effective_date and coalesce(
-                effective_end_date, current_date()
-            )
+            current_date()
+            between effective_date and coalesce(effective_end_date, current_date())
             and bamboo_mapping.termination_date is null
         group by 1, 2
         qualify

@@ -188,8 +188,9 @@ with
         from metrics
         left join isat on isat.submitted_at = metrics.month_date
         where
-            month_date between date_trunc(month, dateadd(month, -13, current_date()))
-            and date_trunc(month, current_date())
+            month_date between date_trunc(
+                month, dateadd(month, -13, current_date())
+            ) and date_trunc(month, current_date())
 
     )
 

@@ -99,8 +99,10 @@ subscription_list as (
     from subscriptions
     inner join
         dates
-        on dates.date_actual between subscriptions.subscription_start_date
-        and ifnull(subscriptions.subscription_end_date, current_date)
+        on dates.date_actual
+        between subscriptions.subscription_start_date and ifnull(
+            subscriptions.subscription_end_date, current_date
+        )
     inner join
         saas_subscriptions
         on subscriptions.dim_subscription_id = saas_subscriptions.dim_subscription_id
@@ -186,8 +188,7 @@ order_list as (
             orders.term_start_date < orders.order_start_date,
             orders.order_start_date,
             orders.term_start_date
-        )
-        and iff(
+        ) and iff(
             orders.term_end_date > orders.order_end_date,
             orders.order_end_date,
             orders.term_end_date

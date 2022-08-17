@@ -41,8 +41,9 @@ gitlab_seats as (
     from gitlab_subscriptions
     inner join
         dates
-        on dates.date_actual between to_date(gitlab_subscriptions.valid_from)
-        and ifnull(gitlab_subscriptions.valid_to, current_date)
+        on dates.date_actual between to_date(
+            gitlab_subscriptions.valid_from
+        ) and ifnull(gitlab_subscriptions.valid_to, current_date)
     qualify
         row_number() over (
             partition by gitlab_subscriptions.namespace_id, dates.first_day_of_month

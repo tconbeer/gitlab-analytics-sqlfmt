@@ -64,9 +64,8 @@ fact_with_date_range as (
     from fact_raw as fact
     left join dim_date on fact.event_date = dim_date.date_actual
     where
-        fact.event_date between dateadd(
-            'day', -27, last_day_of_month
-        ) and last_day_of_month
+        fact.event_date
+        between dateadd('day', -27, last_day_of_month) and last_day_of_month
 
 ),
 fact_with_namespace as (

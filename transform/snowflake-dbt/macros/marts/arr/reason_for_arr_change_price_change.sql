@@ -14,8 +14,7 @@ case
     then
         {{ quantity }} * (
             {{ arr }}/ nullif({{ quantity }}, 0)
-            - {{ previous_arr }}
-            / nullif({{ previous_quantity }}, 0)
+            - {{ previous_arr }}/ nullif({{ previous_quantity }}, 0)
         )
     when
         {{ previous_product_category }} != {{ product_category }}
@@ -23,8 +22,7 @@ case
     then
         {{ quantity }} * (
             {{ arr }}/ nullif({{ quantity }}, 0)
-            - {{ previous_arr }}
-            / nullif({{ previous_quantity }}, 0)
+            - {{ previous_arr }}/ nullif({{ previous_quantity }}, 0)
         )
     else 0
 end as price_change_arr

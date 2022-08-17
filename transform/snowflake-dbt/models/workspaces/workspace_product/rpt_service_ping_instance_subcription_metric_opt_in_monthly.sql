@@ -55,7 +55,8 @@ active_subscriptions_by_metric as (
     inner join
         metric_opt_in
         on subscriptions_w_versions.major_minor_version
-        between metric_opt_in.first_version_with_counter and metric_opt_in.last_version_with_counter
+        between metric_opt_in.first_version_with_counter
+        and metric_opt_in.last_version_with_counter
         and subscriptions_w_versions.ping_edition = metric_opt_in.ping_edition
 
 ),

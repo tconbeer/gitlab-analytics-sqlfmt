@@ -22,8 +22,7 @@ with
             current_division_department_mapping
             on source.employee_id = current_division_department_mapping.employee_id
             and source.bonus_date
-            between current_division_department_mapping.effective_date
-            and coalesce(
+            between current_division_department_mapping.effective_date and coalesce(
                 current_division_department_mapping.effective_end_date::date,
                 {{ max_date_in_bamboo_analyses() }}
             )

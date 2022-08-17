@@ -56,7 +56,8 @@ application_settings_snapshot_monthly as (
     from application_settings_historical
     inner join
         dates
-        on dates.date_actual between application_settings_historical.valid_from
+        on dates.date_actual
+        between application_settings_historical.valid_from
         and application_settings_historical.valid_to
     qualify row_number() over (partition by snapshot_month order by valid_from desc) = 1
 

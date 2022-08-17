@@ -894,8 +894,7 @@ with
                     '{{ period_type }}', - '{{ delta_value }}',
                     cast('{{ end_date }}' as date)
                 )
-            ) and date_trunc(month, dateadd(month, -1, cast('{{ end_date }}' as date))
-            )
+            ) and date_trunc(month, dateadd(month, -1, cast('{{ end_date }}' as date)))
         group by dim_crm_account_id
 
     )

@@ -26,8 +26,10 @@ with
                 then 1
                 when
                     total_reqs_for_job_id > 1
-                    and applications.applied_at between jobs.job_created_at
-                    and coalesce(jobs.job_closed_at, dateadd(week, 3, current_date()))
+                    and applications.applied_at
+                    between jobs.job_created_at and coalesce(
+                        jobs.job_closed_at, dateadd(week, 3, current_date())
+                    )
                 then 1
                 else 0
             end as job_req_to_use

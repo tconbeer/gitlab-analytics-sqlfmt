@@ -37,9 +37,7 @@ with
         left join
             file_classifications
             on lower(mr_files.handbook_file_edited)
-            like '%'
-            || file_classifications.handbook_path
-            || '%'
+            like '%' || file_classifications.handbook_path || '%'
         where merge_requests.is_merge_to_master
 
     ),

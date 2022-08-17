@@ -64,9 +64,8 @@ with
         from skeleton
         left join
             events
-            on event_date between dateadd(
-                'days', -28, last_day_of_month
-            ) and last_day_of_month
+            on event_date
+            between dateadd('days', -28, last_day_of_month) and last_day_of_month
             {{ dbt_utils.group_by(n=8) }}
 
     )

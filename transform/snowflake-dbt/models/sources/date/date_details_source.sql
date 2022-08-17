@@ -187,8 +187,7 @@ with
             case
                 when
                     (
-                        (datediff(day, date_actual, last_day_of_fiscal_quarter) -6)
-                        % 7
+                        (datediff(day, date_actual, last_day_of_fiscal_quarter) -6) % 7
                         = 0
                         or date_actual = first_day_of_fiscal_quarter
                     )

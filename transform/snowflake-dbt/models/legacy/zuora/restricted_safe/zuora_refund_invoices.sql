@@ -20,11 +20,8 @@ with
             invoices as before_and_after
             on invoices.account_id = before_and_after.account_id
             and before_and_after.invoice_date between dateadd(
-                'days',
-                -60,
-                invoices.invoice_date
-            ) and dateadd('days', 60, invoices.invoice_date
-            )
+                'days', -60, invoices.invoice_date
+            ) and dateadd('days', 60, invoices.invoice_date)
             {{ dbt_utils.group_by(9) }}
         -- To count as a refund, the customer must up even ($0) or better (<$0)
         having sum(coalesce(before_and_after.amount, 0)) <= 0

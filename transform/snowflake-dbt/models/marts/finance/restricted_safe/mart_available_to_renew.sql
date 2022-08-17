@@ -1088,8 +1088,7 @@ renewal_report_{{ renewal_fiscal_year }} as (
             when
                 base_{{ renewal_fiscal_year }}.term_end_month between dateadd(
                     'month', 1, concat('{{renewal_fiscal_year}}' -1, '-01-01')
-                )
-                and concat('{{renewal_fiscal_year}}', '-01-01')
+                ) and concat('{{renewal_fiscal_year}}', '-01-01')
                 and base_{{ renewal_fiscal_year }}.is_multi_year_booking_with_multi_subs
                 = false
             then true
@@ -1121,8 +1120,7 @@ renewal_report_{{ renewal_fiscal_year }} as (
     where
         combined_{{ renewal_fiscal_year }}.term_end_month between dateadd(
             'month', 1, concat('{{renewal_fiscal_year}}' -1, '-01-01')
-        )
-        and concat('{{renewal_fiscal_year}}', '-01-01')
+        ) and concat('{{renewal_fiscal_year}}', '-01-01')
         and day_of_month = 1
     order by fiscal_quarter_name_fy
 

@@ -73,14 +73,14 @@ select
 from date_details
 inner join
     gitlab_dotcom_usage_data_events
-    on gitlab_dotcom_usage_data_events.event_created_at between dateadd(
-        'day', -28, date_details.date_day
-    ) and date_day
+    on gitlab_dotcom_usage_data_events.event_created_at
+    between dateadd('day', -28, date_details.date_day) and date_day
 left join
     gitlab_subscriptions
     on gitlab_dotcom_usage_data_events.namespace_id = gitlab_subscriptions.namespace_id
     -- taking the last day of the month
-    and dateadd('day', -1, date_day) between gitlab_subscriptions.valid_from
+    and dateadd('day', -1, date_day)
+    between gitlab_subscriptions.valid_from
     and {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
 left join plans on gitlab_subscriptions.plan_id = plans.plan_id
 where day_of_month = 1 {{ dbt_utils.group_by(n=9) }}

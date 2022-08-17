@@ -13,8 +13,7 @@ case
         zeroifnull(
             {{ quantity }} * (
                 {{ arr }}/ nullif({{ quantity }}, 0)
-                - {{ previous_arr }}
-                / nullif({{ previous_quantity }}, 0)
+                - {{ previous_arr }}/ nullif({{ previous_quantity }}, 0)
             )
         )
     else 0

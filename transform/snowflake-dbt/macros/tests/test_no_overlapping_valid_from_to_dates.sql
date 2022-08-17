@@ -18,9 +18,8 @@ with
         from data
         inner join
             (select 1) as a
-            on '{{ date }}'::date between data.valid_from and coalesce(
-                data.valid_to, '9999-12-31'
-            )
+            on '{{ date }}'::date
+            between data.valid_from and coalesce(data.valid_to, '9999-12-31')
         group by 1 {{ "UNION" if not loop.last }}
         {% endfor %}
 

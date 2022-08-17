@@ -27,7 +27,8 @@ with
         inner join
             date_details
             on date_details.date_actual
-            between namespace_statistics_snapshots.valid_from and namespace_statistics_snapshots.valid_to_
+            between namespace_statistics_snapshots.valid_from
+            and namespace_statistics_snapshots.valid_to_
         qualify
             row_number() over (
                 partition by snapshot_month, namespace_id order by valid_to_ desc

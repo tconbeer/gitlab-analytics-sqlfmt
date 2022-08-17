@@ -119,8 +119,7 @@ with
             o.sales_type = 'Renewal'
             and o.subscription_start_date between dateadd(
                 month, -12, date_trunc('month', d.report_month_date)
-            )
-            and date_trunc('month', d.report_month_date)
+            ) and date_trunc('month', d.report_month_date)
             and o.stage_name not in (
                 '9-Unqualified', '10-Duplicate', '00-Pre Opportunity'
             )
@@ -308,8 +307,7 @@ with
         where
             o.close_date between dateadd(
                 month, -12, date_trunc('month', d.report_month_date)
-            ) and
-            date_trunc('month', d.report_month_date)
+            ) and date_trunc('month', d.report_month_date)
             and (
                 o.stage_name = 'Closed Won'
                 or (o.sales_type = 'Renewal' and o.stage_name = '8-Closed Lost')

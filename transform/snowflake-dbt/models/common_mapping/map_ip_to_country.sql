@@ -37,7 +37,8 @@ with
         join maxmind_ip_ranges
         where
             all_distinct_ips.source_ip_numeric
-            between maxmind_ip_ranges.ip_range_first_ip_numeric and maxmind_ip_ranges.ip_range_last_ip_numeric
+            between maxmind_ip_ranges.ip_range_first_ip_numeric
+            and maxmind_ip_ranges.ip_range_last_ip_numeric
 
     )
 

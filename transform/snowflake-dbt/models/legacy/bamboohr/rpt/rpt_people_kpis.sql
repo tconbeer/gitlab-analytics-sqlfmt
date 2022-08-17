@@ -208,5 +208,6 @@ select
     final.*
 from final
 where
-    month_date between dateadd(month, -13, date_trunc(month, current_date()))
-    and dateadd(month, -1, date_trunc(month, current_date()))
+    month_date between dateadd(
+        month, -13, date_trunc(month, current_date())
+    ) and dateadd(month, -1, date_trunc(month, current_date()))
