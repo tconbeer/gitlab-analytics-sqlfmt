@@ -1,87 +1,199 @@
-WITH recruiting_data AS (
-  
-    SELECT *
-    FROM {{ ref ('greenhouse_stage_analysis') }}
+with
+    recruiting_data as (select * from {{ ref("greenhouse_stage_analysis") }}),
+    isat as (
 
-), isat AS (
+        select submitted_at, avg(isat_score) as isat
+        from {{ ref("rpt_interviewee_satisfaction_isat") }}
+        group by 1
 
-    SELECT
-      submitted_at,
-      AVG(isat_score) AS isat
-    FROM {{ ref ('rpt_interviewee_satisfaction_isat') }}
-    GROUP BY 1
+    ),
+    metrics as (
 
-), metrics AS (
+        select
+            month_stage_entered_on as month_date,
+            sum(iff(application_stage = 'Application Submitted', 1, 0)) as prospected,
+            iff(
+                prospected = 0,
+                null,
+                (
+                    sum(
+                        iff(
+                            application_stage = 'Application Submitted',
+                            hit_application_review,
+                            0
+                        )
+                    )
+                    / prospected
+                )
+            ) as prospect_to_review,
+            iff(
+                prospected = 0,
+                null,
+                (
+                    sum(
+                        iff(
+                            application_stage = 'Application Submitted',
+                            hit_screening,
+                            0
+                        )
+                    )
+                    / prospected
+                )
+            ) as prospect_to_screen,
+            iff(
+                prospected = 0,
+                null,
+                sum(iff(application_stage = 'Application Submitted', hit_hired, 0))
+                / prospected
+            ) as prospect_to_hire,
+            iff(
+                prospected = 0,
+                null,
+                sum(
+                    iff(
+                        application_stage = 'Application Submitted',
+                        candidate_dropout,
+                        0
+                    )
+                )
+                / prospected
+            ) as prospect_to_dropout,
 
-    SELECT 
-      month_stage_entered_on                                                                           AS month_date,
-      SUM(IFF(application_stage = 'Application Submitted',1,0))                                        AS prospected,
-      IFF(prospected = 0, NULL, 
-        (SUM(IFF(application_stage = 'Application Submitted',hit_application_review,0))/ prospected))  AS prospect_to_review,
-      IFF(prospected = 0, NULL, 
-          (SUM(IFF(application_stage = 'Application Submitted', hit_screening,0))/prospected))         AS prospect_to_screen,
-      IFF(prospected = 0, NULL, 
-          SUM(IFF(application_stage = 'Application Submitted',hit_hired,0))/prospected)                AS prospect_to_hire,
-      IFF(prospected = 0, NULL,  
-        SUM(IFF(application_stage = 'Application Submitted', candidate_dropout,0))/prospected)         AS prospect_to_dropout,
-    
-      SUM(IFF(application_stage = 'Application Review',1,0))                                           AS app_reviewed,
-      IFF(app_reviewed = 0, NULL, 
-            (SUM(IFF(application_stage = 'Application Review', hit_screening,0))/app_reviewed))        AS review_to_screen,
-      IFF(app_reviewed = 0, NULL, 
-            SUM(IFF(application_stage = 'Application Review', hit_hired,0))/app_reviewed)              AS review_to_hire,
-    
-      SUM(IFF(application_stage = 'Screen',1,0))                                                       AS screen,
-      IFF(screen = 0, NULL, 
-        SUM(IFF(application_stage = 'Screen', hit_team_interview,0))/screen)                           AS screen_to_interview,
-      IFF(screen = 0, NULL, SUM(IFF(application_stage = 'Screen', hit_hired,0))/screen)                AS screen_to_hire,
-    
-      SUM(IFF(application_stage = 'Team Interview - Face to Face',1,0))                                 AS team_interview,
-      IFF(team_interview = 0, NULL, 
-          SUM(IFF(application_stage = 'Team Interview - Face to Face', hit_hired,0))/team_interview)    AS interview_to_hire,
-      IFF(team_interview = 0, NULL, 
-            SUM(IFF(application_stage = 'Team Interview - Face to Face', hit_rejected,0))/team_interview) AS interview_to_reject,
+            sum(iff(application_stage = 'Application Review', 1, 0)) as app_reviewed,
+            iff(
+                app_reviewed = 0,
+                null,
+                (
+                    sum(iff(application_stage = 'Application Review', hit_screening, 0))
+                    / app_reviewed
+                )
+            ) as review_to_screen,
+            iff(
+                app_reviewed = 0,
+                null,
+                sum(iff(application_stage = 'Application Review', hit_hired, 0))
+                / app_reviewed
+            ) as review_to_hire,
 
-      SUM(IFF(application_stage = 'Executive Interview',1,0))                                           AS executive_interview,
-      IFF(executive_interview = 0, NULL, 
-                SUM(IFF(application_stage = 'Executive Interview', hit_hired,0))/executive_interview)   AS exec_interview_to_hire,
-        
-      SUM(IFF(application_stage = 'Reference Check',1,0))                                               AS reference_check,
+            sum(iff(application_stage = 'Screen', 1, 0)) as screen,
+            iff(
+                screen = 0,
+                null,
+                sum(iff(application_stage = 'Screen', hit_team_interview, 0)) / screen
+            ) as screen_to_interview,
+            iff(
+                screen = 0,
+                null,
+                sum(iff(application_stage = 'Screen', hit_hired, 0)) / screen
+            ) as screen_to_hire,
 
-      SUM(IFF(application_stage = 'Rejected', candidate_dropout,0))                                     AS candidate_dropout,
+            sum(
+                iff(application_stage = 'Team Interview - Face to Face', 1, 0)
+            ) as team_interview,
+            iff(
+                team_interview = 0,
+                null,
+                sum(
+                    iff(
+                        application_stage = 'Team Interview - Face to Face',
+                        hit_hired,
+                        0
+                    )
+                )
+                / team_interview
+            ) as interview_to_hire,
+            iff(
+                team_interview = 0,
+                null,
+                sum(
+                    iff(
+                        application_stage = 'Team Interview - Face to Face',
+                        hit_rejected,
+                        0
+                    )
+                )
+                / team_interview
+            ) as interview_to_reject,
 
-      SUM(IFF(application_stage = 'Offer',1,0))                                                         AS offer,
-      IFF(offer = 0, NULL, 
-        SUM(IFF(application_stage  ='Offer' AND application_Status ='hired',hit_hired,0))/offer)        AS offer_acceptance_rate,
+            sum(
+                iff(application_stage = 'Executive Interview', 1, 0)
+            ) as executive_interview,
+            iff(
+                executive_interview = 0,
+                null,
+                sum(iff(application_stage = 'Executive Interview', hit_hired, 0))
+                / executive_interview
+            ) as exec_interview_to_hire,
 
-      SUM(IFF(application_stage = 'Hired',1,0))                                                         AS hired, 
-      SUM(IFF(application_stage = 'Hired' AND source_name != 'Internal Applicant',1,0))                 AS hires_excluding_transfers, 
-    
-    ---note hired includes interal applicants whereas hires_excluding_transfers
+            sum(iff(application_stage = 'Reference Check', 1, 0)) as reference_check,
 
-      MEDIAN(IFF(application_stage = 'Hired', time_to_offer, NULL))                                   AS time_to_offer_median,
-      SUM(IFF(application_stage = 'Hired' AND is_sourced = 1,1,0))                                    AS sourced_candidate,
-        
-      IFF(hires_excluding_transfers =0, 0, sourced_candidate/hires_excluding_transfers)               AS percent_sourced_hires,
-      SUM(IFF(application_stage = 'Hired' AND is_outbound = 1,1,0))                                   AS outbound_candidate,
-      IFF(hires_excluding_transfers =0, 0, outbound_candidate/hires_excluding_transfers)              AS percent_outbound_hires
+            sum(
+                iff(application_stage = 'Rejected', candidate_dropout, 0)
+            ) as candidate_dropout,
 
-    FROM  recruiting_data
-    WHERE unique_key NOT IN ('6d31c2d36d2eaec7f5b36605ac3ccf77')
-    GROUP BY 1
+            sum(iff(application_stage = 'Offer', 1, 0)) as offer,
+            iff(
+                offer = 0,
+                null,
+                sum(
+                    iff(
+                        application_stage = 'Offer' and application_status = 'hired',
+                        hit_hired,
+                        0
+                    )
+                )
+                / offer
+            ) as offer_acceptance_rate,
 
-), final AS (  
+            sum(iff(application_stage = 'Hired', 1, 0)) as hired,
+            sum(
+                iff(
+                    application_stage = 'Hired' and source_name != 'Internal Applicant',
+                    1,
+                    0
+                )
+            ) as hires_excluding_transfers,
 
-    SELECT 
-      metrics.*,
-      isat.isat
-    FROM metrics
-    LEFT JOIN isat
-      ON isat.submitted_at = metrics.month_date
-    WHERE month_date BETWEEN DATE_TRUNC(month, DATEADD(month,-13,CURRENT_DATE()))
-                                     AND DATE_TRUNC(month, CURRENT_DATE())
+            -- -note hired includes interal applicants whereas
+            -- hires_excluding_transfers
+            median(
+                iff(application_stage = 'Hired', time_to_offer, null)
+            ) as time_to_offer_median,
+            sum(
+                iff(application_stage = 'Hired' and is_sourced = 1, 1, 0)
+            ) as sourced_candidate,
 
-)
+            iff(
+                hires_excluding_transfers = 0,
+                0,
+                sourced_candidate / hires_excluding_transfers
+            ) as percent_sourced_hires,
+            sum(
+                iff(application_stage = 'Hired' and is_outbound = 1, 1, 0)
+            ) as outbound_candidate,
+            iff(
+                hires_excluding_transfers = 0,
+                0,
+                outbound_candidate / hires_excluding_transfers
+            ) as percent_outbound_hires
 
-SELECT *
-FROM final
+        from recruiting_data
+        where unique_key not in ('6d31c2d36d2eaec7f5b36605ac3ccf77')
+        group by 1
+
+    ),
+    final as (
+
+        select metrics.*, isat.isat
+        from metrics
+        left join isat on isat.submitted_at = metrics.month_date
+        where
+            month_date
+            between date_trunc(
+                month, dateadd(month, -13, current_date())
+            ) and date_trunc(month, current_date())
+
+    )
+
+select *
+from final

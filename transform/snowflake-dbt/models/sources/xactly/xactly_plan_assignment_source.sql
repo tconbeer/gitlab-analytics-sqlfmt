@@ -1,33 +1,29 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_plan_assignment") }}),
 
-  SELECT *
-  FROM {{ source('xactly', 'xc_plan_assignment') }}
+    renamed as (
 
-),
+        select
 
-renamed AS (
+            plan_assignment_id::float as plan_assignment_id,
+            version::float as version,
+            assignment_id::float as assignment_id,
+            assignment_type::float as assignment_type,
+            assignment_name::varchar as assignment_name,
+            is_active::varchar as is_active,
+            created_date::varchar as created_date,
+            created_by_id::float as created_by_id,
+            created_by_name::varchar as created_by_name,
+            modified_date::varchar as modified_date,
+            modified_by_id::float as modified_by_id,
+            modified_by_name::varchar as modified_by_name,
+            plan_id::float as plan_id,
+            active_start_date::varchar as active_start_date,
+            active_end_date::varchar as active_end_date
 
-  SELECT
+        from source
 
-    plan_assignment_id::FLOAT AS plan_assignment_id,
-    version::FLOAT AS version,
-    assignment_id::FLOAT AS assignment_id,
-    assignment_type::FLOAT AS assignment_type,
-    assignment_name::VARCHAR AS assignment_name,
-    is_active::VARCHAR AS is_active,
-    created_date::VARCHAR AS created_date,
-    created_by_id::FLOAT AS created_by_id,
-    created_by_name::VARCHAR AS created_by_name,
-    modified_date::VARCHAR AS modified_date,
-    modified_by_id::FLOAT AS modified_by_id,
-    modified_by_name::VARCHAR AS modified_by_name,
-    plan_id::FLOAT AS plan_id,
-    active_start_date::VARCHAR AS active_start_date,
-    active_end_date::VARCHAR AS active_end_date
+    )
 
-  FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

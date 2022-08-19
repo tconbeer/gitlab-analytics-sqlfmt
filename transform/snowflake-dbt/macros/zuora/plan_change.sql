@@ -1,16 +1,18 @@
-{%- macro plan_change(original_product_ranking, original_mrr, new_product_ranking, new_mrr) -%}
+{%- macro plan_change(
+    original_product_ranking, original_mrr, new_product_ranking, new_mrr
+) -%}
 
-    CASE
-      WHEN {{ new_mrr }} = 0 AND {{ original_mrr }} > 0
-        THEN 'Cancelled'
-      WHEN {{ new_product_ranking }} = 0 OR {{ original_product_ranking }} = 0
-        THEN 'Not Valid'
-      WHEN {{ original_product_ranking }} = {{ new_product_ranking }}
-        THEN 'Maintained'
-      WHEN {{ original_product_ranking }} > {{ new_product_ranking }}
-        THEN 'Downgraded'
-      WHEN {{ original_product_ranking }} < {{ new_product_ranking }}
-        THEN 'Upgraded'
-      END                                       AS plan_change
+case
+    when {{ new_mrr }} = 0 and {{ original_mrr }} > 0
+    then 'Cancelled'
+    when {{ new_product_ranking }} = 0 or {{ original_product_ranking }} = 0
+    then 'Not Valid'
+    when {{ original_product_ranking }} = {{ new_product_ranking }}
+    then 'Maintained'
+    when {{ original_product_ranking }} > {{ new_product_ranking }}
+    then 'Downgraded'
+    when {{ original_product_ranking }} < {{ new_product_ranking }}
+    then 'Upgraded'
+end as plan_change
 
 {%- endmacro -%}

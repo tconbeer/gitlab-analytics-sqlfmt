@@ -1,95 +1,96 @@
-{{ config({
-    "materialized": "ephemeral"
-    })
-}}
+{{ config({"materialized": "ephemeral"}) }}
 
 
-WITH memberships AS (
+with
+    memberships as (
 
-    SELECT
-      *,
-      DECODE(membership_source_type,
-          'individual_namespace', 0,
-          'group_membership', 1,
-          'project_membership', 2,
-          'group_group_link', 3,
-          'group_group_link_ancestor', 4,
-          'project_group_link', 5,
-          'project_group_link_ancestor', 6
-      ) AS membership_source_type_order,
-      IFF(namespace_id = ultimate_parent_id, TRUE, FALSE) AS is_ultimate_parent
-    FROM {{ ref('gitlab_dotcom_memberships') }}
-    WHERE ultimate_parent_plan_id != 34
+        select
+            *,
+            decode(
+                membership_source_type,
+                'individual_namespace',
+                0,
+                'group_membership',
+                1,
+                'project_membership',
+                2,
+                'group_group_link',
+                3,
+                'group_group_link_ancestor',
+                4,
+                'project_group_link',
+                5,
+                'project_group_link_ancestor',
+                6
+            ) as membership_source_type_order,
+            iff(namespace_id = ultimate_parent_id, true, false) as is_ultimate_parent
+        from {{ ref("gitlab_dotcom_memberships") }}
+        where ultimate_parent_plan_id != 34
 
-), plans AS (
+    ),
+    plans as (select * from {{ ref("gitlab_dotcom_plans") }}),
+    highest_paid_subscription_plan as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_plans') }}
+        select distinct
 
-), highest_paid_subscription_plan AS (
+            user_id,
 
-  SELECT DISTINCT
+            coalesce(
+                max(plans.plan_is_paid) over (partition by user_id), false
+            ) as highest_paid_subscription_plan_is_paid,
 
-    user_id,
+            coalesce(
+                first_value(ultimate_parent_plan_id) over (
+                    partition by user_id
+                    order by
+                        ultimate_parent_plan_id desc,
+                        membership_source_type_order,
+                        is_ultimate_parent desc,
+                        membership_source_type
+                ),
+                34
+            ) as highest_paid_subscription_plan_id,
 
-    COALESCE(
-      MAX(plans.plan_is_paid) OVER (
-        PARTITION BY user_id
-      ),
-    FALSE)   AS highest_paid_subscription_plan_is_paid,
+            first_value(namespace_id) over (
+                partition by user_id
+                order by
+                    ultimate_parent_plan_id desc,
+                    membership_source_type_order,
+                    is_ultimate_parent desc,
+                    membership_source_type
+            ) as highest_paid_subscription_namespace_id,
 
-    COALESCE(
-      FIRST_VALUE(ultimate_parent_plan_id) OVER (
-        PARTITION BY user_id
-        ORDER BY
-            ultimate_parent_plan_id DESC,
-            membership_source_type_order,
-            is_ultimate_parent DESC,
-            membership_source_type
-        ) 
-      , 34) AS highest_paid_subscription_plan_id,
+            first_value(ultimate_parent_id) over (
+                partition by user_id
+                order by
+                    ultimate_parent_plan_id desc,
+                    membership_source_type_order,
+                    is_ultimate_parent desc,
+                    membership_source_type
+            ) as highest_paid_subscription_ultimate_parent_id,
 
-    FIRST_VALUE(namespace_id) OVER (
-      PARTITION BY user_id
-      ORDER BY
-        ultimate_parent_plan_id DESC,
-        membership_source_type_order,
-        is_ultimate_parent DESC,
-        membership_source_type
-    )       AS highest_paid_subscription_namespace_id,
+            first_value(membership_source_type) over (
+                partition by user_id
+                order by
+                    ultimate_parent_plan_id desc,
+                    membership_source_type_order,
+                    is_ultimate_parent desc,
+                    membership_source_type
+            ) as highest_paid_subscription_inheritance_source_type,
 
-    FIRST_VALUE(ultimate_parent_id) OVER (
-      PARTITION BY user_id
-      ORDER BY
-        ultimate_parent_plan_id DESC,
-        membership_source_type_order,
-        is_ultimate_parent DESC,
-        membership_source_type
-    )       AS highest_paid_subscription_ultimate_parent_id,
+            first_value(membership_source_id) over (
+                partition by user_id
+                order by
+                    ultimate_parent_plan_id desc,
+                    membership_source_type_order,
+                    is_ultimate_parent desc,
+                    membership_source_type
+            ) as highest_paid_subscription_inheritance_source_id
 
-    FIRST_VALUE(membership_source_type) OVER (
-      PARTITION BY user_id
-      ORDER BY
-        ultimate_parent_plan_id DESC,
-        membership_source_type_order,
-        is_ultimate_parent DESC,
-        membership_source_type
-    )       AS highest_paid_subscription_inheritance_source_type,
+        from memberships
+        left join plans on memberships.ultimate_parent_plan_id = plans.plan_id
 
-    FIRST_VALUE(membership_source_id) OVER (
-      PARTITION BY user_id
-      ORDER BY
-        ultimate_parent_plan_id DESC,
-        membership_source_type_order,
-        is_ultimate_parent DESC,
-        membership_source_type
-    )       AS highest_paid_subscription_inheritance_source_id
+    )
 
-  FROM memberships
-    LEFT JOIN plans
-      ON memberships.ultimate_parent_plan_id = plans.plan_id
-
-)
-
-SELECT *
-FROM highest_paid_subscription_plan
+select *
+from highest_paid_subscription_plan

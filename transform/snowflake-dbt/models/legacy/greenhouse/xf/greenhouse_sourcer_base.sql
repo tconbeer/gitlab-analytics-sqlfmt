@@ -1,42 +1,51 @@
-WITH sourcer_metrics AS (
+with
+    sourcer_metrics as (
 
-    SELECT 
-      month_date,                                  
-      sourcer_name,
-      prospected,
-      prospect_to_review,
-      prospect_to_screen,
-      app_reviewed,
-      review_to_screen,
-      screen,
-      screen_to_interview,
-      screen_to_hire,
-      candidate_dropout
-    FROM {{ ref ('greenhouse_sourcer_metrics') }} sourcer_metrics 
-    WHERE part_of_recruiting_team = 1
+        select
+            month_date,
+            sourcer_name,
+            prospected,
+            prospect_to_review,
+            prospect_to_screen,
+            app_reviewed,
+            review_to_screen,
+            screen,
+            screen_to_interview,
+            screen_to_hire,
+            candidate_dropout
+        from {{ ref("greenhouse_sourcer_metrics") }} sourcer_metrics
+        where part_of_recruiting_team = 1
 
-), time_period AS (
+    ),
+    time_period as (
 
-    SELECT DISTINCT
-      date_actual                                   AS reporting_month,
-      DATEADD(month,-3,date_actual)                 AS start_period,    
-      DATEADD(month,-1,date_actual)                 AS end_period          
-    FROM {{ ref('date_details') }}
-    WHERE day_of_month = 1
-      AND date_actual BETWEEN DATE_TRUNC(month,DATEADD(month,-15,CURRENT_DATE())) AND DATE_TRUNC(month,CURRENT_DATE())
-  
-), three_month_rolling AS (
+        select distinct
+            date_actual as reporting_month,
+            dateadd(month, -3, date_actual) as start_period,
+            dateadd(month, -1, date_actual) as end_period
+        from {{ ref("date_details") }}
+        where
+            day_of_month = 1
+            and date_actual
+            between date_trunc(
+                month, dateadd(month, -15, current_date())
+            ) and date_trunc(month, current_date())
 
-    SELECT 
-      time_period.reporting_month,
-      time_period.start_period,
-      time_period.end_period,
-      sourcer_metrics.*
-    FROM time_period
-    LEFT JOIN sourcer_metrics       
-        ON sourcer_metrics.month_date BETWEEN time_period.start_period AND time_period.end_period
-   
-)
+    ),
+    three_month_rolling as (
 
-SELECT *
-FROM three_month_rolling
+        select
+            time_period.reporting_month,
+            time_period.start_period,
+            time_period.end_period,
+            sourcer_metrics.*
+        from time_period
+        left join
+            sourcer_metrics
+            on sourcer_metrics.month_date
+            between time_period.start_period and time_period.end_period
+
+    )
+
+select *
+from three_month_rolling

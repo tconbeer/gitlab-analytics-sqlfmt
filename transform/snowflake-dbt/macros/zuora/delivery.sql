@@ -1,17 +1,15 @@
-{%- macro delivery(product_category_column, output_column_name = 'delivery') -%}
+{%- macro delivery(product_category_column, output_column_name="delivery") -%}
 
-CASE 
-  WHEN LOWER({{product_category_column}}) LIKE ANY ('%saas%', 'storage', 'standard', 'basic', 'plus', 'githost')
-    THEN 'SaaS'
-  WHEN LOWER({{product_category_column}}) LIKE '%self-managed%'
-    THEN 'Self-Managed'
-  WHEN {{product_category_column}} IN (
-                                        'Other'
-                                      , 'Support'
-                                      , 'Trueup'
-                                      )
-    THEN 'Others'
-  ELSE NULL
-END AS {{output_column_name}}
+case
+    when
+        lower({{ product_category_column }})
+        like any ('%saas%', 'storage', 'standard', 'basic', 'plus', 'githost')
+    then 'SaaS'
+    when lower({{ product_category_column }}) like '%self-managed%'
+    then 'Self-Managed'
+    when {{ product_category_column }} in ('Other', 'Support', 'Trueup')
+    then 'Others'
+    else null
+end as {{ output_column_name }}
 
 {%- endmacro -%}

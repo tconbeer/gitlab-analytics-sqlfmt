@@ -1,29 +1,25 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zendesk", "groups") }}),
 
-    SELECT *
-    FROM {{ source('zendesk', 'groups') }}
+    renamed as (
 
-),
+        select
 
-renamed AS (
+            -- ids
+            id as group_id,
 
-    SELECT
+            -- field
+            url as group_url,
+            name as group_name,
+            deleted as is_deleted,
 
-        --ids
-        id                                                  AS group_id,
+            -- dates
+            created_at,
+            updated_at
 
-        --field
-        url                                                 AS group_url,
-        name                                                AS group_name,
-        deleted                                             AS is_deleted,
+        from source
 
-        --dates
-        created_at,
-        updated_at
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

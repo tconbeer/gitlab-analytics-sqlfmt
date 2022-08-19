@@ -1,34 +1,31 @@
-WITH source AS (
+with
+    source as (select * from {{ source("google_analytics_360", "session_hit") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('google_analytics_360', 'session_hit') }}
+        select
+            -- Keys
+            visit_id::float as visit_id,
+            visitor_id::varchar as visitor_id,
 
-), renamed AS(
+            -- Info
+            visit_start_time::timestamp as visit_start_at,
+            hit_number::number as hit_number,
+            dateadd('millisecond', time, visit_start_at) as hit_at,
+            is_entrance::boolean as is_entrance,
+            is_exit::boolean as is_exit,
+            referer::varchar as referer,
+            type::varchar as hit_type,
+            data_source::varchar as data_source,
+            page_hostname::varchar as host_name,
+            page_page_path::varchar as page_path,
+            page_page_title::varchar as page_title,
+            event_info_category::varchar as event_category,
+            event_info_action::varchar as event_action,
+            event_info_label::varchar as event_label
 
-    SELECT
-      --Keys
-      visit_id::FLOAT                              AS visit_id,
-      visitor_id::VARCHAR                          AS visitor_id,
+        from source
 
-      --Info
-      visit_start_time::TIMESTAMP                  AS visit_start_at,
-      hit_number::NUMBER                           AS hit_number,
-      DATEADD('millisecond', time, visit_start_at) AS hit_at,
-      is_entrance::BOOLEAN                         AS is_entrance,
-      is_exit::BOOLEAN                             AS is_exit,
-      referer::VARCHAR                             AS referer,
-      type::VARCHAR                                AS hit_type,
-      data_source::VARCHAR                         AS data_source,
-      page_hostname::VARCHAR                       AS host_name,
-      page_page_path::VARCHAR                      AS page_path,
-      page_page_title::VARCHAR                     AS page_title,
-      event_info_category::VARCHAR                 AS event_category,
-      event_info_action::VARCHAR                   AS event_action,
-      event_info_label::VARCHAR                    AS event_label
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

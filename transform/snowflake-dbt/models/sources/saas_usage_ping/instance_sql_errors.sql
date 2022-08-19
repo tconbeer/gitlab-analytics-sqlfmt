@@ -1,28 +1,25 @@
-WITH base AS (
+with
+    base as (select * from {{ source("saas_usage_ping", "instance_sql_errors") }}),
+    partitioned as (
 
-    SELECT *
-    FROM {{ source('saas_usage_ping', 'instance_sql_errors') }}
+        select
+            run_id as run_id,
+            sql_errors as sql_errors,
+            ping_date as ping_date,
+            _uploaded_at as uploaded_at
+        from base
 
-), partitioned AS (
+    ),
+    renamed as (
 
-    SELECT 
-      run_id       AS run_id,
-      sql_errors   AS sql_errors,
-      ping_date    AS ping_date,
-      _uploaded_at AS uploaded_at
-    FROM base
+        select
+            run_id as run_id,
+            try_parse_json(sql_errors) as sql_errors,
+            ping_date::timestamp as ping_date,
+            dateadd('s', uploaded_at, '1970-01-01')::timestamp as uploaded_at
+        from partitioned
 
-), renamed AS (
+    )
 
-    SELECT
-      run_id                                              AS run_id,
-      TRY_PARSE_JSON(sql_errors)                          AS sql_errors,
-      ping_date::TIMESTAMP                                AS ping_date,
-      DATEADD('s', uploaded_at, '1970-01-01')::TIMESTAMP  AS uploaded_at
-    FROM partitioned
-
-)
-
-SELECT *
-FROM renamed
-
+select *
+from renamed

@@ -1,17 +1,6 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("airflow_dag_run_source") }}),
+    renamed as (select dag_id, execution_date, run_state from source)
 
-    SELECT *
-    FROM {{ ref('airflow_dag_run_source') }}
-
-), renamed AS (
-
-    SELECT
-      dag_id,
-      execution_date,
-      run_state
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed
