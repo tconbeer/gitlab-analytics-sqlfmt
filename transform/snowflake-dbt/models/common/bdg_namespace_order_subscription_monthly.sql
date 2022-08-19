@@ -183,7 +183,8 @@ order_list as (
     from orders
     inner join
         dates
-        on dates.date_actual between iff(
+        on dates.date_actual
+        between iff(
             orders.term_start_date < orders.order_start_date,
             orders.order_start_date,
             orders.term_start_date

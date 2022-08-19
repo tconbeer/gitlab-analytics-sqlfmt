@@ -1123,8 +1123,7 @@ renewal_report_{{ renewal_fiscal_year }} as (
         and day_of_month = 1
     order by fiscal_quarter_name_fy
 
-{% endfor -%}
-),
+{% endfor -%}),
 unioned as (
 
     {% for renewal_fiscal_year in renewal_fiscal_years -%}

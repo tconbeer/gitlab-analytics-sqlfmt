@@ -77,8 +77,7 @@ with
         from {{ level }}_get_mrr
         group by 1, 2, 3
 
-    {% endfor -%}
-    ),
+    {% endfor -%}),
     unioned as (
 
         {% for level in levels -%}
