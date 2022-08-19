@@ -1,30 +1,27 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "application_custom_fields") }}),
+    renamed as (
 
-	SELECT *
-  	FROM {{ source('greenhouse', 'application_custom_fields') }}
+        select
 
-), renamed as (
+            -- keys
+            application_id::number as application_id,
+            user_id::number as user_id,
 
-    SELECT
+            -- info
+            custom_field::varchar as application_custom_field,
+            float_value::float as application_custom_field_float_value,
+            display_value::varchar as application_custom_field_display_value,
+            unit::varchar as application_custom_field_unit,
+            min_value::number as application_custom_field_min_value,
+            max_value::number as application_custom_field_max_value,
+            try_to_date(date_value::varchar) as application_custom_field_date,
+            created_at::timestamp as application_custom_field_created_at,
+            updated_at::timestamp as application_custom_field_updated_at
 
-            --keys
-            application_id::NUMBER                  AS application_id,
-            user_id::NUMBER                         AS user_id,
+        from source
 
-            --info
-            custom_field::varchar                   AS  application_custom_field,
-            float_value::float                      AS  application_custom_field_float_value,
-            display_value::varchar                  AS  application_custom_field_display_value,
-            unit::varchar                           AS  application_custom_field_unit,
-            min_value::NUMBER                       AS  application_custom_field_min_value,
-            max_value::NUMBER                       AS  application_custom_field_max_value,
-            TRY_TO_DATE(date_value::VARCHAR)        AS  application_custom_field_date,
-            created_at::timestamp                   AS  application_custom_field_created_at,
-            updated_at::timestamp                   AS  application_custom_field_updated_at
+    )
 
-   	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

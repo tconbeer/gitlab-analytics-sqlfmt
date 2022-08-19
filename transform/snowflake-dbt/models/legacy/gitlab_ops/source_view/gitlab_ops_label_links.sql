@@ -1,14 +1,6 @@
-{{ config({
-    "schema": "legacy"
-    })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH source AS (
+with source as (select * from {{ ref("gitlab_ops_label_links_source") }})
 
-    SELECT *
-    FROM {{ ref('gitlab_ops_label_links_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

@@ -1,15 +1,17 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'marketing_core_users_from_docs_gitlab_com') }}
+        select *
+        from {{ source("sheetload", "marketing_core_users_from_docs_gitlab_com") }}
 
-), renamed as (
+    ),
+    renamed as (
 
-    SELECT
-      "Company_Name"::VARCHAR       AS company_name,
-      "Total_Page_Count"::NUMBER    AS total_page_count
-    FROM source
-)
+        select
+            "Company_Name"::varchar as company_name,
+            "Total_Page_Count"::number as total_page_count
+        from source
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

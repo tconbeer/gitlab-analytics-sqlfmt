@@ -1,23 +1,24 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_experiment_subjects_dedupe_source') }}
+        select * from {{ ref("gitlab_dotcom_experiment_subjects_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER                AS experiment_subject_id,
-      experiment_id::NUMBER     AS experiment_id,
-      user_id::NUMBER           AS user_id,
-      group_id::NUMBER          AS group_id,
-      project_id::NUMBER        AS project_id,
-      variant::NUMBER           AS experiment_variant,
-      created_at::TIMESTAMP     AS created_at,
-      updated_at::TIMESTAMP     AS updated_at,
-      converted_at::TIMESTAMP   AS converted_at
-    FROM source
+        select
+            id::number as experiment_subject_id,
+            experiment_id::number as experiment_id,
+            user_id::number as user_id,
+            group_id::number as group_id,
+            project_id::number as project_id,
+            variant::number as experiment_variant,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            converted_at::timestamp as converted_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed
