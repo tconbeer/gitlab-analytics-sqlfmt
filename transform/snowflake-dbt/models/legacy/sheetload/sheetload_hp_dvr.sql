@@ -1,16 +1,11 @@
-WITH source AS (
+with source as (select * from {{ ref("sheetload_hp_dvr_source") }})
 
-    SELECT *
-    FROM {{ ref('sheetload_hp_dvr_source') }}
-
-)
-
-SELECT
-    date::VARCHAR               AS date,
-    region::VARCHAR             AS region,
-    country::VARCHAR            AS country,
-    name::VARCHAR               AS name,
-    numberrange::NUMBER         AS numberrange,
-    alphanumeric::VARCHAR       AS alphanumeric,
-    _updated_at::NUMBER      AS _updated_at
-FROM source
+select
+    date::varchar as date,
+    region::varchar as region,
+    country::varchar as country,
+    name::varchar as name,
+    numberrange::number as numberrange,
+    alphanumeric::varchar as alphanumeric,
+    _updated_at::number as _updated_at
+from source

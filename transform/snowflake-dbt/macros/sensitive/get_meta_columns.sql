@@ -1,30 +1,29 @@
-{% macro get_meta_columns(model_name, meta_key=none, node_type='model', project='gitlab_snowflake') %}
+{% macro get_meta_columns(
+    model_name, meta_key=none, node_type="model", project="gitlab_snowflake"
+) %}
 
-	{% if execute %}
-    
-        {% set meta_columns = [] %}
+{% if execute %}
 
-	    {% set fqname = node_type ~ '.' ~ project ~ '.' ~ model_name %}
-	    {% set columns = graph.nodes[fqname]['columns']  %}
+{% set meta_columns = [] %}
 
-        {% for column in columns %}
-            {% if meta_key is not none %}
+{% set fqname = node_type ~ "." ~ project ~ "." ~ model_name %}
+{% set columns = graph.nodes[fqname]["columns"] %}
 
-                {% if graph.nodes[fqname]['columns'][column]['meta'][meta_key] == true %}
+{% for column in columns %}
+{% if meta_key is not none %}
 
-                    {# {% do log("Sensitive: " ~ column, info=true) %} #}
+{% if graph.nodes[fqname]["columns"][column]["meta"][meta_key] == true %}
 
-                    {% do meta_columns.append(column|upper) %}
+{# {% do log("Sensitive: " ~ column, info=true) %} #}
+{% do meta_columns.append(column | upper) %}
 
-                {% endif %}
-            {% else %}
-                {% do meta_columns.append(column|upper) %}
-            {% endif %}
-        {% endfor %}
-	
-        {{ return(meta_columns) }}
+{% endif %}
+{% else %} {% do meta_columns.append(column | upper) %}
+{% endif %}
+{% endfor %}
 
-	{% endif %}
+{{ return(meta_columns) }}
+
+{% endif %}
 
 {% endmacro %}
-

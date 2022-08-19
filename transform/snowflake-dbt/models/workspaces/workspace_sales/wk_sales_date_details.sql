@@ -1,17 +1,19 @@
-{{ config(alias='date_details') }}
+{{ config(alias="date_details") }}
 
-WITH date_details AS (
+with
+    date_details as (
 
-    SELECT
-      *,
-        -- beggining of the week
-      is_first_day_of_fiscal_quarter_week                                   AS is_first_day_of_fiscal_quarter_week_flag,
-      fiscal_quarter_number_absolute                                        AS quarter_number
+        select
+            *,
+            -- beggining of the week
+            is_first_day_of_fiscal_quarter_week
+            as is_first_day_of_fiscal_quarter_week_flag,
+            fiscal_quarter_number_absolute as quarter_number
 
-    FROM {{ ref('date_details') }} 
-    ORDER BY 1 DESC
+        from {{ ref("date_details") }}
+        order by 1 desc
 
-)
+    )
 
-SELECT *
-FROM date_details
+select *
+from date_details

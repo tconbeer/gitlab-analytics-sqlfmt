@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("xactly_credit_type_source") }})
 
-    SELECT *
-    FROM {{ref('xactly_credit_type_source')}}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

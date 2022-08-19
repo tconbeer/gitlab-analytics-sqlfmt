@@ -1,10 +1,9 @@
 -- Will write to custom databases not on prod
-
 {% macro generate_database_name(custom_database_name, node) -%}
 
-    {%- set production_targets = production_targets() -%}
+{%- set production_targets = production_targets() -%}
 
-    {#
+{#
         Definitions:
             - custom_database_name: database provided via dbt_project.yml or model config
             - target.name: name of the target (dev for local development, prod for production, etc.)
@@ -26,30 +25,23 @@
         (prep, dev, tmurphy) = tmurphy_prep
 
     #}
-    {%- if target.name in production_targets -%}
-        
-        {%- if custom_database_name is none -%}
+{%- if target.name in production_targets -%}
 
-            {{ target.database | trim }}
+{%- if custom_database_name is none -%} {{ target.database | trim }}
 
-        {%- else -%}
-            
-            {{ custom_database_name | trim }}
+{%- else -%} {{ custom_database_name | trim }}
 
-        {%- endif -%}
+{%- endif -%}
 
-    {%- else -%}
-    
-        {%- if custom_database_name is none -%}
-            {# Should probably never happen.. #}
-            {{ target.database | trim }}
+{%- else -%}
 
-        {%- else -%}
-            
-            {{ target.database }}_{{ custom_database_name | trim }}
+{# Should probably never happen.. #}
+{%- if custom_database_name is none -%} {{ target.database | trim }}
 
-        {%- endif -%}
-    
-    {%- endif -%}
+{%- else -%} {{ target.database }}_{{ custom_database_name | trim }}
+
+{%- endif -%}
+
+{%- endif -%}
 
 {%- endmacro %}

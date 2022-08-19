@@ -1,27 +1,21 @@
-WITH session_custom_dims AS (
+with
+    session_custom_dims as (select * from {{ ref("ga360_session_custom_dimension") }}),
+    ga_index_names as (
 
-	SELECT *
-	FROM {{ ref('ga360_session_custom_dimension') }}
+        select * from {{ ref("google_analytics_custom_dimension_indexes") }}
 
-), ga_index_names AS (
+    ),
+    named_dims as (
 
-	SELECT * 
-	FROM  {{ ref('google_analytics_custom_dimension_indexes') }}
+        -- dimensions
+        -- index names
+        select session_custom_dims.*, ga_index_names.name as dimension_name
 
-), named_dims AS(
+        from session_custom_dims
+        left join
+            ga_index_names on session_custom_dims.dimension_index = ga_index_names.index
 
-	SELECT
-	  --dimensions
-	  session_custom_dims.*,
-	    
-	  --index names
-	  ga_index_names.name	AS dimension_name
-	    
-	FROM session_custom_dims
-	LEFT JOIN ga_index_names 
-		ON session_custom_dims.dimension_index = ga_index_names.index
+    )
 
-)
-
-SELECT *
-FROM named_dims
+select *
+from named_dims

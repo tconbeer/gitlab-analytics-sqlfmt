@@ -1,35 +1,36 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_notification_settings_dedupe_source') }}
-  
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_notification_settings_dedupe_source") }}
 
-    SELECT
+    ),
+    renamed as (
 
-      id::NUMBER                                     AS notification_settings_id,
-      user_id::NUMBER                                AS user_id,
-      source_id::NUMBER                              AS source_id,
-      source_type::VARCHAR                            AS source_type,
-      level::NUMBER                                  AS settings_level,
-      created_at::TIMESTAMP                           AS created_at,
-      updated_at::TIMESTAMP                           AS updated_at,
-      new_note::BOOLEAN                               AS has_new_note_enabled,
-      new_issue::BOOLEAN                              AS has_new_issue_enabled,
-      reopen_issue::BOOLEAN                           AS has_reopen_issue_enabled,
-      close_issue::BOOLEAN                            AS has_close_issue_enabled,
-      reassign_issue::BOOLEAN                         AS has_reassign_issue_enabled,
-      new_merge_request::BOOLEAN                      AS has_new_merge_request_enabled,
-      reopen_merge_request::BOOLEAN                   AS has_reopen_merge_request_enabled,
-      close_merge_request::BOOLEAN                    AS has_close_merge_request_enabled,
-      reassign_merge_request::BOOLEAN                 AS has_reassign_merge_request_enabled,
-      merge_merge_request::BOOLEAN                    AS has_merge_merge_request_enabled,
-      failed_pipeline::BOOLEAN                        AS has_failed_pipeline_enabled,
-      success_pipeline::BOOLEAN                       AS has_success_pipeline_enabled
+        select
 
-    FROM source
+            id::number as notification_settings_id,
+            user_id::number as user_id,
+            source_id::number as source_id,
+            source_type::varchar as source_type,
+            level::number as settings_level,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            new_note::boolean as has_new_note_enabled,
+            new_issue::boolean as has_new_issue_enabled,
+            reopen_issue::boolean as has_reopen_issue_enabled,
+            close_issue::boolean as has_close_issue_enabled,
+            reassign_issue::boolean as has_reassign_issue_enabled,
+            new_merge_request::boolean as has_new_merge_request_enabled,
+            reopen_merge_request::boolean as has_reopen_merge_request_enabled,
+            close_merge_request::boolean as has_close_merge_request_enabled,
+            reassign_merge_request::boolean as has_reassign_merge_request_enabled,
+            merge_merge_request::boolean as has_merge_merge_request_enabled,
+            failed_pipeline::boolean as has_failed_pipeline_enabled,
+            success_pipeline::boolean as has_success_pipeline_enabled
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

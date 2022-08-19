@@ -1,22 +1,20 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "sources") }}),
+    renamed as (
 
-	SELECT *
-  	FROM {{ source('greenhouse', 'sources') }}
+        select
+            id as source_id,
 
-), renamed as (
+            -- keys
+            organization_id,
+            name::varchar(250) as source_name,
+            type::varchar(250) as source_type,
 
-	SELECT id 									AS source_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-		--keys
-	    organization_id,
-	    name::VARCHAR(250) 						AS source_name,
-	    type::VARCHAR(250) 						AS source_type,
+        from source
+    )
 
-	    created_at::timestamp 	AS created_at,
-	    updated_at::timestamp 	AS updated_at
-
-	FROM source
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed
