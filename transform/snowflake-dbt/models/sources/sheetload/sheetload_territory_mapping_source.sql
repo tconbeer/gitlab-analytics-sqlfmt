@@ -1,19 +1,16 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "territory_mapping") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'territory_mapping') }}
+        select
+            "Segment"::varchar as segment,
+            "Region"::varchar as region,
+            "Sub_Region"::varchar as sub_region,
+            "Area"::varchar as area,
+            "Territory"::varchar as territory
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      "Segment"::VARCHAR AS segment,
-      "Region"::VARCHAR AS region,
-      "Sub_Region"::VARCHAR AS sub_region,
-      "Area"::VARCHAR AS area,
-      "Territory"::VARCHAR AS territory
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

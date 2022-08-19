@@ -1,9 +1,4 @@
-WITH source as (
+with source as (select * from {{ source("gitlab_snowplow", "events_sample") }})
 
-    SELECT *
-    FROM {{ source('gitlab_snowplow', 'events_sample') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

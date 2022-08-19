@@ -1,22 +1,19 @@
-    
-WITH source AS (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_terraform_states_dedupe_source') }}
-  
-), renamed AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_terraform_states_dedupe_source") }}),
+    renamed as (
 
-    SELECT
+        select
 
-      id::NUMBER               AS terraform_state_id,
-      project_id::NUMBER       AS project_id,
-      created_at::TIMESTAMP     AS created_at,
-      updated_at::TIMESTAMP     AS updated_at,
-      file_store::VARCHAR       AS file_store
+            id::number as terraform_state_id,
+            project_id::number as project_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            file_store::varchar as file_store
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT  *
-FROM renamed
+select *
+from renamed
