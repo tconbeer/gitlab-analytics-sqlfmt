@@ -12,9 +12,8 @@ max_by_primary_key as (
         {{ primary_key_raw }} as primary_key,
         max(
             iff(
-                max_task_instance in (
-                    select max(max_task_instance) from {{ source_cte }}
-                ),
+                max_task_instance
+                in (select max(max_task_instance) from {{ source_cte }}),
                 1,
                 0
             )

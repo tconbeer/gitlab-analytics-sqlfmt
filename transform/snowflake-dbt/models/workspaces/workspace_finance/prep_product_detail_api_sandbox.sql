@@ -66,9 +66,8 @@ with
             common_product_tier_mapping.product_ranking as product_ranking,
             case
                 when
-                    lower(
-                        zuora_api_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like any ('%oss%', '%edu%')
+                    lower(zuora_api_sandbox_product_rate_plan.product_rate_plan_name)
+                    like any ('%oss%', '%edu%')
                 then true
                 else false
             end as is_oss_or_edu_rate_plan,

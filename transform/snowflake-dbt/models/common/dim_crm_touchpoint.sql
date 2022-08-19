@@ -142,9 +142,8 @@ with
                 when combined_touchpoints.bizible_marketing_channel_path = 'CPC.AdWords'
                 then 'Google AdWords'
                 when
-                    combined_touchpoints.bizible_marketing_channel_path in (
-                        'Email.Other', 'Email.Newsletter', 'Email.Outreach'
-                    )
+                    combined_touchpoints.bizible_marketing_channel_path
+                    in ('Email.Other', 'Email.Newsletter', 'Email.Outreach')
                 then 'Email'
                 when
                     combined_touchpoints.bizible_marketing_channel_path in (
@@ -177,14 +176,12 @@ with
                     )
                 then 'Social'
                 when
-                    combined_touchpoints.bizible_marketing_channel_path in (
-                        'Marketing Site.Web Referral', 'Web Referral'
-                    )
+                    combined_touchpoints.bizible_marketing_channel_path
+                    in ('Marketing Site.Web Referral', 'Web Referral')
                 then 'Web Referral'
                 when
-                    combined_touchpoints.bizible_marketing_channel_path in (
-                        'Marketing Site.Web Direct', 'Web Direct'
-                    )
+                    combined_touchpoints.bizible_marketing_channel_path
+                    in ('Marketing Site.Web Direct', 'Web Direct')
                     -- Added to Web Direct
                     or combined_touchpoints.dim_campaign_id in (
                         '701610000008ciRAAQ',  -- Trial - GitLab.com
@@ -201,9 +198,8 @@ with
                     = 'Marketing Site.Organic'
                 then 'Organic Search'
                 when
-                    combined_touchpoints.bizible_marketing_channel_path in (
-                        'Sponsorship'
-                    )
+                    combined_touchpoints.bizible_marketing_channel_path
+                    in ('Sponsorship')
                 then 'Paid Sponsorship'
                 else 'Unknown'
             end as pipe_name

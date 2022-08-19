@@ -2,9 +2,8 @@
 
 case
     when
-        lower({{ product_category_column }}) like any (
-            '%saas%', 'storage', 'standard', 'basic', 'plus', 'githost'
-        )
+        lower({{ product_category_column }})
+        like any ('%saas%', 'storage', 'standard', 'basic', 'plus', 'githost')
     then 'SaaS'
     when lower({{ product_category_column }}) like '%self-managed%'
     then 'Self-Managed'

@@ -10,9 +10,8 @@ with
             label_title,
             case
                 when
-                    lower(label_title) in (
-                        'severity::1', 'severity::2', 'severity::3', 'severity::4'
-                    )
+                    lower(label_title)
+                    in ('severity::1', 'severity::2', 'severity::3', 'severity::4')
                 then 'severity'
                 when lower(label_title) like 'team%'
                 then 'team'

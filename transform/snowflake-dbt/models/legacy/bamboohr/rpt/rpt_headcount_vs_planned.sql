@@ -28,9 +28,8 @@ with
             coalesce(hire_count, 0) as hires_actual
         from {{ ref("bamboohr_rpt_headcount_aggregation") }}
         where
-            breakout_type in (
-                'kpi_breakout', 'department_breakout', 'division_breakout'
-            )
+            breakout_type
+            in ('kpi_breakout', 'department_breakout', 'division_breakout')
             and eeoc_field_name = 'no_eeoc'
 
     ),
@@ -39,9 +38,8 @@ with
         select
             *,
             iff(
-                date_trunc(month, month_date) = date_trunc(
-                    month, dateadd(month, -1, current_date())
-                ),
+                date_trunc(month, month_date)
+                = date_trunc(month, dateadd(month, -1, current_date())),
                 1,
                 0
             ) as last_month
@@ -129,9 +127,8 @@ with
                 department_name_changes.new_department_name, hire_plan.department
             )
             and hire_type_aggregated.division = hire_plan.division
-            and hire_type_aggregated.hire_month = date_trunc(
-                month, hire_plan.month_date
-            )
+            and hire_type_aggregated.hire_month
+            = date_trunc(month, hire_plan.month_date)
 
     ),
     final as (

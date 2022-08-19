@@ -175,9 +175,8 @@ joined as (
     left join
         namespace_lineage
         on namespaces.dim_namespace_id = namespace_lineage.namespace_id
-        and ifnull(namespaces.parent_id, namespaces.dim_namespace_id) = ifnull(
-            namespace_lineage.parent_id, namespace_lineage.namespace_id
-        )
+        and ifnull(namespaces.parent_id, namespaces.dim_namespace_id)
+        = ifnull(namespace_lineage.parent_id, namespace_lineage.namespace_id)
     left join
         namespace_settings
         on namespaces.dim_namespace_id = namespace_settings.namespace_id

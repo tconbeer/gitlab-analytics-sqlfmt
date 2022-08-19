@@ -36,9 +36,8 @@ with
             stats_used_unpacked
             pivot(
                 max(ping_value)
-                for full_ping_name in (
-                    {{ "'" + version_usage_stats_list | join("',\n '") + "'" }}
-                )
+                for full_ping_name
+                in ({{ "'" + version_usage_stats_list | join("',\n '") + "'" }})
             ) as pivoted_table(id, {{ "\n" + version_usage_stats_list | join(",\n") }})
 
     ),

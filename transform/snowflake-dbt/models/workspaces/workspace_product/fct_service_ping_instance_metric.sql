@@ -77,9 +77,8 @@ prep_usage_ping_cte as (
     from add_country_info_to_usage_ping
     left join
         dim_product_tier
-        on trim(lower(add_country_info_to_usage_ping.product_tier)) = trim(
-            lower(dim_product_tier.product_tier_historical_short)
-        )
+        on trim(lower(add_country_info_to_usage_ping.product_tier))
+        = trim(lower(dim_product_tier.product_tier_historical_short))
         and iff(
             add_country_info_to_usage_ping.dim_instance_id
             = 'ea8bf810-1d6f-4a6a-b4fd-93e8cbd8b57f',

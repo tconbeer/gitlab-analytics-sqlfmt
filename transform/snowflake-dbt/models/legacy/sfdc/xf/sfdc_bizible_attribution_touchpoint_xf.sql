@@ -17,9 +17,8 @@ with
                 when bizible_marketing_channel_path = 'CPC.AdWords'
                 then 'Google AdWords'
                 when
-                    bizible_marketing_channel_path in (
-                        'Email.Other', 'Email.Newsletter', 'Email.Outreach'
-                    )
+                    bizible_marketing_channel_path
+                    in ('Email.Other', 'Email.Newsletter', 'Email.Outreach')
                 then 'Email'
                 when
                     bizible_marketing_channel_path in (
@@ -51,14 +50,12 @@ with
                     )
                 then 'Social'
                 when
-                    bizible_marketing_channel_path in (
-                        'Marketing Site.Web Referral', 'Web Referral'
-                    )
+                    bizible_marketing_channel_path
+                    in ('Marketing Site.Web Referral', 'Web Referral')
                 then 'Web Referral'
                 when
-                    bizible_marketing_channel_path in (
-                        'Marketing Site.Web Direct', 'Web Direct'
-                    )
+                    bizible_marketing_channel_path
+                    in ('Marketing Site.Web Direct', 'Web Direct')
                     -- Added to Web Direct
                     or campaign_id in (
                         '701610000008ciRAAQ',  -- Trial - GitLab.com

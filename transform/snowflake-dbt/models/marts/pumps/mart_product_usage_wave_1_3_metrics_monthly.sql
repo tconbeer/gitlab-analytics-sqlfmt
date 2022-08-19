@@ -175,7 +175,8 @@ joined as (
         and ifnull(
             monthly_metrics.ping_created_at::date,
             dateadd('day', -1, monthly_metrics.snapshot_month)
-        ) = to_date(to_char(subscriptions.snapshot_id), 'YYYYMMDD')
+        )
+        = to_date(to_char(subscriptions.snapshot_id), 'YYYYMMDD')
     left join
         subscriptions as subscriptions_original
         on monthly_metrics.dim_subscription_id_original
@@ -183,7 +184,8 @@ joined as (
         and ifnull(
             monthly_metrics.ping_created_at::date,
             dateadd('day', -1, monthly_metrics.snapshot_month)
-        ) = to_date(to_char(subscriptions_original.snapshot_id), 'YYYYMMDD')
+        )
+        = to_date(to_char(subscriptions_original.snapshot_id), 'YYYYMMDD')
     left join
         original_subscription_dates
         on original_subscription_dates.dim_subscription_id

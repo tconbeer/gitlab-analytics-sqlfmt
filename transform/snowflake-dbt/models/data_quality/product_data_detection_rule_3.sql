@@ -53,9 +53,8 @@ subscription_amendments_issue_license_mapping as (
         iff(
             max(
                 iff(
-                    amendment_type in (
-                        'NewProduct', 'RemoveProduct', 'UpdateProduct', 'Renewal'
-                    ),
+                    amendment_type
+                    in ('NewProduct', 'RemoveProduct', 'UpdateProduct', 'Renewal'),
                     1,
                     0
                 )
@@ -124,9 +123,8 @@ amendments as (
         = subscription_amendments_issue_license_mapping.subscription_name
     where
         (
-            amendment_type in (
-                'NewProduct', 'RemoveProduct', 'UpdateProduct', 'Renewal'
-            )
+            amendment_type
+            in ('NewProduct', 'RemoveProduct', 'UpdateProduct', 'Renewal')
             or dim_subscription.subscription_version = 1
         )
 

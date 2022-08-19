@@ -64,9 +64,8 @@ with
             iff(
                 rolling_12_month_headcount < rolling_12_month_separations,
                 null,
-                1 - (
-                    rolling_12_month_separations / nullif(rolling_12_month_headcount, 0)
-                )
+                1
+                - (rolling_12_month_separations / nullif(rolling_12_month_headcount, 0))
             ) as retention,
 
             headcount_end_leader,
@@ -83,9 +82,8 @@ with
                 rolling_12_month_headcount_leader < rolling_12_month_separations_leader,
                 null,
                 1 - (
-                    rolling_12_month_separations_leader / nullif(
-                        rolling_12_month_headcount_leader, 0
-                    )
+                    rolling_12_month_separations_leader
+                    / nullif(rolling_12_month_headcount_leader, 0)
                 )
             ) as retention_leader,
 
@@ -104,9 +102,8 @@ with
                 < rolling_12_month_separations_manager,
                 null,
                 1 - (
-                    rolling_12_month_separations_manager / nullif(
-                        rolling_12_month_headcount_manager, 0
-                    )
+                    rolling_12_month_separations_manager
+                    / nullif(rolling_12_month_headcount_manager, 0)
                 )
             ) as retention_manager,
 
@@ -125,9 +122,8 @@ with
                 < rolling_12_month_separations_management,
                 null,
                 1 - (
-                    rolling_12_month_separations_management / nullif(
-                        rolling_12_month_headcount_management, 0
-                    )
+                    rolling_12_month_separations_management
+                    / nullif(rolling_12_month_headcount_management, 0)
                 )
             ) as retention_management,
 
@@ -146,9 +142,8 @@ with
                 rolling_12_month_headcount_staff < rolling_12_month_separations_staff,
                 null,
                 1 - (
-                    rolling_12_month_separations_management / nullif(
-                        rolling_12_month_headcount_staff, 0
-                    )
+                    rolling_12_month_separations_management
+                    / nullif(rolling_12_month_headcount_staff, 0)
                 )
             ) as retention_staff,
 
@@ -309,18 +304,16 @@ with
                 rolling_12_month_headcount < rolling_12_month_voluntary_separations,
                 null,
                 (
-                    rolling_12_month_voluntary_separations / nullif(
-                        rolling_12_month_headcount, 0
-                    )
+                    rolling_12_month_voluntary_separations
+                    / nullif(rolling_12_month_headcount, 0)
                 )
             ) as voluntary_separation_rate,
             iff(
                 rolling_12_month_headcount < rolling_12_month_involuntary_separations,
                 null,
                 (
-                    rolling_12_month_involuntary_separations / nullif(
-                        rolling_12_month_headcount, 0
-                    )
+                    rolling_12_month_involuntary_separations
+                    / nullif(rolling_12_month_headcount, 0)
                 )
             ) as involuntary_separation_rate,
             retention,
@@ -472,9 +465,8 @@ with
 
             case
                 when
-                    breakout_type in (
-                        'kpi_breakout', 'division_breakout', 'department_breakout'
-                    )
+                    breakout_type
+                    in ('kpi_breakout', 'division_breakout', 'department_breakout')
                     and eeoc_value = 'no_eeoc'
                 then rolling_12_month_promotions
                 when
@@ -487,9 +479,8 @@ with
 
             case
                 when
-                    breakout_type in (
-                        'kpi_breakout', 'division_breakout', 'department_breakout'
-                    )
+                    breakout_type
+                    in ('kpi_breakout', 'division_breakout', 'department_breakout')
                     and eeoc_value = 'no_eeoc'
                 then rolling_12_month_promotions_excluding_sdr
                 when
@@ -501,9 +492,8 @@ with
             end as rolling_12_month_promotions_excluding_sdr,
             case
                 when
-                    breakout_type in (
-                        'kpi_breakout', 'division_breakout', 'department_breakout'
-                    )
+                    breakout_type
+                    in ('kpi_breakout', 'division_breakout', 'department_breakout')
                     and eeoc_value = 'no_eeoc'
                     and rolling_12_month_promotions > 3
                 then
@@ -520,9 +510,8 @@ with
             end as rolling_12_month_promotion_increase,
             case
                 when
-                    breakout_type in (
-                        'kpi_breakout', 'division_breakout', 'department_breakout'
-                    )
+                    breakout_type
+                    in ('kpi_breakout', 'division_breakout', 'department_breakout')
                     and eeoc_value = 'no_eeoc'
                     and rolling_12_month_promotions_excluding_sdr > 3
                 then

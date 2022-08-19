@@ -111,9 +111,8 @@ with
                         subscription_status = 'Cancelled'
                         or (
                             subscription_status = 'Active'
-                            and subscription_end_date <= dateadd(
-                                month, -3, '{{ end_date }}'
-                            )
+                            and subscription_end_date
+                            <= dateadd(month, -3, '{{ end_date }}')
                         )
                     then 1
                     else 0
@@ -211,9 +210,8 @@ with
                         subscription_status = 'Cancelled'
                         or (
                             subscription_status = 'Active'
-                            and subscription_end_date <= dateadd(
-                                month, -3, '{{ end_date }}'
-                            )
+                            and subscription_end_date
+                            <= dateadd(month, -3, '{{ end_date }}')
                         )
                     then 1
                     else 0
@@ -908,9 +906,8 @@ select
         when
             coalesce(p1.sum_arr, 0) != 0
             and (
-                (coalesce(t.future_arr, 0) - coalesce(p1.sum_arr, 0)) / coalesce(
-                    p1.sum_arr, 0
-                )
+                (coalesce(t.future_arr, 0) - coalesce(p1.sum_arr, 0))
+                / coalesce(p1.sum_arr, 0)
             )
             > 0.1
         then 1

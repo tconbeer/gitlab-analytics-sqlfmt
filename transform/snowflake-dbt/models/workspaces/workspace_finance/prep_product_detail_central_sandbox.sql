@@ -74,7 +74,8 @@ with
                 when
                     lower(
                         zuora_central_sandbox_product_rate_plan.product_rate_plan_name
-                    ) like any ('%oss%', '%edu%')
+                    )
+                    like any ('%oss%', '%edu%')
                 then true
                 else false
             end as is_oss_or_edu_rate_plan,

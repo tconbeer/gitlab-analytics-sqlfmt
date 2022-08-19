@@ -124,9 +124,8 @@ with
         left join
             division_mapping
             on division_mapping.department = greenhouse_department.department_modified
-            and division_mapping.date_actual = date_trunc(
-                day, greenhouse_openings.job_opened_at
-            )
+            and division_mapping.date_actual
+            = date_trunc(day, greenhouse_openings.job_opened_at)
         left join
             cost_center_mapping
             on cost_center_mapping.department

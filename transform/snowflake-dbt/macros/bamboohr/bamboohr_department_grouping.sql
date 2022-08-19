@@ -2,14 +2,12 @@
 
 case
     when
-        {{ department }} in (
-            'Awareness', 'Communications', 'Community Relations', 'Owned Events'
-        )
+        {{ department }}
+        in ('Awareness', 'Communications', 'Community Relations', 'Owned Events')
     then 'Awareness, Communications, Community Relations, Owned Events'
     when
-        {{ department }} in (
-            'Brand & Digital Design', 'Content Marketing', 'Inbound Marketing'
-        )
+        {{ department }}
+        in ('Brand & Digital Design', 'Content Marketing', 'Inbound Marketing')
     then 'Brand & Digital Design, Content Marketing, Inbound Marketing'
     when {{ department }} in ('Campaigns', 'Digital Marketing', 'Partner Marketing')
     then 'Campaigns, Digital Marketing, Partner Marketing'

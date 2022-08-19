@@ -213,14 +213,12 @@ with
             = key_fields.close_fiscal_quarter_date
         left join
             date_details rq_plus_1
-            on rq_plus_1.date_actual = dateadd(
-                month, 3, close_date.first_day_of_fiscal_quarter
-            )
+            on rq_plus_1.date_actual
+            = dateadd(month, 3, close_date.first_day_of_fiscal_quarter)
         left join
             date_details rq_plus_2
-            on rq_plus_2.date_actual = dateadd(
-                month, 6, close_date.first_day_of_fiscal_quarter
-            )
+            on rq_plus_2.date_actual
+            = dateadd(month, 6, close_date.first_day_of_fiscal_quarter)
 
     ),
     final as (
@@ -481,9 +479,8 @@ with
         -- one year ago totals
         left join
             consolidated_targets_per_day year_minus_one
-            on year_minus_one.close_fiscal_quarter_date = dateadd(
-                month, -12, base.close_fiscal_quarter_date
-            )
+            on year_minus_one.close_fiscal_quarter_date
+            = dateadd(month, -12, base.close_fiscal_quarter_date)
             and year_minus_one.close_day_of_fiscal_quarter_normalised
             = base.close_day_of_fiscal_quarter_normalised
             and year_minus_one.report_user_segment_geo_region_area_sqs_ot

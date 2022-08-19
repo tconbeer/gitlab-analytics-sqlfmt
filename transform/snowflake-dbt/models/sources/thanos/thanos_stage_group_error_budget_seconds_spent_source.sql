@@ -19,8 +19,7 @@ with
                 input => pq.jsontext['stage_group_error_budget_seconds_spent']
             ) pq_1,
             lateral flatten(
-                input
-                => pq.jsontext['stage_group_error_budget_seconds_spent']['body'][
+                input => pq.jsontext['stage_group_error_budget_seconds_spent']['body'][
                     'data'
                 ]['result'],
                 outer => true

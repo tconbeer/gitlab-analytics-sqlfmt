@@ -93,16 +93,14 @@ with
             agg_labels.labels,
             merge_request_metrics.merged_at,
             iff(
-                merge_requests.target_project_id in (
-                    {{ is_project_included_in_engineering_metrics() }}
-                ),
+                merge_requests.target_project_id
+                in ({{ is_project_included_in_engineering_metrics() }}),
                 true,
                 false
             ) as is_included_in_engineering_metrics,
             iff(
-                merge_requests.target_project_id in (
-                    {{ is_project_part_of_product() }}
-                ),
+                merge_requests.target_project_id
+                in ({{ is_project_part_of_product() }}),
                 true,
                 false
             ) as is_part_of_product,

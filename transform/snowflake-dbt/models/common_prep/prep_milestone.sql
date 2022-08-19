@@ -46,9 +46,8 @@ joined as (
         on dim_project.ultimate_parent_namespace_id
         = dim_namespace_plan_hist.dim_namespace_id
         and milestones.created_at >= dim_namespace_plan_hist.valid_from
-        and milestones.created_at < coalesce(
-            dim_namespace_plan_hist.valid_to, '2099-01-01'
-        )
+        and milestones.created_at
+        < coalesce(dim_namespace_plan_hist.valid_to, '2099-01-01')
     left join dim_date as dim_date on to_date(milestones.created_at) = dim_date.date_day
 
 )

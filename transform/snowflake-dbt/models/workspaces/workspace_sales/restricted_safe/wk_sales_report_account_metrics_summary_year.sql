@@ -81,9 +81,8 @@ with
         left join date_details d on o.subscription_start_date = d.date_actual
         where
             o.sales_type = 'Renewal'
-            and stage_name not in (
-                '9-Unqualified', '10-Duplicate', '00-Pre Opportunity'
-            )
+            and stage_name
+            not in ('9-Unqualified', '10-Duplicate', '00-Pre Opportunity')
             and amount <> 0
         group by 1, 2
 
@@ -99,9 +98,8 @@ with
         left join date_details d on o.subscription_start_date = d.date_actual
         where
             o.sales_type = 'Renewal'
-            and stage_name not in (
-                '9-Unqualified', '10-Duplicate', '00-Pre Opportunity'
-            )
+            and stage_name
+            not in ('9-Unqualified', '10-Duplicate', '00-Pre Opportunity')
             and amount <> 0
         group by 1, 2
 
@@ -120,9 +118,8 @@ with
             and o.subscription_start_date between dateadd(
                 month, -12, date_trunc('month', d.report_month_date)
             ) and date_trunc('month', d.report_month_date)
-            and o.stage_name not in (
-                '9-Unqualified', '10-Duplicate', '00-Pre Opportunity'
-            )
+            and o.stage_name
+            not in ('9-Unqualified', '10-Duplicate', '00-Pre Opportunity')
             and o.amount <> 0
         group by 1, 2
 
@@ -194,9 +191,8 @@ with
             sum(
                 case
                     when
-                        o.order_type_live not in (
-                            '2. New - Connected', '1. New - First Order'
-                        )
+                        o.order_type_live
+                        not in ('2. New - Connected', '1. New - First Order')
                     then o.net_arr
                     else 0
                 end
@@ -382,9 +378,8 @@ with
             sum(
                 case
                     when
-                        o.order_type_live not in (
-                            '2. New - Connected', '1. New - First Order'
-                        )
+                        o.order_type_live
+                        not in ('2. New - Connected', '1. New - First Order')
                     then o.net_arr
                     else 0
                 end
@@ -770,18 +765,18 @@ with
 
             case
                 when
-                    coalesce(arr.product_ultimate_arr, 0) > coalesce(
-                        arr.product_starter_arr, 0
-                    ) + coalesce(arr.product_premium_arr, 0)
+                    coalesce(arr.product_ultimate_arr, 0)
+                    > coalesce(arr.product_starter_arr, 0)
+                    + coalesce(arr.product_premium_arr, 0)
                 then 1
                 else 0
             end as is_ultimate_customer_flag,
 
             case
                 when
-                    coalesce(arr.product_ultimate_arr, 0) < coalesce(
-                        arr.product_starter_arr, 0
-                    ) + coalesce(arr.product_premium_arr, 0)
+                    coalesce(arr.product_ultimate_arr, 0)
+                    < coalesce(arr.product_starter_arr, 0)
+                    + coalesce(arr.product_premium_arr, 0)
                 then 1
                 else 0
             end as is_premium_customer_flag,

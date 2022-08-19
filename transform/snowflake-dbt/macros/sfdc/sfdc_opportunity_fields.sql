@@ -247,9 +247,8 @@ with
             case
                 when
                     is_sao = true
-                    and sfdc_opportunity.sales_qualified_source in (
-                        'SDR Generated', 'BDR Generated'
-                    )
+                    and sfdc_opportunity.sales_qualified_source
+                    in ('SDR Generated', 'BDR Generated')
                 then true
                 else false
             end as is_sdr_sao,
@@ -276,9 +275,8 @@ with
             case
                 when
                     sfdc_opportunity.is_edu_oss = 0
-                    and sfdc_opportunity.stage_name not in (
-                        '00-Pre Opportunity', '10-Duplicate'
-                    )
+                    and sfdc_opportunity.stage_name
+                    not in ('00-Pre Opportunity', '10-Duplicate')
                 then true
                 else false
             end as is_net_arr_pipeline_created,
@@ -522,9 +520,8 @@ with
             end as stage_category,
             case
                 when
-                    lower(sfdc_opportunity.order_type_grouped) like any (
-                        '%growth%', '%new%'
-                    )
+                    lower(sfdc_opportunity.order_type_grouped)
+                    like any ('%growth%', '%new%')
                     and sfdc_opportunity.is_edu_oss = 0
                     and is_stage_1_plus = 1
                     and sfdc_opportunity.forecast_category_name != 'Omitted'
@@ -534,9 +531,8 @@ with
             end as is_eligible_open_pipeline,
             case
                 when
-                    sfdc_opportunity.order_type in (
-                        '1. New - First Order', '2. New - Connected', '3. Growth'
-                    )
+                    sfdc_opportunity.order_type
+                    in ('1. New - First Order', '2. New - Connected', '3. Growth')
                     and sfdc_opportunity.is_edu_oss = 0
                     and pipeline_created_fiscal_quarter_date is not null
                     and sfdc_opportunity.opportunity_category in (
@@ -547,9 +543,8 @@ with
                         'Contract Reset'
                     )
                     and (is_stage_1_plus = 1 or is_lost = 1)
-                    and sfdc_opportunity.stage_name not in (
-                        '10-Duplicate', '9-Unqualified'
-                    )
+                    and sfdc_opportunity.stage_name
+                    not in ('10-Duplicate', '9-Unqualified')
                     and (
                         sfdc_opportunity.net_arr > 0
                         or sfdc_opportunity.opportunity_category = 'Credit'
@@ -576,12 +571,10 @@ with
                 when
                     sfdc_opportunity.is_edu_oss = 0
                     and sfdc_opportunity.is_deleted = 0
-                    and sfdc_opportunity.order_type in (
-                        '1. New - First Order', '2. New - Connected', '3. Growth'
-                    )
-                    and sfdc_opportunity.opportunity_category in (
-                        'Standard', 'Ramp Deal', 'Internal Correction'
-                    )
+                    and sfdc_opportunity.order_type
+                    in ('1. New - First Order', '2. New - Connected', '3. Growth')
+                    and sfdc_opportunity.opportunity_category
+                    in ('Standard', 'Ramp Deal', 'Internal Correction')
                     and (
                         (
                             sfdc_opportunity.is_web_portal_purchase = 1
@@ -605,9 +598,8 @@ with
                         '6. Churn - Final',
                         '5. Churn - Partial'
                     )
-                    and sfdc_opportunity.opportunity_category in (
-                        'Standard', 'Ramp Deal', 'Decommissioned'
-                    )
+                    and sfdc_opportunity.opportunity_category
+                    in ('Standard', 'Ramp Deal', 'Decommissioned')
                     and sfdc_opportunity.is_web_portal_purchase = 0
                 then 1
                 else 0
@@ -632,9 +624,8 @@ with
                 when
                     sfdc_opportunity.is_edu_oss = 0
                     and sfdc_opportunity.is_deleted = 0
-                    and sfdc_opportunity.order_type in (
-                        '4. Contraction', '6. Churn - Final', '5. Churn - Partial'
-                    )
+                    and sfdc_opportunity.order_type
+                    in ('4. Contraction', '6. Churn - Final', '5. Churn - Partial')
                 then 1
                 else 0
             end as is_eligible_churn_contraction,
@@ -654,9 +645,8 @@ with
             ) as reason_for_loss_staged,
             case
                 when
-                    reason_for_loss_staged in (
-                        'Do Nothing', 'Other', 'Competitive Loss', 'Operational Silos'
-                    )
+                    reason_for_loss_staged
+                    in ('Do Nothing', 'Other', 'Competitive Loss', 'Operational Silos')
                     or reason_for_loss_staged is null
                 then 'Unknown'
                 when
@@ -688,9 +678,8 @@ with
             end as reason_for_loss_calc,
             case
                 when
-                    sfdc_opportunity.order_type in (
-                        '4. Contraction', '5. Churn - Partial'
-                    )
+                    sfdc_opportunity.order_type
+                    in ('4. Contraction', '5. Churn - Partial')
                 then 'Contraction'
                 else 'Churn'
             end as churn_contraction_type_calc,

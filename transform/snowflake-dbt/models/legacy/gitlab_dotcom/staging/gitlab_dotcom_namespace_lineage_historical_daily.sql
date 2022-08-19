@@ -32,9 +32,10 @@ namespace_lineage_daily as (
     from namespace_lineage
     inner join
         dates
-        on dates.date_actual between date_trunc(
-            'day', namespace_lineage.lineage_valid_from
-        ) and date_trunc('day', namespace_lineage.lineage_valid_to)
+        on dates.date_actual
+        between date_trunc('day', namespace_lineage.lineage_valid_from) and date_trunc(
+            'day', namespace_lineage.lineage_valid_to
+        )
     qualify
         row_number() over (
             partition by dates.date_actual, namespace_id

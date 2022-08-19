@@ -103,9 +103,8 @@ with
             employee_directory.job_title,
             case
                 when
-                    bamboohr_compensation_changes.employee_id in (
-                        40955, 40647, 41234, 40985, 41027, 40782, 40540
-                    )
+                    bamboohr_compensation_changes.employee_id
+                    in (40955, 40647, 41234, 40985, 41027, 40782, 40540)
                     and bamboohr_compensation_changes.effective_date <= '2020-06-01'
                 then 12
                 -- we didn't capture pay frequency prior to 2020.07 and in 2020.07 the
@@ -244,9 +243,8 @@ with
                 compensation_update_id = 20263,
                 null,
                 round(
-                    (coalesce(ote_change, 0) + change_in_comp_usd) / (
-                        prior_compensation_value_usd + coalesce(prior_ote_usd, 0)
-                    ),
+                    (coalesce(ote_change, 0) + change_in_comp_usd)
+                    / (prior_compensation_value_usd + coalesce(prior_ote_usd, 0)),
                     2
                 )
             ) as percent_change_in_comp

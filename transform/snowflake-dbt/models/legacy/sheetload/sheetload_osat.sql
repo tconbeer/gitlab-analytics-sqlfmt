@@ -16,9 +16,8 @@ with
         from source
         left join
             bamboohr
-            on source.employee_name = concat(
-                bamboohr.first_name, ' ', bamboohr.last_name
-            )
+            on source.employee_name
+            = concat(bamboohr.first_name, ' ', bamboohr.last_name)
         where source.completed_date is not null
 
     )

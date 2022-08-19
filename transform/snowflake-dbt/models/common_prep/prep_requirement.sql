@@ -60,9 +60,8 @@ joined as (
         = prep_namespace_plan_hist.dim_namespace_id
         and gitlab_dotcom_requirements_dedupe_source.created_at
         >= prep_namespace_plan_hist.valid_from
-        and gitlab_dotcom_requirements_dedupe_source.created_at < coalesce(
-            prep_namespace_plan_hist.valid_to, '2099-01-01'
-        )
+        and gitlab_dotcom_requirements_dedupe_source.created_at
+        < coalesce(prep_namespace_plan_hist.valid_to, '2099-01-01')
     left join
         prep_user
         on gitlab_dotcom_requirements_dedupe_source.author_id = prep_user.dim_user_id

@@ -190,18 +190,16 @@ prep as (
             when marketing_contact_role.marketing_contact_role in ('Customer DB Owner')
             then saas_customer.product_tier_name_with_trial
             when
-                marketing_contact_role.marketing_contact_role in (
-                    'Zuora Billing Contact'
-                )
+                marketing_contact_role.marketing_contact_role
+                in ('Zuora Billing Contact')
             then saas_billing_account.product_tier_name_subscription
         end as saas_product_tier,
         case
             when marketing_contact_role.marketing_contact_role in ('Customer DB Owner')
             then self_managed_customer.product_tier_name_with_trial
             when
-                marketing_contact_role.marketing_contact_role in (
-                    'Zuora Billing Contact'
-                )
+                marketing_contact_role.marketing_contact_role
+                in ('Zuora Billing Contact')
             then self_managed_billing_account.product_tier_name_subscription
         end as self_managed_product_tier,
         case

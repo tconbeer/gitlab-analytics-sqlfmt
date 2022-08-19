@@ -99,8 +99,7 @@ subscription_list as (
     from subscriptions
     inner join
         dates
-        on dates.date_actual
-        between subscriptions.subscription_start_date and ifnull(
+        on dates.date_actual between subscriptions.subscription_start_date and ifnull(
             subscriptions.subscription_end_date, current_date
         )
     inner join

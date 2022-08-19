@@ -194,7 +194,8 @@ factor_to_date as (
     left join current_fiscal_quarter
     -- WHERE [fiscal_quarter_name_fy=bc_fiscal_quarter]
     where
-        fiscal_year between extract(year from current_date)
+        fiscal_year
+        between extract(year from current_date)
         - 1 and extract(year from current_date)
         + 1
 

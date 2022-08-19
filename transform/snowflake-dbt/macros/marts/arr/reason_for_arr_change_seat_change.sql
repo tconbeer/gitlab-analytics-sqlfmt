@@ -6,9 +6,9 @@ case
     when {{ previous_quantity }} != {{ quantity }} and {{ previous_quantity }} > 0
     then
         zeroifnull(
-            {{ previous_arr }} / nullif({{ previous_quantity }}, 0) * (
-                {{ quantity }} - {{ previous_quantity }}
-            )
+            {{ previous_arr }}
+            / nullif({{ previous_quantity }}, 0)
+            * ({{ quantity }} - {{ previous_quantity }})
         )
     when {{ previous_quantity }} != {{ quantity }} and {{ previous_quantity }} = 0
     then {{ arr }}

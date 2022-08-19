@@ -165,9 +165,8 @@ with
             end as is_security_issue,
 
             iff(
-                issues.project_id in (
-                    {{ is_project_included_in_engineering_metrics() }}
-                ),
+                issues.project_id
+                in ({{ is_project_included_in_engineering_metrics() }}),
                 true,
                 false
             ) as is_included_in_engineering_metrics,

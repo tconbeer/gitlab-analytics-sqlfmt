@@ -656,9 +656,8 @@ user_request_with_account_opp_attributes as (
         dim_order_type.order_type_name as crm_opp_order_type,
         dim_order_type.order_type_grouped as crm_opp_order_type_grouped,
         iff(
-            date_trunc(
-                'month', fct_crm_opportunity.subscription_end_date
-            ) >= date_trunc('month', current_date),
+            date_trunc('month', fct_crm_opportunity.subscription_end_date)
+            >= date_trunc('month', current_date),
             date_trunc('month', fct_crm_opportunity.subscription_end_date),
             null
         ) as crm_opp_next_renewal_month,
@@ -792,9 +791,8 @@ customer_value_scores as (
             link_type = 'Opportunity', crm_opp_arr_basis, crm_account_arr
         ) as arr_to_use,
         zeroifnull(
-            crm_opp_net_arr / nullif(
-                zeroifnull(crm_opp_net_arr) + zeroifnull(arr_to_use), 0
-            )
+            crm_opp_net_arr
+            / nullif(zeroifnull(crm_opp_net_arr) + zeroifnull(arr_to_use), 0)
         ) as growth_percentage,
         zeroifnull(
             arr_to_use / nullif(zeroifnull(crm_opp_net_arr) + zeroifnull(arr_to_use), 0)
@@ -811,9 +809,8 @@ customer_value_scores as (
             )
         ) as growth_priority_weighting,
         zeroifnull(
-            retention_priority / nullif(
-                sum(retention_priority) over (partition by dim_crm_account_id), 0
-            )
+            retention_priority
+            / nullif(sum(retention_priority) over (partition by dim_crm_account_id), 0)
         ) as retention_priority_weighting,
         -- a utility column to allow sum of all epics for customer reach
         customer_reach / nullif(

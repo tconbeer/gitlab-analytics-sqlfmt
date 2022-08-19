@@ -87,9 +87,8 @@ with
         from trials_joined
         inner join
             orders_shapshots_excluding_ci_minutes
-            on trials_joined.namespace_id = try_to_number(
-                orders_shapshots_excluding_ci_minutes.gitlab_namespace_id
-            )
+            on trials_joined.namespace_id
+            = try_to_number(orders_shapshots_excluding_ci_minutes.gitlab_namespace_id)
         inner join
             zuora_subscription_with_positive_mrr_tcv as subscription
             on orders_shapshots_excluding_ci_minutes.subscription_name_slugify

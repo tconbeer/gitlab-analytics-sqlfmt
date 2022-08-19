@@ -15,8 +15,7 @@ with
         select *, 'join' as join_field
         from {{ ref("bamboohr_job_info_current_division_base") }}
         where
-            date_trunc(month, current_date())
-            between effective_date and coalesce(
+            date_trunc(month, current_date()) between effective_date and coalesce(
                 effective_end_date, termination_date, current_date()
             )
 

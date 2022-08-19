@@ -76,9 +76,8 @@ crm_opportunity_closed_period as (
             when crm_opp_owner_region_stamped in ('APAC', 'PubSec', 'EMEA', 'Global')
             then crm_opp_owner_region_stamped
             when
-                crm_opp_owner_region_stamped not in (
-                    'West', 'East', 'APAC', 'PubSec', 'EMEA', 'Global'
-                )
+                crm_opp_owner_region_stamped
+                not in ('West', 'East', 'APAC', 'PubSec', 'EMEA', 'Global')
             then 'Other'
             else 'Missing region_grouped'
         end as region_grouped
@@ -212,7 +211,8 @@ factor_to_date as (
     left join current_fiscal_quarter
     -- WHERE [fiscal_quarter_name_fy=bc_fiscal_quarter]
     where
-        fiscal_year between extract(year from current_date)
+        fiscal_year
+        between extract(year from current_date)
         - 1 and extract(year from current_date)
         + 1
 

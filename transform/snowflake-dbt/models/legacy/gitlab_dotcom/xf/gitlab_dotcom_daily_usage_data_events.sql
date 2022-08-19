@@ -10,9 +10,8 @@ with
         {% if is_incremental() %}
 
         where
-            event_created_at >= (
-                select max(dateadd(day, -8, event_date)) from {{ this }}
-            )
+            event_created_at
+            >= (select max(dateadd(day, -8, event_date)) from {{ this }})
 
         {% endif %}
 

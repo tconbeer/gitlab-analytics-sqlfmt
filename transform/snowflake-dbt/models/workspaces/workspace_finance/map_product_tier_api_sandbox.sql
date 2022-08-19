@@ -172,19 +172,16 @@ with
             end as product_delivery_type,
             case
                 when
-                    product_tier_historical in (
-                        'SaaS - Gold', 'Self-Managed - Ultimate', 'SaaS - Ultimate'
-                    )
+                    product_tier_historical
+                    in ('SaaS - Gold', 'Self-Managed - Ultimate', 'SaaS - Ultimate')
                 then 3
                 when
-                    product_tier_historical in (
-                        'SaaS - Silver', 'Self-Managed - Premium', 'SaaS - Premium'
-                    )
+                    product_tier_historical
+                    in ('SaaS - Silver', 'Self-Managed - Premium', 'SaaS - Premium')
                 then 2
                 when
-                    product_tier_historical in (
-                        'SaaS - Bronze', 'Self-Managed - Starter'
-                    )
+                    product_tier_historical
+                    in ('SaaS - Bronze', 'Self-Managed - Starter')
                 then 1
                 else 0
             end as product_ranking,

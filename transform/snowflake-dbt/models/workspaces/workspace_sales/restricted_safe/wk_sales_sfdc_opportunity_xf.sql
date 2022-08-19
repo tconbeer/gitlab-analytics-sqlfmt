@@ -258,9 +258,8 @@ with
             -- NF: Excluded 'Duplicate' stage from is_open definition
             case
                 when
-                    sfdc_opportunity_xf.stage_name in (
-                        '8-Closed Lost', '9-Unqualified', 'Closed Won', '10-Duplicate'
-                    )
+                    sfdc_opportunity_xf.stage_name
+                    in ('8-Closed Lost', '9-Unqualified', 'Closed Won', '10-Duplicate')
                 then 0
                 else 1
             end as is_open,
@@ -562,9 +561,8 @@ with
             nvl(o.reason_for_loss, o.downgrade_reason) as reason_for_loss_staged,
             case
                 when
-                    reason_for_loss_staged in (
-                        'Do Nothing', 'Other', 'Competitive Loss', 'Operational Silos'
-                    )
+                    reason_for_loss_staged
+                    in ('Do Nothing', 'Other', 'Competitive Loss', 'Operational Silos')
                     or reason_for_loss_staged is null
                 then 'Unknown'
                 when
@@ -604,9 +602,8 @@ with
 
         from sfdc_opportunity_xf o
         where
-            o.order_type_stamped in (
-                '4. Contraction', '5. Churn - Partial', '6. Churn - Final'
-            )
+            o.order_type_stamped
+            in ('4. Contraction', '5. Churn - Partial', '6. Churn - Final')
             and (o.is_won = 1 or (is_renewal = 1 and is_lost = 1))
 
     ),
@@ -776,16 +773,14 @@ with
                 when sfdc_opportunity_xf.order_type_stamped = '1. New - First Order'
                 then '1. New'
                 when
-                    sfdc_opportunity_xf.order_type_stamped in (
-                        '2. New - Connected', '3. Growth'
-                    )
+                    sfdc_opportunity_xf.order_type_stamped
+                    in ('2. New - Connected', '3. Growth')
                 then '2. Growth'
                 when sfdc_opportunity_xf.order_type_stamped in ('4. Contraction')
                 then '3. Contraction'
                 when
-                    sfdc_opportunity_xf.order_type_stamped in (
-                        '5. Churn - Partial', '6. Churn - Final'
-                    )
+                    sfdc_opportunity_xf.order_type_stamped
+                    in ('5. Churn - Partial', '6. Churn - Final')
                 then '4. Churn'
                 else '5. Other'
             end as deal_category,
@@ -812,9 +807,8 @@ with
             -- NF 2022-01-28 TO BE REMOVED
             case
                 when
-                    sfdc_opportunity_xf.account_owner_team_stamped in (
-                        'Commercial - SMB', 'SMB', 'SMB - US', 'SMB - International'
-                    )
+                    sfdc_opportunity_xf.account_owner_team_stamped
+                    in ('Commercial - SMB', 'SMB', 'SMB - US', 'SMB - International')
                 then 'SMB'
                 when
                     sfdc_opportunity_xf.account_owner_team_stamped in (
@@ -885,9 +879,8 @@ with
                 then 1
                 -- NF 2021 - Pubsec extreme deals
                 when
-                    sfdc_opportunity_xf.opportunity_id in (
-                        '0064M00000WtZKUQA3', '0064M00000Xb975QAB'
-                    )
+                    sfdc_opportunity_xf.opportunity_id
+                    in ('0064M00000WtZKUQA3', '0064M00000Xb975QAB')
                 then 1
                 -- NF 20220415 PubSec duplicated deals on Pipe Gen -- Lockheed Martin
                 -- GV - 40000 Ultimate Renewal
@@ -946,22 +939,19 @@ with
                         '8-Closed Lost', '9-Unqualified', 'Closed Won', '10-Duplicate'
                     )
                 then
-                    coalesce(oppty_final.incremental_acv, 0) * coalesce(
-                        segment_order_type_iacv_to_net_arr_ratio, 0
-                    )
+                    coalesce(oppty_final.incremental_acv, 0)
+                    * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
                 when  -- CLOSED LOST DEAL and no Net IACV
                     oppty_final.stage_name in ('8-Closed Lost')
                     and coalesce(oppty_final.net_incremental_acv, 0) = 0
                 then
-                    coalesce(oppty_final.incremental_acv, 0) * coalesce(
-                        segment_order_type_iacv_to_net_arr_ratio, 0
-                    )
+                    coalesce(oppty_final.incremental_acv, 0)
+                    * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
                 -- REST of CLOSED DEAL
                 when oppty_final.stage_name in ('8-Closed Lost', 'Closed Won')
                 then
-                    coalesce(oppty_final.net_incremental_acv, 0) * coalesce(
-                        segment_order_type_iacv_to_net_arr_ratio, 0
-                    )
+                    coalesce(oppty_final.net_incremental_acv, 0)
+                    * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
                 else null
             end as calculated_from_ratio_net_arr,
 
@@ -1041,9 +1031,8 @@ with
             -- https://gitlab.com/gitlab-com/sales-team/field-operations/systems/-/issues/2389
             case
                 when
-                    oppty_final.order_type_stamped in (
-                        '1. New - First Order', '2. New - Connected', '3. Growth'
-                    )
+                    oppty_final.order_type_stamped
+                    in ('1. New - First Order', '2. New - Connected', '3. Growth')
                     and oppty_final.is_edu_oss = 0
                     and oppty_final.pipeline_created_fiscal_quarter_date is not null
                     and oppty_final.opportunity_category in (
@@ -1095,14 +1084,12 @@ with
                     and oppty_final.is_deleted = 0
                     -- For ASP we care mainly about add on, new business, excluding
                     -- contraction / churn
-                    and oppty_final.order_type_stamped in (
-                        '1. New - First Order', '2. New - Connected', '3. Growth'
-                    )
+                    and oppty_final.order_type_stamped
+                    in ('1. New - First Order', '2. New - Connected', '3. Growth')
                     -- Exclude Decomissioned as they are not aligned to the real owner
                     -- Contract Reset, Decomission
-                    and oppty_final.opportunity_category in (
-                        'Standard', 'Ramp Deal', 'Internal Correction'
-                    )
+                    and oppty_final.opportunity_category
+                    in ('Standard', 'Ramp Deal', 'Internal Correction')
                     -- Exclude Deals with nARR < 0
                     and net_arr > 0
                 then 1
@@ -1128,9 +1115,8 @@ with
                     )
                     -- Only include deal types with meaningful journeys through the
                     -- stages
-                    and oppty_final.opportunity_category in (
-                        'Standard', 'Ramp Deal', 'Decommissioned'
-                    )
+                    and oppty_final.opportunity_category
+                    in ('Standard', 'Ramp Deal', 'Decommissioned')
                     -- Web Purchase have a different dynamic and should not be included
                     and oppty_final.is_web_portal_purchase = 0
                 then 1
@@ -1161,9 +1147,8 @@ with
                 when
                     oppty_final.is_edu_oss = 0
                     and oppty_final.is_deleted = 0
-                    and oppty_final.order_type_stamped in (
-                        '4. Contraction', '6. Churn - Final', '5. Churn - Partial'
-                    )
+                    and oppty_final.order_type_stamped
+                    in ('4. Contraction', '6. Churn - Final', '5. Churn - Partial')
                 then 1
                 else 0
             end as is_eligible_churn_contraction_flag,

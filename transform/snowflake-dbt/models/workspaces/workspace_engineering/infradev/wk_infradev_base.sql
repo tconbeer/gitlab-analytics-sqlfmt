@@ -29,7 +29,8 @@ select
     issues.labels,
     issues.issue_title,
     namespace_path.full_namespace_path,
-    '[' || replace(replace(left(issues.issue_title, 64), '[', ''), ']', '')
+    '['
+    || replace(replace(left(issues.issue_title, 64), '[', ''), ']', '')
     || '](https://gitlab.com/'
     || namespace_path.full_namespace_path
     || '/'
@@ -66,6 +67,7 @@ left join assigend_users on issues.dim_issue_id = assigend_users.dim_issue_id
 left join
     label_groups
     on issues.dim_issue_id = label_groups.dim_issue_id
-    and dates.date_actual between date_trunc(
-        'day', label_groups.label_group_valid_from
-    ) and date_trunc('day', label_groups.label_group_valid_to)
+    and dates.date_actual
+    between date_trunc('day', label_groups.label_group_valid_from) and date_trunc(
+        'day', label_groups.label_group_valid_to
+    )

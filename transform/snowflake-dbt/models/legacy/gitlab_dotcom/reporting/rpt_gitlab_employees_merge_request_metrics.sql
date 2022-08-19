@@ -35,8 +35,10 @@ with
         left join
             merge_requests
             on merge_requests.bamboohr_employee_id = employees.employee_id
-            and date_trunc(day, merge_requests.merged_at)
-            between employees.valid_from and coalesce(
+            and date_trunc(
+                day,
+                merge_requests.merged_at
+            ) between employees.valid_from and coalesce(
                 employees.valid_to, current_date()
             )
 

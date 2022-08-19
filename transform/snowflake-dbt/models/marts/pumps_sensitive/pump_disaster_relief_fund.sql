@@ -54,16 +54,14 @@ with
                     when
                         dayofmonth(report_date) <= 15
                         and dayofmonth(event_date) > 15
-                        and date_trunc(
-                            'month', dateadd('month', -1, report_date)
-                        ) = date_trunc('month', event_date)
+                        and date_trunc('month', dateadd('month', -1, report_date))
+                        = date_trunc('month', event_date)
                     then true
                     when
                         dayofmonth(report_date) > 15
                         and dayofmonth(event_date) <= 15
-                        and date_trunc('month', report_date) = date_trunc(
-                            'month', event_date
-                        )
+                        and date_trunc('month', report_date)
+                        = date_trunc('month', event_date)
                     then true
                     else false
                 end

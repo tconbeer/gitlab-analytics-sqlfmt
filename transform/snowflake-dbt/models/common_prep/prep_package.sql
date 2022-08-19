@@ -58,9 +58,8 @@ renamed as (
         = dim_namespace_plan_hist.dim_namespace_id
         and gitlab_dotcom_packages_packages_dedupe_source.created_at
         >= dim_namespace_plan_hist.valid_from
-        and gitlab_dotcom_packages_packages_dedupe_source.created_at < coalesce(
-            dim_namespace_plan_hist.valid_to, '2099-01-01'
-        )
+        and gitlab_dotcom_packages_packages_dedupe_source.created_at
+        < coalesce(dim_namespace_plan_hist.valid_to, '2099-01-01')
     left join
         prep_namespace
         on prep_project.dim_namespace_id = prep_namespace.dim_namespace_id

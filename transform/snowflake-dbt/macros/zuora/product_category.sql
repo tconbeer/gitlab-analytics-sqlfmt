@@ -28,9 +28,8 @@ case
     when ltrim(lower({{ product_column }})) like 'githost%'
     then 'GitHost'
     when
-        lower({{ product_column }}) like any (
-            '%quick start with ha%', '%proserv training per-seat add-on%'
-        )
+        lower({{ product_column }})
+        like any ('%quick start with ha%', '%proserv training per-seat add-on%')
     then 'Support'
     when
         trim({{ product_column }}) in (
@@ -72,14 +71,12 @@ case
     when lower({{ product_column }}) like 'discount%'
     then 'Other'
     when
-        trim({{ product_column }}) in (
-            '#movingtogitlab', 'Payment Gateway Test', 'EdCast Settlement Revenue'
-        )
+        trim({{ product_column }})
+        in ('#movingtogitlab', 'Payment Gateway Test', 'EdCast Settlement Revenue')
     then 'Other'
     when
-        trim({{ product_column }}) in (
-            'File Locking', 'Time Tracking', '1,000 CI Minutes'
-        )
+        trim({{ product_column }})
+        in ('File Locking', 'Time Tracking', '1,000 CI Minutes')
     then 'SaaS - Other'
     when trim({{ product_column }}) in ('Gitlab Storage 10GB')
     then 'Storage'

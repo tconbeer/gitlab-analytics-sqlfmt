@@ -29,9 +29,8 @@ with
 
         from {{ ref("version_usage_data_month") }}
         where
-            uuid not in (
-                select uuid from {{ ref("version_blacklisted_instance_uuid") }}
-            )
+            uuid
+            not in (select uuid from {{ ref("version_blacklisted_instance_uuid") }})
 
     )
 

@@ -54,9 +54,8 @@ with
         from usage_pings_with_license_md5
         left join
             map_license_subscription_account
-            on usage_pings_with_license_md5.license_md5 = replace(
-                map_license_subscription_account.license_md5, '-'
-            )
+            on usage_pings_with_license_md5.license_md5
+            = replace(map_license_subscription_account.license_md5, '-')
 
     )
 

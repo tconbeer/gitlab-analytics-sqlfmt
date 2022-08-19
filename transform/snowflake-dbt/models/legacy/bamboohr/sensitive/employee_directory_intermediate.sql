@@ -100,8 +100,7 @@ with recursive
         left join
             job_role
             on job_role.employee_id = department_info.employee_id
-            and date_details.date_actual
-            between job_role.effective_date and coalesce(
+            and date_details.date_actual between job_role.effective_date and coalesce(
                 job_role.next_effective_date, {{ max_date_in_bamboo_analyses() }}
             )
         where job_role.job_grade is not null
@@ -195,14 +194,14 @@ with recursive
                     )
                     and coalesce(
                         job_role.job_grade, job_info_mapping_historical.job_grade
-                    ) in ('8', '9', '9.5', '10')
+                    )
+                    in ('8', '9', '9.5', '10')
                 then 'Staff'
                 when department_info.job_title ilike '%Fellow%'
                 then 'Staff'
                 when
-                    coalesce(
-                        job_role.job_grade, job_info_mapping_historical.job_grade
-                    ) in ('11', '12', '14', '15', 'CXO')
+                    coalesce(job_role.job_grade, job_info_mapping_historical.job_grade)
+                    in ('11', '12', '14', '15', 'CXO')
                 then 'Senior Leadership'
                 when
                     coalesce(job_role.job_grade, job_info_mapping_historical.job_grade)
@@ -257,8 +256,7 @@ with recursive
         left join
             department_info
             on employee_directory.employee_id = department_info.employee_id
-            and date_actual
-            between effective_date and coalesce(
+            and date_actual between effective_date and coalesce(
                 effective_end_date::date, {{ max_date_in_bamboo_analyses() }}
             )
         left join
@@ -298,8 +296,7 @@ with recursive
         left join
             job_role
             on employee_directory.employee_id = job_role.employee_id
-            and date_details.date_actual
-            between job_role.effective_date and coalesce(
+            and date_details.date_actual between job_role.effective_date and coalesce(
                 job_role.next_effective_date, {{ max_date_in_bamboo_analyses() }}
             )
         left join

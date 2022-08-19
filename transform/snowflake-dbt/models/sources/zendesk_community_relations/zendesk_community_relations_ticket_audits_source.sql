@@ -25,9 +25,8 @@ with
             lateral flatten(input => parse_json(events), outer => false) flat_events
         -- currently scoped to only sla_policy and priority
         where
-            flat_events.value['field_name'] in (
-                'sla_policy', 'priority', 'is_public', 'status'
-            )
+            flat_events.value['field_name']
+            in ('sla_policy', 'priority', 'is_public', 'status')
 
     )
 

@@ -70,9 +70,8 @@ with
         left join
             fct_payload
             on all_subscriptions.dim_subscription_id = fct_payload.dim_subscription_id
-            and dim_date.first_day_of_month = date_trunc(
-                'month', fct_payload.ping_created_at
-            )
+            and dim_date.first_day_of_month
+            = date_trunc('month', fct_payload.ping_created_at)
             {{ dbt_utils.group_by(n=6) }}
 
     ),

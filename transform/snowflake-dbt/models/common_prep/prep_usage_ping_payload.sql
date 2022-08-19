@@ -106,9 +106,8 @@ final as (
     from joined
     left join
         dim_product_tier
-        on trim(lower(joined.product_tier)) = trim(
-            lower(dim_product_tier.product_tier_historical_short)
-        )
+        on trim(lower(joined.product_tier))
+        = trim(lower(dim_product_tier.product_tier_historical_short))
         and edition = 'EE'
 
 )

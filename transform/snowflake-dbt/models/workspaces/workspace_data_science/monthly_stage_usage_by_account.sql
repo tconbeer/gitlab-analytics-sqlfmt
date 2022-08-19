@@ -28,14 +28,12 @@ with
         from usage_ping
         left join
             license_subscription_mapping
-            on usage_ping.license_md5 = replace(
-                license_subscription_mapping.license_md5, '-'
-            )
+            on usage_ping.license_md5
+            = replace(license_subscription_mapping.license_md5, '-')
         where
             usage_ping.license_md5 is not null
-            and cast(usage_ping.ping_created_at_month as date) < date_trunc(
-                'month', current_date
-            )
+            and cast(usage_ping.ping_created_at_month as date)
+            < date_trunc('month', current_date)
         qualify
             row_number() over (
                 partition by
@@ -67,9 +65,8 @@ with
             = 'Paid All Matching'
         where
             namespace_subscription_bridge.dim_crm_account_id is not null
-            and namespace_subscription_bridge.snapshot_month < date_trunc(
-                'month', current_date
-            )
+            and namespace_subscription_bridge.snapshot_month
+            < date_trunc('month', current_date)
             and metrics_path like 'usage_activity_by_stage%'
             and metrics_value > 0  -- Filter out non-instances
         qualify

@@ -84,9 +84,8 @@ invite_status as (
         and (
             invite_accepted_at is null
             or (
-                timestampdiff(minute, invite_accepted_at, namespace_created_at) not in (
-                    0, 1, 2
-                )
+                timestampdiff(minute, invite_accepted_at, namespace_created_at)
+                not in (0, 1, 2)
             )
         )
         = true
@@ -189,8 +188,7 @@ stages_adopted as (
         -- based on the selection chose for the `free_or_trial` filter
         and events.plan_name_at_event_date in ('trial', 'free', 'ultimate_trial')
         and xmau.smau = true
-        and events.event_date
-        between namespaces.namespace_created_at_date and ifnull(
+        and events.event_date between namespaces.namespace_created_at_date and ifnull(
             subscriptions.min_subscription_start_date, current_date
         )
         {{ dbt_utils.group_by(7) }}
@@ -716,9 +714,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Group Namespace Owner'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Group Namespace Owner')
                         then marketing_contact_order.is_saas_trial
                         else null
                     end
@@ -733,9 +730,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Group Namespace Owner'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Group Namespace Owner')
                         then marketing_contact_order.is_saas_free_tier
                         else null
                     end
@@ -750,9 +746,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Group Namespace Owner'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Group Namespace Owner')
                         then marketing_contact_order.is_saas_bronze_tier
                         else null
                     end
@@ -767,9 +762,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Group Namespace Owner'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Group Namespace Owner')
                         then marketing_contact_order.is_saas_premium_tier
                         else null
                     end
@@ -784,9 +778,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Group Namespace Owner'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Group Namespace Owner')
                         then marketing_contact_order.is_saas_ultimate_tier
                         else null
                     end
@@ -801,9 +794,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Customer DB Owner', 'Zuora Billing Contact'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Customer DB Owner', 'Zuora Billing Contact')
                         then marketing_contact_order.is_saas_trial
                         else null
                     end
@@ -818,9 +810,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Customer DB Owner', 'Zuora Billing Contact'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Customer DB Owner', 'Zuora Billing Contact')
                         then marketing_contact_order.is_saas_free_tier
                         else null
                     end
@@ -835,9 +826,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Customer DB Owner', 'Zuora Billing Contact'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Customer DB Owner', 'Zuora Billing Contact')
                         then marketing_contact_order.is_saas_bronze_tier
                         else null
                     end
@@ -852,9 +842,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Customer DB Owner', 'Zuora Billing Contact'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Customer DB Owner', 'Zuora Billing Contact')
                         then marketing_contact_order.is_saas_premium_tier
                         else null
                     end
@@ -869,9 +858,8 @@ prep as (
                     case
                         when
                             marketing_contact_order.is_individual_namespace = 0
-                            and marketing_contact_order.marketing_contact_role in (
-                                'Customer DB Owner', 'Zuora Billing Contact'
-                            )
+                            and marketing_contact_order.marketing_contact_role
+                            in ('Customer DB Owner', 'Zuora Billing Contact')
                         then marketing_contact_order.is_saas_ultimate_tier
                         else null
                     end

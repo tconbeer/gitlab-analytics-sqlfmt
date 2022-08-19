@@ -303,9 +303,8 @@ with
             postgres_counts
             on snowflake_counts.table_name = postgres_counts.table_name
             and snowflake_counts.created_date = postgres_counts.created_date
-            and snowflake_counts.updated_date = substring(
-                postgres_counts.updated_date, 1, 10
-            )
+            and snowflake_counts.updated_date
+            = substring(postgres_counts.updated_date, 1, 10)
     )
 
 select *, postgres_counts - snowflake_counts as deviation

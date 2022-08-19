@@ -90,9 +90,8 @@ with_plans as (
             ultimate_parent_gitlab_subscriptions.is_trial
             -- Excluded Premium (103) and Free (34) Trials from being remapped as
             -- Ultimate Trials
-            and ifnull(ultimate_parent_gitlab_subscriptions.plan_id, 34) not in (
-                34, 103
-            ),
+            and ifnull(ultimate_parent_gitlab_subscriptions.plan_id, 34)
+            not in (34, 103),
             -- All historical trial GitLab subscriptions were Ultimate/Gold Trials
             -- (102)
             102,

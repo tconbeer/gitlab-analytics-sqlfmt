@@ -63,16 +63,14 @@ with
             array_to_string(agg_labels.labels, '|') as masked_label_title,
             agg_labels.labels,
             iff(
-                merge_requests.target_project_id in (
-                    {{ is_project_included_in_engineering_metrics() }}
-                ),
+                merge_requests.target_project_id
+                in ({{ is_project_included_in_engineering_metrics() }}),
                 true,
                 false
             ) as is_included_in_engineering_metrics,
             iff(
-                merge_requests.target_project_id in (
-                    {{ is_project_part_of_product_ops() }}
-                ),
+                merge_requests.target_project_id
+                in ({{ is_project_part_of_product_ops() }}),
                 true,
                 false
             ) as is_part_of_product_ops

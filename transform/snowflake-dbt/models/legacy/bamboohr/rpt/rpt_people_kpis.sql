@@ -168,9 +168,8 @@ final as (
     left join rpt_osat on basic_metrics.month_date = rpt_osat.completed_month
     left join
         rpt_headcount_vs_planned
-        on basic_metrics.month_date = date_trunc(
-            month, rpt_headcount_vs_planned.month_date
-        )
+        on basic_metrics.month_date
+        = date_trunc(month, rpt_headcount_vs_planned.month_date)
         and rpt_headcount_vs_planned.breakout_type = 'all_company_breakout'
     left join
         rpt_recruiting_kpis on basic_metrics.month_date = rpt_recruiting_kpis.month_date
@@ -188,9 +187,8 @@ final as (
         and sdr_promotion.field_value = 'Sales Development'
     left join
         rpt_team_members_out_of_comp_band
-        on basic_metrics.month_date = date_trunc(
-            month, rpt_team_members_out_of_comp_band.date_actual
-        )
+        on basic_metrics.month_date
+        = date_trunc(month, rpt_team_members_out_of_comp_band.date_actual)
         and rpt_team_members_out_of_comp_band.breakout_type = 'company_breakout'
 )
 
@@ -208,6 +206,7 @@ select
     final.*
 from final
 where
-    month_date between dateadd(
-        month, -13, date_trunc(month, current_date())
-    ) and dateadd(month, -1, date_trunc(month, current_date()))
+    month_date
+    between dateadd(month, -13, date_trunc(month, current_date())) and dateadd(
+        month, -1, date_trunc(month, current_date())
+    )

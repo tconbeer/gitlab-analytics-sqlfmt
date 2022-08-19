@@ -42,9 +42,8 @@ with
                         a.ultimate_parent_account_segment = 'Unknown'
                         or a.ultimate_parent_account_segment is null
                     )
-                    and o.user_segment in (
-                        'Large', 'US West', 'US East', 'Public Sector''EMEA', 'APAC'
-                    )
+                    and o.user_segment
+                    in ('Large', 'US West', 'US East', 'Public Sector''EMEA', 'APAC')
                 then 'Large'
                 else a.ultimate_parent_account_segment
             end as sales_segment,
@@ -127,9 +126,8 @@ with
                     )
                 then 'MM'
                 when
-                    o.account_owner_team_stamped in (
-                        'SMB', 'SMB - US', 'SMB - International', 'Commercial - SMB'
-                    )
+                    o.account_owner_team_stamped
+                    in ('SMB', 'SMB - US', 'SMB - International', 'Commercial - SMB')
                 then 'SMB'
                 else 'Other'
             end as account_owner_team_stamped,
@@ -186,9 +184,8 @@ with
                         a.ultimate_parent_account_segment = 'Unknown'
                         or a.ultimate_parent_account_segment is null
                     )
-                    and o.user_segment in (
-                        'Large', 'US West', 'US East', 'Public Sector''EMEA', 'APAC'
-                    )
+                    and o.user_segment
+                    in ('Large', 'US West', 'US East', 'Public Sector''EMEA', 'APAC')
                 then 'Large'
                 else a.ultimate_parent_account_segment
             end as sales_segment,
@@ -271,9 +268,8 @@ with
                     )
                 then 'MM'
                 when
-                    o.account_owner_team_stamped in (
-                        'SMB', 'SMB - US', 'SMB - International', 'Commercial - SMB'
-                    )
+                    o.account_owner_team_stamped
+                    in ('SMB', 'SMB - US', 'SMB - International', 'Commercial - SMB')
                 then 'SMB'
                 else 'Other'
             end as account_owner_team_stamped,

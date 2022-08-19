@@ -15,9 +15,8 @@ with
         {% if is_incremental() %}
 
         where
-            dateadd('s', _uploaded_at, '1970-01-01') >= (
-                select max(_uploaded_at) from {{ this }}
-            )
+            dateadd('s', _uploaded_at, '1970-01-01')
+            >= (select max(_uploaded_at) from {{ this }})
 
         {% endif %}
         qualify

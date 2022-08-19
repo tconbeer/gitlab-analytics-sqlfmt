@@ -453,14 +453,12 @@ with
             sfdc_record_type.record_type_modifying_object_type,
             sfdc_record_type.record_type_name,
             md5(
-                (date_trunc('month', sfdc_opportunity.close_date)::date) || upper(
-                    opportunity_owner.team
-                )
+                (date_trunc('month', sfdc_opportunity.close_date)::date)
+                || upper(opportunity_owner.team)
             ) as region_quota_id,
             md5(
-                (date_trunc('month', sfdc_opportunity.close_date)::date) || upper(
-                    opportunity_owner.name
-                )
+                (date_trunc('month', sfdc_opportunity.close_date)::date)
+                || upper(opportunity_owner.name)
             ) as sales_quota_id
 
         from sfdc_opportunity

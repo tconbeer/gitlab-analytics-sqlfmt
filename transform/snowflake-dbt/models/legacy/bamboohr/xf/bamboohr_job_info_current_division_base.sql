@@ -63,6 +63,5 @@ left join
     on job_info.department = department_name_changes.old_department_name
 left join
     current_division_department_mapping
-    on current_division_department_mapping.department = coalesce(
-        department_name_changes.new_department_name, job_info.department
-    )
+    on current_division_department_mapping.department
+    = coalesce(department_name_changes.new_department_name, job_info.department)

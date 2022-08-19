@@ -40,13 +40,11 @@ with
             consolidated_exchange_rates.to_subsidiary_id
         from consolidated_exchange_rates
         where
-            consolidated_exchange_rates.to_subsidiary_id in (
-                -- constrait - only the primary subsidiary has no parent
-                select subsidiary_id from subsidiaries where parent_id is null
-            )
-            and consolidated_exchange_rates.accounting_book_id in (
-                select accounting_book_id from accounting_books where is_primary = true
-            )
+            consolidated_exchange_rates.to_subsidiary_id
+            -- constrait - only the primary subsidiary has no parent
+            in (select subsidiary_id from subsidiaries where parent_id is null)
+            and consolidated_exchange_rates.accounting_book_id
+            in (select accounting_book_id from accounting_books where is_primary = true)
 
     ),  -- account table with exchange rate details by accounting period
     account_period_exchange_rate_map as (
@@ -112,10 +110,9 @@ with
         where
             base.is_quarter = false
             and base.is_year = false
-            and base.fiscal_calendar_id = (
-                -- fiscal calendar will align with parent subsidiary's default calendar
-                select fiscal_calendar_id from subsidiaries where parent_id is null
-            )
+            and base.fiscal_calendar_id
+            -- fiscal calendar will align with parent subsidiary's default calendar
+            = (select fiscal_calendar_id from subsidiaries where parent_id is null)
             {{ dbt_utils.group_by(n=1) }}
 
     ),
@@ -301,12 +298,10 @@ with
             on transactions_with_converted_amounts.transaction_accounting_period_id
             = transaction_accounting_periods.accounting_period_id
         where
-            reporting_accounting_periods.fiscal_calendar_id = (
-                select fiscal_calendar_id from subsidiaries where parent_id is null
-            )
-            and transaction_accounting_periods.fiscal_calendar_id = (
-                select fiscal_calendar_id from subsidiaries where parent_id is null
-            )
+            reporting_accounting_periods.fiscal_calendar_id
+            = (select fiscal_calendar_id from subsidiaries where parent_id is null)
+            and transaction_accounting_periods.fiscal_calendar_id
+            = (select fiscal_calendar_id from subsidiaries where parent_id is null)
             and lower(accounts.account_type) != 'statistical'
             and accounts.account_number != '3035'
             {{ dbt_utils.group_by(n=16) }}
@@ -336,9 +331,8 @@ with
                     when lower(account_type) in {{ net_income_retained_earnings }}
                     then converted_amount_using_transaction_accounting_period
                     when
-                        lower(account_type) in (
-                            'equity', 'retained earnings', 'net income'
-                        )
+                        lower(account_type)
+                        in ('equity', 'retained earnings', 'net income')
                     then converted_amount_using_transaction_accounting_period
                     else converted_amount_using_reporting_month
                 end
@@ -362,12 +356,10 @@ with
             on transactions_with_converted_amounts.transaction_accounting_period_id
             = transaction_accounting_periods.accounting_period_id
         where
-            reporting_accounting_periods.fiscal_calendar_id = (
-                select fiscal_calendar_id from subsidiaries where parent_id is null
-            )
-            and transaction_accounting_periods.fiscal_calendar_id = (
-                select fiscal_calendar_id from subsidiaries where parent_id is null
-            )
+            reporting_accounting_periods.fiscal_calendar_id
+            = (select fiscal_calendar_id from subsidiaries where parent_id is null)
+            and transaction_accounting_periods.fiscal_calendar_id
+            = (select fiscal_calendar_id from subsidiaries where parent_id is null)
             and lower(accounts.account_type) != 'statistical'
             and accounts.account_number != '3035'
             {{ dbt_utils.group_by(n=11) }}

@@ -69,9 +69,8 @@ with
         inner join
             snapshot_dates
             on snapshot_dates.date_actual >= sfdc_user_snapshots_source.dbt_valid_from
-            and snapshot_dates.date_actual < coalesce(
-                sfdc_user_snapshots_source.dbt_valid_to, '9999-12-31'::timestamp
-            )
+            and snapshot_dates.date_actual
+            < coalesce(sfdc_user_snapshots_source.dbt_valid_to, '9999-12-31'::timestamp)
         {%- endif %}
 
     ),

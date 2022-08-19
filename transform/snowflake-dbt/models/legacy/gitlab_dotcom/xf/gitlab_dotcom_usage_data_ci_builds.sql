@@ -215,9 +215,8 @@ data as (
     left join
         gitlab_subscriptions
         on ultimate_namespace.namespace_id = gitlab_subscriptions.namespace_id
-        and {{ event_cte.event_name }}.created_at >= to_date(
-            gitlab_subscriptions.valid_from
-        )
+        and {{ event_cte.event_name }}.created_at
+        >= to_date(gitlab_subscriptions.valid_from)
         and {{ event_cte.event_name }}.created_at
         < {{ coalesce_to_infinity("TO_DATE(gitlab_subscriptions.valid_to)") }}
     left join plans on gitlab_subscriptions.plan_id = plans.plan_id

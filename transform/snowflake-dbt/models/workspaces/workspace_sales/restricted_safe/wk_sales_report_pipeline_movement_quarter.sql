@@ -485,9 +485,8 @@ with
                 -- the close date for churned deals is updated to the last day before
                 -- renewal
                 when
-                    opty.order_type_stamped in (
-                        '5. Churn - Partial', '6. Churn - Final'
-                    )
+                    opty.order_type_stamped
+                    in ('5. Churn - Partial', '6. Churn - Final')
                 then '6. Churned'
                 when opty.order_type_stamped in ('4. Contraction')
                 then '5. Contraction'
@@ -501,9 +500,8 @@ with
                 then '7. Open'
                 when
                     pipe.close_fiscal_quarter_date = opty.close_fiscal_quarter_date
-                    and opty.stage_name in (
-                        '9-Unqualified', '10-Duplicate', 'Unqualified'
-                    )
+                    and opty.stage_name
+                    in ('9-Unqualified', '10-Duplicate', 'Unqualified')
                 then '8. Duplicate / Unqualified'
                 when
                     pipe.close_fiscal_quarter_date <> opty.close_fiscal_quarter_date
@@ -518,18 +516,16 @@ with
 
             case
                 when
-                    pipe_resolution in (
-                        '1. Closed Won', '4. Closed Lost', '8. Duplicate / Unqualified'
-                    )
+                    pipe_resolution
+                    in ('1. Closed Won', '4. Closed Lost', '8. Duplicate / Unqualified')
                 then pipe.end_close_date
                 when
                     pipe_resolution in ('5. Contraction', '6. Churned')
                     and pipe.close_fiscal_quarter_date = opty.close_fiscal_quarter_date
                 then pipe.end_close_date
                 when
-                    pipe_resolution in (
-                        '2. Slipped', '3. Pushed Out', '7. Open', '9. Other'
-                    )
+                    pipe_resolution
+                    in ('2. Slipped', '3. Pushed Out', '7. Open', '9. Other')
                 then pipe.max_snapshot_date
                 else null
             end as pipe_resolution_date,

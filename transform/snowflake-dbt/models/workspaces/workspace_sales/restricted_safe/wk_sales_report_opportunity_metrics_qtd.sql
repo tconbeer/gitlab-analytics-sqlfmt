@@ -183,9 +183,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 3, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 3, today.current_fiscal_quarter_date)
                         and oppty.is_stage_1_plus = 1
                         and oppty.is_eligible_open_pipeline_flag = 1
                     then oppty.calculated_deal_count
@@ -196,9 +195,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 3, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 3, today.current_fiscal_quarter_date)
                         and oppty.is_stage_3_plus = 1
                         and oppty.is_eligible_open_pipeline_flag = 1
                     then oppty.calculated_deal_count
@@ -209,9 +207,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 3, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 3, today.current_fiscal_quarter_date)
                         and oppty.is_stage_4_plus = 1
                         and oppty.is_eligible_open_pipeline_flag = 1
                     then oppty.calculated_deal_count
@@ -223,9 +220,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 3, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 3, today.current_fiscal_quarter_date)
                         and oppty.is_eligible_open_pipeline_flag = 1
                         and oppty.is_stage_1_plus = 1
                     then oppty.net_arr
@@ -237,9 +233,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 3, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 3, today.current_fiscal_quarter_date)
                         and oppty.is_eligible_open_pipeline_flag = 1
                         and oppty.is_stage_3_plus = 1
                     then oppty.net_arr
@@ -251,9 +246,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 3, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 3, today.current_fiscal_quarter_date)
                         and oppty.is_eligible_open_pipeline_flag = 1
                         and oppty.is_stage_4_plus = 1
                     then oppty.net_arr
@@ -268,9 +262,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 6, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 6, today.current_fiscal_quarter_date)
                         and oppty.is_eligible_open_pipeline_flag = 1
                         and oppty.is_stage_1_plus = 1
                     then oppty.calculated_deal_count
@@ -281,9 +274,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 6, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 6, today.current_fiscal_quarter_date)
                         and oppty.is_eligible_open_pipeline_flag = 1
                         and oppty.is_stage_3_plus = 1
                     then oppty.calculated_deal_count
@@ -294,9 +286,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 6, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 6, today.current_fiscal_quarter_date)
                         and oppty.is_eligible_open_pipeline_flag = 1
                         and oppty.is_stage_4_plus = 1
                     then oppty.calculated_deal_count
@@ -308,9 +299,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 6, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 6, today.current_fiscal_quarter_date)
                         and oppty.is_eligible_open_pipeline_flag = 1
                         and oppty.is_stage_1_plus = 1
                     then oppty.net_arr
@@ -321,9 +311,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 6, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 6, today.current_fiscal_quarter_date)
                         and oppty.is_eligible_open_pipeline_flag = 1
                         and oppty.is_stage_3_plus = 1
                     then oppty.net_arr
@@ -334,9 +323,8 @@ with
             sum(
                 case
                     when
-                        oppty.close_fiscal_quarter_date = dateadd(
-                            month, 6, today.current_fiscal_quarter_date
-                        )
+                        oppty.close_fiscal_quarter_date
+                        = dateadd(month, 6, today.current_fiscal_quarter_date)
                         and oppty.is_eligible_open_pipeline_flag = 1
                         and oppty.is_stage_4_plus = 1
                     then oppty.net_arr
@@ -363,9 +351,8 @@ with
             opp_snapshot.snapshot_fiscal_quarter_date
             = opp_snapshot.pipeline_created_fiscal_quarter_date
             and opp_snapshot.is_eligible_created_pipeline_flag = 1
-            and opp_snapshot.snapshot_fiscal_quarter_date = dateadd(
-                month, -12, today.current_fiscal_quarter_date
-            )
+            and opp_snapshot.snapshot_fiscal_quarter_date
+            = dateadd(month, -12, today.current_fiscal_quarter_date)
             and opp_snapshot.snapshot_day_of_fiscal_quarter_normalised
             = today.current_fiscal_quarter_day_normalised
             and opp_snapshot.is_edu_oss = 0

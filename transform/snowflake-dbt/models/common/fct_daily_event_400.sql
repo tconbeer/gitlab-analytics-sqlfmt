@@ -14,9 +14,8 @@ usage_data as (
     {% if is_incremental() %}
 
     where
-        event_created_at >= (
-            select max(dateadd(day, -8, event_created_date)) from {{ this }}
-        )
+        event_created_at
+        >= (select max(dateadd(day, -8, event_created_date)) from {{ this }})
 
     {% endif %}
 
@@ -66,9 +65,8 @@ aggregated as (
         on usage_data.ultimate_parent_namespace_id
         = dim_namespace_plan_hist.dim_namespace_id
         and to_date(usage_data.event_created_at) >= dim_namespace_plan_hist.valid_from
-        and to_date(usage_data.event_created_at) < coalesce(
-            dim_namespace_plan_hist.valid_to, '2099-01-01'
-        )
+        and to_date(usage_data.event_created_at)
+        < coalesce(dim_namespace_plan_hist.valid_to, '2099-01-01')
     where days_since_user_creation >= 0 {{ dbt_utils.group_by(n=14) }}
 
 )

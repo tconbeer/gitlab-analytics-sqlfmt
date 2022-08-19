@@ -20,9 +20,8 @@ salesforce_accounts as (
         zoom_info_company_industry as company_industry,
         zoom_info_company_state_province as company_state_province,
         zoom_info_company_country as company_country,
-        iff(company_industry is not null, 1, 0) + iff(
-            company_state_province is not null, 1, 0
-        )
+        iff(company_industry is not null, 1, 0)
+        + iff(company_state_province is not null, 1, 0)
         + iff(company_country is not null, 1, 0) as completeness_score
     from accounts
     where company_id is not null and is_excluded_from_zoom_info_enrich = false
@@ -41,9 +40,8 @@ salesforce_leads as (
         zoominfo_company_industry as company_industry,
         zoominfo_company_state as company_state_province,
         zoominfo_company_country as company_country,
-        iff(company_industry is not null, 1, 0) + iff(
-            company_state_province is not null, 1, 0
-        )
+        iff(company_industry is not null, 1, 0)
+        + iff(company_state_province is not null, 1, 0)
         + iff(company_country is not null, 1, 0) as completeness_score
     from leads
     where company_id is not null
@@ -61,9 +59,8 @@ salesforce_contacts as (
         zoominfo_company_industry as company_industry,
         zoominfo_company_state_province as company_state_province,
         zoominfo_company_country as company_country,
-        iff(company_industry is not null, 1, 0) + iff(
-            company_state_province is not null, 1, 0
-        )
+        iff(company_industry is not null, 1, 0)
+        + iff(company_state_province is not null, 1, 0)
         + iff(company_country is not null, 1, 0) as completeness_score
     from contacts
     where company_id is not null

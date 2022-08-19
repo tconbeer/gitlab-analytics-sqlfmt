@@ -17,9 +17,8 @@ case
         )
     then null
     else
-        ({{ new_mrr }} / {{ new_seat_quantity }}) - (
-            {{ original_mrr }} / {{ original_seat_quantity }}
-        )
+        ({{ new_mrr }} / {{ new_seat_quantity }})
+        - ({{ original_mrr }} / {{ original_seat_quantity }})
 end as monthly_price_per_seat_change
 
 {%- endmacro -%}

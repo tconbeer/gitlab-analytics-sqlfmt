@@ -166,9 +166,8 @@ with
             -- https://gitlab.com/gitlab-data/analytics/-/issues/7888
             case
                 when
-                    sfdc_opportunity_snapshot_history.opportunity_category in (
-                        'Decommission'
-                    )
+                    sfdc_opportunity_snapshot_history.opportunity_category
+                    in ('Decommission')
                 then 1
                 else 0
             end as is_refund,
@@ -182,9 +181,8 @@ with
 
             case
                 when
-                    sfdc_opportunity_snapshot_history.opportunity_category in (
-                        'Contract Reset'
-                    )
+                    sfdc_opportunity_snapshot_history.opportunity_category
+                    in ('Contract Reset')
                 then 1
                 else 0
             end as is_contract_reset_flag,
@@ -386,9 +384,8 @@ with
                     )
                 then '3+ Pipeline'
                 when
-                    sfdc_opportunity_snapshot_history.stage_name in (
-                        '8-Closed Lost', 'Closed Lost'
-                    )
+                    sfdc_opportunity_snapshot_history.stage_name
+                    in ('8-Closed Lost', 'Closed Lost')
                 then 'Lost'
                 when sfdc_opportunity_snapshot_history.stage_name in ('Closed Won')
                 then 'Closed Won'
@@ -417,9 +414,8 @@ with
                     )
                 then '4+ Pipeline'
                 when
-                    sfdc_opportunity_snapshot_history.stage_name in (
-                        '8-Closed Lost', 'Closed Lost'
-                    )
+                    sfdc_opportunity_snapshot_history.stage_name
+                    in ('8-Closed Lost', 'Closed Lost')
                 then 'Lost'
                 when sfdc_opportunity_snapshot_history.stage_name in ('Closed Won')
                 then 'Closed Won'
@@ -479,9 +475,8 @@ with
 
             case
                 when
-                    sfdc_opportunity_snapshot_history.stage_name in (
-                        '8-Closed Lost', 'Closed Lost'
-                    )
+                    sfdc_opportunity_snapshot_history.stage_name
+                    in ('8-Closed Lost', 'Closed Lost')
                 then 1
                 else 0
             end as is_lost,
@@ -834,16 +829,14 @@ with
                         '8-Closed Lost', '9-Unqualified', 'Closed Won', '10-Duplicate'
                     )
                 then
-                    coalesce(opp_snapshot.incremental_acv, 0) * coalesce(
-                        segment_order_type_iacv_to_net_arr_ratio, 0
-                    )
+                    coalesce(opp_snapshot.incremental_acv, 0)
+                    * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
                 when  -- CLOSED LOST DEAL and no Net IACV
                     opp_snapshot.stage_name in ('8-Closed Lost')
                     and coalesce(opp_snapshot.net_incremental_acv, 0) = 0
                 then
-                    coalesce(opp_snapshot.incremental_acv, 0) * coalesce(
-                        segment_order_type_iacv_to_net_arr_ratio, 0
-                    )
+                    coalesce(opp_snapshot.incremental_acv, 0)
+                    * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
                 -- REST of CLOSED DEAL
                 when opp_snapshot.stage_name in ('8-Closed Lost', 'Closed Won')
                 then
@@ -955,9 +948,8 @@ with
             -- account_owner_team_stamp field
             case
                 when
-                    sfdc_opportunity_xf.account_owner_team_stamped in (
-                        'Commercial - SMB', 'SMB', 'SMB - US', 'SMB - International'
-                    )
+                    sfdc_opportunity_xf.account_owner_team_stamped
+                    in ('Commercial - SMB', 'SMB', 'SMB - US', 'SMB - International')
                 then 'SMB'
                 when
                     sfdc_opportunity_xf.account_owner_team_stamped in (
@@ -1120,9 +1112,8 @@ with
         where  -- remove test account
             opp_snapshot.raw_account_id not in ('0014M00001kGcORQA0')
             and (
-                sfdc_accounts_xf.ultimate_parent_account_id not in (
-                    '0016100001YUkWVAA1'
-                )
+                sfdc_accounts_xf.ultimate_parent_account_id
+                not in ('0016100001YUkWVAA1')
                 or sfdc_accounts_xf.account_id is null  -- remove test account
             )
             and opp_snapshot.is_deleted = 0
@@ -1149,9 +1140,8 @@ with
             and opp_snapshot.pipeline_created_fiscal_quarter_date
             = opp_snapshot.snapshot_fiscal_quarter_date
             and opp_snapshot.snapshot_day_of_fiscal_quarter_normalised = 90
-            and opp_snapshot.stage_name in (
-                '00-Pre Opportunity', '0-Pending Acceptance', '0-Qualifying'
-            )
+            and opp_snapshot.stage_name
+            in ('00-Pre Opportunity', '0-Pending Acceptance', '0-Qualifying')
         group by 1, 2, 3
 
 
@@ -1216,9 +1206,8 @@ with
             -- https://gitlab.com/gitlab-com/sales-team/field-operations/systems/-/issues/2389
             case
                 when
-                    opp_snapshot.order_type_stamped in (
-                        '1. New - First Order', '2. New - Connected', '3. Growth'
-                    )
+                    opp_snapshot.order_type_stamped
+                    in ('1. New - First Order', '2. New - Connected', '3. Growth')
                     and opp_snapshot.is_edu_oss = 0
                     and opp_snapshot.pipeline_created_fiscal_quarter_date is not null
                     and opp_snapshot.opportunity_category in (
@@ -1257,9 +1246,8 @@ with
                     and opp_snapshot.is_edu_oss = 0
                     and opp_snapshot.is_deleted = 0
                     and opp_snapshot.is_renewal = 0
-                    and opp_snapshot.stage_name not in (
-                        '10-Duplicate', '9-Unqualified', '0-Pending Acceptance'
-                    )
+                    and opp_snapshot.stage_name
+                    not in ('10-Duplicate', '9-Unqualified', '0-Pending Acceptance')
                 then 1
                 else 0
             end as is_eligible_sao_flag,
@@ -1272,14 +1260,12 @@ with
                     and opp_snapshot.is_deleted = 0
                     -- For ASP we care mainly about add on, new business, excluding
                     -- contraction / churn
-                    and opp_snapshot.order_type_stamped in (
-                        '1. New - First Order', '2. New - Connected', '3. Growth'
-                    )
+                    and opp_snapshot.order_type_stamped
+                    in ('1. New - First Order', '2. New - Connected', '3. Growth')
                     -- Exclude Decomissioned as they are not aligned to the real owner
                     -- Contract Reset, Decomission
-                    and opp_snapshot.opportunity_category in (
-                        'Standard', 'Ramp Deal', 'Internal Correction'
-                    )
+                    and opp_snapshot.opportunity_category
+                    in ('Standard', 'Ramp Deal', 'Internal Correction')
                     -- Exclude Deals with nARR < 0
                     and net_arr > 0
                 -- Not JiHu
@@ -1306,9 +1292,8 @@ with
                     )
                     -- Only include deal types with meaningful journeys through the
                     -- stages
-                    and opp_snapshot.opportunity_category in (
-                        'Standard', 'Ramp Deal', 'Decommissioned'
-                    )
+                    and opp_snapshot.opportunity_category
+                    in ('Standard', 'Ramp Deal', 'Decommissioned')
                     -- Web Purchase have a different dynamic and should not be included
                     and opp_snapshot.is_web_portal_purchase = 0
                 -- Not JiHu
@@ -1342,9 +1327,8 @@ with
                 when
                     opp_snapshot.is_edu_oss = 0
                     and opp_snapshot.is_deleted = 0
-                    and opp_snapshot.order_type_stamped in (
-                        '4. Contraction', '6. Churn - Final', '5. Churn - Partial'
-                    )
+                    and opp_snapshot.order_type_stamped
+                    in ('4. Contraction', '6. Churn - Final', '5. Churn - Partial')
                 -- Not JiHu
                 then 1
                 else 0
@@ -1424,9 +1408,8 @@ with
                         (opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1)
                         or opp_snapshot.is_won = 1
                     )
-                    and opp_snapshot.order_type_stamped in (
-                        '5. Churn - Partial', '6. Churn - Final', '4. Contraction'
-                    )
+                    and opp_snapshot.order_type_stamped
+                    in ('5. Churn - Partial', '6. Churn - Final', '4. Contraction')
                 then opp_snapshot.calculated_deal_count
                 else 0
             end as churned_contraction_deal_count,
@@ -1471,9 +1454,8 @@ with
                         (opp_snapshot.is_renewal = 1 and opp_snapshot.is_lost = 1)
                         or opp_snapshot.is_won = 1
                     )
-                    and opp_snapshot.order_type_stamped in (
-                        '5. Churn - Partial', '6. Churn - Final', '4. Contraction'
-                    )
+                    and opp_snapshot.order_type_stamped
+                    in ('5. Churn - Partial', '6. Churn - Final', '4. Contraction')
                 then net_arr
                 else 0
             end as churned_contraction_net_arr,
@@ -1493,9 +1475,8 @@ with
                 then 1
                 -- NF 2021 - Pubsec extreme deals
                 when
-                    opp_snapshot.opportunity_id in (
-                        '0064M00000WtZKUQA3', '0064M00000Xb975QAB'
-                    )
+                    opp_snapshot.opportunity_id
+                    in ('0064M00000WtZKUQA3', '0064M00000Xb975QAB')
                     and opp_snapshot.snapshot_date < '2021-05-01'
                 then 1
                 -- exclude vision opps from FY21-Q2

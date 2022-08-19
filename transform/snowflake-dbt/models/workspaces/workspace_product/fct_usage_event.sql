@@ -87,9 +87,8 @@ deduped_namespace_bdg as (
     inner join
         dim_subscription as ds on bdg.dim_subscription_id = ds.dim_subscription_id
     where
-        product_tier_name_subscription in (
-            'SaaS - Bronze', 'SaaS - Ultimate', 'SaaS - Premium'
-        )
+        product_tier_name_subscription
+        in ('SaaS - Bronze', 'SaaS - Ultimate', 'SaaS - Premium')
     qualify
         row_number() over (
             partition by dim_namespace_id order by subscription_version desc

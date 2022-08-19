@@ -155,9 +155,8 @@ renamed as (
         on prep_project.ultimate_parent_namespace_id
         = dim_namespace_plan_hist.dim_namespace_id
         and gitlab_dotcom_issues_source.created_at >= dim_namespace_plan_hist.valid_from
-        and gitlab_dotcom_issues_source.created_at < coalesce(
-            dim_namespace_plan_hist.valid_to, '2099-01-01'
-        )
+        and gitlab_dotcom_issues_source.created_at
+        < coalesce(dim_namespace_plan_hist.valid_to, '2099-01-01')
     left join
         dim_date on to_date(gitlab_dotcom_issues_source.created_at) = dim_date.date_day
     left join

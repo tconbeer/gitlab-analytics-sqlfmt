@@ -31,9 +31,8 @@ next_renewal_month as (
         on crm_accounts.dim_crm_account_id = fct_mrr.dim_crm_account_id
     inner join
         dim_crm_account as merged_accounts
-        on merged_accounts.dim_crm_account_id = coalesce(
-            crm_accounts.merged_to_account_id, crm_accounts.dim_crm_account_id
-        )
+        on merged_accounts.dim_crm_account_id
+        = coalesce(crm_accounts.merged_to_account_id, crm_accounts.dim_crm_account_id)
     left join
         dim_subscription
         on dim_subscription.dim_subscription_id = fct_mrr.dim_subscription_id
@@ -55,9 +54,8 @@ last_renewal_month as (
         on crm_accounts.dim_crm_account_id = fct_mrr.dim_crm_account_id
     inner join
         dim_crm_account as merged_accounts
-        on merged_accounts.dim_crm_account_id = coalesce(
-            crm_accounts.merged_to_account_id, crm_accounts.dim_crm_account_id
-        )
+        on merged_accounts.dim_crm_account_id
+        = coalesce(crm_accounts.merged_to_account_id, crm_accounts.dim_crm_account_id)
     left join
         dim_subscription
         on dim_subscription.dim_subscription_id = fct_mrr.dim_subscription_id

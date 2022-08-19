@@ -43,9 +43,8 @@ joined as (
         on dim_project.ultimate_parent_namespace_id
         = dim_namespace_plan_hist.dim_namespace_id
         and resource_weight_events.created_at >= dim_namespace_plan_hist.valid_from
-        and resource_weight_events.created_at < coalesce(
-            dim_namespace_plan_hist.valid_to, '2099-01-01'
-        )
+        and resource_weight_events.created_at
+        < coalesce(dim_namespace_plan_hist.valid_to, '2099-01-01')
     left join dim_date on to_date(resource_weight_events.created_at) = dim_date.date_day
 
 )

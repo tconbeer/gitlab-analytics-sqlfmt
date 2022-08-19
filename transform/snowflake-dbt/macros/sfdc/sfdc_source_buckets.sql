@@ -40,9 +40,8 @@ case
         )
     then 'Marketing/Inbound'
     when
-        {{ lead_source }} in (
-            'Advertisement', 'Conference', 'Field Event', 'Owned Event'
-        )
+        {{ lead_source }}
+        in ('Advertisement', 'Conference', 'Field Event', 'Owned Event')
     then 'Marketing/Outbound'
     when
         {{ lead_source }} in (
@@ -57,9 +56,8 @@ case
         )
     then 'Prospecting'
     when
-        {{ lead_source }} in (
-            'Employee Referral', 'External Referral', 'Partner', 'Word of mouth'
-        )
+        {{ lead_source }}
+        in ('Employee Referral', 'External Referral', 'Partner', 'Word of mouth')
     then 'Referral'
     when {{ lead_source }} in ('AE Generated')
     then 'Sales'
@@ -69,9 +67,8 @@ case
 end as net_new_source_categories,
 case
     when
-        {{ lead_source }} in (
-            'CORE Check-Up', 'CE Download', 'CE Usage Ping', 'CE Version Check'
-        )
+        {{ lead_source }}
+        in ('CORE Check-Up', 'CE Download', 'CE Usage Ping', 'CE Version Check')
     then 'core'
     when
         {{ lead_source }} in (

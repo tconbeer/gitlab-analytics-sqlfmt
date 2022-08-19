@@ -245,9 +245,8 @@ with
         from dates
         left join
             employees
-            on date_trunc(month, dates.start_date) = date_trunc(
-                month, employees.date_actual
-            )
+            on date_trunc(month, dates.start_date)
+            = date_trunc(month, employees.date_actual)
         left join
             mapping_enhanced on employees.employee_id = mapping_enhanced.employee_id
         left join

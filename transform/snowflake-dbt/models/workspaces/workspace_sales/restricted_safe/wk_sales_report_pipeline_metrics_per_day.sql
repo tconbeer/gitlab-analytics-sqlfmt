@@ -283,9 +283,8 @@ with
         from pipeline_snapshot
         -- restrict the report to show rows in quarter plus 1 of snapshot quarter
         where
-            pipeline_snapshot.snapshot_fiscal_quarter_date = dateadd(
-                month, -3, pipeline_snapshot.close_fiscal_quarter_date
-            )
+            pipeline_snapshot.snapshot_fiscal_quarter_date
+            = dateadd(month, -3, pipeline_snapshot.close_fiscal_quarter_date)
             -- exclude lost deals from pipeline
             and pipeline_snapshot.is_lost = 0
         group by 1, 2, 3, 4, 5
@@ -328,9 +327,8 @@ with
         from pipeline_snapshot
         -- restrict the report to show rows in quarter plus 2 of snapshot quarter
         where
-            pipeline_snapshot.snapshot_fiscal_quarter_date = dateadd(
-                month, -6, pipeline_snapshot.close_fiscal_quarter_date
-            )
+            pipeline_snapshot.snapshot_fiscal_quarter_date
+            = dateadd(month, -6, pipeline_snapshot.close_fiscal_quarter_date)
             -- exclude lost deals from pipeline
             and pipeline_snapshot.is_lost = 0
         group by 1, 2, 3, 4, 5
@@ -474,14 +472,12 @@ with
             = key_fields.close_fiscal_quarter_date
         left join
             date_details rq_plus_1
-            on rq_plus_1.date_actual = dateadd(
-                month, 3, close_date.first_day_of_fiscal_quarter
-            )
+            on rq_plus_1.date_actual
+            = dateadd(month, 3, close_date.first_day_of_fiscal_quarter)
         left join
             date_details rq_plus_2
-            on rq_plus_2.date_actual = dateadd(
-                month, 6, close_date.first_day_of_fiscal_quarter
-            )
+            on rq_plus_2.date_actual
+            = dateadd(month, 6, close_date.first_day_of_fiscal_quarter)
 
     ),
     report_pipeline_metrics_day as (
@@ -705,9 +701,8 @@ with
             pipeline_gen minus_1_year_pipe_gen
             on minus_1_year_pipe_gen.close_day_of_fiscal_quarter_normalised
             = base_fields.close_day_of_fiscal_quarter_normalised
-            and minus_1_year_pipe_gen.close_fiscal_quarter_date = dateadd(
-                month, -12, base_fields.close_fiscal_quarter_date
-            )
+            and minus_1_year_pipe_gen.close_fiscal_quarter_date
+            = dateadd(month, -12, base_fields.close_fiscal_quarter_date)
             and minus_1_year_pipe_gen.report_user_segment_geo_region_area_sqs_ot
             = base_fields.report_user_segment_geo_region_area_sqs_ot
         -- One Year Ago Sales Accepted Opportunity Generation
@@ -715,9 +710,8 @@ with
             sao_gen minus_1_year_sao_gen
             on minus_1_year_sao_gen.close_day_of_fiscal_quarter_normalised
             = base_fields.close_day_of_fiscal_quarter_normalised
-            and minus_1_year_sao_gen.close_fiscal_quarter_date = dateadd(
-                month, -12, base_fields.close_fiscal_quarter_date
-            )
+            and minus_1_year_sao_gen.close_fiscal_quarter_date
+            = dateadd(month, -12, base_fields.close_fiscal_quarter_date)
             and minus_1_year_sao_gen.report_user_segment_geo_region_area_sqs_ot
             = base_fields.report_user_segment_geo_region_area_sqs_ot
 

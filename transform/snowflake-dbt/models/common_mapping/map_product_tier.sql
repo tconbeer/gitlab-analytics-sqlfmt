@@ -122,14 +122,12 @@ with
                     )
                 then 'Other'
                 when
-                    trim(zuora_product_rate_plan.product_rate_plan_name) in (
-                        'File Locking', 'Time Tracking', '1,000 CI Minutes'
-                    )
+                    trim(zuora_product_rate_plan.product_rate_plan_name)
+                    in ('File Locking', 'Time Tracking', '1,000 CI Minutes')
                 then 'SaaS - Other'
                 when
-                    trim(zuora_product_rate_plan.product_rate_plan_name) in (
-                        'Gitlab Storage 10GB'
-                    )
+                    trim(zuora_product_rate_plan.product_rate_plan_name)
+                    in ('Gitlab Storage 10GB')
                 then 'Storage'
                 else 'Not Applicable'
             end as product_tier_historical,
@@ -149,19 +147,16 @@ with
             end as product_delivery_type,
             case
                 when
-                    product_tier_historical in (
-                        'SaaS - Gold', 'Self-Managed - Ultimate', 'SaaS - Ultimate'
-                    )
+                    product_tier_historical
+                    in ('SaaS - Gold', 'Self-Managed - Ultimate', 'SaaS - Ultimate')
                 then 3
                 when
-                    product_tier_historical in (
-                        'SaaS - Silver', 'Self-Managed - Premium', 'SaaS - Premium'
-                    )
+                    product_tier_historical
+                    in ('SaaS - Silver', 'Self-Managed - Premium', 'SaaS - Premium')
                 then 2
                 when
-                    product_tier_historical in (
-                        'SaaS - Bronze', 'Self-Managed - Starter'
-                    )
+                    product_tier_historical
+                    in ('SaaS - Bronze', 'Self-Managed - Starter')
                 then 1
                 else 0
             end as product_ranking,

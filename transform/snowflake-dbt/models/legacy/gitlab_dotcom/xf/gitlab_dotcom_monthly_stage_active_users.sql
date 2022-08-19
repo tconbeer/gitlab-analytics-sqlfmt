@@ -10,9 +10,8 @@ with
         {% if is_incremental() %}
 
         where
-            date_trunc('month', event_created_at) >= (
-                select dateadd('days', -1, max(smau_month)) from {{ this }}
-            )
+            date_trunc('month', event_created_at)
+            >= (select dateadd('days', -1, max(smau_month)) from {{ this }})
 
         {% endif %}
 

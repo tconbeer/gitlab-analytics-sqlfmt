@@ -676,9 +676,8 @@ with
         select *
         from dupes
         where  -- 460 non-distinct, 200 distinct
-            dim_subscription_id not in (
-                select distinct dim_subscription_id from dupes_with_amount_matches
-            )
+            dim_subscription_id
+            not in (select distinct dim_subscription_id from dupes_with_amount_matches)
 
     ),
     multi_invoice_subs_with_opp_amounts as (
@@ -763,9 +762,8 @@ with
         select *
         from dupes
         where
-            dim_subscription_id not in (
-                select distinct dim_subscription_id from final_matches_part_1
-            )
+            dim_subscription_id
+            not in (select distinct dim_subscription_id from final_matches_part_1)
 
     ),
     self_service_dupes_with_subscription_opp as (

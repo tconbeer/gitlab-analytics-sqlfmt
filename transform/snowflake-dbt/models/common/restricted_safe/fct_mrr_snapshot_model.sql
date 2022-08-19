@@ -66,9 +66,8 @@ with
         inner join
             snapshot_dates
             on snapshot_dates.date_actual >= prep_charge.valid_from
-            and snapshot_dates.date_actual < coalesce(
-                prep_charge.valid_to, '9999-12-31'::timestamp
-            )
+            and snapshot_dates.date_actual
+            < coalesce(prep_charge.valid_to, '9999-12-31'::timestamp)
         -- NOTE THE GAP IN THE GROUPINGS BELOW,
         -- We need to group by everything except for unit of measure.
         group by

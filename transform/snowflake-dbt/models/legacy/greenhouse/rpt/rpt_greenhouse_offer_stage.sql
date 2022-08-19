@@ -43,19 +43,16 @@ with
         from greenhouse_offer_custom_fields
         left join
             zuora_regions z1
-            on lower(z1.country_name_in_zuora) = lower(
-                greenhouse_offer_custom_fields.candidate_country
-            )
+            on lower(z1.country_name_in_zuora)
+            = lower(greenhouse_offer_custom_fields.candidate_country)
         left join
             zuora_regions z2
-            on lower(z2.iso_alpha_2_code) = lower(
-                greenhouse_offer_custom_fields.candidate_country
-            )
+            on lower(z2.iso_alpha_2_code)
+            = lower(greenhouse_offer_custom_fields.candidate_country)
         left join
             zuora_regions z3
-            on lower(z3.iso_alpha_3_code) = lower(
-                greenhouse_offer_custom_fields.candidate_country
-            )
+            on lower(z3.iso_alpha_3_code)
+            = lower(greenhouse_offer_custom_fields.candidate_country)
 
     ),
     data_set as (
@@ -92,9 +89,8 @@ with
             sum(iff(offer_status = 'accepted', 1, 0)) as accepted_offers_to_start
         from data_set
         where
-            geographic_region in (
-                'North America', 'South America', 'EMEA', 'Asia Pacific', 'Americas'
-            )
+            geographic_region
+            in ('North America', 'South America', 'EMEA', 'Asia Pacific', 'Americas')
         group by 1, 2
         order by 1 desc
 

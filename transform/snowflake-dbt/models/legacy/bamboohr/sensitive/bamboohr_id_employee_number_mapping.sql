@@ -65,14 +65,12 @@ with
             uploaded_at as last_updated_date,
             case
                 when
-                    coalesce(gender_dropdown, gender, 'Did Not Identify') not in (
-                        'Male', 'Did Not Identify'
-                    )
+                    coalesce(gender_dropdown, gender, 'Did Not Identify')
+                    not in ('Male', 'Did Not Identify')
                 then true
                 when
-                    coalesce(ethnicity, 'Did Not Identify') not in (
-                        'White', 'Did Not Identify'
-                    )
+                    coalesce(ethnicity, 'Did Not Identify')
+                    not in ('White', 'Did Not Identify')
                 then true
                 else false
             end as urg_group

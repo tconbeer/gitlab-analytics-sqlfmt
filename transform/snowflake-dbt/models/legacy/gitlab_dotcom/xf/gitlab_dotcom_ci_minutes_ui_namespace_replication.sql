@@ -206,12 +206,10 @@ with
             iff(
                 iff(
                     shared_runners_minutes_limit is not null,
-                    shared_runners_minutes_limit + ifnull(
-                        extra_shared_runners_minutes_limit, 0
-                    ),
-                    gitlab_current_settings_shared_runners_minutes + ifnull(
-                        extra_shared_runners_minutes_limit, 0
-                    )
+                    shared_runners_minutes_limit
+                    + ifnull(extra_shared_runners_minutes_limit, 0),
+                    gitlab_current_settings_shared_runners_minutes
+                    + ifnull(extra_shared_runners_minutes_limit, 0)
                 )
                 > 0,
                 true,

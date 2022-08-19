@@ -14,9 +14,8 @@ with
             and ping_date < date_trunc('month', current_date)
 
             {% if is_incremental() %}
-            and date_trunc('month', ping_date) > (
-                select max(snapshot_month) from {{ this }}
-            )
+            and date_trunc('month', ping_date)
+            > (select max(snapshot_month) from {{ this }})
             {% endif %}
 
     ),

@@ -34,9 +34,8 @@ with
             sum(headcount_end_excluding_sdr) as headcount_end_excluding_sdr
         from {{ ref("bamboohr_rpt_headcount_aggregation") }}
         where
-            breakout_type in (
-                'department_breakout', 'kpi_breakout', 'division_breakout'
-            )
+            breakout_type
+            in ('department_breakout', 'kpi_breakout', 'division_breakout')
             and eeoc_field_name = 'no_eeoc'
         group by 1, 2, 3
 

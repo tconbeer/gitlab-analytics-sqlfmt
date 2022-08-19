@@ -430,9 +430,8 @@ renewal_subscriptions_{{ renewal_fiscal_year }} as (
     inner join
         dim_subscription_last_term sub_2
         on sub_1.zuora_renewal_subscription_name = sub_2.subscription_name
-        and date_trunc('month', sub_2.subscription_end_date) > concat(
-            '{{renewal_fiscal_year}}', '-01-01'
-        )
+        and date_trunc('month', sub_2.subscription_end_date)
+        > concat('{{renewal_fiscal_year}}', '-01-01')
     where sub_1.zuora_renewal_subscription_name != ''
     qualify rank = 1
 

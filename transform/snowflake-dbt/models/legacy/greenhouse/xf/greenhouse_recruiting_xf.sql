@@ -196,9 +196,8 @@ with
             on rejection_reasons.rejection_reason_id = applications.rejection_reason_id
         left join
             cost_center
-            on trim(greenhouse_departments.department_name) = trim(
-                cost_center.department
-            )
+            on trim(greenhouse_departments.department_name)
+            = trim(cost_center.department)
         left join bamboo on bamboo.greenhouse_candidate_id = applications.candidate_id
 
     )

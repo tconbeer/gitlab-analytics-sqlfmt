@@ -368,9 +368,8 @@ with
             active_zuora_subscription.current_term as months_of_future_billings,
             case
                 when
-                    date_trunc('month', effective_end_date) > date_trunc(
-                        'month', effective_start_date
-                    )
+                    date_trunc('month', effective_end_date)
+                    > date_trunc('month', effective_start_date)
                     or date_trunc('month', effective_end_date) is null
                 then true
                 else false

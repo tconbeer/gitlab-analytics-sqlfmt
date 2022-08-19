@@ -35,9 +35,8 @@ with
         from
             employees,
             lateral flatten(
-                input => split(
-                    coalesce(replace(jobtitle_speciality, '&', ','), ''), ','
-                )
+                input
+                => split(coalesce(replace(jobtitle_speciality, '&', ','), ''), ',')
             )
         where division = 'Engineering' and date_actual >= '2020-01-01'
 

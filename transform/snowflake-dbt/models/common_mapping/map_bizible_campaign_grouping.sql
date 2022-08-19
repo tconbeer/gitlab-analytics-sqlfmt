@@ -627,9 +627,8 @@ with
                     and campaign.gtm_motion = 'DevOps Platform'
                 then 'DevOps'
                 when
-                    bizible_integrated_campaign_grouping in (
-                        'GitOps Use Case', 'GitOps GTM webcast'
-                    )
+                    bizible_integrated_campaign_grouping
+                    in ('GitOps Use Case', 'GitOps GTM webcast')
                 then 'GitOps'
                 when  -- override for TechDemo Series
                     dim_parent_campaign_id = '7014M000001vm9KQAQ'
@@ -650,9 +649,8 @@ with
                 when bizible_marketing_channel_path = 'CPC.AdWords'
                 then 'Google AdWords'
                 when
-                    bizible_marketing_channel_path in (
-                        'Email.Other', 'Email.Newsletter', 'Email.Outreach'
-                    )
+                    bizible_marketing_channel_path
+                    in ('Email.Other', 'Email.Newsletter', 'Email.Outreach')
                 then 'Email'
                 when
                     bizible_marketing_channel_path in (
@@ -684,14 +682,12 @@ with
                     )
                 then 'Social'
                 when
-                    bizible_marketing_channel_path in (
-                        'Marketing Site.Web Referral', 'Web Referral'
-                    )
+                    bizible_marketing_channel_path
+                    in ('Marketing Site.Web Referral', 'Web Referral')
                 then 'Web Referral'
                 when  -- Added to Web Direct
-                    bizible_marketing_channel_path in (
-                        'Marketing Site.Web Direct', 'Web Direct'
-                    )
+                    bizible_marketing_channel_path
+                    in ('Marketing Site.Web Direct', 'Web Direct')
                     or dim_campaign_id in (
                         '701610000008ciRAAQ',  -- Trial - GitLab.com
                         '70161000000VwZbAAK',  -- Trial - Self-Managed

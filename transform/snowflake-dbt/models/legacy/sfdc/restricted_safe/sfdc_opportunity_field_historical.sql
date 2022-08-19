@@ -82,9 +82,8 @@ with
         from
             base
             pivot(
-                max(old_value) for opportunity_field in (
-                    '{{ fields_to_use | join ("', '") }}'
-                )
+                max(old_value) for opportunity_field
+                in ('{{ fields_to_use | join ("', '") }}')
             )
 
     ),

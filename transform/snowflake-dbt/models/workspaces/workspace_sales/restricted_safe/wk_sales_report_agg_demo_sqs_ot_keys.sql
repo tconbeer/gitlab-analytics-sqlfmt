@@ -24,16 +24,14 @@ with
                 when opportunity.order_type_stamped = '1. New - First Order'
                 then '1. New'
                 when
-                    opportunity.order_type_stamped in (
-                        '2. New - Connected', '3. Growth'
-                    )
+                    opportunity.order_type_stamped
+                    in ('2. New - Connected', '3. Growth')
                 then '2. Growth'
                 when opportunity.order_type_stamped in ('4. Contraction')
                 then '3. Contraction'
                 when
-                    opportunity.order_type_stamped in (
-                        '5. Churn - Partial', '6. Churn - Final'
-                    )
+                    opportunity.order_type_stamped
+                    in ('5. Churn - Partial', '6. Churn - Final')
                 then '4. Churn'
                 else '5. Other'
             end as deal_category,

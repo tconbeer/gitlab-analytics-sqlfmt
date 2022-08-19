@@ -98,17 +98,15 @@ with
                 when dim_subscription.current_term >= 24
                 then true
                 when
-                    dim_subscription.subscription_name in (
-                        select distinct subscription_name from renewal_subscriptions
-                    )
+                    dim_subscription.subscription_name
+                    in (select distinct subscription_name from renewal_subscriptions)
                 then true
                 else false
             end as is_myb,
             case
                 when
-                    dim_subscription.subscription_name in (
-                        select distinct subscription_name from renewal_subscriptions
-                    )
+                    dim_subscription.subscription_name
+                    in (select distinct subscription_name from renewal_subscriptions)
                 then true
                 else false
             end as is_myb_with_multi_subs,

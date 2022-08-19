@@ -3,9 +3,8 @@
 ) -%}
 
 zeroifnull(
-    ({{ arr }} / nullif({{ quantity }}, 0)) - (
-        {{ previous_arr }} / nullif({{ previous_quantity }}, 0)
-    )
+    ({{ arr }} / nullif({{ quantity }}, 0))
+    - ({{ previous_arr }} / nullif({{ previous_quantity }}, 0))
 ) as annual_price_per_seat_change
 
 {%- endmacro -%}
