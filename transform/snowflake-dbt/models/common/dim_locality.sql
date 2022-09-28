@@ -38,14 +38,15 @@ null_entry as (
     select *
     from
         (
-            values(
-                'unknown',
-                'unknown',
-                -1,
-                {{ var("infinity_past") }},
-                {{ var("infinity_future") }},
-                false
-            )
+            values
+                (
+                    'unknown',
+                    'unknown',
+                    -1,
+                    {{ var("infinity_past") }},
+                    {{ var("infinity_future") }},
+                    false
+                )
         ) as null_entry(country, locality, factor, valid_from, valid_to)
 
 ),
