@@ -1,73 +1,72 @@
-{{config({
-    "schema": "legacy"
-  })
-}}
+{{ config({"schema": "legacy"}) }}
 
-{% set partition_statement = "OVER ( PARTITION BY child_sub ORDER BY cohort_month, ultimate_parent_sub)" %} 
-                      -- we have this second "order by" in case of two parents having the same cohort month.
+{% set partition_statement = "OVER ( PARTITION BY child_sub ORDER BY cohort_month, ultimate_parent_sub)" %}
+-- we have this second "order by" in case of two parents having the same cohort month.
+with
+    base as (select * from {{ ref("zuora_subscription_parentage_start") }}),
+    new_base as (
 
-with base as (
+        select *
+        from base
+        where child_sub in (select child_sub from base group by 1 having count(*) > 1)
 
-  SELECT *
-  FROM {{ref('zuora_subscription_parentage_start')}}
+    ),
+    consolidated_parents as (
 
-), new_base as (
+        select
+            first_value(
+                ultimate_parent_sub
+            ) {{ partition_statement }} as ultimate_parent_sub_2,
+            child_sub,
+            min(cohort_month) {{ partition_statement }} as cohort_month,
+            min(cohort_quarter) {{ partition_statement }} as cohort_quarter,
+            min(cohort_year) {{ partition_statement }} as cohort_year
+        from new_base
 
-  SELECT *
-  FROM base
-  WHERE child_sub IN (SELECT child_sub 
-                      FROM base 
-                      GROUP BY 1 
-                      HAVING count (*)> 1)
+    ),
+    deduped_consolidations as (
 
-), consolidated_parents as (
+        select * from consolidated_parents group by 1, 2, 3, 4, 5
 
-  SELECT first_value(ultimate_parent_sub) {{ partition_statement }} as ultimate_parent_sub_2,
-         child_sub,
-         min(cohort_month) {{ partition_statement }} as cohort_month,
-         min(cohort_quarter) {{ partition_statement }} as cohort_quarter,
-         min(cohort_year) {{ partition_statement }} as cohort_year
-  FROM new_base
+    ),
+    unioned as (
 
-), deduped_consolidations as (
+        select
+            deduped_consolidations.ultimate_parent_sub_2 as ultimate_parent_sub,
+            new_base.ultimate_parent_sub as child_sub,
+            deduped_consolidations.cohort_month,
+            deduped_consolidations.cohort_quarter,
+            deduped_consolidations.cohort_year
+        from deduped_consolidations
+        left join new_base on new_base.child_sub = deduped_consolidations.child_sub
+        where ultimate_parent_sub_2 != ultimate_parent_sub
 
-  SELECT *
-  FROM consolidated_parents
-  GROUP BY 1, 2, 3, 4, 5
+        union all
 
-), unioned as (
+        select *
+        from deduped_consolidations
 
-  SELECT deduped_consolidations.ultimate_parent_sub_2 as ultimate_parent_sub,
-         new_base.ultimate_parent_sub as child_sub,
-         deduped_consolidations.cohort_month,
-         deduped_consolidations.cohort_quarter,
-         deduped_consolidations.cohort_year
-  FROM deduped_consolidations
-  LEFT JOIN new_base 
-  ON new_base.child_sub = deduped_consolidations.child_sub
-  WHERE ultimate_parent_sub_2 != ultimate_parent_sub
+        union all
 
-  UNION ALL
+        select *
+        from base
+        where child_sub not in (select child_sub from new_base)
 
-  SELECT * FROM deduped_consolidations
+    ),
+    fix_consolidations as (
 
-  UNION ALL
-  
-  SELECT *
-  FROM base
-  WHERE child_sub NOT IN (SELECT child_sub FROM new_base)
+        select
+            first_value(
+                ultimate_parent_sub
+            ) {{ partition_statement }} as ultimate_parent_sub,
+            child_sub,
+            min(cohort_month) {{ partition_statement }} as cohort_month,
+            min(cohort_quarter) {{ partition_statement }} as cohort_quarter,
+            min(cohort_year) {{ partition_statement }} as cohort_year
+        from unioned
 
-), fix_consolidations as (
+    )
 
-  SELECT first_value(ultimate_parent_sub) {{ partition_statement }} as ultimate_parent_sub,
-         child_sub,
-         min(cohort_month) {{ partition_statement }} as cohort_month,
-         min(cohort_quarter) {{ partition_statement }} as cohort_quarter,
-         min(cohort_year) {{ partition_statement }} as cohort_year
-  FROM unioned
-
-)
-
-SELECT *
-FROM fix_consolidations
-GROUP BY 1, 2, 3, 4, 5
+select *
+from fix_consolidations
+group by 1, 2, 3, 4, 5

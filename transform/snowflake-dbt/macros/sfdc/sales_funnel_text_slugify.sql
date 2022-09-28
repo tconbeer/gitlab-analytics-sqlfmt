@@ -1,15 +1,15 @@
 {%- macro sales_funnel_text_slugify(input_text) -%}
 
-    trim(
-        lower(
+trim(
+    lower(
+        regexp_replace(
             regexp_replace(
-                regexp_replace(
-                    regexp_replace(
-                        {{ input_text }}
-                    , '\\s+\\|{2}\\s+', '|')
-                , '[ ]{2,}', ' ')
-            , '[^A-Za-z0-9|]', '')
-            )
+                regexp_replace({{ input_text }}, '\\s+\\|{2}\\s+', '|'), '[ ]{2,}', ' '
+            ),
+            '[^A-Za-z0-9|]',
+            ''
         )
+    )
+)
 
 {%- endmacro -%}

@@ -1,24 +1,21 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_vulnerabilities_dedupe_source") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_vulnerabilities_dedupe_source') }}
-    
-), renamed AS (
+        select
+            id::number as vulnerability_id,
+            confidence::number as confidence,
+            confidence_overridden::boolean as is_confidence_overridden,
+            confirmed_at::timestamp as confirmed_at,
+            created_at::timestamp as created_at,
+            dismissed_at::timestamp as dismissed_at,
+            resolved_at::timestamp as resolved_at,
+            severity_overridden::boolean as is_severity_overriden,
+            state::number as state,
+            updated_at::timestamp as updated_at
+        from source
 
-    SELECT
-      id::NUMBER                        AS vulnerability_id,
-      confidence::NUMBER                AS confidence,
-      confidence_overridden::BOOLEAN    AS is_confidence_overridden, 
-      confirmed_at::TIMESTAMP           AS confirmed_at,
-      created_at::TIMESTAMP             AS created_at,
-      dismissed_at::TIMESTAMP           AS dismissed_at,
-      resolved_at::TIMESTAMP            AS resolved_at,
-      severity_overridden::BOOLEAN      AS is_severity_overriden,
-      state::NUMBER                     AS state,
-      updated_at::TIMESTAMP             AS updated_at
-    FROM source
-    
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

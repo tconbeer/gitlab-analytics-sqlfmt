@@ -1,30 +1,23 @@
-{{ config({
-        "materialized": "table"
-    })
-}}
+{{ config({"materialized": "table"}) }}
 
-WITH datasiren_summary AS (
+with
+    datasiren_summary as (select * from {{ ref("datasiren_audit_results") }}),
+    grouped as (
 
-    SELECT *
-    FROM {{ ref('datasiren_audit_results') }}
+        select
 
-), grouped AS (
+            sensor_name,
+            database_name,
+            table_schema,
+            table_name,
+            column_name,
+            count(distinct other_identifier) as rows_detected,
+            max(time_detected) as last_detected,
+            min(time_detected) as first_detected
 
-    SELECT
+        from datasiren_summary {{ dbt_utils.group_by(n=5) }}
 
-      sensor_name,
-      database_name,
-      table_schema,
-      table_name,
-      column_name,
-      COUNT(DISTINCT other_identifier) AS rows_detected,
-      MAX(time_detected)               AS last_detected,
-      MIN(time_detected)               AS first_detected
-    
-    FROM datasiren_summary
-    {{ dbt_utils.group_by(n=5) }}
+    )
 
-)
-
-SELECT * 
-FROM grouped
+select *
+from grouped

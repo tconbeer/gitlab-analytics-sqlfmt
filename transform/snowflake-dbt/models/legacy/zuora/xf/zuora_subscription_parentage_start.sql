@@ -1,52 +1,56 @@
-{{config({
-    "schema": "legacy"
-  })
-}}
+{{ config({"schema": "legacy"}) }}
 
-with source as (
+with
+    source as (select * from {{ ref("zuora_subscription_lineage") }}),
+    zuora_subscription_intermediate as (
 
-	SELECT * FROM {{ref('zuora_subscription_lineage')}}
+        select * from {{ ref("zuora_subscription_intermediate") }}
 
-), zuora_subscription_intermediate as (
+    ),
+    flattened as (
 
-	SELECT * FROM {{ref('zuora_subscription_intermediate')}}
+        select
+            subscription_name_slugify,
+            c.value::varchar as subscriptions_in_lineage,
+            c.index as child_index
+        from source, lateral flatten(input => split(lineage, ',')) c
 
-), flattened as (
+    ),
+    find_max_depth as (
 
-    SELECT subscription_name_slugify, 
-    		c.value::VARCHAR as subscriptions_in_lineage, 
-    		c.index as child_index
-    FROM source,
-    lateral flatten(input =>split(lineage, ',')) C
+        select subscriptions_in_lineage, max(child_index) as child_index
+        from flattened
+        group by 1
 
-), find_max_depth as (
+    ),
+    with_parents as (
 
-    SELECT subscriptions_in_lineage, 
-    		max(child_index) as child_index
-    FROM flattened
-    GROUP BY 1
+        select
+            subscription_name_slugify as ultimate_parent_sub,
+            find_max_depth.subscriptions_in_lineage as child_sub,
+            find_max_depth.child_index as depth
+        from find_max_depth
+        left join
+            flattened
+            on find_max_depth.subscriptions_in_lineage
+            = flattened.subscriptions_in_lineage
+            and find_max_depth.child_index = flattened.child_index
 
-), with_parents as (
+    ),
+    finalish as (
 
-    SELECT subscription_name_slugify as ultimate_parent_sub, 
-    		find_max_depth.subscriptions_in_lineage as child_sub, 
-    		find_max_depth.child_index as depth
-    FROM find_max_depth
-    LEFT JOIN flattened
-    ON find_max_depth.subscriptions_in_lineage = flattened.subscriptions_in_lineage
-    AND find_max_depth.child_index = flattened.child_index
+        select
+            with_parents.ultimate_parent_sub,
+            with_parents.child_sub,
+            zuora_subscription_intermediate.subscription_month as cohort_month,
+            zuora_subscription_intermediate.subscription_quarter as cohort_quarter,
+            zuora_subscription_intermediate.subscription_year as cohort_year
+        from with_parents
+        left join
+            zuora_subscription_intermediate
+            on zuora_subscription_intermediate.subscription_name_slugify
+            = with_parents.ultimate_parent_sub
 
-), finalish as (
-
-    SELECT with_parents.ultimate_parent_sub,
-           with_parents.child_sub,
-           zuora_subscription_intermediate.subscription_month as cohort_month,
-           zuora_subscription_intermediate.subscription_quarter as cohort_quarter,
-           zuora_subscription_intermediate.subscription_year as cohort_year
-    FROM with_parents
-    LEFT JOIN  zuora_subscription_intermediate
-    ON zuora_subscription_intermediate.subscription_name_slugify = with_parents.ultimate_parent_sub
-
-)
-SELECT * 
-FROM finalish
+    )
+select *
+from finalish

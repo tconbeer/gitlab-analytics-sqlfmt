@@ -1,19 +1,21 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_build_trace_section_names_dedupe_source') }}
+        select *
+        from {{ ref("gitlab_dotcom_ci_build_trace_section_names_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER           AS ci_build_id, 
-      project_id::NUMBER   AS project_id,
-      name::VARCHAR         AS ci_build_name
+        select
+            id::number as ci_build_id,
+            project_id::number as project_id,
+            name::varchar as ci_build_name
 
-    FROM source
+        from source
 
-)
+    )
 
 
-SELECT *
-FROM renamed
+select *
+from renamed

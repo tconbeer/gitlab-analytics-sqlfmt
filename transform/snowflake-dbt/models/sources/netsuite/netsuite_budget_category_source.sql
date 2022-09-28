@@ -1,23 +1,20 @@
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "budget_category") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'budget_category') }}
+        select
+            -- Primary Key
+            budget_category_id::float as budget_category_id,
 
-), renamed AS (
+            -- Info
+            isinactive::boolean as is_inactive,
+            is_global::boolean as is_global,
+            name::varchar as budget_category,
+            _fivetran_deleted::boolean as is_fivetran_deleted
 
-    SELECT
-      --Primary Key
-      budget_category_id::FLOAT             AS budget_category_id,
+        from source
 
-      --Info
-      isinactive::BOOLEAN                   AS is_inactive,
-      is_global::BOOLEAN                    AS is_global,
-      name::VARCHAR                         AS budget_category,
-      _fivetran_deleted::BOOLEAN            AS is_fivetran_deleted
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed
