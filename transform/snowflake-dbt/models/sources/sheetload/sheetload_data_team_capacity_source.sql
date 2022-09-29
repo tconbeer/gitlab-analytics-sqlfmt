@@ -1,17 +1,14 @@
-WITH source AS (
-    
-    SELECT * 
-    FROM {{ source('sheetload','data_team_capacity') }}
+with
+    source as (select * from {{ source("sheetload", "data_team_capacity") }}),
+    final as (
 
-), final AS (
-    
-    SELECT 
-        TRY_TO_NUMBER(milestone_id)                 AS milestone_id,
-        NULLIF(gitlab_handle, '')::VARCHAR          AS gitlab_handle, 
-        TRY_TO_NUMBER(capacity)                     AS capacity
-    FROM source
+        select
+            try_to_number(milestone_id) as milestone_id,
+            nullif(gitlab_handle, '')::varchar as gitlab_handle,
+            try_to_number(capacity) as capacity
+        from source
 
-) 
+    )
 
-SELECT * 
-FROM final
+select *
+from final

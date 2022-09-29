@@ -1,15 +1,12 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("performance_indicators_yaml_historical") }}),
+    max_date as (
 
-    SELECT *
-    FROM {{ ref('performance_indicators_yaml_historical') }}
+        select *
+        from source
+        where valid_to_date = (select max(valid_to_date) from source)
 
-), max_date AS (
+    )
 
-    SELECT *
-    FROM source
-    WHERE valid_to_date = (SELECT max(valid_to_date) FROM source)
-
-)
-
-SELECT *
-FROM max_date
+select *
+from max_date
