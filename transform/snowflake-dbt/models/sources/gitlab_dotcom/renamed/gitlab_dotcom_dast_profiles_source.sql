@@ -1,18 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_dast_profiles_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_dast_profiles_dedupe_source') }}
+        select
+            id::number as dast_profiles_id,
+            project_id::number as project_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
+        from source
 
-), renamed AS (
+    )
 
-  SELECT
-    id::NUMBER                        AS dast_profiles_id,
-    project_id::NUMBER                AS project_id,
-    created_at::TIMESTAMP             AS created_at,
-    updated_at::TIMESTAMP             AS updated_at
-  FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,24 +1,22 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_issue_metrics_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_issue_metrics_dedupe_source') }}
-  
-), renamed AS (
+        select
 
-    SELECT
-
-      id::NUMBER                                               AS issue_metric_id,
-      issue_id::NUMBER                                         AS issue_id,
-      first_mentioned_in_commit_at::DATE                        AS first_mentioned_in_commit_at,
-      first_associated_with_milestone_at::DATE                  AS first_associated_with_milestone_at,
-      first_added_to_board_at::DATE                             AS first_added_to_board_at,
-      created_at::TIMESTAMP                                     AS created_at,
-      updated_at::TIMESTAMP                                     AS updated_at
+            id::number as issue_metric_id,
+            issue_id::number as issue_id,
+            first_mentioned_in_commit_at::date as first_mentioned_in_commit_at,
+            first_associated_with_milestone_at::date
+            as first_associated_with_milestone_at,
+            first_added_to_board_at::date as first_added_to_board_at,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

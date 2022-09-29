@@ -1,18 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ source("airflow", "dag") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('airflow', 'dag') }}
+        select
+            dag_id::varchar as dag_id,
+            is_active::boolean as is_active,
+            is_paused::varchar as is_paused,
+            schedule_interval::varchar as schedule_interval
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      dag_id::VARCHAR               AS dag_id,
-      is_active::BOOLEAN            AS is_active,
-      is_paused::VARCHAR            AS is_paused,
-      schedule_interval::VARCHAR    AS schedule_interval
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

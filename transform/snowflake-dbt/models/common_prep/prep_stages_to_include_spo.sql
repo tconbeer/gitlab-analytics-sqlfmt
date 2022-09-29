@@ -1,14 +1,13 @@
-{{ config(
-    tags=["product"]
-) }}
+{{ config(tags=["product"]) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT DISTINCT stage_name
-    FROM {{ ref('sheetload_usage_ping_metrics_sections') }}
-    WHERE is_smau
+        select distinct stage_name
+        from {{ ref("sheetload_usage_ping_metrics_sections") }}
+        where is_smau
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source
