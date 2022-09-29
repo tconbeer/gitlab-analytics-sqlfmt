@@ -39,7 +39,8 @@ with
             "{{this.database}}".{{ target.schema }}.regexp_to_array(
                 event_string, '(?<=\@)(.*?)(?=(\\s|$|\,))'
             ) as event_cleaned
-        from notes unpivot(event_string for event in (assigned, unassigned, reassigned))
+        from
+            notes unpivot (event_string for event in (assigned, unassigned, reassigned))
 
     ),
     notes_flat as (

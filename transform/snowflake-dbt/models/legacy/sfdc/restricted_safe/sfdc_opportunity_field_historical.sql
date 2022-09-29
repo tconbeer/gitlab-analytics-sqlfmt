@@ -80,8 +80,7 @@ with
 
         select *, null::timestamp_tz as created_at, null::timestamp_tz as valid_from
         from
-            base
-            pivot(
+            base pivot (
                 max(old_value) for opportunity_field
                 in ('{{ fields_to_use | join ("', '") }}')
             )

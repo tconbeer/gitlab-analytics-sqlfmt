@@ -33,8 +33,7 @@ with
 
         select *
         from
-            stats_used_unpacked
-            pivot(
+            stats_used_unpacked pivot (
                 max(ping_value)
                 for full_ping_name
                 in ({{ "'" + version_usage_stats_list | join("',\n '") + "'" }})

@@ -20,8 +20,7 @@ with
 
         select department, month::date as month_date, headcount
         from
-            hire_replan
-            unpivot(
+            hire_replan unpivot (
                 headcount for month in (
                     "2020-04-30",
                     "2020-05-31",
