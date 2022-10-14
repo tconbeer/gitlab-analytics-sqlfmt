@@ -8,9 +8,7 @@
 {%- if target.name in production_targets -%}
 
 {% for db in production_databases %}
-create schema if
-not exists "{{ db | trim }}".{{ target.schema }}
-;
+        create schema if not exists "{{ db | trim }}".{{target.schema}};
 {% endfor %}
 {{ sfdc_id_15_to_18() }}
 {{ regexp_substr_to_array() }}
@@ -20,9 +18,7 @@ not exists "{{ db | trim }}".{{ target.schema }}
 
 {# Need to create analytics for gitlab_dotcom models #}
 {% for db in production_databases %}
-create schema if
-not exists "{{ target.database | trim }}_{{ db | trim}}".{{ target.schema }}
-;
+        create schema if not exists "{{ target.database | trim }}_{{ db | trim}}".{{target.schema}};
 {% endfor %}
 {{ sfdc_id_15_to_18() }}
 {{ regexp_substr_to_array() }}
