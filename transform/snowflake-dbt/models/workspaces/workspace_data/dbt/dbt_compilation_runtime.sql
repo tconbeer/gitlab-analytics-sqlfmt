@@ -1,42 +1,41 @@
-WITH dbt_run_results AS (
+with
+    dbt_run_results as (select * from {{ ref("dbt_run_results_source") }}),
+    dbt_model as (select * from {{ ref("dbt_model_source") }}),
+    current_stats as (
 
-    SELECT *
-    FROM {{ ref('dbt_run_results_source') }}
+        select
+            model_unique_id,
+            timestampdiff('ms', compilation_started_at, compilation_completed_at)
+            / 1000 as compilation_time_seconds_elapsed
+        from dbt_run_results
+        where compilation_started_at is not null
+        qualify
+            row_number() over (
+                partition by model_unique_id order by compilation_started_at desc
+            )
+            = 1
+        order by 2 desc
 
-), dbt_model AS (
+    ),
+    current_models as (
 
-	SELECT * 
-	FROM {{ ref('dbt_model_source') }}
-
-), current_stats AS (
-
-    SELECT 
-      model_unique_id, 
-      TIMESTAMPDIFF('ms', compilation_started_at, compilation_completed_at) / 1000 AS compilation_time_seconds_elapsed
-    FROM dbt_run_results
-    WHERE compilation_started_at IS NOT NULL
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY model_unique_id ORDER BY compilation_started_at DESC) = 1
-    ORDER BY 2 desc
-
-), current_models AS (
-
-    SELECT 
-      unique_id,
-      name       AS model_name
-    FROM dbt_model
-    WHERE generated_at IS NOT NULL
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY unique_id ORDER BY generated_at DESC) = 1
+        select unique_id, name as model_name
+        from dbt_model
+        where generated_at is not null
+        qualify
+            row_number() over (partition by unique_id order by generated_at desc) = 1
 
 
-), joined AS (
-    
-    SELECT *
-    FROM current_stats
-    INNER JOIN current_models
-    ON current_stats.model_unique_id = current_models.unique_id
+    ),
+    joined as (
+
+        select *
+        from current_stats
+        inner join
+            current_models on current_stats.model_unique_id = current_models.unique_id
 
 
-)
+    )
 
-SELECT * 
-FROM joined
+select *
+from joined
