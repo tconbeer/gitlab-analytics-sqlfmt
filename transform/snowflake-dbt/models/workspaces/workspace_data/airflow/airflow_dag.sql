@@ -1,18 +1,6 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("airflow_dag_source") }}),
+    renamed as (select dag_id, is_active, is_paused, schedule_interval from source)
 
-    SELECT *
-    FROM {{ ref('airflow_dag_source') }}
-
-), renamed AS (
-
-    SELECT
-      dag_id,
-      is_active,
-      is_paused,
-      schedule_interval
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

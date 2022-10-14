@@ -1,119 +1,149 @@
-WITH zuora_api_sandbox_product AS (
+with
+    zuora_api_sandbox_product as (
 
-    SELECT *
-    FROM {{ ref('zuora_api_sandbox_product_source') }}
+        select * from {{ ref("zuora_api_sandbox_product_source") }}
 
-), zuora_api_sandbox_product_rate_plan AS (
+    ),
+    zuora_api_sandbox_product_rate_plan as (
 
-    SELECT *
-    FROM {{ ref('zuora_api_sandbox_product_rate_plan_source') }}
+        select * from {{ ref("zuora_api_sandbox_product_rate_plan_source") }}
 
-), zuora_api_sandbox_product_rate_plan_charge AS (
+    ),
+    zuora_api_sandbox_product_rate_plan_charge as (
 
-    SELECT *
-    FROM {{ ref('zuora_api_sandbox_product_rate_plan_charge_source') }}
+        select * from {{ ref("zuora_api_sandbox_product_rate_plan_charge_source") }}
 
-), zuora_api_sandbox_product_rate_plan_charge_tier AS (
+    ),
+    zuora_api_sandbox_product_rate_plan_charge_tier as (
 
-    SELECT *
-    FROM {{ ref('zuora_api_sandbox_product_rate_plan_charge_tier_source') }}
+        select *
+        from {{ ref("zuora_api_sandbox_product_rate_plan_charge_tier_source") }}
 
-), common_product_tier AS (
+    ),
+    common_product_tier as (select * from {{ ref("prep_product_tier_api_sandbox") }}),
+    common_product_tier_mapping as (
 
-    SELECT *
-    FROM {{ ref('prep_product_tier_api_sandbox') }}
+        select * from {{ ref("map_product_tier_api_sandbox") }}
 
-), common_product_tier_mapping AS (
+    ),
+    joined as (
 
-    SELECT *
-    FROM {{ ref('map_product_tier_api_sandbox') }}
+        select
+            -- ids
+            zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_charge_id
+            as dim_product_detail_id,
+            zuora_api_sandbox_product.product_id as product_id,
+            common_product_tier.dim_product_tier_id as dim_product_tier_id,
+            zuora_api_sandbox_product_rate_plan.product_rate_plan_id
+            as product_rate_plan_id,
+            zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_charge_id
+            as product_rate_plan_charge_id,
 
-), joined AS (
+            -- fields
+            zuora_api_sandbox_product_rate_plan.product_rate_plan_name
+            as product_rate_plan_name,
+            zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_charge_name
+            as product_rate_plan_charge_name,
+            zuora_api_sandbox_product.product_name as product_name,
+            zuora_api_sandbox_product.sku as product_sku,
+            common_product_tier.product_tier_historical as product_tier_historical,
+            common_product_tier.product_tier_historical_short
+            as product_tier_historical_short,
+            common_product_tier.product_tier_name as product_tier_name,
+            common_product_tier.product_tier_name_short as product_tier_name_short,
+            common_product_tier_mapping.product_delivery_type as product_delivery_type,
+            case
+                when
+                    lower(zuora_api_sandbox_product_rate_plan.product_rate_plan_name)
+                    like '%support%'
+                then 'Support Only'
+                else 'Full Service'
+            end as service_type,
+            lower(zuora_api_sandbox_product_rate_plan.product_rate_plan_name)
+            like '%reporter access%' as is_reporter_license,
+            zuora_api_sandbox_product.effective_start_date as effective_start_date,
+            zuora_api_sandbox_product.effective_end_date as effective_end_date,
+            common_product_tier_mapping.product_ranking as product_ranking,
+            case
+                when
+                    lower(zuora_api_sandbox_product_rate_plan.product_rate_plan_name)
+                    like any ('%oss%', '%edu%')
+                then true
+                else false
+            end as is_oss_or_edu_rate_plan,
+            min(
+                zuora_api_sandbox_product_rate_plan_charge_tier.price
+            ) as billing_list_price
+        from zuora_api_sandbox_product
+        inner join
+            zuora_api_sandbox_product_rate_plan
+            on zuora_api_sandbox_product.product_id
+            = zuora_api_sandbox_product_rate_plan.product_id
+        inner join
+            zuora_api_sandbox_product_rate_plan_charge
+            on zuora_api_sandbox_product_rate_plan.product_rate_plan_id
+            = zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_id
+        inner join
+            zuora_api_sandbox_product_rate_plan_charge_tier
+            on zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_charge_id
+            = zuora_api_sandbox_product_rate_plan_charge_tier.product_rate_plan_charge_id
+        left join
+            common_product_tier_mapping
+            on zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_id
+            = common_product_tier_mapping.product_rate_plan_id
+        left join
+            common_product_tier
+            on common_product_tier_mapping.product_tier_historical
+            = common_product_tier.product_tier_historical
+        where
+            zuora_api_sandbox_product.is_deleted = false
+            and zuora_api_sandbox_product_rate_plan_charge_tier.currency = 'USD'
+            {{ dbt_utils.group_by(n=20) }}
+        order by 1, 3
 
-    SELECT
-      -- ids
-      zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_charge_id                        AS dim_product_detail_id,
-      zuora_api_sandbox_product.product_id                                                          AS product_id,
-      common_product_tier.dim_product_tier_id                                                       AS dim_product_tier_id,
-      zuora_api_sandbox_product_rate_plan.product_rate_plan_id                                      AS product_rate_plan_id,
-      zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_charge_id                        AS product_rate_plan_charge_id,
+    ),  -- add annualized billing list price
+    final as (
 
-      -- fields
-      zuora_api_sandbox_product_rate_plan.product_rate_plan_name                                    AS product_rate_plan_name,
-      zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_charge_name                      AS product_rate_plan_charge_name,
-      zuora_api_sandbox_product.product_name                                                        AS product_name,
-      zuora_api_sandbox_product.sku                                                                 AS product_sku,
-      common_product_tier.product_tier_historical                                                   AS product_tier_historical,
-      common_product_tier.product_tier_historical_short                                             AS product_tier_historical_short,
-      common_product_tier.product_tier_name                                                         AS product_tier_name,
-      common_product_tier.product_tier_name_short                                                   AS product_tier_name_short,
-      common_product_tier_mapping.product_delivery_type                                             AS product_delivery_type,
-      CASE
-        WHEN LOWER(zuora_api_sandbox_product_rate_plan.product_rate_plan_name) LIKE '%support%'
-          THEN 'Support Only'
-        ELSE 'Full Service'
-      END                                                                                           AS service_type,
-      LOWER(zuora_api_sandbox_product_rate_plan.product_rate_plan_name) LIKE '%reporter access%'    AS is_reporter_license,
-      zuora_api_sandbox_product.effective_start_date                                                AS effective_start_date,
-      zuora_api_sandbox_product.effective_end_date                                                  AS effective_end_date,
-      common_product_tier_mapping.product_ranking                                                   AS product_ranking,
-      CASE
-        WHEN LOWER(zuora_api_sandbox_product_rate_plan.product_rate_plan_name) LIKE ANY ('%oss%', '%edu%')
-          THEN TRUE
-        ELSE FALSE
-      END                                                                                           AS is_oss_or_edu_rate_plan,
-      MIN(zuora_api_sandbox_product_rate_plan_charge_tier.price)                                    AS billing_list_price
-    FROM zuora_api_sandbox_product
-    INNER JOIN zuora_api_sandbox_product_rate_plan
-      ON zuora_api_sandbox_product.product_id = zuora_api_sandbox_product_rate_plan.product_id
-    INNER JOIN zuora_api_sandbox_product_rate_plan_charge
-      ON zuora_api_sandbox_product_rate_plan.product_rate_plan_id = zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_id
-    INNER JOIN zuora_api_sandbox_product_rate_plan_charge_tier
-      ON zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_charge_id = zuora_api_sandbox_product_rate_plan_charge_tier.product_rate_plan_charge_id
-    LEFT JOIN common_product_tier_mapping
-      ON zuora_api_sandbox_product_rate_plan_charge.product_rate_plan_id = common_product_tier_mapping.product_rate_plan_id
-    LEFT JOIN common_product_tier
-      ON common_product_tier_mapping.product_tier_historical = common_product_tier.product_tier_historical
-    WHERE zuora_api_sandbox_product.is_deleted = FALSE
-      AND zuora_api_sandbox_product_rate_plan_charge_tier.currency = 'USD'
-    {{ dbt_utils.group_by(n=20) }}
-    ORDER BY 1, 3
+        select
+            joined.*,
+            case
+                when
+                    lower(product_rate_plan_name) like '%month%'
+                    or lower(product_rate_plan_charge_name) like '%month%'
+                    or lower(product_name) like '%month%'
+                then (billing_list_price * 12)
+                when
+                    lower(product_rate_plan_name) like '%2 year%'
+                    or lower(product_rate_plan_charge_name) like '%2 year%'
+                    or lower(product_name) like '%2 year%'
+                then (billing_list_price / 2)
+                when
+                    lower(product_rate_plan_name) like '%3 year%'
+                    or lower(product_rate_plan_charge_name) like '%3 year%'
+                    or lower(product_name) like '%3 year%'
+                then (billing_list_price / 3)
+                when
+                    lower(product_rate_plan_name) like '%4 year%'
+                    or lower(product_rate_plan_charge_name) like '%4 year%'
+                    or lower(product_name) like '%4 year%'
+                then (billing_list_price / 4)
+                when
+                    lower(product_rate_plan_name) like '%5 year%'
+                    or lower(product_rate_plan_charge_name) like '%5 year%'
+                    or lower(product_name) like '%5 year%'
+                then (billing_list_price / 5)
+                else billing_list_price
+            end as annual_billing_list_price
+        from joined
 
-), final AS (--add annualized billing list price
+    )
 
-    SELECT
-      joined.*,
-      CASE
-        WHEN LOWER(product_rate_plan_name)          LIKE '%month%'
-          OR LOWER(product_rate_plan_charge_name)   LIKE '%month%'
-          OR LOWER(product_name)                    LIKE '%month%'
-          THEN (billing_list_price*12)
-        WHEN LOWER(product_rate_plan_name)          LIKE '%2 year%'
-          OR LOWER(product_rate_plan_charge_name)   LIKE '%2 year%'
-          OR LOWER(product_name)                    LIKE '%2 year%'
-          THEN (billing_list_price/2)
-        WHEN LOWER(product_rate_plan_name)          LIKE '%3 year%'
-          OR LOWER(product_rate_plan_charge_name)   LIKE '%3 year%'
-          OR LOWER(product_name)                    LIKE '%3 year%'
-          THEN (billing_list_price/3)
-        WHEN LOWER(product_rate_plan_name)          LIKE '%4 year%'
-          OR LOWER(product_rate_plan_charge_name)   LIKE '%4 year%'
-          OR LOWER(product_name)                    LIKE '%4 year%'
-          THEN (billing_list_price/4)
-        WHEN LOWER(product_rate_plan_name)          LIKE '%5 year%'
-          OR LOWER(product_rate_plan_charge_name)   LIKE '%5 year%'
-          OR LOWER(product_name)                    LIKE '%5 year%'
-          THEN (billing_list_price/5)
-        ELSE billing_list_price
-      END                                                                                           AS annual_billing_list_price
-    FROM joined
-
-)
-
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@ken_aguilar",
-    updated_by="@ken_aguilar",
-    created_date="2021-8-26",
-    updated_date="2021-08-26"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@ken_aguilar",
+            updated_by="@ken_aguilar",
+            created_date="2021-8-26",
+            updated_date="2021-08-26",
+        )
+    }}

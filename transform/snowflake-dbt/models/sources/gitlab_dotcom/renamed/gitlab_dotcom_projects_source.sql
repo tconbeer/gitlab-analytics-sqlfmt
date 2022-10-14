@@ -1,84 +1,93 @@
-    
-WITH source AS (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_projects_dedupe_source') }}
-  
-), renamed AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_projects_dedupe_source") }}),
+    renamed as (
 
-    SELECT
+        select
 
-      id::NUMBER                                                                 AS project_id,
-      description::VARCHAR                                                        AS project_description,
-      import_source::VARCHAR                                                      AS project_import_source,
-      issues_template::VARCHAR                                                    AS project_issues_template,
-      build_coverage_regex                                                        AS project_build_coverage_regex,      
-      name::VARCHAR                                                               AS project_name,
-      path::VARCHAR                                                               AS project_path,
-      import_url::VARCHAR                                                         AS project_import_url,
-      merge_requests_template                                                     AS project_merge_requests_template,
+            id::number as project_id,
+            description::varchar as project_description,
+            import_source::varchar as project_import_source,
+            issues_template::varchar as project_issues_template,
+            build_coverage_regex as project_build_coverage_regex,
+            name::varchar as project_name,
+            path::varchar as project_path,
+            import_url::varchar as project_import_url,
+            merge_requests_template as project_merge_requests_template,
 
-      created_at::TIMESTAMP                                                       AS created_at,
-      updated_at::TIMESTAMP                                                       AS updated_at,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
 
-      creator_id::NUMBER                                                          AS creator_id,
-      namespace_id::NUMBER                                                        AS namespace_id,
+            creator_id::number as creator_id,
+            namespace_id::number as namespace_id,
 
-      last_activity_at::TIMESTAMP                                                 AS last_activity_at,
+            last_activity_at::timestamp as last_activity_at,
 
-      CASE
-        WHEN visibility_level = '20' THEN 'public'
-        WHEN visibility_level = '10' THEN 'internal'
-        ELSE 'private'
-      END::VARCHAR                                                                AS visibility_level,
+            case
+                when visibility_level = '20'
+                then 'public'
+                when visibility_level = '10'
+                then 'internal'
+                else 'private'
+            end::varchar as visibility_level,
 
-      archived::BOOLEAN                                                           AS archived,
+            archived::boolean as archived,
 
-      IFF(avatar IS NULL, FALSE, TRUE)::BOOLEAN                                   AS has_avatar,
+            iff(avatar is null, false, true)::boolean as has_avatar,
 
-      star_count::NUMBER                                                         AS project_star_count,
-      merge_requests_rebase_enabled::BOOLEAN                                      AS merge_requests_rebase_enabled,
-      IFF(LOWER(import_type) = 'nan', NULL, import_type)                          AS import_type,
-      approvals_before_merge::NUMBER                                             AS approvals_before_merge,
-      reset_approvals_on_push::BOOLEAN                                            AS reset_approvals_on_push,
-      merge_requests_ff_only_enabled::BOOLEAN                                     AS merge_requests_ff_only_enabled,
-      mirror::BOOLEAN                                                             AS mirror,
-      mirror_user_id::NUMBER                                                     AS mirror_user_id,
-      shared_runners_enabled::BOOLEAN                                             AS shared_runners_enabled,
-      build_allow_git_fetch::BOOLEAN                                              AS build_allow_git_fetch,
-      build_timeout::NUMBER                                                      AS build_timeout,
-      mirror_trigger_builds::BOOLEAN                                              AS mirror_trigger_builds,
-      pending_delete::BOOLEAN                                                     AS pending_delete,
-      public_builds::BOOLEAN                                                      AS public_builds,
-      last_repository_check_failed::BOOLEAN                                       AS last_repository_check_failed,
-      last_repository_check_at::TIMESTAMP                                         AS last_repository_check_at,
-      container_registry_enabled::BOOLEAN                                         AS container_registry_enabled,
-      only_allow_merge_if_pipeline_succeeds::BOOLEAN                              AS only_allow_merge_if_pipeline_succeeds,
-      has_external_issue_tracker::BOOLEAN                                         AS has_external_issue_tracker,
-      repository_storage,
-      repository_read_only::BOOLEAN                                               AS repository_read_only,
-      request_access_enabled::BOOLEAN                                             AS request_access_enabled,
-      has_external_wiki::BOOLEAN                                                  AS has_external_wiki,
-      ci_config_path,
-      lfs_enabled::BOOLEAN                                                        AS lfs_enabled,
-      only_allow_merge_if_all_discussions_are_resolved::BOOLEAN                   AS only_allow_merge_if_all_discussions_are_resolved,
-      repository_size_limit::NUMBER                                              AS repository_size_limit,
-      printing_merge_request_link_enabled::BOOLEAN                                AS printing_merge_request_link_enabled,
-      IFF(auto_cancel_pending_pipelines :: int = 1, TRUE, FALSE)                  AS has_auto_canceling_pending_pipelines,
-      service_desk_enabled::BOOLEAN                                               AS service_desk_enabled,
-      IFF(LOWER(delete_error) = 'nan', NULL, delete_error)                        AS delete_error,
-      last_repository_updated_at::TIMESTAMP                                       AS last_repository_updated_at,
-      storage_version::NUMBER                                                    AS storage_version,
-      resolve_outdated_diff_discussions::BOOLEAN                                  AS resolve_outdated_diff_discussions,
-      disable_overriding_approvers_per_merge_request::BOOLEAN                     AS disable_overriding_approvers_per_merge_request,
-      remote_mirror_available_overridden::BOOLEAN                                 AS remote_mirror_available_overridden,
-      only_mirror_protected_branches::BOOLEAN                                     AS only_mirror_protected_branches,
-      pull_mirror_available_overridden::BOOLEAN                                   AS pull_mirror_available_overridden,
-      mirror_overwrites_diverged_branches::BOOLEAN                                AS mirror_overwrites_diverged_branches,
-      external_authorization_classification_label
-    FROM source
+            star_count::number as project_star_count,
+            merge_requests_rebase_enabled::boolean as merge_requests_rebase_enabled,
+            iff(lower(import_type) = 'nan', null, import_type) as import_type,
+            approvals_before_merge::number as approvals_before_merge,
+            reset_approvals_on_push::boolean as reset_approvals_on_push,
+            merge_requests_ff_only_enabled::boolean as merge_requests_ff_only_enabled,
+            mirror::boolean as mirror,
+            mirror_user_id::number as mirror_user_id,
+            shared_runners_enabled::boolean as shared_runners_enabled,
+            build_allow_git_fetch::boolean as build_allow_git_fetch,
+            build_timeout::number as build_timeout,
+            mirror_trigger_builds::boolean as mirror_trigger_builds,
+            pending_delete::boolean as pending_delete,
+            public_builds::boolean as public_builds,
+            last_repository_check_failed::boolean as last_repository_check_failed,
+            last_repository_check_at::timestamp as last_repository_check_at,
+            container_registry_enabled::boolean as container_registry_enabled,
+            only_allow_merge_if_pipeline_succeeds::boolean
+            as only_allow_merge_if_pipeline_succeeds,
+            has_external_issue_tracker::boolean as has_external_issue_tracker,
+            repository_storage,
+            repository_read_only::boolean as repository_read_only,
+            request_access_enabled::boolean as request_access_enabled,
+            has_external_wiki::boolean as has_external_wiki,
+            ci_config_path,
+            lfs_enabled::boolean as lfs_enabled,
+            only_allow_merge_if_all_discussions_are_resolved::boolean
+            as only_allow_merge_if_all_discussions_are_resolved,
+            repository_size_limit::number as repository_size_limit,
+            printing_merge_request_link_enabled::boolean
+            as printing_merge_request_link_enabled,
+            iff(
+                auto_cancel_pending_pipelines::int = 1, true, false
+            ) as has_auto_canceling_pending_pipelines,
+            service_desk_enabled::boolean as service_desk_enabled,
+            iff(lower(delete_error) = 'nan', null, delete_error) as delete_error,
+            last_repository_updated_at::timestamp as last_repository_updated_at,
+            storage_version::number as storage_version,
+            resolve_outdated_diff_discussions::boolean
+            as resolve_outdated_diff_discussions,
+            disable_overriding_approvers_per_merge_request::boolean
+            as disable_overriding_approvers_per_merge_request,
+            remote_mirror_available_overridden::boolean
+            as remote_mirror_available_overridden,
+            only_mirror_protected_branches::boolean as only_mirror_protected_branches,
+            pull_mirror_available_overridden::boolean
+            as pull_mirror_available_overridden,
+            mirror_overwrites_diverged_branches::boolean
+            as mirror_overwrites_diverged_branches,
+            external_authorization_classification_label
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed
