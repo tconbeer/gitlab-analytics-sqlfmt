@@ -11,21 +11,57 @@
 {%- set sensitive = "dbt_analytics_sensitive" -%}
 
 {%- if target.name == "prod" -%}
-        grant usage on schema prod.legacy to role {{ non_sensitive }};
-        grant select on all tables in schema prod.legacy to role {{ non_sensitive }};
-        grant select on all views in schema prod.legacy to role {{ non_sensitive }};
+grant usage
+on schema prod.legacy
+to role {{ non_sensitive }}
+;
+grant select
+on all tables in schema prod.legacy
+to role {{ non_sensitive }}
+;
+grant select
+on all views in schema prod.legacy
+to role {{ non_sensitive }}
+;
 
-        grant usage on schema prod.common to role {{ non_sensitive }};
-        grant select on all tables in schema prod.common to role {{ non_sensitive }};
-        grant select on all views in schema prod.common to role {{ non_sensitive }};
+grant usage
+on schema prod.common
+to role {{ non_sensitive }}
+;
+grant select
+on all tables in schema prod.common
+to role {{ non_sensitive }}
+;
+grant select
+on all views in schema prod.common
+to role {{ non_sensitive }}
+;
 
-        grant usage on schema prod.common_mapping to role {{ non_sensitive }};
-        grant select on all tables in schema prod.common_mapping to role {{ non_sensitive }};
-        grant select on all views in schema prod.common_mapping to role {{ non_sensitive }};
+grant usage
+on schema prod.common_mapping
+to role {{ non_sensitive }}
+;
+grant select
+on all tables in schema prod.common_mapping
+to role {{ non_sensitive }}
+;
+grant select
+on all views in schema prod.common_mapping
+to role {{ non_sensitive }}
+;
 
-        grant usage on schema prep.sensitive to role {{ sensitive }};
-        grant select on all tables in schema prep.sensitive to role {{ sensitive }};
-        grant select on all views in schema prep.sensitive to role {{ sensitive }};
+grant usage
+on schema prep.sensitive
+to role {{ sensitive }}
+;
+grant select
+on all tables in schema prep.sensitive
+to role {{ sensitive }}
+;
+grant select
+on all views in schema prep.sensitive
+to role {{ sensitive }}
+;
 
 {%- endif -%}
 
