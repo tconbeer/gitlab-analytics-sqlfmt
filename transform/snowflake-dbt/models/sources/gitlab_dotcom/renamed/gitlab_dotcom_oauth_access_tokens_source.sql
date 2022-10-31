@@ -1,22 +1,23 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_oauth_access_tokens_dedupe_source') }}
-  
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_oauth_access_tokens_dedupe_source") }}
 
-    SELECT
-      id::NUMBER                 AS oauth_access_token_id,
-      resource_owner_id::NUMBER  AS resource_owner_id,
-      application_id::NUMBER     AS application_id,
-      expires_in::NUMBER         AS expires_in_seconds,
-      revoked_at::TIMESTAMP       AS oauth_access_token_revoked_at,
-      created_at::TIMESTAMP       AS created_at,
-      scopes::VARCHAR             AS scopes
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as oauth_access_token_id,
+            resource_owner_id::number as resource_owner_id,
+            application_id::number as application_id,
+            expires_in::number as expires_in_seconds,
+            revoked_at::timestamp as oauth_access_token_revoked_at,
+            created_at::timestamp as created_at,
+            scopes::varchar as scopes
+        from source
 
-SELECT *
-FROM renamed
-ORDER BY created_at
+    )
+
+select *
+from renamed
+order by created_at

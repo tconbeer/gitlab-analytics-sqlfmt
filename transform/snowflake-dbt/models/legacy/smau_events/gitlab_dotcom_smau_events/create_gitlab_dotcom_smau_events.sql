@@ -1,71 +1,63 @@
-{{ config({
-    "unique_key": "event_surrogate_key"
-    })
-}}
+{{ config({"unique_key": "event_surrogate_key"}) }}
 
-{%- set event_ctes = ["mr_created",
-                      "mr_comment_added",
-                      "snippet_comment_added"
-                      ]
--%}
+{%- set event_ctes = ["mr_created", "mr_comment_added", "snippet_comment_added"] -%}
 
-WITH mr_comment_added AS (
-  
-  SELECT
-    note_author_id           AS user_id,
-    TO_DATE(created_at)      AS event_date,
-    'mr_comment_added'       AS event_type,
-    {{ dbt_utils.surrogate_key(['event_date', 'event_type', 'note_id']) }}
-                             AS event_surrogate_key 
-     
-  FROM {{ref('gitlab_dotcom_notes')}}
-  WHERE noteable_type = 'MergeRequest'
-    AND created_at >= '2015-01-01'
-  
-)
+with
+    mr_comment_added as (
 
-, mr_created AS (
+        select
+            note_author_id as user_id,
+            to_date(created_at) as event_date,
+            'mr_comment_added' as event_type,
+            {{ dbt_utils.surrogate_key(["event_date", "event_type", "note_id"]) }}
+            as event_surrogate_key
 
-  SELECT
-    author_id                         AS user_id,
-    TO_DATE(created_at) AS event_date,
-    'mr_created'                      AS event_type,
-    {{ dbt_utils.surrogate_key(['event_date', 'event_type', 'merge_request_id']) }}
-                                      AS event_surrogate_key
-    
-  FROM {{ref('gitlab_dotcom_merge_requests_xf')}}
-  WHERE created_at >= '2015-01-01'
+        from {{ ref("gitlab_dotcom_notes") }}
+        where noteable_type = 'MergeRequest' and created_at >= '2015-01-01'
 
-)
+    ),
+    mr_created as (
 
-, snippet_comment_added AS (
-  
-  SELECT
-    note_author_id           AS user_id,
-    TO_DATE(created_at) AS event_date,
-    'snippet_comment_added'  AS event_type,
-    {{ dbt_utils.surrogate_key(['event_date', 'event_type', 'note_id']) }}
-                             AS event_surrogate_key
-  
-  FROM {{ref('gitlab_dotcom_notes')}}
-  WHERE noteable_type = 'Snippet'
-    AND created_at >= '2015-01-01'
+        select
+            author_id as user_id,
+            to_date(created_at) as event_date,
+            'mr_created' as event_type,
+            {{
+                dbt_utils.surrogate_key(
+                    ["event_date", "event_type", "merge_request_id"]
+                )
+            }} as event_surrogate_key
 
-)
+        from {{ ref("gitlab_dotcom_merge_requests_xf") }}
+        where created_at >= '2015-01-01'
 
-, unioned AS (
-  {% for event_cte in event_ctes %}
+    ),
+    snippet_comment_added as (
 
-    SELECT *
-    FROM {{ event_cte }}
+        select
+            note_author_id as user_id,
+            to_date(created_at) as event_date,
+            'snippet_comment_added' as event_type,
+            {{ dbt_utils.surrogate_key(["event_date", "event_type", "note_id"]) }}
+            as event_surrogate_key
 
-    {%- if not loop.last %}
-      UNION
-    {%- endif %}
+        from {{ ref("gitlab_dotcom_notes") }}
+        where noteable_type = 'Snippet' and created_at >= '2015-01-01'
 
-  {% endfor -%}
+    ),
+    unioned as (
+        {% for event_cte in event_ctes %}
 
-)
+        select *
+        from {{ event_cte }}
 
-SELECT *
-FROM unioned
+        {%- if not loop.last %}
+        union
+        {%- endif %}
+
+        {% endfor -%}
+
+    )
+
+select *
+from unioned

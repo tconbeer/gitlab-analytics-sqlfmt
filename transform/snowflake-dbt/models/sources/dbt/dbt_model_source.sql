@@ -1,47 +1,49 @@
-{{ config({
-    "unique_key": "run_unique_key"
-    })
-}}
+{{ config({"unique_key": "run_unique_key"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('dbt', 'manifest') }}
-    {% if is_incremental() %}
-    WHERE uploaded_at > (SELECT MAX(uploaded_at) FROM {{this}})
-    {% endif %}
+        select *
+        from {{ source("dbt", "manifest") }}
+        {% if is_incremental() %}
+        where uploaded_at > (select max(uploaded_at) from {{ this }})
+        {% endif %}
 
-), nodes AS (
+    ),
+    nodes as (
 
-    SELECT 
-      d.value                                               AS data_by_row,
-      jsontext['metadata']['dbt_version']::VARCHAR          AS dbt_version,
-      jsontext['metadata']['dbt_schema_version']::VARCHAR   AS schema_version,
-      jsontext['metadata']['generated_at']::TIMESTAMP       AS generated_at,
-      uploaded_at
-    FROM source
-    INNER JOIN LATERAL FLATTEN(INPUT => PARSE_JSON(jsontext['nodes']), outer => true) d
+        select
+            d.value as data_by_row,
+            jsontext['metadata']['dbt_version']::varchar as dbt_version,
+            jsontext['metadata']['dbt_schema_version']::varchar as schema_version,
+            jsontext['metadata']['generated_at']::timestamp as generated_at,
+            uploaded_at
+        from source
+        inner join
+            lateral flatten(input => parse_json(jsontext['nodes']), outer => true) d
 
-), parsed AS (
+    ),
+    parsed as (
 
-    SELECT
-      data_by_row['unique_id']::VARCHAR                               AS unique_id,  
-      data_by_row['name']::VARCHAR                                    AS name,
-      data_by_row['alias']::VARCHAR                                   AS alias,
-      data_by_row['database']::VARCHAR                                AS database_name,
-      data_by_row['schema']::VARCHAR                                  AS schema_name,
-      data_by_row['package_name']::VARCHAR                            AS package_name,
-      data_by_row['tags']::ARRAY                                      AS tags,
-      data_by_row['refs']::ARRAY                                      AS references,
-      {{ dbt_utils.surrogate_key(['unique_id', 'generated_at']) }}    AS run_unique_key,
-      dbt_version,
-      schema_version,
-      generated_at,
-      uploaded_at
-    FROM nodes
-    WHERE data_by_row['resource_type']::VARCHAR = 'model'
+        select
+            data_by_row['unique_id']::varchar as unique_id,
+            data_by_row['name']::varchar as name,
+            data_by_row['alias']::varchar as alias,
+            data_by_row['database']::varchar as database_name,
+            data_by_row['schema']::varchar as schema_name,
+            data_by_row['package_name']::varchar as package_name,
+            data_by_row['tags']::array as tags,
+            data_by_row['refs']::array as references,
+            {{ dbt_utils.surrogate_key(["unique_id", "generated_at"]) }}
+            as run_unique_key,
+            dbt_version,
+            schema_version,
+            generated_at,
+            uploaded_at
+        from nodes
+        where data_by_row['resource_type']::varchar = 'model'
 
-)
+    )
 
-SELECT *
-FROM parsed
+select *
+from parsed
