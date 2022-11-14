@@ -1,29 +1,34 @@
-WITH date_details AS (
-  
-    SELECT *
-    FROM {{ ref("date_details") }}
-    WHERE last_day_of_month = date_actual
-     
-), project_snapshots AS (
-   SELECT
-     *,
-     IFNULL(valid_to, CURRENT_TIMESTAMP) AS valid_to_
-   FROM {{ ref('gitlab_dotcom_projects_snapshots_base') }}
-   
-), project_snapshots_monthly AS (
-  
-    SELECT
-      DATE_TRUNC('month', date_details.date_actual) AS snapshot_month,
-      project_snapshots.project_id,
-      project_snapshots.namespace_id,
-      project_snapshots.visibility_level,
-      project_snapshots.shared_runners_enabled
-    FROM project_snapshots
-    INNER JOIN date_details
-      ON date_details.date_actual BETWEEN project_snapshots.valid_from AND project_snapshots.valid_to_
-    QUALIFY ROW_NUMBER() OVER(PARTITION BY snapshot_month, project_id ORDER BY valid_to_ DESC) = 1
-  
-)
+with
+    date_details as (
 
-SELECT *
-FROM project_snapshots_monthly
+        select * from {{ ref("date_details") }} where last_day_of_month = date_actual
+
+    ),
+    project_snapshots as (
+        select *, ifnull(valid_to, current_timestamp) as valid_to_
+        from {{ ref("gitlab_dotcom_projects_snapshots_base") }}
+
+    ),
+    project_snapshots_monthly as (
+
+        select
+            date_trunc('month', date_details.date_actual) as snapshot_month,
+            project_snapshots.project_id,
+            project_snapshots.namespace_id,
+            project_snapshots.visibility_level,
+            project_snapshots.shared_runners_enabled
+        from project_snapshots
+        inner join
+            date_details
+            on date_details.date_actual
+            between project_snapshots.valid_from and project_snapshots.valid_to_
+        qualify
+            row_number() over (
+                partition by snapshot_month, project_id order by valid_to_ desc
+            )
+            = 1
+
+    )
+
+select *
+from project_snapshots_monthly

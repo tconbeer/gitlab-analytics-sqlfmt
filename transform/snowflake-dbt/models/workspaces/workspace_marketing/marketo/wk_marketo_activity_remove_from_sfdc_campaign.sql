@@ -1,9 +1,9 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('marketo_activity_remove_from_sfdc_campaign_source') }}
+        select * from {{ ref("marketo_activity_remove_from_sfdc_campaign_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

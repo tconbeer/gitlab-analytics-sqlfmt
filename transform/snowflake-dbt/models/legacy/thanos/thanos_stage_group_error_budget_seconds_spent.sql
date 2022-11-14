@@ -1,8 +1,9 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('thanos_stage_group_error_budget_seconds_spent_source') }}
-    WHERE is_success = true
-)
-SELECT *
-FROM source
+        select *
+        from {{ ref("thanos_stage_group_error_budget_seconds_spent_source") }}
+        where is_success = true
+    )
+select *
+from source

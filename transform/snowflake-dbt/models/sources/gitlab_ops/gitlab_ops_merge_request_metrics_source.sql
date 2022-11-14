@@ -1,25 +1,28 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('gitlab_ops', 'merge_request_metrics') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+        select *
+        from {{ source("gitlab_ops", "merge_request_metrics") }}
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER                                              AS merge_request_metric_id,
-      merge_request_id::NUMBER                                AS merge_request_id,
+        select
+            id::number as merge_request_metric_id,
+            merge_request_id::number as merge_request_id,
 
-      latest_build_started_at::TIMESTAMP                       AS latest_build_started_at,
-      latest_build_finished_at::TIMESTAMP                      AS latest_build_finished_at,
-      first_deployed_to_production_at::TIMESTAMP               AS first_deployed_to_production_at,
-      merged_at::TIMESTAMP                                     AS merged_at,
-      created_at::TIMESTAMP                                    AS created_at,
-      updated_at::TIMESTAMP                                    AS updated_at
-      
-    FROM source
+            latest_build_started_at::timestamp as latest_build_started_at,
+            latest_build_finished_at::timestamp as latest_build_finished_at,
+            first_deployed_to_production_at::timestamp
+            as first_deployed_to_production_at,
+            merged_at::timestamp as merged_at,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed
