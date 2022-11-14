@@ -11,7 +11,7 @@
     identifier=table.identifier,
 ) -%}
 
-{%- call statement('get_column_values', fetch_result=true) %}
+{%- call statement("get_column_values", fetch_result=true) %}
 
 {%- if not target_relation and default is none -%}
 
@@ -46,14 +46,13 @@ order by {{ order_by }}
 
 {% endif %}
 
-    {%- endcall -%}
+{%- endcall -%}
 
-    {%- set value_list = load_result("get_column_values") -%}
+{%- set value_list = load_result("get_column_values") -%}
 
-    {%- if value_list and value_list["data"] -%}
-    {%- set values = value_list["data"] | map(attribute=0) | list %}
-    {{ return(values) }}
-    {%- else -%} {{ return(default) }}
-    {%- endif -%}
+{%- if value_list and value_list["data"] -%}
+{%- set values = value_list["data"] | map(attribute=0) | list %} {{ return(values) }}
+{%- else -%} {{ return(default) }}
+{%- endif -%}
 
 {%- endmacro %}

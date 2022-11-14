@@ -27,7 +27,7 @@
 {{ log(set_sql, info=True) }}
 
 {# DELETE FROM EVERYTHING THAT'S NOT SNAPSHOTS#}
-{%- call statement('gdpr_deletions', fetch_result=True) %}
+{%- call statement("gdpr_deletions", fetch_result=True) %}
 
 with
     email_columns as (
@@ -84,7 +84,7 @@ from email_columns
 
 
 {# UPDATE SNAPSHOTS #}
-{%- call statement('update_snapshots', fetch_result=True) %}
+{%- call statement("update_snapshots", fetch_result=True) %}
 
 with
     email_columns as (

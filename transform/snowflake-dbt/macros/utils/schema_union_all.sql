@@ -8,7 +8,7 @@
 
 {% endif %}
 
-{% call statement('get_schemata', fetch_result=True) %}
+{% call statement("get_schemata", fetch_result=True) %}
 
 select distinct '"' || table_schema || '"."' || table_name || '"'
 from "{{ database }}".information_schema.tables
@@ -16,11 +16,15 @@ where
     table_schema ilike '%{{ schema_part }}%'
     and table_schema not ilike '%{{ exclude_part }}%'
     and table_name ilike '{{ table_name }}'
-order by 1 {%- endcall -%} {%- set value_list = load_result("get_schemata") -%}
+order by 1
+
+{%- endcall -%}
+
+{%- set value_list = load_result("get_schemata") -%}
 
 {%- if value_list and value_list["data"] -%}
 
-    {%- set values = value_list["data"] | map(attribute=0) | list %}
+{%- set values = value_list["data"] | map(attribute=0) | list %}
 
 {% for schematable in values %}
 select *
@@ -32,8 +36,8 @@ union all
 
 {% endfor -%}
 
-    {%- else -%} {{ return(1) }}
+{%- else -%} {{ return(1) }}
 
-    {%- endif %}
+{%- endif %}
 
 {%- endmacro -%}

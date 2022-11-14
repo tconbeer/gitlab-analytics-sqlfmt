@@ -1,6 +1,6 @@
 {% macro backup_to_gcs() %}
 
-{%- call statement('backup', fetch_result=true, auto_begin=true) -%}
+{%- call statement("backup", fetch_result=true, auto_begin=true) -%}
 
 {% set backups = {"RAW": ["SNAPSHOTS"]} %}
 
