@@ -53,7 +53,7 @@ with
             zuora_rp.product_category,
             zuora_rp.rate_plan_name,
 
-            -- 
+            --
             zuora_rpc.mrr,
             zuora_rpc.rate_plan_charge_name,
             zuora_rpc.rate_plan_charge_number,

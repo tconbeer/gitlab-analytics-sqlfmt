@@ -7,7 +7,7 @@ with
             -- joins to dim_issue_id in dim_issue table
             dim_source_issue_id,
             dim_target_issue_id,
-            -- 
+            --
             created_at,
             updated_at,
             valid_from

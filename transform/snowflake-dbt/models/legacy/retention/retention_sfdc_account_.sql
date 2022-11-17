@@ -88,5 +88,5 @@ from joined
 left join
     current_arr_segmentation_all_levels
     on joined.sfdc_account_id = current_arr_segmentation_all_levels.id
--- 
+--
 where retention_month <= dateadd(month, -1, current_date)

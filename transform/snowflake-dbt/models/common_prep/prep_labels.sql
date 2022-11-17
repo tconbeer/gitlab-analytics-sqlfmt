@@ -21,7 +21,7 @@ renamed as (
             dim_project.ultimate_parent_namespace_id
         ) as ultimate_parent_namespace_id,
         ifnull(dim_namespace_plan_hist.dim_plan_id, 34) as dim_plan_id,
-        -- 
+        --
         gitlab_dotcom_labels_source.group_id as dim_namespace_id,
         gitlab_dotcom_labels_source.label_title,
         gitlab_dotcom_labels_source.label_type,

@@ -28,11 +28,11 @@ with
                 then gitlab_dotcom_label_links_source.target_id
                 else null
             end as dim_epic_id,
-            -- 
+            --
             gitlab_dotcom_label_links_source.target_type,
             gitlab_dotcom_label_links_source.label_link_created_at as label_added_at,
             gitlab_dotcom_label_links_source.label_link_updated_at as label_updated_at
-        -- 
+        --
         from gitlab_dotcom_label_links_source
         -- exclude broken links (deleted labels)
         where
