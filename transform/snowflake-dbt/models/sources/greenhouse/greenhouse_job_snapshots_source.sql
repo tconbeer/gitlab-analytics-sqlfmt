@@ -1,27 +1,24 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "job_snapshots") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'job_snapshots') }}
+        select
 
-), renamed as (
+            -- key
+            job_id::number as job_id,
 
-	SELECT
+            -- info
+            date::date as job_snapshot_date,
+            hired_count::number as hired_count,
+            prospect_count::number as prospect_count,
+            new_today::number as new_today,
+            rejected_today::number as rejected_today,
+            advanced_today::number as advanced_today,
+            interviews_today::number as interviews_today
 
-			--key
-    		job_id::NUMBER			AS job_id,
+        from source
 
-    		--info
-    		date::date			    AS job_snapshot_date,
-    		hired_count::NUMBER 		AS hired_count,
-    		prospect_count::NUMBER AS prospect_count,
-    		new_today::NUMBER 			AS new_today,
-    		rejected_today::NUMBER AS rejected_today,
-    		advanced_today::NUMBER AS advanced_today,
-    		interviews_today::NUMBER AS interviews_today
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

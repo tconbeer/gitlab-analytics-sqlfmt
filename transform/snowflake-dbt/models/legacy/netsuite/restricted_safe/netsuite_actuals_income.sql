@@ -1,154 +1,123 @@
-WITH transactions AS (
+with
+    transactions as (select * from {{ ref("netsuite_transactions_source") }}),
+    transaction_lines as (select * from {{ ref("netsuite_transaction_lines_xf") }}),
+    accounting_periods as (
 
-     SELECT *
-     FROM {{ref('netsuite_transactions_source')}}
+        select * from {{ ref("netsuite_accounting_periods_source") }}
 
-), transaction_lines AS (
+    ),
+    accounts as (select * from {{ ref("netsuite_accounts_xf") }}),
+    classes as (select * from {{ ref("netsuite_classes") }}),
+    subsidiaries as (select * from {{ ref("netsuite_subsidiaries_source") }}),
+    departments as (select * from {{ ref("netsuite_departments_xf") }}),
+    consolidated_exchange_rates as (
 
-     SELECT *
-     FROM {{ref('netsuite_transaction_lines_xf')}}
+        select * from {{ ref("netsuite_consolidated_exchange_rates") }}
 
-), accounting_periods AS (
+    ),
+    date_details as (
 
-     SELECT *
-     FROM {{ref('netsuite_accounting_periods_source')}}
+        select distinct
+            first_day_of_month, fiscal_year, fiscal_quarter, fiscal_quarter_name
+        from {{ ref("date_details") }}
 
-), accounts AS (
+    ),
+    cost_category as (select * from {{ ref("netsuite_expense_cost_category") }}),
+    income as (
 
-     SELECT *
-     FROM {{ref('netsuite_accounts_xf')}}
+        select
+            t.transaction_id,
+            t.external_ref_number,
+            t.transaction_ext_id,
+            t.document_id,
+            tl.memo as transaction_lines_memo,
+            tl.entity_name,
+            tl.receipt_url,
+            t.status,
+            t.transaction_type,
+            a.account_id,
+            a.account_name,
+            a.account_full_name,
+            a.account_number,
+            a.unique_account_number,
+            a.parent_account_number,
+            cl.class_id,
+            cl.class_name,
+            d.department_id,
+            d.department_name,
+            d.parent_department_name,
+            ap.accounting_period_id,
+            ap.accounting_period_starting_date::date as accounting_period,
+            ap.accounting_period_name,
+            sum(
+                case
+                    when tl.subsidiary_id = 1
+                    then amount
+                    else (tl.amount * e.average_rate)
+                end
+            ) as actual_amount
+        from transaction_lines tl
+        left join transactions t on tl.transaction_id = t.transaction_id
+        left join accounts a on a.account_id = tl.account_id
+        left join classes cl on tl.class_id = cl.class_id
+        left join departments d on d.department_id = tl.department_id
+        left join
+            accounting_periods ap on ap.accounting_period_id = t.accounting_period_id
+        left join subsidiaries s on tl.subsidiary_id = s.subsidiary_id
+        left join
+            consolidated_exchange_rates e
+            on ap.accounting_period_id = e.accounting_period_id
+            and e.from_subsidiary_id = s.subsidiary_id
+        where
+            a.account_number between '4000' and '4999'
+            and ap.fiscal_calendar_id = 2
+            and e.to_subsidiary_id = 1
+            {{ dbt_utils.group_by(n=23) }}
 
-), classes AS (
+    ),
+    income_statement_grouping as (
 
-     SELECT *
-     FROM {{ref('netsuite_classes')}}
+        select
+            i.transaction_id,
+            i.external_ref_number,
+            i.transaction_ext_id,
+            i.document_id,
+            i.account_id,
+            i.account_name,
+            i.account_full_name,
+            i.account_number || ' - ' || i.account_name as unique_account_name,
+            i.account_number,
+            i.parent_account_number,
+            i.unique_account_number, - (i.actual_amount) as actual_amount,
+            case
+                when i.account_number between '4000' and '4999' then '1-income'
+            end as income_statement_grouping,
+            i.transaction_lines_memo,
+            i.entity_name,
+            i.receipt_url,
+            i.status,
+            i.transaction_type,
+            i.class_id,
+            i.class_name,
+            i.department_id,
+            i.department_name,
+            i.parent_department_name,
+            i.accounting_period_id,
+            i.accounting_period,
+            i.accounting_period_name,
+            dd.fiscal_year,
+            dd.fiscal_quarter,
+            dd.fiscal_quarter_name
+        from income i
+        left join date_details dd on dd.first_day_of_month = i.accounting_period
 
-), subsidiaries AS (
+    ),
+    cost_category_grouping as (
 
-     SELECT *
-     FROM {{ref('netsuite_subsidiaries_source')}}
+        select isg.*, 'N/A' as cost_category_level_1, 'N/A' as cost_category_level_2
+        from income_statement_grouping isg
 
-), departments AS (
+    )
 
-     SELECT *
-     FROM {{ref('netsuite_departments_xf')}}
-
-), consolidated_exchange_rates AS (
-
-     SELECT *
-     FROM {{ref('netsuite_consolidated_exchange_rates')}}
-
-), date_details AS (
-
-     SELECT DISTINCT
-       first_day_of_month,
-       fiscal_year,
-       fiscal_quarter,
-       fiscal_quarter_name
-     FROM {{ref('date_details')}}
-
-), cost_category AS (
-
-     SELECT *
-     FROM {{ref('netsuite_expense_cost_category')}}
-
-), income AS (
-
-     SELECT
-       t.transaction_id,
-       t.external_ref_number,
-       t.transaction_ext_id,
-       t.document_id,
-       tl.memo                                          AS transaction_lines_memo,
-       tl.entity_name,
-       tl.receipt_url,
-       t.status,
-       t.transaction_type,
-       a.account_id,
-       a.account_name,
-       a.account_full_name,
-       a.account_number,
-       a.unique_account_number,
-       a.parent_account_number,
-       cl.class_id,
-       cl.class_name,
-       d.department_id,
-       d.department_name,
-       d.parent_department_name,
-       ap.accounting_period_id,
-       ap.accounting_period_starting_date::DATE         AS accounting_period,
-       ap.accounting_period_name,
-       SUM(CASE WHEN tl.subsidiary_id = 1 THEN amount
-                ELSE (tl.amount * e.average_rate) END)  AS actual_amount
-    FROM transaction_lines tl
-    LEFT JOIN transactions t
-      ON tl.transaction_id = t.transaction_id
-    LEFT JOIN accounts a
-      ON a.account_id = tl.account_id
-    LEFT JOIN classes cl
-      ON tl.class_id = cl.class_id
-    LEFT JOIN departments d
-      ON d.department_id = tl.department_id
-    LEFT JOIN accounting_periods ap
-      ON ap.accounting_period_id = t.accounting_period_id
-    LEFT JOIN subsidiaries s
-      ON tl.subsidiary_id = s.subsidiary_id
-    LEFT JOIN consolidated_exchange_rates e
-      ON ap.accounting_period_id = e.accounting_period_id
-      AND e.from_subsidiary_id = s.subsidiary_id
-    WHERE a.account_number between '4000' and '4999'
-      AND ap.fiscal_calendar_id = 2
-      AND e.to_subsidiary_id = 1
-    {{ dbt_utils.group_by(n=23) }}
-
-), income_statement_grouping AS (
-
-    SELECT
-      i.transaction_id,
-      i.external_ref_number,
-      i.transaction_ext_id,
-      i.document_id,
-      i.account_id,
-      i.account_name,
-      i.account_full_name,
-      i.account_number || ' - ' || i.account_name          AS unique_account_name,
-      i.account_number,
-      i.parent_account_number,
-      i.unique_account_number,
-      -(i.actual_amount)                                   AS actual_amount,
-      CASE
-        WHEN i.account_number BETWEEN '4000' AND '4999'
-          THEN '1-income'
-      END                                                  AS income_statement_grouping,
-      i.transaction_lines_memo,
-      i.entity_name,
-      i.receipt_url,
-      i.status,
-      i.transaction_type,
-      i.class_id,
-      i.class_name,
-      i.department_id,
-      i.department_name,
-      i.parent_department_name,
-      i.accounting_period_id,
-      i.accounting_period,
-      i.accounting_period_name,
-      dd.fiscal_year,
-      dd.fiscal_quarter,
-      dd.fiscal_quarter_name
-    FROM income i
-    LEFT JOIN date_details dd
-      ON dd.first_day_of_month = i.accounting_period
-
-), cost_category_grouping AS (
-
-    SELECT
-      isg.*,
-      'N/A'                                            AS cost_category_level_1,
-      'N/A'                                            AS cost_category_level_2
-    FROM income_statement_grouping isg
-
-)
-
-SELECT *
-FROM cost_category_grouping
+select *
+from cost_category_grouping

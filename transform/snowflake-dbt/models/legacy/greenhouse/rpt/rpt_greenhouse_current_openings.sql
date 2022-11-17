@@ -1,137 +1,141 @@
-WITH greenhouse_openings AS (
+with
+    greenhouse_openings as (select * from {{ ref("greenhouse_openings_source") }}),
+    greenhouse_jobs as (select * from {{ ref("greenhouse_jobs_source") }}),
+    greenhouse_department as (
 
-    SELECT * 
-    FROM {{ref('greenhouse_openings_source')}}
+        select
+            department_id,
+            department_name,
+            case
+                when lower(department_name) like '%enterprise sales%'
+                then 'Enterprise Sales'
+                when lower(department_name) like '%commercial sales%'
+                then 'Commercial Sales'
+                else trim(department_name)
+            end as department_modified
+        from {{ ref("greenhouse_departments_source") }}
 
-), greenhouse_jobs AS (
+    ),
+    greenhouse_organization as (
 
-    SELECT * 
-    FROM {{ref('greenhouse_jobs_source')}}
-
-), greenhouse_department AS (
-
-    SELECT 
-      department_id,
-      department_name,
-      CASE WHEN LOWER(department_name) LIKE '%enterprise sales%'
-           THEN 'Enterprise Sales'
-           WHEN LOWER(department_name) LIKE '%commercial sales%' 
-           THEN 'Commercial Sales'
-           ELSE TRIM(department_name) END AS department_modified
-    FROM {{ref('greenhouse_departments_source')}}
-      
-), greenhouse_organization AS (
-
-    SELECT * 
-    FROM {{ref('greenhouse_organizations_source')}}
+        select * from {{ ref("greenhouse_organizations_source") }}
 
 
-), greenhouse_opening_custom_fields AS (
+    ),
+    greenhouse_opening_custom_fields as (
 
-    SELECT 
-      opening_id, 
-      {{ dbt_utils.pivot(
-          'opening_custom_field', 
-          dbt_utils.get_column_values(ref('greenhouse_opening_custom_fields_source'), 'opening_custom_field'),
-          agg = 'MAX',
-          then_value = 'opening_custom_field_display_value',
-          else_value = 'NULL',
-          quote_identifiers = False
-      ) }}
-    FROM {{ref('greenhouse_opening_custom_fields_source')}}
-    GROUP BY opening_id
+        select
+            opening_id,
+            {{
+                dbt_utils.pivot(
+                    "opening_custom_field",
+                    dbt_utils.get_column_values(
+                        ref("greenhouse_opening_custom_fields_source"),
+                        "opening_custom_field",
+                    ),
+                    agg="MAX",
+                    then_value="opening_custom_field_display_value",
+                    else_value="NULL",
+                    quote_identifiers=False,
+                )
+            }}
+        from {{ ref("greenhouse_opening_custom_fields_source") }}
+        group by opening_id
 
-), greenhouse_recruiting_xf AS (
+    ),
+    greenhouse_recruiting_xf as (select * from {{ ref("greenhouse_recruiting_xf") }}),
+    division_mapping as (
 
-    SELECT * 
-    FROM {{ref('greenhouse_recruiting_xf')}}
+        select distinct
+            date_actual, division_mapped_current as division, department as department
+        from {{ ref("employee_directory_intermediate") }}
 
-), division_mapping AS (
-  
-    SELECT DISTINCT 
-      date_actual,   
-      division_mapped_current as division, 
-      department AS department
-    FROM {{ref('employee_directory_intermediate')}}
+    ),
+    cost_center_mapping as (
 
-), cost_center_mapping AS (
+        select * from {{ ref("cost_center_division_department_mapping_current") }}
 
-    SELECT *
-    FROM {{ref('cost_center_division_department_mapping_current')}}
- 
-), hires AS (
-  
-    SELECT *
-    FROM {{ref('employee_directory')}}
+    ),
+    hires as (select * from {{ ref("employee_directory") }}),
+    greenhouse_jobs_offices as (
 
+        select * from {{ ref("greenhouse_jobs_offices_source") }}
 
-), greenhouse_jobs_offices AS (
+    ),
+    greenhouse_offices_sources as (
 
-    SELECT * 
-    FROM {{ref('greenhouse_jobs_offices_source')}}
+        select *
+        from {{ ref("greenhouse_offices_source") }}
+        where office_name is not null
 
-), greenhouse_offices_sources AS (
+    ),
+    office as (
 
-    SELECT * 
-    FROM {{ref('greenhouse_offices_source')}}
-    WHERE office_name IS NOT NULL
-  
-), office AS (
-  
-    SELECT 
-      greenhouse_jobs_offices.job_id, 
-      listagg(DISTINCT office_name,', ') as office_name
-    FROM greenhouse_jobs_offices
-    LEFT JOIN greenhouse_offices_sources
-      ON greenhouse_offices_sources.office_id = greenhouse_jobs_offices.office_id
-    WHERE office_name IS NOT NULL
-    GROUP BY 1
+        select
+            greenhouse_jobs_offices.job_id,
+            listagg(distinct office_name, ', ') as office_name
+        from greenhouse_jobs_offices
+        left join
+            greenhouse_offices_sources
+            on greenhouse_offices_sources.office_id = greenhouse_jobs_offices.office_id
+        where office_name is not null
+        group by 1
 
 
-), aggregated AS (
+    ),
+    aggregated as (
 
-    SELECT 
-      greenhouse_openings.job_opening_id,
-      greenhouse_openings.job_id,
-      greenhouse_opening_custom_fields.finance_id               AS ghp_id,
-      greenhouse_jobs.job_created_at, 
-      greenhouse_jobs.job_status,
-      greenhouse_openings.opening_id, 
-      greenhouse_recruiting_xf.is_hired_in_bamboo,
-      greenhouse_recruiting_xf.candidate_target_hire_date,
-      greenhouse_recruiting_xf.offer_status,
-      greenhouse_openings.target_start_date,
-      greenhouse_openings.job_opened_at                         AS opening_date,
-      greenhouse_openings.job_closed_at                         AS closing_date,
-      greenhouse_openings.close_reason,
-      greenhouse_jobs.job_name                                  AS job_title, 
-      greenhouse_department.department_name,
-      COALESCE(division_mapping.division, 
-               cost_center_mapping.division)                    AS division,
-      greenhouse_opening_custom_fields.hiring_manager,
-      greenhouse_opening_custom_fields.type                     AS opening_type,
-      hires.employee_id,
-      office.office_name                                        AS region
-    FROM greenhouse_openings
-    LEFT JOIN greenhouse_jobs
-      ON greenhouse_openings.job_id = greenhouse_jobs.job_id 
-    LEFT JOIN greenhouse_department 
-      ON greenhouse_department.department_id = greenhouse_jobs.department_id
-    LEFT JOIN greenhouse_opening_custom_fields 
-      ON greenhouse_opening_custom_fields.opening_id = greenhouse_openings.job_opening_id  
-    LEFT JOIN greenhouse_recruiting_xf
-      ON greenhouse_openings.hired_application_id = greenhouse_recruiting_xf.application_id 
-    LEFT JOIN division_mapping
-      ON division_mapping.department = greenhouse_department.department_modified
-      AND division_mapping.date_actual = DATE_TRUNC(DAY,greenhouse_openings.job_opened_at)
-    LEFT JOIN cost_center_mapping
-      ON cost_center_mapping.department = greenhouse_department.department_modified
-    LEFT JOIN hires
-      ON hires.greenhouse_candidate_id = greenhouse_recruiting_xf.candidate_id
-    LEFT JOIN office
-      ON office.job_id = greenhouse_openings.job_id  
-    WHERE greenhouse_jobs.job_opened_at IS NOT NULL 
-)
+        select
+            greenhouse_openings.job_opening_id,
+            greenhouse_openings.job_id,
+            greenhouse_opening_custom_fields.finance_id as ghp_id,
+            greenhouse_jobs.job_created_at,
+            greenhouse_jobs.job_status,
+            greenhouse_openings.opening_id,
+            greenhouse_recruiting_xf.is_hired_in_bamboo,
+            greenhouse_recruiting_xf.candidate_target_hire_date,
+            greenhouse_recruiting_xf.offer_status,
+            greenhouse_openings.target_start_date,
+            greenhouse_openings.job_opened_at as opening_date,
+            greenhouse_openings.job_closed_at as closing_date,
+            greenhouse_openings.close_reason,
+            greenhouse_jobs.job_name as job_title,
+            greenhouse_department.department_name,
+            coalesce(
+                division_mapping.division, cost_center_mapping.division
+            ) as division,
+            greenhouse_opening_custom_fields.hiring_manager,
+            greenhouse_opening_custom_fields.type as opening_type,
+            hires.employee_id,
+            office.office_name as region
+        from greenhouse_openings
+        left join greenhouse_jobs on greenhouse_openings.job_id = greenhouse_jobs.job_id
+        left join
+            greenhouse_department
+            on greenhouse_department.department_id = greenhouse_jobs.department_id
+        left join
+            greenhouse_opening_custom_fields
+            on greenhouse_opening_custom_fields.opening_id
+            = greenhouse_openings.job_opening_id
+        left join
+            greenhouse_recruiting_xf
+            on greenhouse_openings.hired_application_id
+            = greenhouse_recruiting_xf.application_id
+        left join
+            division_mapping
+            on division_mapping.department = greenhouse_department.department_modified
+            and division_mapping.date_actual
+            = date_trunc(day, greenhouse_openings.job_opened_at)
+        left join
+            cost_center_mapping
+            on cost_center_mapping.department
+            = greenhouse_department.department_modified
+        left join
+            hires
+            on hires.greenhouse_candidate_id = greenhouse_recruiting_xf.candidate_id
+        left join office on office.job_id = greenhouse_openings.job_id
+        where greenhouse_jobs.job_opened_at is not null
+    )
 
-SELECT *
-FROM aggregated
+select *
+from aggregated

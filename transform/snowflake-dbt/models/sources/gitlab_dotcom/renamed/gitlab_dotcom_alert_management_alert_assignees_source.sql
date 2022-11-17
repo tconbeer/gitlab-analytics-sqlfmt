@@ -1,18 +1,20 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_alert_management_alert_assignees_dedupe_source') }}
-    
-), renamed AS (
+        select *
+        from {{ ref("gitlab_dotcom_alert_management_alert_assignees_dedupe_source") }}
 
-    SELECT
-      id::NUMBER                AS alert_management_alert_assignee_id,
-      user_id::NUMBER           AS user_id,
-      alert_id::NUMBER          AS alert_id
+    ),
+    renamed as (
 
-    FROM source
+        select
+            id::number as alert_management_alert_assignee_id,
+            user_id::number as user_id,
+            alert_id::number as alert_id
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

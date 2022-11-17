@@ -1,26 +1,23 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora", "accounting_period") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora', 'accounting_period') }}
+        select
+            -- Primary Keys
+            id::varchar as accounting_period_id,
 
-), renamed AS (
+            -- Info
+            enddate::timestamp_tz as end_date,
+            fiscalyear::number as fiscal_year,
+            name::varchar as accounting_period_name,
+            startdate::timestamp_tz as accounting_period_start_date,
+            status::varchar as accounting_period_status,
+            updatedbyid::varchar as updated_by_id,
+            updateddate::timestamp_tz as updated_date
 
-    SELECT
-      --Primary Keys
-      id::VARCHAR                       AS accounting_period_id,
+        from source
 
-      --Info
-      enddate::TIMESTAMP_TZ             AS end_date,
-      fiscalyear::NUMBER                AS fiscal_year,
-      name::VARCHAR                     AS accounting_period_name,
-      startdate::TIMESTAMP_TZ           AS accounting_period_start_date,
-      status::VARCHAR                   AS accounting_period_status,
-      updatedbyid::VARCHAR              AS updated_by_id,
-      updateddate::TIMESTAMP_TZ         AS updated_date
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

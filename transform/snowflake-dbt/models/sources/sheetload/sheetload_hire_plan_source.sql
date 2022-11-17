@@ -1,18 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "hire_plan") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ source('sheetload', 'hire_plan') }}
+        select
+            function::varchar as function,
+            department::varchar as department,
+            month_year::date as month_year,
+            plan::number as plan
+        from source
 
-), renamed AS (
+    )
 
-  SELECT 
-    function::VARCHAR     AS function,
-    department::VARCHAR   AS department,
-    month_year::DATE      AS month_year,
-    plan::NUMBER          AS plan
-  FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

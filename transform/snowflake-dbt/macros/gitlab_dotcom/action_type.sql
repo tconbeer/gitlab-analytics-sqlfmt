@@ -1,16 +1,28 @@
 {%- macro action_type(action_type_id) -%}
 
-  CASE  WHEN {{action_type_id}}::NUMBER = 1 THEN 'created'
-        WHEN {{action_type_id}}::NUMBER = 2 THEN 'updated'
-        WHEN {{action_type_id}}::NUMBER = 3 THEN 'closed'
-        WHEN {{action_type_id}}::NUMBER = 4 THEN 'reopened'
-        WHEN {{action_type_id}}::NUMBER = 5 THEN 'pushed'
-        WHEN {{action_type_id}}::NUMBER = 6 THEN 'commented'
-        WHEN {{action_type_id}}::NUMBER = 7 THEN 'merged'
-        WHEN {{action_type_id}}::NUMBER = 8 THEN 'joined'
-        WHEN {{action_type_id}}::NUMBER = 9 THEN 'left'
-        WHEN {{action_type_id}}::NUMBER = 10 THEN 'destroyed'
-        WHEN {{action_type_id}}::NUMBER = 11 THEN 'expired'
-        END
+case
+    when {{ action_type_id }}::number = 1
+    then 'created'
+    when {{ action_type_id }}::number = 2
+    then 'updated'
+    when {{ action_type_id }}::number = 3
+    then 'closed'
+    when {{ action_type_id }}::number = 4
+    then 'reopened'
+    when {{ action_type_id }}::number = 5
+    then 'pushed'
+    when {{ action_type_id }}::number = 6
+    then 'commented'
+    when {{ action_type_id }}::number = 7
+    then 'merged'
+    when {{ action_type_id }}::number = 8
+    then 'joined'
+    when {{ action_type_id }}::number = 9
+    then 'left'
+    when {{ action_type_id }}::number = 10
+    then 'destroyed'
+    when {{ action_type_id }}::number = 11
+    then 'expired'
+end
 
 {%- endmacro -%}

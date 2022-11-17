@@ -1,54 +1,49 @@
-WITH source AS (
+with
+    source as (select * from {{ source("greenhouse", "applications") }}),
+    stages_source as (select * from {{ source("greenhouse", "application_stages") }}),
+    stages as (
 
-	SELECT *
-  	FROM {{ source('greenhouse', 'applications') }}
+        select *
+        from stages_source
+        where entered_on is not null
+        qualify
+            row_number() over (partition by application_id order by entered_on desc) = 1
 
-), stages_source AS (
+    ),
+    renamed as (
 
-    SELECT * 
-    FROM {{ source('greenhouse', 'application_stages') }}
+        select
+            id as application_id,
 
-), stages AS (
+            -- keys
+            candidate_id,
+            stages.stage_id,
+            source_id,
+            referrer_id,
+            rejected_by_id,
+            job_post_id,
+            event_id,
+            rejection_reason_id,
+            converted_prospect_application_id,
 
-    SELECT * 
-    FROM stages_source
-    WHERE entered_on IS NOT NULL
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY application_id ORDER BY entered_on DESC) =1
+            -- info
+            status as application_status,
+            prospect,
 
-), renamed as (
+            pipeline_percent,
+            migrated,
+            rejected_by,
+            stages.stage_name,
+            prospect_pool,
+            prospect_pool_stage,
 
-	SELECT  id 						        AS application_id,
+            applied_at::timestamp as applied_at,
+            rejected_at::timestamp as rejected_at,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as last_updated_at
+        from source
+        left join stages on stages.application_id = source.id
+    )
 
-			--keys
-		    candidate_id,
-		    stages.stage_id,
-		    source_id,
-		    referrer_id,
-		    rejected_by_id,
-		    job_post_id,
-		    event_id,
-		    rejection_reason_id,
-		    converted_prospect_application_id,
-
-		    --info
-		    status 					        AS application_status,
-		    prospect,
-
-		    pipeline_percent,
-		    migrated,
-		    rejected_by,
-		    stages.stage_name,
-		    prospect_pool,
-		    prospect_pool_stage,
-
-		    applied_at::timestamp 	AS applied_at,
-		    rejected_at::timestamp 	AS rejected_at,
-		    created_at::timestamp 	AS created_at,
-		    updated_at::timestamp 	AS last_updated_at
-	FROM source
-    LEFT JOIN stages 
-      ON stages.application_id = source.id
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

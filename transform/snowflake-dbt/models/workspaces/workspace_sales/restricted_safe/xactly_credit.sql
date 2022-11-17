@@ -1,9 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT {{ hash_sensitive_columns('xactly_credit_source') }}
-    FROM {{ ref('xactly_credit_source') }}
+        select {{ hash_sensitive_columns("xactly_credit_source") }}
+        from {{ ref("xactly_credit_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

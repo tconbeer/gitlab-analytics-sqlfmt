@@ -1,18 +1,19 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_ci_platform_metrics_dedupe_source') }}
-    
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_ci_platform_metrics_dedupe_source") }}
 
-    SELECT
-      id::NUMBER                                      AS metric_id,
-      recorded_at::TIMESTAMP                          AS recorded_at,
-      platform_target::VARCHAR                        AS platform_target,
-      count::NUMBER                                   AS target_count                     
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as metric_id,
+            recorded_at::timestamp as recorded_at,
+            platform_target::varchar as platform_target,
+            count::number as target_count
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

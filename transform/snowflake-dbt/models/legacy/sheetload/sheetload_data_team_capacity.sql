@@ -1,10 +1,5 @@
 
-WITH source AS (
+with source as (select * from {{ ref("sheetload_data_team_capacity_source") }})
 
-    SELECT *
-    FROM {{ ref('sheetload_data_team_capacity_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source
