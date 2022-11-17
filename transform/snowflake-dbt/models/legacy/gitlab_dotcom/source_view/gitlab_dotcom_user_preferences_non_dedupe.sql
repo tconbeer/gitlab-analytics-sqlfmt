@@ -1,9 +1,9 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_user_preferences_source_non_dedupe') }}
+        select * from {{ ref("gitlab_dotcom_user_preferences_source_non_dedupe") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

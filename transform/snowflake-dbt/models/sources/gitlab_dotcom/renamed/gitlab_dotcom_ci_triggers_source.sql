@@ -1,23 +1,20 @@
-    
-WITH source AS (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_triggers_dedupe_source') }}
-  
-), renamed AS (
-  
-  SELECT
-  
-    id::NUMBER           AS ci_trigger_id,
-    created_at::TIMESTAMP AS created_at,
-    updated_at::TIMESTAMP AS updated_at,
-    project_id::NUMBER   AS project_id,
-    owner_id::NUMBER     AS owner_id,
-    description::VARCHAR  AS ci_trigger_description
-    
-  FROM source
-  
-)
+with
+    source as (select * from {{ ref("gitlab_dotcom_ci_triggers_dedupe_source") }}),
+    renamed as (
 
-SELECT * 
-FROM renamed
+        select
+
+            id::number as ci_trigger_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            project_id::number as project_id,
+            owner_id::number as owner_id,
+            description::varchar as ci_trigger_description
+
+        from source
+
+    )
+
+select *
+from renamed

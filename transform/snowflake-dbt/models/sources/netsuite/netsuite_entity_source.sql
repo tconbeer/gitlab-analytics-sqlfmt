@@ -1,22 +1,19 @@
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "entity") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'entity') }}
+        select
+            -- Primary Key
+            entity_id::float as entity_id,
 
-), renamed AS (
+            -- Info
+            name::varchar as entity_name,
+            full_name::varchar as entity_full_name,
+            _fivetran_deleted::boolean as is_fivetran_deleted
 
-    SELECT
-      --Primary Key
-      entity_id::FLOAT             AS entity_id,
+        from source
 
-      --Info
-      name::VARCHAR                AS entity_name,
-      full_name::VARCHAR           AS entity_full_name,
-      _fivetran_deleted::BOOLEAN   As is_fivetran_deleted
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

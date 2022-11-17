@@ -1,30 +1,26 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zendesk", "group_memberships") }}),
 
-    SELECT *
-    FROM {{ source('zendesk', 'group_memberships') }}
+    renamed as (
 
-),
+        select
 
-renamed AS (
+            -- ids
+            id as group_membership_id,
+            group_id as group_id,
+            user_id as user_id,
 
-    SELECT
+            -- field
+            "DEFAULT" as is_default_group_membership,
+            url as group_membership_url,
 
-        --ids
-        id                                                  AS group_membership_id,
-        group_id                                            AS group_id,
-        user_id                                             AS user_id,
+            -- dates
+            created_at,
+            updated_at
 
-        --field
-        "DEFAULT"                                           AS is_default_group_membership,
-        url                                                 AS group_membership_url,
+        from source
 
-        --dates
-        created_at,
-        updated_at
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

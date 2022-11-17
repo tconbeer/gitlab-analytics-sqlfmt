@@ -1,26 +1,26 @@
-WITH base_departments AS (
+with
+    base_departments as (select * from {{ ref("netsuite_departments_source") }}),
+    parent_department as (
 
-    SELECT *
-    FROM {{ ref('netsuite_departments_source') }}
+        select
+            a.department_id,
+            a.department_name,
+            a.department_full_name,
+            a.is_department_inactive,
+            case
+                when a.parent_department_id is not null
+                then a.parent_department_id
+                else a.department_id
+            end as parent_department_id,
+            case
+                when a.parent_department_id is not null
+                then b.department_name
+                else a.department_name
+            end as parent_department_name
+        from base_departments a
+        left join base_departments b on a.parent_department_id = b.department_id
 
-), parent_department AS (
+    )
 
-    SELECT
-      a.department_id,
-      a.department_name,
-      a.department_full_name,
-      a.is_department_inactive,
-      CASE WHEN a.parent_department_id IS NOT NULL THEN a.parent_department_id
-           ELSE a.department_id
-      END                               AS parent_department_id,
-      CASE WHEN a.parent_department_id IS NOT NULL THEN b.department_name
-           ELSE a.department_name
-      END                               AS parent_department_name
-    FROM base_departments a
-    LEFT JOIN base_departments b
-      ON a.parent_department_id = b.department_id
-
-)
-
-SELECT *
-FROM parent_department
+select *
+from parent_department

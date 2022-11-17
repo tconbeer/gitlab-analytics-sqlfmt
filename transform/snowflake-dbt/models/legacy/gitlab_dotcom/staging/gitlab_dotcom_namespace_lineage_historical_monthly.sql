@@ -1,31 +1,32 @@
-{{ config(materialized='view') }}
+{{ config(materialized="view") }}
 
-WITH date_details AS (
-  
-    SELECT *
-    FROM {{ ref('date_details') }}
-    WHERE last_day_of_month = date_actual
-     
-), namespace_lineage_snapshots_daily AS (
+with
+    date_details as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_namespace_lineage_historical_daily') }}
-  
-), namespace_lineage_snapshots_monthly AS (
-  
-    SELECT
-      date_details.first_day_of_month AS snapshot_month,
-      namespace_lineage_snapshots_daily.namespace_id,
-      namespace_lineage_snapshots_daily.parent_id,
-      namespace_lineage_snapshots_daily.upstream_lineage,
-      namespace_lineage_snapshots_daily.ultimate_parent_id,
-      namespace_lineage_snapshots_daily.namespace_is_internal,
-      namespace_lineage_snapshots_daily.ultimate_parent_plan_id
-    FROM namespace_lineage_snapshots_daily
-    INNER JOIN date_details
-      ON date_details.date_actual = namespace_lineage_snapshots_daily.snapshot_day
-  
-)
+        select * from {{ ref("date_details") }} where last_day_of_month = date_actual
 
-SELECT *
-FROM namespace_lineage_snapshots_monthly
+    ),
+    namespace_lineage_snapshots_daily as (
+
+        select * from {{ ref("gitlab_dotcom_namespace_lineage_historical_daily") }}
+
+    ),
+    namespace_lineage_snapshots_monthly as (
+
+        select
+            date_details.first_day_of_month as snapshot_month,
+            namespace_lineage_snapshots_daily.namespace_id,
+            namespace_lineage_snapshots_daily.parent_id,
+            namespace_lineage_snapshots_daily.upstream_lineage,
+            namespace_lineage_snapshots_daily.ultimate_parent_id,
+            namespace_lineage_snapshots_daily.namespace_is_internal,
+            namespace_lineage_snapshots_daily.ultimate_parent_plan_id
+        from namespace_lineage_snapshots_daily
+        inner join
+            date_details
+            on date_details.date_actual = namespace_lineage_snapshots_daily.snapshot_day
+
+    )
+
+select *
+from namespace_lineage_snapshots_monthly

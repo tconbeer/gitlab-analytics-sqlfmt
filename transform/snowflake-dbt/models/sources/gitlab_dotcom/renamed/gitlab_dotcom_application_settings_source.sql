@@ -1,16 +1,17 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_application_settings_dedupe_source') }}
-    
-), renamed AS (
-  
-    SELECT
-      id::NUMBER                          AS application_settings_id,
-      shared_runners_minutes::NUMBER      AS shared_runners_minutes
-    FROM source
-    
-)
+        select * from {{ ref("gitlab_dotcom_application_settings_dedupe_source") }}
 
-SELECT * 
-FROM renamed
+    ),
+    renamed as (
+
+        select
+            id::number as application_settings_id,
+            shared_runners_minutes::number as shared_runners_minutes
+        from source
+
+    )
+
+select *
+from renamed

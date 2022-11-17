@@ -1,25 +1,22 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "hiring_team") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'hiring_team') }}
+        select
 
-), renamed as (
+            -- keys
+            job_id::number as job_id,
+            user_id::number as user_id,
 
-	SELECT
+            -- info
+            role::varchar as hiring_team_role,
+            responsible::boolean as is_responsible,
+            created_at::timestamp as hiring_team_created_at,
+            updated_at::timestamp as hiring_team_updated_at
 
-			--keys
-   			job_id::NUMBER				  AS job_id,
-    		user_id::NUMBER				  AS user_id,
+        from source
 
-    		--info
-    		role::varchar				    AS hiring_team_role,
-    		responsible::boolean		AS is_responsible,
-    		created_at::timestamp		AS hiring_team_created_at,
-    		updated_at::timestamp		AS hiring_team_updated_at
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

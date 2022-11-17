@@ -1,16 +1,6 @@
-WITH source AS (
+with
+    source as (select * from {{ source("engineering", "nvd_data") }}),
+    renamed as (select "0"::number as year, "1"::number as count from source)
 
-    SELECT *
-    FROM {{ source('engineering', 'nvd_data') }}
-
-), renamed AS (
-
-    SELECT
-      "0"::NUMBER       AS year,
-      "1"::NUMBER       AS count
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

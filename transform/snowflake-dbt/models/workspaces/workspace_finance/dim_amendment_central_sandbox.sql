@@ -1,47 +1,46 @@
-WITH prep_amendment AS (
+with
+    prep_amendment as (select * from {{ ref("prep_amendment_central_sandbox") }}),
+    base as (
 
-    SELECT *
-    FROM {{ ref('prep_amendment_central_sandbox')}}
+        select
+            -- Surrogate Key
+            dim_amendment_id,
 
-), base AS (
+            -- Common Dimension keys
+            dim_subscription_id,
 
-    SELECT
-      --Surrogate Key
-      dim_amendment_id,
+            -- Information
+            amendment_name,
+            amendment_type,
+            amendment_description,
+            auto_renew,
+            amendment_code,
+            amendment_status,
 
-      --Common Dimension keys
-      dim_subscription_id,
+            -- Term information
+            term_type,
+            current_term,
+            current_term_period_type,
+            renewal_term,
+            renewal_term_period_type,
+            renewal_setting,
 
-      --Information
-      amendment_name,
-      amendment_type,
-      amendment_description,
-      auto_renew,
-      amendment_code,
-      amendment_status,
+            -- Dates
+            term_start_date,
+            effective_date,
+            service_activation_date,
+            customer_acceptance_date,
+            contract_effective_date
+        from prep_amendment
 
-      --Term information
-      term_type,
-      current_term,
-      current_term_period_type,
-      renewal_term,
-      renewal_term_period_type,
-      renewal_setting,
+    )
 
-      --Dates
-      term_start_date,
-      effective_date,
-      service_activation_date,
-      customer_acceptance_date,
-      contract_effective_date
-    FROM prep_amendment
-
-)
-
-{{ dbt_audit(
-    cte_ref="base",
-    created_by="@michellecooper",
-    updated_by="@michellecooper",
-    created_date="2022-04-13",
-    updated_date="2022-04-13"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="base",
+            created_by="@michellecooper",
+            updated_by="@michellecooper",
+            created_date="2022-04-13",
+            updated_date="2022-04-13",
+        )
+    }}
