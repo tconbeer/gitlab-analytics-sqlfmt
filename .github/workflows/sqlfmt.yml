@@ -7,6 +7,8 @@ jobs:
   static:
     name: sqlfmt
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out Repo
         uses: actions/checkout@v3
