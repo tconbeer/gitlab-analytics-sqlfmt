@@ -879,7 +879,7 @@ with
             max(
                 cast(
                     substring(
-                        cleaned_version, 0, charindex('.', cleaned_version) -1
+                        cleaned_version, 0, charindex('.', cleaned_version) - 1
                     ) as int
                 )
             ) as gitlab_version

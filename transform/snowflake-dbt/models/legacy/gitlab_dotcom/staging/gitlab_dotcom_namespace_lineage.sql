@@ -37,8 +37,9 @@ with recursive
 
         select
             *,
-            -- Last item is the ultimate parent.
-            get(upstream_lineage, array_size(upstream_lineage) -1) as ultimate_parent_id
+            get(  -- Last item is the ultimate parent.
+                upstream_lineage, array_size(upstream_lineage) - 1
+            ) as ultimate_parent_id
         from recursive_namespaces
 
         union all

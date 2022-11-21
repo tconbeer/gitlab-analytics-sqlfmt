@@ -16,7 +16,7 @@ with
         select count(*) as row_count, date_trunc('day', {{ created_column }}) as the_day
         from source
         where
-            the_day = current_date -1 and the_day in (select date_actual from dates)
+            the_day = current_date - 1 and the_day in (select date_actual from dates)
             {% if where_clause != None %} and {{ where_clause }} {% endif %}
         group by 2
         order by 2 desc

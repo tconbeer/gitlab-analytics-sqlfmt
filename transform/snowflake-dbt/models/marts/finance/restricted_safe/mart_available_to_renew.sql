@@ -509,8 +509,8 @@ base_{{ renewal_fiscal_year }} as (
         on mart_charge.subscription_name
         = renewal_subscriptions_{{ renewal_fiscal_year }}.subscription_name
     where
-        mart_charge.term_start_month <= concat('{{renewal_fiscal_year}}' -1, '-01-01')
-        and mart_charge.term_end_month > concat('{{renewal_fiscal_year}}' -1, '-01-01')
+        mart_charge.term_start_month <= concat('{{renewal_fiscal_year}}' - 1, '-01-01')
+        and mart_charge.term_end_month > concat('{{renewal_fiscal_year}}' - 1, '-01-01')
 
 -- get the starting and ending month ARR for charges with current terms <= 12 months.
 -- These terms do not need additional logic.
@@ -1086,7 +1086,7 @@ renewal_report_{{ renewal_fiscal_year }} as (
         case
             when
                 base_{{ renewal_fiscal_year }}.term_end_month between dateadd(
-                    'month', 1, concat('{{renewal_fiscal_year}}' -1, '-01-01')
+                    'month', 1, concat('{{renewal_fiscal_year}}' - 1, '-01-01')
                 ) and concat('{{renewal_fiscal_year}}', '-01-01')
                 and base_{{ renewal_fiscal_year }}.is_multi_year_booking_with_multi_subs
                 = false
@@ -1118,7 +1118,7 @@ renewal_report_{{ renewal_fiscal_year }} as (
         = opportunity_term_group.dim_subscription_id
     where
         combined_{{ renewal_fiscal_year }}.term_end_month between dateadd(
-            'month', 1, concat('{{renewal_fiscal_year}}' -1, '-01-01')
+            'month', 1, concat('{{renewal_fiscal_year}}' - 1, '-01-01')
         ) and concat('{{renewal_fiscal_year}}', '-01-01')
         and day_of_month = 1
     order by fiscal_quarter_name_fy
