@@ -19,4 +19,6 @@ jobs:
       - name: Install sqlfmt
         run: pip install shandy-sqlfmt[jinjafmt]
       - name: Run sqlfmt
-        run: sqlfmt --diff sqlfmt --diff $(git diff $GITHUB_BASE_REF --name-only)
+        run: |
+          git fetch origin
+          sqlfmt --diff sqlfmt --diff $(git diff $GITHUB_BASE_REF --name-only)
