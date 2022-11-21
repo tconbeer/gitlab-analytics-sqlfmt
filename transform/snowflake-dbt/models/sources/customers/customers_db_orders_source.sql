@@ -1,35 +1,38 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('customers', 'customers_db_orders') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY UPDATED_AT DESC) = 1
+        select *
+        from {{ source("customers", "customers_db_orders") }}
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT DISTINCT
-      id::NUMBER                                              AS order_id,
-      customer_id::NUMBER                                     AS customer_id,
-      product_rate_plan_id::VARCHAR                           AS product_rate_plan_id,
-      subscription_id::VARCHAR                                AS subscription_id,
-      subscription_name::VARCHAR                              AS subscription_name,
-      {{zuora_slugify("subscription_name")}}::VARCHAR         AS subscription_name_slugify,
-      start_date::TIMESTAMP                                   AS order_start_date,
-      end_date::TIMESTAMP                                     AS order_end_date,
-      quantity::NUMBER                                        AS order_quantity,
-      created_at::TIMESTAMP                                   AS order_created_at,
-      updated_at::TIMESTAMP                                   AS order_updated_at,
-      TRY_TO_DECIMAL(NULLIF(gl_namespace_id, ''))::VARCHAR    AS gitlab_namespace_id,
-      NULLIF(gl_namespace_name, '')::VARCHAR                  AS gitlab_namespace_name,
-      amendment_type::VARCHAR                                 AS amendment_type,
-      trial::BOOLEAN                                          AS order_is_trial,
-      last_extra_ci_minutes_sync_at::TIMESTAMP                AS last_extra_ci_minutes_sync_at,
-      zuora_account_id::VARCHAR                               AS zuora_account_id,
-      increased_billing_rate_notified_at::TIMESTAMP           AS increased_billing_rate_notified_at,
-      source::VARCHAR                                         AS order_source
-    FROM source
+        select distinct
+            id::number as order_id,
+            customer_id::number as customer_id,
+            product_rate_plan_id::varchar as product_rate_plan_id,
+            subscription_id::varchar as subscription_id,
+            subscription_name::varchar as subscription_name,
+            {{ zuora_slugify("subscription_name") }}::varchar
+            as subscription_name_slugify,
+            start_date::timestamp as order_start_date,
+            end_date::timestamp as order_end_date,
+            quantity::number as order_quantity,
+            created_at::timestamp as order_created_at,
+            updated_at::timestamp as order_updated_at,
+            try_to_decimal(nullif(gl_namespace_id, ''))::varchar as gitlab_namespace_id,
+            nullif(gl_namespace_name, '')::varchar as gitlab_namespace_name,
+            amendment_type::varchar as amendment_type,
+            trial::boolean as order_is_trial,
+            last_extra_ci_minutes_sync_at::timestamp as last_extra_ci_minutes_sync_at,
+            zuora_account_id::varchar as zuora_account_id,
+            increased_billing_rate_notified_at::timestamp
+            as increased_billing_rate_notified_at,
+            source::varchar as order_source
+        from source
 
-)
+    )
 
-SELECT
-  *
-FROM renamed
+select *
+from renamed

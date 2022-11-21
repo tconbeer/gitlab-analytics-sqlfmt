@@ -1,25 +1,22 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "usage_ping_metrics_sections") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'usage_ping_metrics_sections') }}
+        select
+            section::varchar as section_name,
+            metrics_path::varchar as metrics_path,
+            stage::varchar as stage_name,
+            "group"::varchar as group_name,
+            smau::boolean as is_smau,
+            gmau::boolean as is_gmau,
+            clean_metric_name::varchar as clean_metrics_name,
+            periscope_metrics_name::varchar as periscope_metrics_name,
+            time_period::varchar as time_period,
+            mau::boolean as is_umau,
+            paid_gmau::boolean as is_paid_gmau
+        from source
 
-), renamed AS (
+    )
 
-    SELECT 
-      section::VARCHAR                AS section_name,
-      metrics_path::VARCHAR           AS metrics_path,
-      stage::VARCHAR                  AS stage_name,
-      "group"::VARCHAR                AS group_name,
-      smau::BOOLEAN                   AS is_smau,
-      gmau::BOOLEAN                   AS is_gmau,
-      clean_metric_name::VARCHAR      AS clean_metrics_name,
-      periscope_metrics_name::VARCHAR AS periscope_metrics_name,
-      time_period::VARCHAR            AS time_period,
-      mau::BOOLEAN                    AS is_umau,
-      paid_gmau::BOOLEAN              AS is_paid_gmau
-    FROM source 
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

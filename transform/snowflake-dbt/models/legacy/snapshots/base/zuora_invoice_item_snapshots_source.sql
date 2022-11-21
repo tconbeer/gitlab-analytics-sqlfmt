@@ -1,58 +1,55 @@
-WITH source AS (
+with
+    source as (select * from {{ source("snapshots", "zuora_invoiceitem_snapshots") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('snapshots', 'zuora_invoiceitem_snapshots') }}
-
-), renamed AS (
-
-    SELECT
-      -- keys
-      id                     AS invoice_item_id,
-      invoiceid              AS invoice_id,
-      appliedtoinvoiceitemid AS applied_to_invoice_item_id,
-      rateplanchargeid       AS rate_plan_charge_id,
-      subscriptionid         AS subscription_id,
+        select
+            -- keys
+            id as invoice_item_id,
+            invoiceid as invoice_id,
+            appliedtoinvoiceitemid as applied_to_invoice_item_id,
+            rateplanchargeid as rate_plan_charge_id,
+            subscriptionid as subscription_id,
 
 
-      -- invoice item metadata
-      accountingcode         AS accounting_code,
-      productid              AS product_id,
-      --revrecstartdate        AS revenue_recognition_start_date,
-      serviceenddate         AS service_end_date,
-      servicestartdate       AS service_start_date,
+            -- invoice item metadata
+            accountingcode as accounting_code,
+            productid as product_id,
+            -- revrecstartdate        AS revenue_recognition_start_date,
+            serviceenddate as service_end_date,
+            servicestartdate as service_start_date,
 
 
-      -- financial info
-      chargeamount           AS charge_amount,
-      chargedate             AS charge_date,
-      chargename             AS charge_name,
-      processingtype         AS processing_type,
-      quantity               AS quantity,
-      sku                    AS sku,
-      taxamount              AS tax_amount,
-      taxcode                AS tax_code,
-      taxexemptamount        AS tax_exempt_amount,
-      taxmode                AS tax_mode,
-      uom                    AS unit_of_measure,
-      unitprice              AS unit_price,
+            -- financial info
+            chargeamount as charge_amount,
+            chargedate as charge_date,
+            chargename as charge_name,
+            processingtype as processing_type,
+            quantity as quantity,
+            sku as sku,
+            taxamount as tax_amount,
+            taxcode as tax_code,
+            taxexemptamount as tax_exempt_amount,
+            taxmode as tax_mode,
+            uom as unit_of_measure,
+            unitprice as unit_price,
 
-      -- metadata
-      createdbyid            AS created_by_id,
-      createddate            AS created_date,
-      updatedbyid            AS updated_by_id,
-      updateddate            AS updated_date,
-      deleted                AS is_deleted,
+            -- metadata
+            createdbyid as created_by_id,
+            createddate as created_date,
+            updatedbyid as updated_by_id,
+            updateddate as updated_date,
+            deleted as is_deleted,
 
-      -- snapshot metadata
-      dbt_scd_id,
-      dbt_updated_at,
-      dbt_valid_from,
-      dbt_valid_to
+            -- snapshot metadata
+            dbt_scd_id,
+            dbt_updated_at,
+            dbt_valid_from,
+            dbt_valid_to
 
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

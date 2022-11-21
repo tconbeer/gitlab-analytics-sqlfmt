@@ -1,39 +1,35 @@
-{% macro stage_mapping(stage) %} 
+{% macro stage_mapping(stage) %}
 
-    {%- call statement('get_mappings', fetch_result=True) %}
+{%- call statement("get_mappings", fetch_result=True) %}
 
-        SELECT stats_used_key_name
-        FROM {{ ref('version_usage_stats_to_stage_mappings') }} 
-        WHERE stage = '{{ stage }}'
+select stats_used_key_name
+from {{ ref("version_usage_stats_to_stage_mappings") }}
+where stage = '{{ stage }}'
 
-    {%- endcall -%}
+{%- endcall -%}
 
-    {%- set value_list = load_result('get_mappings') -%}
+{%- set value_list = load_result("get_mappings") -%}
 
-    {%- if value_list and value_list['data'] -%}
+{%- if value_list and value_list["data"] -%}
 
-        {%- set values = value_list['data'] | map(attribute=0) | list %}
+{%- set values = value_list["data"] | map(attribute=0) | list %}
 
-        COALESCE(
-            SUM(
-                CASE WHEN
-                    {% for feature in values %}
+coalesce(
+    sum(
+        case when
+        {% for feature in values %}
 
-                        change.{{ feature }}_change > 0
+                change.{{ feature }}_change > 0
 
-                        {%- if not loop.last %}
-                            OR
-                        {% else %}
-                            THEN change.user_count END
-                        {% endif -%}
+                {%- if not loop.last %} or
+        {% else %} then change.user_count end
+        {% endif -%}
 
-                    {% endfor -%} 
-            )
-        , 0)
-     {%- else -%}
-        {{ return(1) }}
-     {%- endif %}
+        {% endfor -%}
+    ),
+    0
+)
+{%- else -%} {{ return(1) }}
+{%- endif %} as {{ stage }}_sum
 
-    AS {{ stage }}_sum
-
- {% endmacro %}
+{% endmacro %}
