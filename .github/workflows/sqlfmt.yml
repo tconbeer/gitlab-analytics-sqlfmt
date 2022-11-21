@@ -18,7 +18,8 @@ jobs:
           python-version: "3.10"
       - name: Install sqlfmt
         run: pip install shandy-sqlfmt[jinjafmt]
+      - name: Get Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@v34
       - name: Run sqlfmt
-        run: |
-          git fetch origin
-          sqlfmt --diff sqlfmt --diff $(git diff $GITHUB_BASE_REF --name-only)
+        run: ${{ steps.changed-files.outputs.all_changed_files }}
