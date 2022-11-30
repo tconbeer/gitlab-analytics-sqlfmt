@@ -1,186 +1,215 @@
-WITH users AS (
+with
+    users as (select * from {{ source("gitlab_dotcom", "users") }}),
+    memberships as (select * from {{ ref("gitlab_dotcom_memberships") }}),
+    plans as (select * from {{ ref("gitlab_dotcom_plans") }}),
+    zuora_subscription_product_category as (
 
-    SELECT *
-    FROM {{ source('gitlab_dotcom', 'users') }}
-    
-), memberships AS (
+        -- Return all the subscription information 
+        select distinct
+            mrr_month,
+            account_id,
+            account_number,
+            crm_id,
+            subscription_id,
+            product_category,
+            delivery
+        from {{ ref("zuora_monthly_recurring_revenue") }}
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_memberships') }}
-  
-), plans AS (
-  
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_plans') }}
+    ),
+    zuora_contacts_information as (
 
-), zuora_subscription_product_category AS (
+        -- Get the Zuora Contact information to check which columns are good 
+        select distinct
+            contact_id, account_id, first_name, last_name, work_email, personal_email
+        from {{ ref("zuora_contact") }}
 
-  -- Return all the subscription information 
-  SELECT DISTINCT
-    mrr_month,
-    account_id,
-    account_number,
-    crm_id,
-    subscription_id,
-    product_category,
-    delivery
-  FROM {{ ref('zuora_monthly_recurring_revenue') }}
+    ),
+    salesforce_contacts_information as (
 
-), zuora_contacts_information AS (
+        -- Get the Salesforce Contact information to check which columns are good 
+        select distinct
+            account_id,
+            contact_id as user_id,
+            contact_name as full_name,
+            split_part(trim(contact_name), ' ', 1) as first_name,
+            array_to_string(
+                array_slice(split(trim(contact_name), ' '), 1, 10), ' '
+            ) as last_name,
+            contact_email as email,
+            iff(
+                (
+                    (inactive_contact = true)
+                    or (has_opted_out_email = true)
+                    or (invalid_email_address = true)
+                    or (email_is_bounced = true)
+                ),
+                'Inactive',
+                'Active'
+            ) as state
+        from {{ ref("sfdc_contact_source") }}
 
-  -- Get the Zuora Contact information to check which columns are good 
-  SELECT DISTINCT
-    contact_id,
-    account_id,
-    first_name,
-    last_name,
-    work_email,
-    personal_email  
-  FROM {{ ref('zuora_contact') }} 
+    ),
+    all_gitlab_user_information as (
 
-), salesforce_contacts_information AS (
+        select
+            id as user_id,
+            trim(name) as full_name,
+            split_part(trim(name), ' ', 1) as first_name,
+            array_to_string(
+                array_slice(split(trim(name), ' '), 1, 10), ' '
+            ) as last_name,
+            username,
+            notification_email,
+            state
+        from users
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-  -- Get the Salesforce Contact information to check which columns are good 
-  SELECT DISTINCT
-      account_id,
-      contact_id                                                                                                                                                AS user_id, 
-      contact_name                                                                                                                                              AS full_name,
-      SPLIT_PART(TRIM(contact_name), ' ', 1)                                                                                                                    AS first_name,
-      ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(TRIM(contact_name), ' '), 1, 10), ' ')                                                                                  AS last_name,
-      contact_email                                                                                                                                             AS email, 
-      IFF(((inactive_contact = TRUE) OR (has_opted_out_email = TRUE) OR (invalid_email_address = TRUE) OR (email_is_bounced = TRUE)), 'Inactive', 'Active')     AS state 
-  FROM {{ ref('sfdc_contact_source') }}
+    ),
+    saas_paid_users as (
 
-), all_gitlab_user_information AS (
+        select distinct
+            all_gitlab_user_information.user_id,
+            all_gitlab_user_information.full_name,
+            all_gitlab_user_information.first_name,
+            all_gitlab_user_information.last_name,
+            all_gitlab_user_information.notification_email,
+            plans.plan_title,
+            all_gitlab_user_information.state
+        from all_gitlab_user_information
+        left join
+            memberships on all_gitlab_user_information.user_id = memberships.user_id
+        left join
+            plans
+            on memberships.ultimate_parent_plan_id::varchar = plans.plan_id::varchar
+        where memberships.ultimate_parent_plan_id::varchar in ('2', '3', '4')
 
-  SELECT
-        id                                                               AS user_id,
-        TRIM(name)                                                       AS full_name,
-        SPLIT_PART(TRIM(name), ' ', 1)                                   AS first_name,
-        ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(TRIM(name), ' '), 1, 10), ' ') AS last_name,
-        username,
-        notification_email, 
-        state 
-    FROM users
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+    ),
+    zuora_subscription_product_category_saas_only as (
 
-), saas_paid_users AS (
-  
-    SELECT DISTINCT
-        all_gitlab_user_information.user_id,
-        all_gitlab_user_information.full_name,
-        all_gitlab_user_information.first_name,
-        all_gitlab_user_information.last_name,
-        all_gitlab_user_information.notification_email,
-        plans.plan_title,
-        all_gitlab_user_information.state
-    FROM all_gitlab_user_information
-    LEFT JOIN memberships ON all_gitlab_user_information.user_id = memberships.user_id
-    LEFT JOIN plans ON memberships.ultimate_parent_plan_id::VARCHAR = plans.plan_id::VARCHAR
-    WHERE memberships.ultimate_parent_plan_id::VARCHAR IN ('2', '3', '4')
-  
-), zuora_subscription_product_category_saas_only AS (
+        -- Filter to Self-Managed subscriptions Only 
+        select * from zuora_subscription_product_category where delivery = 'SaaS'
 
-  -- Filter to Self-Managed subscriptions Only 
-  SELECT *
-  FROM zuora_subscription_product_category
-  WHERE delivery = 'SaaS'
+    ),
+    zuora_subscription_product_category_saas_only_current_month as (
 
-), zuora_subscription_product_category_saas_only_current_month AS (
+        select *
+        from zuora_subscription_product_category_saas_only
+        where mrr_month = date_trunc('month', current_date)
 
-  SELECT *
-  FROM zuora_subscription_product_category_saas_only
-  WHERE mrr_month = DATE_TRUNC('month', CURRENT_DATE)
+    ),
+    zuora_subscription_product_category_saas_only_contacts as (
 
-), zuora_subscription_product_category_saas_only_contacts AS (
+        -- Get contact information for self-managed subscriptions 
+        select distinct
+            -- contact_id
+            --    AS user_id,
+            subscription.subscription_id,
+            subscription.account_id,
+            first_name || ' ' || last_name as full_name,
+            first_name,
+            last_name,
+            work_email as email,
+            subscription.product_category as plan_title,
+            iff(
+                subscription.account_id in (
+                    select account_id
+                    from zuora_subscription_product_category_saas_only_current_month
+                ),
+                'active',
+                'inactive'
+            ) as state,
+            'Zuora Only' as source,
+            null as sfdc
+        from zuora_contacts_information as contacts
+        inner join
+            zuora_subscription_product_category_saas_only as subscription
+            on contacts.account_id = subscription.account_id
 
-  -- Get contact information for self-managed subscriptions 
-  SELECT DISTINCT 
-    --contact_id                                                                 AS user_id, 
-    subscription.SUBSCRIPTION_ID,
-    subscriptioN.ACCOUNT_ID,
-    first_name || ' ' || last_name                                             AS full_name, 
-    first_name, 
-    last_name, 
-    work_email                                                                 AS email, 
-    subscription.product_category                                                                                              AS plan_title, 
-    IFF(subscription.account_id IN
-        (SELECT account_id
-         FROM zuora_subscription_product_category_saas_only_current_month),
-        'active', 'inactive')                                                  AS state, 
-    'Zuora Only'                                                               AS source,
-    NULL                                                                       AS SFDC
-  FROM zuora_contacts_information AS contacts
-  INNER JOIN zuora_subscription_product_category_saas_only AS subscription 
-    ON contacts.account_id = subscription.account_id
+    ),
+    zuora_salesforce_subscription_product_category_saas_only_contacts as (
 
-), zuora_salesforce_subscription_product_category_saas_only_contacts AS (
+        -- Get contact information for self-managed subscriptions 
+        select distinct
+            -- contacts.user_id, 
+            subscription.subscription_id,
+            subscription.account_id,
+            contacts.full_name,
+            contacts.first_name,
+            contacts.last_name,
+            contacts.email,
+            subscription.product_category as plan_title,
 
-  -- Get contact information for self-managed subscriptions 
-  SELECT DISTINCT 
-    --contacts.user_id, 
-    subscription.SUBSCRIPTION_ID,
-    subscriptioN.ACCOUNT_ID,
-    contacts.full_name, 
-    contacts.first_name, 
-    contacts.last_name,
-    contacts.email,
-    subscription.product_category                 AS plan_title, 
+            iff(
+                contacts.state = 'inactive'
+                or subscription.account_id not in (
+                    select account_id
+                    from zuora_subscription_product_category_saas_only_current_month
+                ),
+                'inactive',
+                'active'
+            ) as state,
+            'Zuora to Salesforce' as source,
+            contacts.state as sfdc
 
-    IFF(contacts.state = 'inactive' OR
-        subscription.account_id NOT IN
-        (SELECT account_id
-         FROM zuora_subscription_product_category_saas_only_current_month),
-        'inactive', 'active')                     AS state,
-    'Zuora to Salesforce'                         AS source,
-  contacts.state AS SFDC 
-  
-  FROM salesforce_contacts_information contacts
-  INNER JOIN zuora_subscription_product_category_saas_only subscription 
-    ON contacts.account_id = subscription.crm_id
+        from salesforce_contacts_information contacts
+        inner join
+            zuora_subscription_product_category_saas_only subscription
+            on contacts.account_id = subscription.crm_id
 
-), unioned_data_set AS (
+    ),
+    unioned_data_set as (
 
-  SELECT *
-  FROM zuora_subscription_product_category_saas_only_contacts
+        select *
+        from zuora_subscription_product_category_saas_only_contacts
 
-  UNION ALL 
+        union all
 
-  SELECT *
-  FROM zuora_salesforce_subscription_product_category_saas_only_contacts
+        select *
+        from zuora_salesforce_subscription_product_category_saas_only_contacts
 
-), zuora_sfdc_contacts AS (
-    SELECT DISTINCT
-      NULL      AS user_id,
-      full_name, 
-      first_name, 
-      last_name, 
-      email     AS notification_email, 
-      plan_title, 
-      state    
-    FROM unioned_data_set
-    QUALIFY ROW_NUMBER() OVER(PARTITION BY full_name, email, plan_title ORDER BY state ASC) = 1  -- If user combination plan is active in one of the systems and inactive in another one, only consider where active
+    ),
+    zuora_sfdc_contacts as (
+        select distinct
+            null as user_id,
+            full_name,
+            first_name,
+            last_name,
+            email as notification_email,
+            plan_title,
+            state
+        from unioned_data_set
+        -- If user combination plan is active in one of the systems and inactive in
+        -- another one, only consider where active
+        qualify
+            row_number() over (
+                partition by full_name, email, plan_title order by state asc
+            )
+            = 1
 
-  -- Stops getting contact information from zuora and sfdc
- 
-), zuora_sfdc_contacts_no_gitlab_contacts AS (
-  
-    SELECT zuora_sfdc_contacts.*
-    FROM zuora_sfdc_contacts
-    LEFT JOIN saas_paid_users ON saas_paid_users.notification_email = zuora_sfdc_contacts.notification_email
-       AND saas_paid_users.full_name = zuora_sfdc_contacts.full_name
-    WHERE saas_paid_users.notification_email IS NULL
+    -- Stops getting contact information from zuora and sfdc
+    ),
+    zuora_sfdc_contacts_no_gitlab_contacts as (
 
-), zuora_sfdc_gitlab_users AS (
-    
-    SELECT *
-    FROM zuora_sfdc_contacts_no_gitlab_contacts
+        select zuora_sfdc_contacts.*
+        from zuora_sfdc_contacts
+        left join
+            saas_paid_users
+            on saas_paid_users.notification_email
+            = zuora_sfdc_contacts.notification_email
+            and saas_paid_users.full_name = zuora_sfdc_contacts.full_name
+        where saas_paid_users.notification_email is null
 
-    UNION
+    ),
+    zuora_sfdc_gitlab_users as (
 
-    SELECT *
-    FROM saas_paid_users
-)
+        select *
+        from zuora_sfdc_contacts_no_gitlab_contacts
 
-SELECT DISTINCT *
-FROM zuora_sfdc_gitlab_users
+        union
+
+        select *
+        from saas_paid_users
+    )
+
+select distinct *
+from zuora_sfdc_gitlab_users

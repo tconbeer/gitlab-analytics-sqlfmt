@@ -1,9 +1,1 @@
-WITH source AS (
-
-    SELECT *
-    FROM {{ ref('date_details_source')}}
-
-)
-
-SELECT *
-FROM source
+with source as (select * from {{ ref("date_details_source") }}) select * from source

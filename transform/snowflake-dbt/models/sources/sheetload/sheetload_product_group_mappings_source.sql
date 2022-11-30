@@ -1,16 +1,13 @@
-WITH source AS (
-    
-    SELECT * 
-    FROM {{ source('sheetload','product_group_mappings') }}
-),
+with
+    source as (select * from {{ source("sheetload", "product_group_mappings") }}),
 
-renamed as (
-    SELECT
-      group_name::VARCHAR     AS group_name,
-      stage_name::VARCHAR     AS stage_name,
-      section_name::VARCHAR   AS section_name
-    FROM source
-)
+    renamed as (
+        select
+            group_name::varchar as group_name,
+            stage_name::varchar as stage_name,
+            section_name::varchar as section_name
+        from source
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed
