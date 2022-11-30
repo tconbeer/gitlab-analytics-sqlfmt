@@ -1,4 +1,6 @@
 {% set partition_statement = "OVER (PARTITION BY base.breakout_type, base.department, base.division, base.job_role,                                     base.job_grade, base.eeoc_field_name, base.eeoc_value                               ORDER BY base.month_date DESC ROWS BETWEEN CURRENT ROW AND 11 FOLLOWING)                               " %}
+
+
 {% set ratio_to_report_partition_statement = "OVER (PARTITION BY base.month_date, base.breakout_type, base.department, base.division, base.job_role,                                               base.job_grade, base.eeoc_field_name                                               ORDER BY base.month_date)                               " %}
 
 with

@@ -9,6 +9,8 @@ with
 
     ),
     sfdc_opportunity_snapshot_history_xf as (
+
+
         select *
         from {{ ref("wk_sales_sfdc_opportunity_snapshot_history_xf") }}
         where is_edu_oss = 0 and is_deleted = 0

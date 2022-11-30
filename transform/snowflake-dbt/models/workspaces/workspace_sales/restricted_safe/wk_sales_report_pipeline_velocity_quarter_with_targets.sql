@@ -106,6 +106,8 @@ with
 
     ),
     base_keys as (
+
+
         select
             pipeline_summary.close_fiscal_quarter_name,
             pipeline_summary.close_fiscal_quarter_date,

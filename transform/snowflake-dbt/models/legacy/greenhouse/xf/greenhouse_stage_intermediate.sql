@@ -1,4 +1,6 @@
 {% set repeated_column_names = "job_id,         requisition_id,         is_prospect,         current_stage_name,         application_status,         job_name,         department_name,         division_modified,         source_name,         source_type,         sourcer_name,         is_outbound,         is_sourced,         candidate_recruiter,         candidate_coordinator,         rejection_reason_name,         rejection_reason_type,         current_job_req_status,         is_hired_in_bamboo,         time_to_offer" %}
+
+
 with
     stages as (
 
