@@ -20,10 +20,10 @@ select
 
     {% if source_relation != None %}
 
-                {% set min_created_date %}
+    {% set min_created_date %}
                     SELECT LEAST(MIN(dbt_created_at), CURRENT_TIMESTAMP()) AS min_ts 
                     FROM {{ this }}
-                {% endset %}
+    {% endset %}
 
     {% set results = run_query(min_created_date) %}
 
