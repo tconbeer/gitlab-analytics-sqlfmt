@@ -1,14 +1,6 @@
-{{ config({
-    "schema": "legacy"
-    })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH source AS (
+with source as (select * from {{ ref("sheetload_abm_account_baselines_source") }})
 
-    SELECT *
-    FROM {{ ref('sheetload_abm_account_baselines_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

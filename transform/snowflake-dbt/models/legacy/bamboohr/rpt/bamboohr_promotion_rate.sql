@@ -1,129 +1,155 @@
-WITH promotions AS (
+with
+    promotions as (select * from {{ ref("bamboohr_promotions_xf") }}),
+    bamboohr_base as (
 
-    SELECT *
-    FROM {{ ref('bamboohr_promotions_xf') }}
+        select
+            dateadd(month, -11, date_actual) as rolling_start_month,
+            date_actual as rolling_end_month,
+            field_name,
+            field_value
+        from {{ ref("bamboohr_base_mapping") }}
 
-), bamboohr_base AS (
+    ),
+    headcount_end as (
 
-    SELECT
-      DATEADD(month, -11, date_actual)                           AS rolling_start_month,
-      date_actual                                                AS rolling_end_month,
-      field_name,
-      field_value
-    FROM {{ ref('bamboohr_base_mapping') }}
-  
-), headcount_end AS (
+        select
+            month_date,
+            case
+                when breakout_type = 'kpi_breakout'
+                then 'company_breakout'
+                when breakout_type = 'department_breakout'
+                then 'department_grouping_breakout'
+                when breakout_type = 'division_breakout'
+                then 'division_grouping_breakout'
+                else null
+            end as breakout_type,
+            case
+                when breakout_type = 'kpi_breakout'
+                then 'company_breakout'
+                when breakout_type = 'division_breakout'
+                then {{ bamboohr_division_grouping(division="division") }}
+                else {{ bamboohr_department_grouping(department="department") }}
+            end as division_department,
+            sum(headcount_end) as headcount_end,
+            sum(headcount_end_excluding_sdr) as headcount_end_excluding_sdr
+        from {{ ref("bamboohr_rpt_headcount_aggregation") }}
+        where
+            breakout_type
+            in ('department_breakout', 'kpi_breakout', 'division_breakout')
+            and eeoc_field_name = 'no_eeoc'
+        group by 1, 2, 3
 
-    SELECT 
-      month_date, 
-      CASE WHEN breakout_type = 'kpi_breakout'
-            THEN 'company_breakout'
-           WHEN breakout_type = 'department_breakout'
-            THEN 'department_grouping_breakout'
-           WHEN breakout_type ='division_breakout'
-            THEN 'division_grouping_breakout' 
-           ELSE NULL END                                                        AS breakout_type, 
-      CASE WHEN breakout_type = 'kpi_breakout' 
-             THEN 'company_breakout'
-           WHEN breakout_type = 'division_breakout' 
-             THEN {{ bamboohr_division_grouping(division='division') }}
-           ELSE {{ bamboohr_department_grouping(department='department') }} END AS division_department, 
-      SUM(headcount_end)                                                        AS headcount_end,
-      SUM(headcount_end_excluding_sdr)                                          AS headcount_end_excluding_sdr
-    FROM {{ ref('bamboohr_rpt_headcount_aggregation') }}  
-    WHERE breakout_type IN ('department_breakout', 'kpi_breakout', 'division_breakout')
-        AND eeoc_field_name = 'no_eeoc'
-    GROUP BY 1,2,3    
-  
 
-), joined AS (
+    ),
+    joined as (
 
-    SELECT 
-      bamboohr_base.*, 
-      promotions.*, 
-      headcount_end
-    FROM bamboohr_base
-    LEFT JOIN promotions
-      ON promotions.promotion_month BETWEEN rolling_start_month AND rolling_end_month
-      AND IFF(field_name = 'division_grouping_breakout', promotions.division_grouping, promotions.department_grouping) = bamboohr_base.field_value
-     LEFT JOIN headcount_end
-      ON bamboohr_base.rolling_end_month = headcount_end.month_date
-      AND bamboohr_base.field_name = headcount_end.breakout_type
-      AND bamboohr_base.field_value = headcount_end.division_department
-    WHERE bamboohr_base.field_name !='company_breakout'
+        select bamboohr_base.*, promotions.*, headcount_end
+        from bamboohr_base
+        left join
+            promotions
+            on promotions.promotion_month
+            between rolling_start_month and rolling_end_month
+            and iff(
+                field_name = 'division_grouping_breakout',
+                promotions.division_grouping,
+                promotions.department_grouping
+            )
+            = bamboohr_base.field_value
+        left join
+            headcount_end
+            on bamboohr_base.rolling_end_month = headcount_end.month_date
+            and bamboohr_base.field_name = headcount_end.breakout_type
+            and bamboohr_base.field_value = headcount_end.division_department
+        where bamboohr_base.field_name != 'company_breakout'
 
-    UNION ALL
+        union all
 
-    SELECT 
-      bamboohr_base.rolling_start_month,
-      bamboohr_base.rolling_end_month,
-      'division_grouping_breakout' AS field_name,
-      'Marketing - Excluding SDR' AS field_value,
-      promotions.*, 
-      headcount_end_excluding_sdr
-    FROM bamboohr_base
-    INNER JOIN promotions
-      ON promotions.promotion_month BETWEEN rolling_start_month AND rolling_end_month
-      AND IFF(field_name = 'division_grouping_breakout', promotions.division_grouping, promotions.department_grouping) = bamboohr_base.field_value
-    LEFT JOIN headcount_end
-      ON bamboohr_base.rolling_end_month = headcount_end.month_date
-      AND bamboohr_base.field_name = headcount_end.breakout_type
-      AND bamboohr_base.field_value = headcount_end.division_department
-    WHERE bamboohr_base.field_name = 'division_grouping_breakout'
-      AND promotions.division_grouping = 'Marketing'
-      AND promotions.department != 'Sales Development'
+        select
+            bamboohr_base.rolling_start_month,
+            bamboohr_base.rolling_end_month,
+            'division_grouping_breakout' as field_name,
+            'Marketing - Excluding SDR' as field_value,
+            promotions.*,
+            headcount_end_excluding_sdr
+        from bamboohr_base
+        inner join
+            promotions
+            on promotions.promotion_month
+            between rolling_start_month and rolling_end_month
+            and iff(
+                field_name = 'division_grouping_breakout',
+                promotions.division_grouping,
+                promotions.department_grouping
+            )
+            = bamboohr_base.field_value
+        left join
+            headcount_end
+            on bamboohr_base.rolling_end_month = headcount_end.month_date
+            and bamboohr_base.field_name = headcount_end.breakout_type
+            and bamboohr_base.field_value = headcount_end.division_department
+        where
+            bamboohr_base.field_name = 'division_grouping_breakout'
+            and promotions.division_grouping = 'Marketing'
+            and promotions.department != 'Sales Development'
 
-    UNION ALL
+        union all
 
-    SELECT
-      bamboohr_base.*,
-      promotions.*,
-      headcount_end
-    FROM bamboohr_base
-    LEFT JOIN promotions
-      ON promotions.promotion_month BETWEEN rolling_start_month AND rolling_end_month
-    LEFT JOIN headcount_end
-      ON bamboohr_base.rolling_end_month = headcount_end.month_date
-      AND bamboohr_base.field_name = headcount_end.breakout_type
-      AND bamboohr_base.field_value = headcount_end.division_department
-    WHERE bamboohr_base.field_name = 'company_breakout'
+        select bamboohr_base.*, promotions.*, headcount_end
+        from bamboohr_base
+        left join
+            promotions
+            on promotions.promotion_month
+            between rolling_start_month and rolling_end_month
+        left join
+            headcount_end
+            on bamboohr_base.rolling_end_month = headcount_end.month_date
+            and bamboohr_base.field_name = headcount_end.breakout_type
+            and bamboohr_base.field_value = headcount_end.division_department
+        where bamboohr_base.field_name = 'company_breakout'
 
-    UNION ALL
+        union all
 
-    SELECT 
-      bamboohr_base.rolling_start_month,
-      bamboohr_base.rolling_end_month,
-      'company_breakout' AS field_name,
-      'Company - Excluding SDR'  AS field_value,
-      promotions.*,
-      headcount_end_excluding_sdr
-    FROM bamboohr_base
-    LEFT JOIN promotions
-      ON promotions.promotion_month BETWEEN rolling_start_month AND rolling_end_month
-    LEFT JOIN headcount_end
-      ON bamboohr_base.rolling_end_month = headcount_end.month_date
-      AND bamboohr_base.field_name = headcount_end.breakout_type
-      AND bamboohr_base.field_value = headcount_end.division_department
-    WHERE bamboohr_base.field_name = 'company_breakout'
-      AND promotions.department != 'Sales Development'
+        select
+            bamboohr_base.rolling_start_month,
+            bamboohr_base.rolling_end_month,
+            'company_breakout' as field_name,
+            'Company - Excluding SDR' as field_value,
+            promotions.*,
+            headcount_end_excluding_sdr
+        from bamboohr_base
+        left join
+            promotions
+            on promotions.promotion_month
+            between rolling_start_month and rolling_end_month
+        left join
+            headcount_end
+            on bamboohr_base.rolling_end_month = headcount_end.month_date
+            and bamboohr_base.field_name = headcount_end.breakout_type
+            and bamboohr_base.field_value = headcount_end.division_department
+        where
+            bamboohr_base.field_name = 'company_breakout'
+            and promotions.department != 'Sales Development'
 
-), final AS (
+    ),
+    final as (
 
-    SELECT
-      rolling_end_month                             AS month_date,
-      field_name, 
-      field_value,
-      headcount_end,
-      COUNT(employee_id)                            AS total_promotions,
-      total_promotions/NULLIFZERO(headcount_end)    AS promotion_rate,
-      IFF(total_promotions <= 3, NULL, 
-            AVG(percent_change_in_comp))            AS average_percent_change_in_comp,
-      IFF(total_promotions <= 3, NULL, 
-            MEDIAN(percent_change_in_comp))         AS median_percent_change_change_in_comp
-    FROM joined
-    GROUP BY 1,2,3,4
+        select
+            rolling_end_month as month_date,
+            field_name,
+            field_value,
+            headcount_end,
+            count(employee_id) as total_promotions,
+            total_promotions / nullifzero(headcount_end) as promotion_rate,
+            iff(
+                total_promotions <= 3, null, avg(percent_change_in_comp)
+            ) as average_percent_change_in_comp,
+            iff(
+                total_promotions <= 3, null, median(percent_change_in_comp)
+            ) as median_percent_change_change_in_comp
+        from joined
+        group by 1, 2, 3, 4
 
-)
+    )
 
-SELECT *
-FROM final
+select *
+from final

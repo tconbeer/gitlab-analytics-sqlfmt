@@ -1,20 +1,21 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_project_custom_attributes_dedupe_source') }}
+        select * from {{ ref("gitlab_dotcom_project_custom_attributes_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-  SELECT
-    id::NUMBER            AS project_custom_attribute_id,
-    created_at::TIMESTAMP AS created_at,
-    updated_at::TIMESTAMP AS updated_at,
-    project_id::NUMBER    AS project_id,
-    key::VARCHAR          AS project_custom_key,
-    value::VARCHAR        AS project_custom_value
-  FROM source
+        select
+            id::number as project_custom_attribute_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            project_id::number as project_id,
+            key::varchar as project_custom_key,
+            value::varchar as project_custom_value
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

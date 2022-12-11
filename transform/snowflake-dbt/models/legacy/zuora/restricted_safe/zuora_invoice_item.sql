@@ -1,10 +1,5 @@
-WITH source AS (
+with source as (select * from {{ ref("zuora_invoice_item_source") }})
 
-    SELECT *
-    FROM {{ ref('zuora_invoice_item_source') }}
-
-)
-
-SELECT *
-FROM source
-WHERE is_deleted = FALSE
+select *
+from source
+where is_deleted = false
