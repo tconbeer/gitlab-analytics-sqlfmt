@@ -1,29 +1,28 @@
-    
-WITH source AS (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_pipeline_schedules_dedupe_source') }}
-  
-), renamed AS (
+with
+    source as (
 
-    SELECT
-      id::NUMBER            AS ci_pipeline_schedule_id, 
-      description            AS ci_pipeline_schedule_description, 
-      ref                    AS ref, 
-      cron                   AS cron, 
-      cron_timezone          AS cron_timezone, 
-      next_run_at::TIMESTAMP AS next_run_at, 
-      project_id::NUMBER    AS project_id, 
-      owner_id::NUMBER      AS owner_id, 
-      active                 AS active, 
-      created_at::TIMESTAMP  AS created_at, 
-      updated_at::TIMESTAMP  AS updated_at
+        select * from {{ ref("gitlab_dotcom_ci_pipeline_schedules_dedupe_source") }}
 
+    ),
+    renamed as (
 
-    FROM source
+        select
+            id::number as ci_pipeline_schedule_id,
+            description as ci_pipeline_schedule_description,
+            ref as ref,
+            cron as cron,
+            cron_timezone as cron_timezone,
+            next_run_at::timestamp as next_run_at,
+            project_id::number as project_id,
+            owner_id::number as owner_id,
+            active as active,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-)
+        from source
 
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

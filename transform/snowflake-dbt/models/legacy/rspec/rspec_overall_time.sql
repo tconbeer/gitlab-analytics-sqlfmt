@@ -1,11 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("rspec_overall_time_source") }})
 
-    SELECT *
-    FROM {{ ref('rspec_overall_time_source') }}
-
-)
-
-
-SELECT *
-FROM source
-
+select *
+from source

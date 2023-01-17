@@ -1,20 +1,17 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_audit_events_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_audit_events_dedupe_source') }}
+        select
+            id::number as audit_event_id,
+            author_id::number as author_id,
+            entity_id::number as entity_id,
+            entity_type::varchar as entity_type,
+            details::varchar as audit_event_details,
+            created_at::timestamp as created_at
+        from source
 
-), renamed AS (
+    )
 
-  SELECT
-    id::NUMBER              AS audit_event_id,
-    author_id::NUMBER       AS author_id,
-    entity_id::NUMBER       AS entity_id,
-    entity_type::VARCHAR    AS entity_type,
-    details::VARCHAR        AS audit_event_details,
-    created_at::TIMESTAMP   AS created_at
-  FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

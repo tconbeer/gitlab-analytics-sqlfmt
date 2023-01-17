@@ -1,301 +1,386 @@
-{{ config({
-    "materialized":"table",
-    })
+{{
+    config(
+        {
+            "materialized": "table",
+        }
+    )
 }}
 
-WITH RECURSIVE employee_directory AS (
+with recursive
+    employee_directory as (
 
-    SELECT
-      employee_id,
-      employee_number,	
-      first_name,	
-      last_name,	
-      (first_name ||' '|| last_name)   AS full_name,
-      hire_date,
-      rehire_date,
-      termination_date,
-      hire_location_factor,
-      last_work_email
-    FROM {{ ref('employee_directory') }}
+        select
+            employee_id,
+            employee_number,
+            first_name,
+            last_name,
+            (first_name || ' ' || last_name) as full_name,
+            hire_date,
+            rehire_date,
+            termination_date,
+            hire_location_factor,
+            last_work_email
+        from {{ ref("employee_directory") }}
 
-), date_details AS (
+    ),
+    date_details as (select * from {{ ref("date_details") }}),
+    department_info as (
 
-    SELECT *
-    FROM {{ ref('date_details') }}
+        select * from {{ ref("bamboohr_job_info_current_division_base") }}
 
-), department_info AS (
+    ),
+    job_role as (select * from {{ ref("bamboohr_job_role") }}),
+    location_factor as (select * from {{ ref("employee_location_factor_snapshots") }}),
+    employment_status as (select * from {{ ref("bamboohr_employment_status_xf") }}),
+    promotion as (
 
-    SELECT *
-    FROM {{ ref('bamboohr_job_info_current_division_base') }}
+        select employee_id, effective_date, compensation_change_reason
+        from {{ ref("bamboohr_compensation_source") }}
+        where compensation_change_reason = 'Promotion'
+        group by 1, 2, 3
 
-), job_role AS (
+    ),
+    direct_reports as (
 
-    SELECT *
-    FROM {{ ref('bamboohr_job_role') }}
+        select
+            date_actual as date, reports_to, count(employee_id) as total_direct_reports
+        from
+            (
+                select
+                    date_details.date_actual, employee_directory.employee_id, reports_to
+                from date_details
+                left join
+                    employee_directory
+                    on employee_directory.hire_date::date <= date_actual
+                    and coalesce(
+                        termination_date::date, {{ max_date_in_bamboo_analyses() }}
+                    )
+                    >= date_actual
+                left join
+                    department_info
+                    on employee_directory.employee_id = department_info.employee_id
+                    and date_details.date_actual
+                    between department_info.effective_date and coalesce(
+                        department_info.effective_end_date,
+                        {{ max_date_in_bamboo_analyses() }}
+                    )
+            )
+        group by 1, 2
+        having total_direct_reports > 0
 
-), location_factor AS (
+    ),
+    job_info_mapping_historical as (
 
-    SELECT *
-    FROM {{ ref('employee_location_factor_snapshots') }}
+        select
+            department_info.employee_id,
+            department_info.job_title,
+            iff(
+                job_title = 'Manager, Field Marketing',
+                'Leader',
+                coalesce(job_role.job_role, department_info.job_role)
+            ) as job_role,
+            case
+                when job_title = 'Group Manager, Product'
+                then '9.5'
+                when job_title = 'Manager, Field Marketing'
+                then '8'
+                else job_role.job_grade
+            end as job_grade,
+            row_number() over (
+                partition by department_info.employee_id
+                order by date_details.date_actual
+            ) as job_grade_event_rank
+        from date_details
+        left join
+            department_info
+            on date_details.date_actual
+            between department_info.effective_date and coalesce(
+                department_info.effective_end_date, {{ max_date_in_bamboo_analyses() }}
+            )
+        left join
+            job_role
+            on job_role.employee_id = department_info.employee_id
+            and date_details.date_actual between job_role.effective_date and coalesce(
+                job_role.next_effective_date, {{ max_date_in_bamboo_analyses() }}
+            )
+        where job_role.job_grade is not null
+    -- -Using the 1st time we captured job_role and grade to identify classification
+    -- for historical records
+    ),
+    employment_status_records_check as (
 
-), employment_status AS (
-    
-    SELECT * 
-    FROM {{ ref('bamboohr_employment_status_xf') }}
+        select employee_id, min(valid_from_date) as employment_status_first_value
+        from {{ ref("bamboohr_employment_status_xf") }}
+        group by 1
 
-), promotion AS (
+    ),
+    cost_center_prior_to_bamboo as (
 
-    SELECT
-      employee_id,
-      effective_date,
-      compensation_change_reason
-    FROM {{ ref('bamboohr_compensation_source') }}
-    WHERE compensation_change_reason = 'Promotion'
-    GROUP BY 1,2,3
+        select * from {{ ref("cost_center_division_department_mapping") }}
 
-), direct_reports AS (
-  
-    SELECT
-      date_actual           AS date, 
-      reports_to,
-      COUNT(employee_id)    AS total_direct_reports
-    FROM (
-        SELECT
+    ),
+    sheetload_engineering_speciality as (
+
+        select * from {{ ref("sheetload_engineering_speciality_prior_to_capture") }}
+
+    ),
+    bamboohr_discretionary_bonuses_xf as (
+
+        select * from {{ ref("bamboohr_directionary_bonuses_xf") }}
+
+    ),
+    fct_work_email as (select * from {{ ref("bamboohr_work_email") }}),
+    enriched as (
+
+        select
             date_details.date_actual,
-            employee_directory.employee_id,
-            reports_to
-        FROM date_details
-        LEFT JOIN employee_directory
-        ON employee_directory.hire_date::DATE <= date_actual
-        AND COALESCE(termination_date::DATE, {{max_date_in_bamboo_analyses()}}) >= date_actual
-        LEFT JOIN department_info
-            ON employee_directory.employee_id = department_info.employee_id
-            AND date_details.date_actual BETWEEN department_info.effective_date 
-                AND COALESCE(department_info.effective_end_date, {{max_date_in_bamboo_analyses()}})
-        )  
-    GROUP BY 1,2
-    HAVING total_direct_reports > 0
+            employee_directory.*,
+            coalesce(
+                fct_work_email.work_email, employee_directory.last_work_email
+            ) as work_email,
+            department_info.job_title,
+            department_info.department,
+            department_info.department_modified,
+            department_info.department_grouping,
+            department_info.division,
+            department_info.division_mapped_current,
+            department_info.division_grouping,
+            coalesce(
+                job_role.cost_center, cost_center_prior_to_bamboo.cost_center
+            ) as cost_center,
+            department_info.reports_to,
+            iff(
+                date_details.date_actual between '2019-11-01' and '2020-02-27'
+                and job_info_mapping_historical.job_role is not null,
+                job_info_mapping_historical.job_role,
+                coalesce(job_role.job_role, department_info.job_role)
+            ) as job_role,
+            iff(
+                date_details.date_actual between '2019-11-01' and '2020-02-27',
+                job_info_mapping_historical.job_grade,
+                job_role.job_grade
+            ) as job_grade,
+            coalesce(
+                sheetload_engineering_speciality.speciality,
+                job_role.jobtitle_speciality
+            ) as jobtitle_speciality,
+            -- -to capture speciality for engineering prior to 2020.09.30 we are using
+            -- sheetload, and capturing from bamboohr afterwards
+            location_factor.location_factor as location_factor,
+            location_factor.locality,
+            iff(
+                employee_directory.hire_date = date_actual or rehire_date = date_actual,
+                true,
+                false
+            ) as is_hire_date,
+            iff(employment_status = 'Terminated', true, false) as is_termination_date,
+            iff(rehire_date = date_actual, true, false) as is_rehire_date,
+            iff(
+                employee_directory.hire_date < employment_status_first_value,
+                'Active',
+                employment_status
+            ) as employment_status,
+            job_role.gitlab_username,
+            sales_geo_differential,
+            direct_reports.total_direct_reports,
+            -- for the diversity KPIs we are looking to understand senior leadership
+            -- representation and do so by job grade instead of role
+            case
+                when
+                    (
+                        left(department_info.job_title, 5) = 'Staff'
+                        or left(department_info.job_title, 13) = 'Distinguished'
+                        or left(department_info.job_title, 9) = 'Principal'
+                    )
+                    and coalesce(
+                        job_role.job_grade, job_info_mapping_historical.job_grade
+                    )
+                    in ('8', '9', '9.5', '10')
+                then 'Staff'
+                when department_info.job_title ilike '%Fellow%'
+                then 'Staff'
+                when
+                    coalesce(job_role.job_grade, job_info_mapping_historical.job_grade)
+                    in ('11', '12', '14', '15', 'CXO')
+                then 'Senior Leadership'
+                when
+                    coalesce(job_role.job_grade, job_info_mapping_historical.job_grade)
+                    like '%C%'
+                then 'Senior Leadership'
+                when
+                    (
+                        department_info.job_title like '%VP%'
+                        or department_info.job_title like '%Chief%'
+                        or department_info.job_title like '%Senior Director%'
+                    )
+                    and coalesce(
+                        job_role.job_role,
+                        job_info_mapping_historical.job_role,
+                        department_info.job_role
+                    )
+                    = 'Leader'
+                then 'Senior Leadership'
+                when
+                    coalesce(job_role.job_grade, job_info_mapping_historical.job_grade)
+                    = '10'
+                then 'Manager'
+                when
+                    coalesce(
+                        job_role.job_role,
+                        job_info_mapping_historical.job_role,
+                        department_info.job_role
+                    )
+                    = 'Manager'
+                then 'Manager'
+                when coalesce(total_direct_reports, 0) = 0
+                then 'Individual Contributor'
+                else
+                    coalesce(
+                        job_role.job_role,
+                        job_info_mapping_historical.job_role,
+                        department_info.job_role
+                    )
+            end as job_role_modified,
+            iff(compensation_change_reason is not null, true, false) as is_promotion,
+            bamboohr_discretionary_bonuses_xf.total_discretionary_bonuses
+            as discretionary_bonus,
+            row_number() over (
+                partition by employee_directory.employee_id order by date_actual
+            ) as tenure_days
+        from date_details
+        left join
+            employee_directory
+            on employee_directory.hire_date::date <= date_actual
+            and coalesce(termination_date::date, {{ max_date_in_bamboo_analyses() }})
+            >= date_actual
+        left join
+            department_info
+            on employee_directory.employee_id = department_info.employee_id
+            and date_actual between effective_date and coalesce(
+                effective_end_date::date, {{ max_date_in_bamboo_analyses() }}
+            )
+        left join
+            direct_reports
+            on direct_reports.date = date_details.date_actual
+            and direct_reports.reports_to = employee_directory.full_name
+        left join
+            location_factor
+            on employee_directory.employee_number::varchar
+            = location_factor.bamboo_employee_number::varchar
+            and valid_from <= date_actual
+            and coalesce(valid_to::date, {{ max_date_in_bamboo_analyses() }})
+            >= date_actual
+        left join
+            employment_status
+            on employee_directory.employee_id = employment_status.employee_id
+            and (
+                date_details.date_actual = valid_from_date
+                and employment_status = 'Terminated'
+                or date_details.date_actual
+                between employment_status.valid_from_date
+                and employment_status.valid_to_date
+            )
+        left join
+            employment_status_records_check
+            on employee_directory.employee_id
+            = employment_status_records_check.employee_id
+        left join
+            cost_center_prior_to_bamboo
+            on department_info.department = cost_center_prior_to_bamboo.department
+            and department_info.division = cost_center_prior_to_bamboo.division
+            and date_details.date_actual
+            between cost_center_prior_to_bamboo.effective_start_date and coalesce(
+                cost_center_prior_to_bamboo.effective_end_date, '2020-05-07'
+            )
+        -- -Starting 2020.05.08 we start capturing cost_center in bamboohr
+        left join
+            job_role
+            on employee_directory.employee_id = job_role.employee_id
+            and date_details.date_actual between job_role.effective_date and coalesce(
+                job_role.next_effective_date, {{ max_date_in_bamboo_analyses() }}
+            )
+        left join
+            job_info_mapping_historical
+            on employee_directory.employee_id = job_info_mapping_historical.employee_id
+            and job_info_mapping_historical.job_title = department_info.job_title
+            and job_info_mapping_historical.job_grade_event_rank = 1
+        -- -tying data based on 2020-02-27 date to historical data --
+        left join
+            promotion
+            on promotion.employee_id = employee_directory.employee_id
+            and date_details.date_actual = promotion.effective_date
+        left join
+            sheetload_engineering_speciality
+            on employee_directory.employee_id
+            = sheetload_engineering_speciality.employee_id
+            and date_details.date_actual
+            between sheetload_engineering_speciality.speciality_start_date and coalesce(
+                sheetload_engineering_speciality.speciality_end_date, '2020-09-30'
+            )
+        -- -Post 2020.09.30 we will capture engineering speciality from bamboohr
+        left join
+            bamboohr_discretionary_bonuses_xf
+            on employee_directory.employee_id
+            = bamboohr_discretionary_bonuses_xf.employee_id
+            and date_details.date_actual = bamboohr_discretionary_bonuses_xf.bonus_date
+        left join
+            fct_work_email
+            on employee_directory.employee_id = fct_work_email.employee_id
+            and date_details.date_actual
+            between fct_work_email.valid_from_date and fct_work_email.valid_to_date
+        where employee_directory.employee_id is not null
 
-), job_info_mapping_historical AS (
+    ),
+    base_layers as (
 
-    SELECT 
-      department_info.employee_id,
-      department_info.job_title,
-      IFF(job_title = 'Manager, Field Marketing','Leader',COALESCE(job_role.job_role, department_info.job_role))    AS job_role, 
-      CASE WHEN job_title = 'Group Manager, Product' 
-            THEN '9.5'
-           WHEN job_title = 'Manager, Field Marketing' 
-             THEN '8'
-           ELSE job_role.job_grade END                                                                              AS job_grade,
-      ROW_NUMBER() OVER (PARTITION BY department_info.employee_id ORDER BY date_details.date_actual)                AS job_grade_event_rank
-    FROM date_details
-    LEFT JOIN department_info 
-      ON date_details.date_actual BETWEEN department_info.effective_date AND COALESCE(department_info.effective_end_Date, {{max_date_in_bamboo_analyses()}})
-    LEFT JOIN job_role
-      ON job_role.employee_id = department_info.employee_id
-      AND date_details.date_actual BETWEEN job_role.effective_date AND COALESCE(job_role.next_effective_date, {{max_date_in_bamboo_analyses()}})
-    WHERE job_role.job_grade IS NOT NULL
-    ---Using the 1st time we captured job_role and grade to identify classification for historical records
+        select
+            date_actual,
+            reports_to,
+            full_name,
+            array_construct(reports_to, full_name) as lineage
+        from enriched
+        where nullif(reports_to, '') is not null
 
-), employment_status_records_check AS (
-    
-    SELECT 
-      employee_id,
-      MIN(valid_from_date) AS employment_status_first_value
-     FROM {{ ref('bamboohr_employment_status_xf') }}
-     GROUP BY 1 
+    ),
+    layers(date_actual, employee, manager, lineage, layers_count) as (
 
-), cost_center_prior_to_bamboo AS (
+        select
+            date_actual,
+            full_name as employee,
+            reports_to as manager,
+            lineage as lineage,
+            1 as layers_count
+        from base_layers
+        where manager is not null
 
-    SELECT *
-    FROM {{ ref('cost_center_division_department_mapping') }}
+        union all
 
-), sheetload_engineering_speciality AS (
+        select
+            anchor.date_actual,
+            iter.full_name as employee,
+            iter.reports_to as manager,
+            array_prepend(anchor.lineage, iter.reports_to) as lineage,
+            (layers_count + 1) as layers_count
+        from layers anchor
+        join
+            base_layers iter
+            on anchor.date_actual = iter.date_actual
+            and iter.reports_to = anchor.employee
 
-    SELECT *
-    FROM {{ ref('sheetload_engineering_speciality_prior_to_capture') }}  
+    ),
+    calculated_layers as (
 
-), bamboohr_discretionary_bonuses_xf AS (
+        select date_actual, employee, max(layers_count) as layers
+        from layers
+        group by 1, 2
 
-    SELECT *
-    FROM {{ ref('bamboohr_directionary_bonuses_xf') }}  
+    )
 
-), fct_work_email AS (
-
-    SELECT *
-    FROM {{ ref('bamboohr_work_email') }}   
-
-), enriched AS (
-
-    SELECT
-      date_details.date_actual,
-      employee_directory.*,
-      COALESCE(fct_work_email.work_email, employee_directory.last_work_email) AS work_email,
-      department_info.job_title,	
-      department_info.department,	
-      department_info.department_modified,
-      department_info.department_grouping,
-      department_info.division,
-      department_info.division_mapped_current,
-      department_info.division_grouping,
-      COALESCE(job_role.cost_center, 
-               cost_center_prior_to_bamboo.cost_center)                     AS cost_center,
-      department_info.reports_to,
-      IFF(date_details.date_actual BETWEEN '2019-11-01' AND '2020-02-27' 
-            AND job_info_mapping_historical.job_role IS NOT NULL, 
-            job_info_mapping_historical.job_role, 
-            COALESCE(job_role.job_role, department_info.job_role))          AS job_role,
-      IFF(date_details.date_actual BETWEEN '2019-11-01' AND '2020-02-27', 
-            job_info_mapping_historical.job_grade, 
-            job_role.job_grade)                                             AS job_grade,
-       COALESCE(sheetload_engineering_speciality.speciality, job_role.jobtitle_speciality) AS jobtitle_speciality,
-      ---to capture speciality for engineering prior to 2020.09.30 we are using sheetload, and capturing from bamboohr afterwards
-      location_factor.location_factor                                       AS location_factor,
-      location_factor.locality, 
-      IFF(employee_directory.hire_date = date_actual OR 
-          rehire_date = date_actual, True, False)                           AS is_hire_date,
-      IFF(employment_status = 'Terminated', True, False)                    AS is_termination_date,
-      IFF(rehire_date = date_actual, True, False)                           AS is_rehire_date,
-      IFF(employee_directory.hire_date< employment_status_first_value,
-            'Active', employment_status)                                    AS employment_status,
-      job_role.gitlab_username,
-      sales_geo_differential,
-      direct_reports.total_direct_reports,
-     --for the diversity KPIs we are looking to understand senior leadership representation and do so by job grade instead of role        
-      CASE 
-        WHEN (LEFT(department_info.job_title,5) = 'Staff' 
-                OR LEFT(department_info.job_title,13) = 'Distinguished'
-                OR LEFT(department_info.job_title,9) = 'Principal')
-            AND COALESCE(job_role.job_grade, job_info_mapping_historical.job_grade) IN ('8','9','9.5','10') 
-          THEN 'Staff'
-        WHEN department_info.job_title ILIKE '%Fellow%' THEN 'Staff'
-        WHEN COALESCE(job_role.job_grade, job_info_mapping_historical.job_grade) IN ('11','12','14','15','CXO')
-          THEN 'Senior Leadership'
-        WHEN COALESCE(job_role.job_grade, job_info_mapping_historical.job_grade) LIKE '%C%'
-          THEN 'Senior Leadership'   
-        WHEN (department_info.job_title LIKE '%VP%' 
-                OR department_info.job_title LIKE '%Chief%' 
-                OR department_info.job_title LIKE '%Senior Director%')
-                AND COALESCE(job_role.job_role, 
-                         job_info_mapping_historical.job_role,
-                         department_info.job_role) = 'Leader'
-          THEN 'Senior Leadership'    
-        WHEN COALESCE(job_role.job_grade, job_info_mapping_historical.job_grade) = '10' 
-          THEN 'Manager'
-        WHEN COALESCE(job_role.job_role, 
-                      job_info_mapping_historical.job_role,
-                      department_info.job_role) = 'Manager'
-          THEN 'Manager'
-        WHEN COALESCE(total_direct_reports,0) = 0 
-          THEN 'Individual Contributor'
-        ELSE COALESCE(job_role.job_role, 
-                      job_info_mapping_historical.job_role,
-                      department_info.job_role) END                            AS job_role_modified,      
-      IFF(compensation_change_reason IS NOT NULL,TRUE,FALSE)                   AS is_promotion,
-      bamboohr_discretionary_bonuses_xf.total_discretionary_bonuses            AS discretionary_bonus,
-      ROW_NUMBER() OVER 
-            (PARTITION BY employee_directory.employee_id ORDER BY date_actual) AS tenure_days
-    FROM date_details
-    LEFT JOIN employee_directory
-      ON employee_directory.hire_date::DATE <= date_actual
-      AND COALESCE(termination_date::DATE, {{max_date_in_bamboo_analyses()}}) >= date_actual
-    LEFT JOIN department_info
-      ON employee_directory.employee_id = department_info.employee_id
-      AND date_actual BETWEEN effective_date 
-      AND COALESCE(effective_end_date::DATE, {{max_date_in_bamboo_analyses()}})
-    LEFT JOIN direct_reports
-      ON direct_reports.date = date_details.date_actual
-      AND direct_reports.reports_to = employee_directory.full_name
-    LEFT JOIN location_factor
-      ON employee_directory.employee_number::VARCHAR = location_factor.bamboo_employee_number::VARCHAR
-      AND valid_from <= date_actual
-      AND COALESCE(valid_to::DATE, {{max_date_in_bamboo_analyses()}}) >= date_actual
-    LEFT JOIN employment_status
-      ON employee_directory.employee_id = employment_status.employee_id 
-      AND (date_details.date_actual = valid_from_date AND employment_status = 'Terminated' 
-        OR date_details.date_actual BETWEEN employment_status.valid_from_date AND employment_status.valid_to_date )  
-    LEFT JOIN employment_status_records_check 
-      ON employee_directory.employee_id = employment_status_records_check.employee_id         
-    LEFT JOIN cost_center_prior_to_bamboo
-      ON department_info.department = cost_center_prior_to_bamboo.department
-      AND department_info.division = cost_center_prior_to_bamboo.division
-      AND date_details.date_actual BETWEEN cost_center_prior_to_bamboo.effective_start_date 
-                                       AND COALESCE(cost_center_prior_to_bamboo.effective_end_date, '2020-05-07')
-    ---Starting 2020.05.08 we start capturing cost_center in bamboohr
-    LEFT JOIN job_role
-      ON employee_directory.employee_id = job_role.employee_id   
-      AND date_details.date_actual BETWEEN job_role.effective_date AND COALESCE(job_role.next_effective_date, {{max_date_in_bamboo_analyses()}})
-    LEFT JOIN job_info_mapping_historical
-      ON employee_directory.employee_id = job_info_mapping_historical.employee_id 
-      AND job_info_mapping_historical.job_title = department_info.job_title 
-      AND job_info_mapping_historical.job_grade_event_rank = 1
-      ---tying data based on 2020-02-27 date to historical data --
-    LEFT JOIN promotion
-      ON promotion.employee_id = employee_directory.employee_id
-      AND date_details.date_actual = promotion.effective_date
-    LEFT JOIN sheetload_engineering_speciality
-      ON employee_directory.employee_id = sheetload_engineering_speciality.employee_id
-      AND date_details.date_actual BETWEEN sheetload_engineering_speciality.speciality_start_date 
-                                       AND COALESCE(sheetload_engineering_speciality.speciality_end_date, '2020-09-30')
-                                       ---Post 2020.09.30 we will capture engineering speciality from bamboohr
-    LEFT JOIN bamboohr_discretionary_bonuses_xf
-      ON employee_directory.employee_id = bamboohr_discretionary_bonuses_xf.employee_id
-      AND date_details.date_actual = bamboohr_discretionary_bonuses_xf.bonus_date
-    LEFT JOIN fct_work_email
-      ON employee_directory.employee_id = fct_work_email.employee_id
-      AND date_details.date_actual BETWEEN fct_work_email.valid_from_date AND fct_work_email.valid_to_date  
-    WHERE employee_directory.employee_id IS NOT NULL
-
-), base_layers as (
-
-    SELECT
-      date_actual,
-      reports_to,
-      full_name,
-      array_construct(reports_to, full_name) AS lineage
-    FROM enriched
-    WHERE NULLIF(reports_to, '') IS NOT NULL
-
-), layers (date_actual, employee, manager, lineage, layers_count) AS (
-
-    SELECT
-      date_actual,
-      full_name         AS employee,
-      reports_to        AS manager,
-      lineage           AS lineage,
-      1                 AS layers_count
-    FROM base_layers
-    WHERE manager IS NOT NULL
-
-    UNION ALL
-
-    SELECT anchor.date_actual,
-          iter.full_name    AS employee,
-          iter.reports_to   AS manager,
-          array_prepend(anchor.lineage, iter.reports_to) AS lineage,
-          (layers_count+1)  AS layers_count
-    FROM layers anchor
-    JOIN base_layers iter
-      ON anchor.date_actual = iter.date_actual
-     AND iter.reports_to = anchor.employee
-
-), calculated_layers AS (
-
-    SELECT
-      date_actual,
-      employee,
-      max(layers_count)     AS layers
-    FROM layers
-    GROUP BY 1, 2
-
-)
-
-SELECT
-  enriched.*,
-  COALESCE(calculated_layers.layers, 1) AS layers
-FROM enriched
-LEFT JOIN calculated_layers
-  ON enriched.date_actual = calculated_layers.date_actual
-  AND full_name = employee
-  AND enriched.employment_status IS NOT NULL
-WHERE employment_status IS NOT NULL
+select enriched.*, coalesce(calculated_layers.layers, 1) as layers
+from enriched
+left join
+    calculated_layers
+    on enriched.date_actual = calculated_layers.date_actual
+    and full_name = employee
+    and enriched.employment_status is not null
+where employment_status is not null
