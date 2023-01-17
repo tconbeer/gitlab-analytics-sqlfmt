@@ -1,20 +1,20 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_build_trace_chunks_dedupe_source') }}
+        select * from {{ ref("gitlab_dotcom_ci_build_trace_chunks_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      build_id::NUMBER     AS ci_build_id,
-      chunk_index::VARCHAR  AS chunk_index,
-      data_store::VARCHAR   AS data_store,
-      raw_data::VARCHAR     AS raw_data
+        select
+            build_id::number as ci_build_id,
+            chunk_index::varchar as chunk_index,
+            data_store::varchar as data_store,
+            raw_data::varchar as raw_data
 
-    FROM source
+        from source
 
-)
+    )
 
-
-SELECT *
-FROM renamed
+select *
+from renamed

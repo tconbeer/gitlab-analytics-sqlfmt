@@ -1,25 +1,21 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "linkedin_recruiter") }}),
+    renamed as (
 
-    SELECT * 
-    FROM {{ source('sheetload','linkedin_recruiter') }}
-    
-), renamed AS (
+        select
+            seat_holder::varchar as sourcer,
+            zeroifnull(nullif("MESSAGES_SENT", ''))::number as messages_sent,
+            zeroifnull(nullif("RESPONSES_RECEIVED", ''))::number as responses_received,
+            zeroifnull(nullif("ACCEPTANCES", ''))::number as acceptances,
+            zeroifnull(nullif("DECLINES", ''))::number as declines,
+            zeroifnull(nullif("NO_RESPONSE", ''))::number as no_response,
+            zeroifnull(nullif("RESPONSES_RATE", ''))::number as responses_rate,
+            zeroifnull(nullif("ACCEPT_RATE", ''))::number as accept_rate,
+            month::date as data_downloaded_month
+        from source
 
-    SELECT 
-      seat_holder::VARCHAR                                 AS sourcer,
-      ZEROIFNULL(NULLIF("MESSAGES_SENT",''))::NUMBER       AS messages_sent,
-      ZEROIFNULL(NULLIF("RESPONSES_RECEIVED",''))::NUMBER  AS responses_received,
-      ZEROIFNULL(NULLIF("ACCEPTANCES",''))::NUMBER         AS acceptances,
-      ZEROIFNULL(NULLIF("DECLINES",''))::NUMBER            AS declines,
-      ZEROIFNULL(NULLIF("NO_RESPONSE",''))::NUMBER         AS no_response,
-      ZEROIFNULL(NULLIF("RESPONSES_RATE",''))::NUMBER      AS responses_rate,
-      ZEROIFNULL(NULLIF("ACCEPT_RATE",''))::NUMBER         AS accept_rate,
-      month::DATE                                          AS data_downloaded_month
-    FROM source
-      
-) 
+    )
 
-SELECT *
-FROM renamed
-WHERE data_downloaded_month IS NOT NULL 
-  AND sourcer IS NOT NULL
+select *
+from renamed
+where data_downloaded_month is not null and sourcer is not null

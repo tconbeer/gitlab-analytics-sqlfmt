@@ -1,46 +1,45 @@
-WITH resource_label_events AS (
+with
+    resource_label_events as (
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_resource_label_events')}}
-    WHERE label_id IS NOT NULL
+        select *
+        from {{ ref("gitlab_dotcom_resource_label_events") }}
+        where label_id is not null
 
-),
+    ),
 
-aggregated AS (
+    aggregated as (
 
-  SELECT
-    label_id,
+        select
+            label_id,
 
-    epic_id,
-    issue_id,
-    merge_request_id,
+            epic_id,
+            issue_id,
+            merge_request_id,
 
-    MAX(CASE WHEN action_type='added'   THEN created_at END) AS max_added_at,
-    MAX(CASE WHEN action_type='removed' THEN created_at END) AS max_removed_at
+            max(case when action_type = 'added' then created_at end) as max_added_at,
+            max(case when action_type = 'removed' then created_at end) as max_removed_at
 
-  FROM resource_label_events
-  {{ dbt_utils.group_by(n=4) }}
+        from resource_label_events {{ dbt_utils.group_by(n=4) }}
 
-),
+    ),
 
+    final as (  -- Leave removed_at NULL if less than added_at.
 
-final AS ( -- Leave removed_at NULL if less than added_at.
+        select
+            label_id,
+            epic_id,
+            issue_id,
+            merge_request_id,
+            max_added_at as added_at,
+            case
+                when max_removed_at > max_added_at
+                then max_removed_at
+                when max_added_at is null
+                then max_removed_at
+            end as removed_at,
+            iff(removed_at is null, 'added', 'removed') as latest_state
+        from aggregated
+    )
 
-    SELECT
-      label_id,
-      epic_id,
-      issue_id,
-      merge_request_id,
-      max_added_at                                              AS added_at,
-      CASE
-        WHEN max_removed_at > max_added_at
-          THEN max_removed_at
-        WHEN max_added_at IS NULL
-          THEN max_removed_at
-      END                                                       AS removed_at,
-      IFF(removed_at IS NULL, 'added', 'removed')               AS latest_state
-    FROM aggregated
-)
-
-SELECT *
-FROM final
+select *
+from final

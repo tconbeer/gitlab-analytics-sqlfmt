@@ -1,23 +1,19 @@
+with
+    source as (select * from {{ ref("gitlab_dotcom_plans_dedupe_source") }}),
+    renamed as (
 
-WITH source AS (
+        select
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_plans_dedupe_source') }}
-  
-), renamed AS (
+            id::number as plan_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            name::varchar as plan_name,
+            title::varchar as plan_title,
+            id in (2, 3, 4, 100, 101) as plan_is_paid
 
-    SELECT
+        from source
 
-      id::NUMBER                      AS plan_id,
-      created_at::TIMESTAMP           AS created_at,
-      updated_at::TIMESTAMP           AS updated_at,
-      name::VARCHAR                   AS plan_name,
-      title::VARCHAR                  AS plan_title,
-      id IN (2, 3, 4, 100, 101)       AS plan_is_paid
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

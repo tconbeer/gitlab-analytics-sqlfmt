@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("sfdc_quote_source") }} where is_deleted = false)
 
-    SELECT *
-    FROM {{ ref('sfdc_quote_source') }}
-    WHERE is_deleted = FALSE
-)
-
-SELECT *
-FROM source
+select *
+from source
