@@ -120,7 +120,6 @@ with
             and created.is_eligible_created_pipeline_flag = 1
         group by 1, 2
 
-
     ),
     pipeline_type_quarter_start as (
 
@@ -450,7 +449,6 @@ with
             on history.opportunity_id = pipeline_type.opportunity_id
             and history.snapshot_date = pipeline_type.max_snapshot_date
 
-
     ),
     report_opportunity_pipeline_type as (
 
@@ -598,7 +596,6 @@ with
 
             -- --------
             current_date as last_updated_at
-
 
         from pipeline_type pipe
         cross join today_date

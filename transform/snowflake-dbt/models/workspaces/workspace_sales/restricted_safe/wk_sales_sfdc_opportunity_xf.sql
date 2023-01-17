@@ -222,7 +222,6 @@ with
                 else 'Direct'
             end as calculated_partner_track,
 
-
             sfdc_opportunity_xf.partner_track as partner_track,
             partner_account.gitlab_partner_program as partner_gitlab_program,
 
@@ -248,7 +247,6 @@ with
                     != 'Channel Generated'
                 then 'Partner Co-Sell'
             end as deal_path_engagement,
-
 
             sfdc_opportunity_xf.stage_name_3plus,
             sfdc_opportunity_xf.stage_name_4plus,
@@ -444,7 +442,6 @@ with
                 when contains(sfdc_opportunity_xf.competitors, 'AWS') then 1 else 0
             end as competitors_aws_flag,
 
-
             -- ---------------------------------------------------------------------------------------------------
             -- ---------------------------------------------------------------------------------------------------
             -- sfdc_opportunity_xf.partner_initiated_opportunity,
@@ -551,7 +548,6 @@ with
             '3. Growth' as "ORDER_TYPE_STAMPED",
             'PubSec' as "USER_SEGMENT_STAMPED",
             0.965670500 as "RATIO_NET_IACV_TO_NET_ARR"
-
 
     ),
     churn_metrics as (
@@ -1026,7 +1022,6 @@ with
                 else 0
             end as is_eligible_open_pipeline_flag,
 
-
             -- Created pipeline eligibility definition
             -- https://gitlab.com/gitlab-com/sales-team/field-operations/systems/-/issues/2389
             case
@@ -1056,7 +1051,6 @@ with
                 then 1
                 else 0
             end as is_eligible_created_pipeline_flag,
-
 
             -- SAO alignment issue:
             -- https://gitlab.com/gitlab-com/sales-team/field-operations/sales-operations/-/issues/2656
@@ -1207,7 +1201,6 @@ with
                 else 0
             end as churned_contraction_deal_count,
 
-
             case
                 when
                     (
@@ -1345,7 +1338,6 @@ with
             coalesce(
                 agg_demo_keys.sales_team_asm_level, 'other'
             ) as sales_team_asm_level
-
 
         from oppty_final
         -- Net IACV to Net ARR conversion table

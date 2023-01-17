@@ -17,7 +17,6 @@ with
             posted_date as posted_date,
             target_date as target_date,
 
-
             includes_one_time as includes_one_time,
             includes_recurring as includes_recurring,
             includes_usage as includes_usage,

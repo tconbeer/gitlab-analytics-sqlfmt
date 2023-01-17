@@ -39,8 +39,6 @@ with
             sum(booked_deal_count) as booked_deal_count,
             sum(churned_contraction_deal_count) as churned_contraction_deal_count,
 
-
-
             -- reported quarter + 1
             sum(rq_plus_1_open_1plus_deal_count) as rq_plus_1_open_1plus_deal_count,
             sum(rq_plus_1_open_3plus_deal_count) as rq_plus_1_open_3plus_deal_count,
@@ -92,7 +90,6 @@ with
             -- one year ago sao
             sum(minus_1_year_sao_net_arr) as minus_1_year_sao_net_arr,
             sum(minus_1_year_sao_deal_count) as minus_1_year_sao_deal_count
-
 
         from report_pipeline_metrics_day
         where close_day_of_fiscal_quarter_normalised > 0
@@ -149,7 +146,6 @@ with
                 where day_of_fiscal_quarter_normalised > 0
                 group by 1
             )
-
 
     -- some of the funnel metrics have daily targets with a very specific seasonality
     -- this models tracks the target allocated a given point in time on the quarter
@@ -485,8 +481,6 @@ with
             = base.close_day_of_fiscal_quarter_normalised
             and year_minus_one.report_user_segment_geo_region_area_sqs_ot
             = base.report_user_segment_geo_region_area_sqs_ot
-
-
 
     )
 select *

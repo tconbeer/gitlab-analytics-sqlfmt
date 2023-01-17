@@ -146,7 +146,6 @@ with
             is_user_in_company_namespace
             on is_user_in_company_namespace.user_id = users_xf.user_id
 
-
     )
 -- -- pulls all business email users or personal email users who have set up for
 -- company = True or belongs to a namespace where set up for company is true.

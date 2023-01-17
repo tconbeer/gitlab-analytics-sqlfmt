@@ -84,7 +84,6 @@ with
             )
             or employee_id not in (42039, 42043)
 
-
     )
 
 select *

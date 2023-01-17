@@ -121,7 +121,6 @@ with
         select '{{table}}' as table_name, max(date(updated_at)) as max_date
         from {{ source("gitlab_dotcom", table) }}
 
-
         {% if not loop.last %}
         union all
         {% endif %}
@@ -129,7 +128,6 @@ with
         {% endfor %}
 
     )
-
 
 select *
 from gitlab_dotcom_date

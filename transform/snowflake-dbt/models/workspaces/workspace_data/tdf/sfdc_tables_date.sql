@@ -28,7 +28,6 @@ with
         select '{{table}}' as table_name, max(lastmodifieddate) as max_date
         from {{ source("salesforce", table) }}
 
-
         {% if not loop.last %}
         union all
         {% endif %}
@@ -48,7 +47,6 @@ with
         {% for table in tables %}
         select '{{table}}' as table_name, max(createddate) as max_date
         from {{ source("salesforce", table) }}
-
 
         {% if not loop.last %}
         union all

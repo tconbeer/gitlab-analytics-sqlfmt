@@ -5,7 +5,6 @@ with
 
     )
 
-
 select
     account_number,
     subscription_name,

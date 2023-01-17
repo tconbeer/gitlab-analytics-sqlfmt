@@ -223,7 +223,6 @@ data as (
         {{ filter_out_blocked_users(event_cte.event_name, event_cte.user_column_name) }}
     {% endif %}
 
-
     {% if not loop.last %}
     union
     {% endif %}

@@ -8,7 +8,6 @@ with
             -- keys
             accountid as account_id,
 
-
             -- contact info
             firstname as first_name,
             lastname as last_name,
@@ -31,7 +30,6 @@ with
             personalemail as personal_email,
             description,
 
-
             -- metadata
             createdbyid as created_by_id,
             createddate as created_date,
@@ -44,7 +42,6 @@ with
             dbt_updated_at,
             dbt_valid_from,
             dbt_valid_to
-
 
         from source
 

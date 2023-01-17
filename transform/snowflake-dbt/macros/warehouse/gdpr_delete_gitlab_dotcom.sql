@@ -1,6 +1,5 @@
 {% macro gdpr_delete_gitlab_dotcom(email_sha, run_queries=False) %}
 
-
 {% set data_types = (
     "BOOLEAN",
     "TIMESTAMP_TZ",
@@ -83,7 +82,6 @@ from email_columns
 {% endfor %}
 
 {%- endif -%}
-
 
 {# UPDATE SNAPSHOTS #}
 {%- call statement("update_snapshots", fetch_result=True) %}

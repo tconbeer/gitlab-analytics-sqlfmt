@@ -29,7 +29,6 @@ with
             {% endfor %}
     )
 
-
 select *
 from check_data
 where is_incorrect > 1

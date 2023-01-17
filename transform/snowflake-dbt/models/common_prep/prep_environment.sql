@@ -1,7 +1,6 @@
 with
     environment as (
 
-
         select 1 as dim_environment_id, 'Gitlab.com' as environment
 
         union

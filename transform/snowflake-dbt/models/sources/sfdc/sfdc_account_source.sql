@@ -19,7 +19,6 @@ with
             ultimate_parent_account_id__c as ultimate_parent_id,
             partner_vat_tax_id__c as partner_vat_tax_id,
 
-
             -- key people GL side
             federal_account__c as federal_account,
             gitlab_com_user__c as gitlab_com_user,

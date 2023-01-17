@@ -20,7 +20,6 @@ with
 
         select * from {{ ref("greenhouse_organizations_source") }}
 
-
     ),
     greenhouse_opening_custom_fields as (
 
@@ -80,7 +79,6 @@ with
             on greenhouse_offices_sources.office_id = greenhouse_jobs_offices.office_id
         where office_name is not null
         group by 1
-
 
     ),
     aggregated as (

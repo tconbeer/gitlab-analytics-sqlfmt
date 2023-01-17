@@ -10,14 +10,12 @@ with
             rateplanchargeid as rate_plan_charge_id,
             subscriptionid as subscription_id,
 
-
             -- invoice item metadata
             accountingcode as accounting_code,
             productid as product_id,
             -- revrecstartdate        AS revenue_recognition_start_date,
             serviceenddate as service_end_date,
             servicestartdate as service_start_date,
-
 
             -- financial info
             chargeamount as charge_amount,
@@ -45,7 +43,6 @@ with
             dbt_updated_at,
             dbt_valid_from,
             dbt_valid_to
-
 
         from source
 

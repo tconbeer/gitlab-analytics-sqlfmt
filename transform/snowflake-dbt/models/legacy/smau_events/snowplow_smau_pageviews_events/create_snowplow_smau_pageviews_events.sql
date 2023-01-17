@@ -153,6 +153,5 @@ with
 
     )
 
-
 select *
 from unioned

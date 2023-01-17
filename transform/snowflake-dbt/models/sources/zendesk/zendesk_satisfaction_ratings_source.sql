@@ -19,7 +19,6 @@ with
             score,
             url as satisfaction_rating_url,
 
-
             -- dates
             created_at,
             updated_at

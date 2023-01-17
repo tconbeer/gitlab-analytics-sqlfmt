@@ -18,7 +18,6 @@ with
         select '{{table}}' as table_name, max(uploaded_at) as max_date
         from {{ source("demandbase", table) }}
 
-
         {% if not loop.last %}
         union all
         {% endif %}
@@ -26,7 +25,6 @@ with
         {% endfor %}
 
     )
-
 
 select *
 from demandbase_date

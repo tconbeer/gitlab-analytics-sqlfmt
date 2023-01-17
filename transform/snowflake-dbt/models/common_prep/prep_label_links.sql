@@ -40,7 +40,6 @@ with
             -- only include currently active labels to avoid duplicate label_link_ids
             and is_currently_valid = true
 
-
     )
 
     {{

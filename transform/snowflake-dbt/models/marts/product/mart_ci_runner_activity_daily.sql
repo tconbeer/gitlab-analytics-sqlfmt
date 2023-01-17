@@ -44,7 +44,6 @@ joined as (
         ci_runner_activity_daily.dim_ci_pipeline_id,
         ci_runner_activity_daily.dim_ci_stage_id,
 
-
         -- CI RUNNER METRICS
         ci_runner_activity_daily.job_count,
         ci_runner_activity_daily.ci_build_duration_in_s,

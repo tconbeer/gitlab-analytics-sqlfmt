@@ -16,7 +16,6 @@ with
 
     )
 
-
 select
     zuora_account.sfdc_entity as entity,
     zuora_invoice.invoice_id,

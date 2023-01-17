@@ -68,7 +68,6 @@ with
         from dim_crm_account a
         cross join report_dates d
 
-
     ),
     nfy_atr_base as (
 
@@ -219,7 +218,6 @@ with
                     else 0
                 end
             ) as ttm_trx_count,
-
 
             sum(
                 case
@@ -512,8 +510,6 @@ with
                 end
             ) as pg_last_12m_ae_sourced_deal_count
 
-
-
         from sfdc_opportunity_snapshot_xf h
         -- pipeline created within the last 12 months
         where
@@ -607,7 +603,6 @@ with
                 case when sub.is_channel_arr_flag = 0 then mrr.arr else 0 end
             ) as direct_arr,
 
-
             sum(
                 case
                     when
@@ -619,7 +614,6 @@ with
                     else 0
                 end
             ) as product_starter_arr,
-
 
             sum(
                 case when mrr.product_tier_name like '%Premium%' then mrr.arr else 0 end
@@ -762,7 +756,6 @@ with
             coalesce(arr.product_premium_arr, 0) as product_premium_arr,
             coalesce(arr.product_ultimate_arr, 0) as product_ultimate_arr,
 
-
             case
                 when
                     coalesce(arr.product_ultimate_arr, 0)
@@ -783,7 +776,6 @@ with
 
             coalesce(arr.delivery_self_managed_arr, 0) as delivery_self_managed_arr,
             coalesce(arr.delivery_saas_arr, 0) as delivery_saas_arr,
-
 
             -- accounts counts
             case when coalesce(arr.arr, 0) = 0 then 1 else 0 end as is_prospect_flag,
@@ -887,7 +879,6 @@ with
                 else 0
             end as prospect_has_open_pipe_flag,
 
-
             -- pipe generation
             coalesce(pg.pg_ytd_net_arr, 0) as pg_ytd_net_arr,
             coalesce(
@@ -913,7 +904,6 @@ with
                 pg_ly.pg_last_12m_ae_sourced_net_arr, 0
             ) as pg_last_12m_ae_sourced_net_arr,
 
-
             coalesce(
                 pg_last_12m_web_direct_sourced_deal_count, 0
             ) as pg_last_12m_web_direct_sourced_deal_count,
@@ -926,7 +916,6 @@ with
             coalesce(
                 pg_last_12m_ae_sourced_deal_count, 0
             ) as pg_last_12m_ae_sourced_deal_count
-
 
         from account_year_key ak
         inner join sfdc_accounts_xf a on ak.account_id = a.account_id
@@ -1042,7 +1031,6 @@ with
             sum(delivery_self_managed_arr) as delivery_self_managed_arr,
             sum(delivery_saas_arr) as delivery_saas_arr,
 
-
             -- rolling last 12 months bokked net arr
             sum(ttm_net_arr) as ttm_net_arr,
             sum(ttm_non_web_net_arr) as ttm_non_web_net_arr,
@@ -1098,7 +1086,6 @@ with
             sum(pg_last_12m_sdr_sourced_net_arr) as pg_last_12m_sdr_sourced_net_arr,
             sum(pg_last_12m_ae_sourced_net_arr) as pg_last_12m_ae_sourced_net_arr
 
-
         from consolidated_accounts
         group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
 
@@ -1134,7 +1121,6 @@ with
 
         from consolidated_upa
         where report_fiscal_year = 2022
-
 
     ),
     final as (

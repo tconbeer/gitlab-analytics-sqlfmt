@@ -25,7 +25,6 @@ with
         qualify
             row_number() over (partition by unique_id order by generated_at desc) = 1
 
-
     ),
     joined as (
 
@@ -33,7 +32,6 @@ with
         from current_stats
         inner join
             current_models on current_stats.model_unique_id = current_models.unique_id
-
 
     )
 

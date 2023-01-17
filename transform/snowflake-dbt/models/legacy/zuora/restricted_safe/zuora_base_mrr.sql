@@ -30,7 +30,6 @@ with
         select
             zuora_rpc.rate_plan_charge_id,
 
-
             -- account info
             zuora_accts.account_name,
             zuora_accts.account_number,

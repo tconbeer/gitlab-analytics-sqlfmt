@@ -7,7 +7,6 @@
     "full_match"
 ) -%}
 
-
 case
     when
         {{ lead_source }} in ('DiscoverOrg', 'Zoominfo', 'Purchased List', 'GitLab.com')

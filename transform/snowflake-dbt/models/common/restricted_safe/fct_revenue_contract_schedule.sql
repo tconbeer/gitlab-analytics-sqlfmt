@@ -28,7 +28,6 @@ with
             {{ get_date_id("posted_period_id") }} as posted_period_date_id,
             {{ get_date_id("billed_fx_date") }} as billed_fx_date_id,
 
-
             -- additive fields
             amount,
             transactional_debit_amount,

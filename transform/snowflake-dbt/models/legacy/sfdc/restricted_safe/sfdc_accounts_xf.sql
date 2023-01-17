@@ -38,7 +38,6 @@ with
                 else false
             end as is_large_and_up,
 
-
             -- NF 20210829 Zoom info technology flags
             case
                 when contains(sfdc_account.zi_technologies, 'ARE_USED: Jenkins')

@@ -42,8 +42,6 @@ smau as (
         = fct_usage_ping_payload.dim_usage_ping_id
     where is_smau = true {{ dbt_utils.group_by(n=12) }}
 
-
-
 ),
 smau_joined as (
 
@@ -90,8 +88,6 @@ umau as (
         = fct_usage_ping_payload.dim_usage_ping_id
     where is_umau = true {{ dbt_utils.group_by(n=12) }}
 
-
-
 ),
 umau_joined as (
 
@@ -137,8 +133,6 @@ instance_gmau as (
         on fct_monthly_usage_data.dim_usage_ping_id
         = fct_usage_ping_payload.dim_usage_ping_id
     where is_gmau = true {{ dbt_utils.group_by(n=14) }}
-
-
 
 ),
 gmau as (

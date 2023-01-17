@@ -12,6 +12,5 @@ with
 
     )
 
-
 select *
 from renamed

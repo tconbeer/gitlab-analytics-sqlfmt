@@ -10,7 +10,6 @@ with
     ),
     sfdc_opportunity_snapshot_history_xf as (
 
-
         select *
         from {{ ref("wk_sales_sfdc_opportunity_snapshot_history_xf") }}
         where is_edu_oss = 0 and is_deleted = 0
@@ -333,8 +332,6 @@ with
                     else 0
                 end
             ) as rq_plus_2_open_4plus_net_arr
-
-
 
         from sfdc_opportunity_xf oppty
         -- identify todays quarter and fiscal quarter

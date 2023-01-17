@@ -32,7 +32,6 @@ with
             on d.date_actual >= b.effective_start_month
             and d.date_actual <= b.effective_end_month
 
-
     ),
     final as (
 

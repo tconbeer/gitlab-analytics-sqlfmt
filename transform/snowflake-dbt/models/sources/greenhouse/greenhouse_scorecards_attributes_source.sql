@@ -14,7 +14,6 @@ with
             created_at::timestamp as scorecard_attribute_created_at,
             updated_at::timestamp as scorecard_attribute_updated_at
 
-
         from source
 
     )

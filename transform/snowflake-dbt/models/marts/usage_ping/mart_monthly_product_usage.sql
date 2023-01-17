@@ -287,7 +287,6 @@ with
             source_ip_hash,
             host_name,
 
-
             -- metadata instance
             instance_user_count,
 

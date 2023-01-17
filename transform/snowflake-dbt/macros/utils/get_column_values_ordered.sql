@@ -36,7 +36,6 @@
 
 {%- else -%}
 
-
 select {{ column }} as value
 
 from {{ target_relation }}

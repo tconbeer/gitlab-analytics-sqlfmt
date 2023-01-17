@@ -161,7 +161,6 @@ with
             fm_why_gitlab__c as cp_why_gitlab,
             fm_why_now__c as cp_why_now,
 
-
             -- ************************************
             -- dates in stage fields
             x0_pending_acceptance_date__c as stage_0_pending_acceptance_date,
@@ -174,11 +173,9 @@ with
             x6_closed_won_date__c as stage_6_closed_won_date,
             x7_closed_lost_date__c as stage_6_closed_lost_date,
 
-
             -- flag to identify eligible booking deals, excluding jihu - issue:
             -- https://gitlab.com/gitlab-com/sales-team/field-operations/systems/-/issues/1805
             fp_a_master_bookings_flag__c as fpa_master_bookings_flag,
-
 
             -- metadata
             convert_timezone(

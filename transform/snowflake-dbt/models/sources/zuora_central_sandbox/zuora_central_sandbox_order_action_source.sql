@@ -40,7 +40,6 @@ with
 
             _fivetran_deleted as is_deleted
 
-
         from source
 
     )

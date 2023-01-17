@@ -38,7 +38,6 @@ usage_events as (
 results as (select * from usage_events)
 
 
-
 {{
     dbt_audit(
         cte_ref="results",

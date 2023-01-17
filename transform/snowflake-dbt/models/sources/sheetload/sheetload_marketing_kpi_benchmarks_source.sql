@@ -54,7 +54,6 @@ with
             nullif("SDR_ExpectedPipe_SMB_Target", '')::float
             as sdr_expectedpipe_smb_target
 
-
         from source
 
     )

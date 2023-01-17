@@ -122,7 +122,6 @@ with
 
         from zuora_revenue_manual_journal_entry
 
-
     )
 
 select *

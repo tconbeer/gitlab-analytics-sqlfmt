@@ -74,11 +74,9 @@ with
             trials.latest_namespace_id as gitlab_namespace_id,
             customers.customer_id,
 
-
             users.user_id as gitlab_user_id,
             iff(users.user_id is not null, true, false) as is_gitlab_user,
             users.created_at as user_created_at,
-
 
             namespaces.created_at as namespace_created_at,
             namespaces.namespace_type,
@@ -89,7 +87,6 @@ with
             min(order_created_at) as order_created_at,
             min(trials.order_start_date)::date as trial_start_date,
             max(trials.order_end_date)::date as trial_end_date
-
 
         from trials
         inner join customers on trials.latest_customer_id = customers.customer_id

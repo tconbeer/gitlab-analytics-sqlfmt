@@ -3,8 +3,6 @@ with
 
         select * from {{ source("salesforce", "bizible_attribution_touchpoint") }}
 
-
-
     ),
     renamed as (
 

@@ -8,7 +8,6 @@ with
             -- keys
             accountid as account_id,
 
-
             -- contact info
             firstname as first_name,
             lastname as last_name,
@@ -30,7 +29,6 @@ with
             mobilephone as mobile_phone,
             personalemail as personal_email,
             description,
-
 
             -- metadata
             createdbyid as created_by_id,

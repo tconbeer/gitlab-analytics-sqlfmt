@@ -10,7 +10,6 @@
 }}
 
 
-
 select *
 from {{ source("gitlab_dotcom", "notes") }}
 {% if is_incremental() %}

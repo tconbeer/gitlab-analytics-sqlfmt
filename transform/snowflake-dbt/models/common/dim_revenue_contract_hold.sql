@@ -32,7 +32,6 @@ with
             revenue_hold_start_date,
             revenue_hold_end_date,
 
-
             -- metadata
             revenue_contract_hold_created_by,
             revenue_contract_hold_created_date,

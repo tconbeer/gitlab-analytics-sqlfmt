@@ -387,7 +387,6 @@ with
 
     )
 
-
 select *
 from unnested_unstruct
 order by derived_tstamp

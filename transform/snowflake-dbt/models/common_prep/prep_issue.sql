@@ -58,7 +58,6 @@ agg_labels as (
     left join prep_labels on prep_label_links.dim_label_id = prep_labels.dim_label_id
     group by gitlab_dotcom_issues_source.issue_id
 
-
 ),
 renamed as (
 

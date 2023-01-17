@@ -116,7 +116,6 @@ with
                 / app_reviewed
             ) as review_to_hire,
 
-
             sum(iff(application_stage = 'Screen', 1, 0)) as screen,
             iff(
                 screen = 0,
@@ -128,7 +127,6 @@ with
                 null,
                 sum(iff(application_stage = 'Screen', hit_hired, 0)) / screen
             ) as screen_to_hire,
-
 
             sum(
                 iff(application_stage = 'Team Interview - Face to Face', 1, 0)

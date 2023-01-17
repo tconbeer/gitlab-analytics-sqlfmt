@@ -30,7 +30,6 @@ with
             is_internal_user::varchar as is_internal_user,
             user_uuid::varchar as user_uuid
 
-
         from source
 
     )

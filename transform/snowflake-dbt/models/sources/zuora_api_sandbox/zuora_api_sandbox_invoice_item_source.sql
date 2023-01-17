@@ -10,7 +10,6 @@ with
             rateplanchargeid as rate_plan_charge_id,
             subscriptionid as subscription_id,
 
-
             -- invoice item metadata
             accountingcode as accounting_code,
             productid as product_id,
@@ -19,7 +18,6 @@ with
             -- revrecstartdate        AS revenue_recognition_start_date,
             serviceenddate as service_end_date,
             servicestartdate as service_start_date,
-
 
             -- financial info
             chargeamount as charge_amount,
@@ -41,7 +39,6 @@ with
             updatedbyid as updated_by_id,
             updateddate as updated_date,
             deleted as is_deleted
-
 
         from source
 

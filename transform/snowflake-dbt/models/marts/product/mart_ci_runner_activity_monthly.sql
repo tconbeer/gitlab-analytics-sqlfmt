@@ -40,7 +40,6 @@ joined as (
         ci_runner_activity_monthly.dim_ci_pipeline_id,
         ci_runner_activity_monthly.dim_ci_stage_id,
 
-
         -- CI RUNNER METRICS
         ci_runner_activity_monthly.ci_build_duration_in_s,
         ci_runner_activity_monthly.public_projects_minutes_cost_factor,

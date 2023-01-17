@@ -1,7 +1,6 @@
 with
     final_select as (select * from {{ ref("consolidated_page_views") }})
 
-
     {{
         dbt_audit(
             cte_ref="final_select",

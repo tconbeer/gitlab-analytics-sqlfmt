@@ -204,7 +204,6 @@ final as (
             )
         }} as crm_user_sales_segment_region_grouped,
 
-
         -- crm account owner/sales rep live fields
         dim_crm_account_user_hierarchy_live_sales_segment.crm_user_sales_segment
         as crm_account_user_sales_segment,
@@ -249,7 +248,6 @@ final as (
         dim_crm_opportunity.sa_tech_evaluation_close_status,
         dim_crm_opportunity.sa_tech_evaluation_end_date,
         dim_crm_opportunity.sa_tech_evaluation_start_date,
-
 
         -- Command Plan fields
         dim_crm_opportunity.cp_partner,

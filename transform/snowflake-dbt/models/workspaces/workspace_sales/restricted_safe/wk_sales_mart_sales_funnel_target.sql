@@ -37,7 +37,6 @@ with
             ) as report_user_segment_geo_region_area_sqs_ot
         from {{ ref("mart_sales_funnel_target") }} funnel_target
 
-
     ),
     -- keys used for aggregated historical analysis
     agg_demo_keys as (select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}),
@@ -71,7 +70,6 @@ with
             agg_demo_keys.key_segment_geo_region_area_ot,
 
             agg_demo_keys.report_user_segment_geo_region_area
-
 
         from mart_sales_funnel_target funnel_target
         inner join

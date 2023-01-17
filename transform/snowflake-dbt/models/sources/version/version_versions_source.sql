@@ -5,7 +5,6 @@ with
         from {{ source("version", "versions") }}
         qualify row_number() over (partition by id order by updated_at desc) = 1
 
-
     ),
     renamed as (
 

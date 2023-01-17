@@ -62,7 +62,6 @@ with
         from parsed_out_qas, lateral flatten(input => question_response) d
         where answer_display is not null
 
-
     )
 
 select *

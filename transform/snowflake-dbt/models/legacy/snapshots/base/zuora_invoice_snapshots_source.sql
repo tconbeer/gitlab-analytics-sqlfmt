@@ -18,7 +18,6 @@ with
             posteddate as posted_date,
             targetdate as target_date,
 
-
             includesonetime as includes_one_time,
             includesrecurring as includesrecurring,
             includesusage as includes_usage,
@@ -52,7 +51,6 @@ with
             dbt_updated_at,
             dbt_valid_from,
             dbt_valid_to
-
 
         from source
 

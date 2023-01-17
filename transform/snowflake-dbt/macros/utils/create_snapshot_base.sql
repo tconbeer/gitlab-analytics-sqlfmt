@@ -43,7 +43,6 @@ with
             )
         order by 2, 3
 
-
     )
 
 {%- endmacro -%}

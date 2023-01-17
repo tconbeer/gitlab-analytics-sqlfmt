@@ -46,7 +46,6 @@ with
             -- billtocontact                   as bill_to_contact,
             parent__c as sfdc_parent,
 
-
             -- financial info
             lastinvoicedate as last_invoice_date,
 

@@ -17,7 +17,6 @@ with
             created_at::timestamp as candidate_education_created_at,
             updated_at::timestamp as candidate_education_updated_at
 
-
         from source
 
     )

@@ -50,8 +50,6 @@ smau as (
         and usage_ping_delivery_type = 'Self-Managed'
         {{ dbt_utils.group_by(n=12) }}
 
-
-
 ),
 smau_joined as (
 
@@ -101,7 +99,6 @@ saas_smau as (
         fct_daily_event_400.dim_plan_id_at_event_date <> 34
         {{ dbt_utils.group_by(n=8) }}
 
-
 ),
 umau as (
 
@@ -129,8 +126,6 @@ umau as (
         and product_tier <> 'Core'
         and usage_ping_delivery_type = 'Self-Managed'
         {{ dbt_utils.group_by(n=12) }}
-
-
 
 ),
 umau_joined as (
@@ -186,8 +181,6 @@ instance_gmau as (
         and product_tier <> 'Core'
 
         {{ dbt_utils.group_by(n=14) }}
-
-
 
 ),
 gmau as (

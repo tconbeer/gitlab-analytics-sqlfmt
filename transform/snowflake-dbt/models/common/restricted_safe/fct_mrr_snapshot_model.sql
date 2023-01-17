@@ -106,7 +106,5 @@ with
 
     )
 
-
-
 select *
 from final

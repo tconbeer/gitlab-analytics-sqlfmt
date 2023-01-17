@@ -70,7 +70,6 @@ with recursive
         select
             base.*,
 
-
             -- account owner hierarchies levels
             trim(cro.level_2) as sales_team_level_2,
             trim(cro.level_3) as sales_team_level_3,
@@ -104,7 +103,6 @@ with recursive
                 then cro.level_2
                 else 'n/a'
             end as sales_min_hierarchy_level,
-
 
             case
                 when sales_min_hierarchy_level in ('ASM - APAC - Japan', 'RD APAC')

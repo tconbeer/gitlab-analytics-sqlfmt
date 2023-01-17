@@ -113,7 +113,6 @@ This CTE finds groups of snapshoted chages that changed the parent id. This is a
         from namespace_lineage_scd
     )
 
-
     {{
         dbt_audit(
             cte_ref="event_index",

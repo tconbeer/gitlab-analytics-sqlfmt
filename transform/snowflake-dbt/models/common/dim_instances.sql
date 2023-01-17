@@ -22,7 +22,6 @@ with
     ),
     renamed as (select * from instances)
 
-
     {{
         dbt_audit(
             cte_ref="renamed",

@@ -147,7 +147,6 @@ with
             and date_check.table_name = 'gitlab_db_{{table}}'
         qualify row_number() over (partition by id order by updated_date desc) = 1
 
-
         {% if not loop.last %}
         union all
         {% endif %}
@@ -177,7 +176,6 @@ with
             on date(snowflake.updated_at) >= date_check.updated_date
             and date_check.table_name = 'gitlab_db_{{table}}'
         qualify row_number() over (partition by id order by updated_date desc) = 1
-
 
         {% if not loop.last %}
         union all

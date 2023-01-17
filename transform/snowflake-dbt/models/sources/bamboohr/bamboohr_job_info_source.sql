@@ -88,7 +88,6 @@ with
             ) as effective_end_date
         from renamed
 
-
     ),
     joined as (
 

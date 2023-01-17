@@ -422,7 +422,6 @@ with
                 else 'Other'
             end as stage_name_4plus,
 
-
             case
                 when
                     sfdc_opportunity_snapshot_history.stage_name in (
@@ -507,14 +506,12 @@ with
                 else 0
             end as is_closed,
 
-
             case
                 when
                     lower(sfdc_opportunity_snapshot_history.sales_type) like '%renewal%'
                 then 1
                 else 0
             end as is_renewal,
-
 
             -- NF: 20210827 Fields for competitor analysis 
             case
@@ -650,7 +647,6 @@ with
                 else 0
             end as competitors_aws_flag,
 
-
             -- calculated age field
             -- if open, use the diff between created date and snapshot date
             -- if closed, a) the close date is later than snapshot date, use snapshot
@@ -698,7 +694,6 @@ with
             date_details sales_accepted_date
             on sales_accepted_date.date_actual
             = sfdc_opportunity_snapshot_history.sales_accepted_date::date
-
 
     ),
     net_iacv_to_net_arr_ratio as (
@@ -887,7 +882,6 @@ with
             sfdc_opportunity_xf.sales_qualified_source,
             sfdc_opportunity_xf.account_id,
             sfdc_opportunity_xf.opportunity_category,
-
 
             case
                 when sfdc_opportunity_xf.stage_1_date <= opp_snapshot.snapshot_date
@@ -1085,7 +1079,6 @@ with
             sfdc_accounts_xf.account_demographics_territory
             as upa_demographics_territory
 
-
         from sfdc_opportunity_snapshot_history opp_snapshot
         inner join
             sfdc_opportunity_xf
@@ -1144,7 +1137,6 @@ with
             in ('00-Pre Opportunity', '0-Pending Acceptance', '0-Qualifying')
         group by 1, 2, 3
 
-
     ),
     add_compound_metrics as (
 
@@ -1200,7 +1192,6 @@ with
                 then 1
                 else 0
             end as is_eligible_open_pipeline_flag,
-
 
             -- Created pipeline eligibility definition
             -- https://gitlab.com/gitlab-com/sales-team/field-operations/systems/-/issues/2389
@@ -1355,7 +1346,6 @@ with
                 else 0
             end as created_and_won_same_quarter_net_arr,
 
-
             case
                 when
                     opp_snapshot.pipeline_created_fiscal_quarter_name
@@ -1494,7 +1484,6 @@ with
 
                 else 0
             end as is_excluded_flag
-
 
         from sfdc_opportunity_snapshot_history_xf opp_snapshot
         left join

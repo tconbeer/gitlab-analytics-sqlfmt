@@ -67,7 +67,6 @@ with
             and s.value['max_loaded_at_time_ago_in_s']::float is not null
     )
 
-
 select *
 from v1parsed
 

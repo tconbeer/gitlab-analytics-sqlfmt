@@ -128,7 +128,6 @@ license_subscriptions as (
         and effective_end_month > dim_date.date_day
         {{ dbt_utils.group_by(n=20) }}
 
-
 ),
 joined as (
 
@@ -298,7 +297,6 @@ sorted as (
         ping_created_at,
         ping_created_at_month,
         is_last_ping_of_month
-
 
     from joined
     where time_frame != 'none' and try_to_decimal(metric_value::text) >= 0

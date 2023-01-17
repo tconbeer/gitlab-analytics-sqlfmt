@@ -65,7 +65,6 @@ count_tbl as (
         and metric_value is not null
         {{ dbt_utils.group_by(n=9) }}
 
-
 ),
 joined_counts as (
 

@@ -97,7 +97,6 @@ with
             actively_being_sequenced__c::boolean as is_actively_being_sequenced,
             {{ sfdc_source_buckets("leadsource") }}
 
-
             -- account demographics fields
             account_demographics_sales_segment__c as account_demographics_sales_segment,
             case

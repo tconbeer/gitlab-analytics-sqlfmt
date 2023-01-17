@@ -60,7 +60,6 @@ with
 
             isdeleted as is_deleted
 
-
         from source
     )
 

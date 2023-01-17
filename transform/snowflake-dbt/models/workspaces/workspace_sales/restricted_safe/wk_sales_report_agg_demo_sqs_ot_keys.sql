@@ -59,7 +59,6 @@ with
         from opportunity
         left join sfdc_account_xf account on account.account_id = opportunity.account_id
 
-
     ),
     eligible as (
 
@@ -145,7 +144,6 @@ with
             ) as report_user_segment_geo_region_area_sqs_ot
         from sfdc_opportunity_xf
 
-
     ),
     valid_keys as (
 
@@ -187,7 +185,6 @@ with
             || report_opportunity_user_geo
             || '_'
             || deal_group as key_segment_geo_ot,
-
 
             report_opportunity_user_segment
             || '_'
@@ -234,7 +231,6 @@ with
             || report_opportunity_user_area
             || '_'
             || deal_group as key_segment_geo_region_area_ot,
-
 
             report_opportunity_user_segment
             || '_'

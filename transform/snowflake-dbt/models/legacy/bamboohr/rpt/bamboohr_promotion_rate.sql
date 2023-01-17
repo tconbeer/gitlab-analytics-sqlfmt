@@ -39,7 +39,6 @@ with
             and eeoc_field_name = 'no_eeoc'
         group by 1, 2, 3
 
-
     ),
     joined as (
 

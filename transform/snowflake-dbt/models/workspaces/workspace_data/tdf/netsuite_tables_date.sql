@@ -19,7 +19,6 @@ with
         select '{{table}}' as table_name, max(date_last_modified) as max_date
         from {{ source("netsuite", table) }}
 
-
         {% if not loop.last %}
         union all
         {% endif %}
@@ -27,7 +26,6 @@ with
         {% endfor %}
 
     )
-
 
 select *
 from netsuite_date

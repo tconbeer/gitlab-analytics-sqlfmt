@@ -29,7 +29,6 @@ with
     ),
     renamed as (select * from usage_with_ip)
 
-
     {{
         dbt_audit(
             cte_ref="renamed",

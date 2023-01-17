@@ -21,9 +21,7 @@ with
             historical_rate::float as historical_rate,
             _fivetran_deleted::boolean as is_fivetran_deleted
 
-
         from source
-
 
     )
 

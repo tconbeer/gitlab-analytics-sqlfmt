@@ -26,8 +26,6 @@ with
 
     )
 
-
-
     {{
         dbt_audit(
             cte_ref="unioned",

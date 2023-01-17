@@ -19,7 +19,6 @@ with
             valid_from
         from gitlab_dotcom_issue_links_source
 
-
     )
 
     {{

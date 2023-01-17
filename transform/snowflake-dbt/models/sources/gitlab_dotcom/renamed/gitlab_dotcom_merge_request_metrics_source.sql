@@ -3,7 +3,6 @@ with
 
         select * from {{ ref("gitlab_dotcom_merge_request_metrics_dedupe_source") }}
 
-
     ),
     renamed as (
 

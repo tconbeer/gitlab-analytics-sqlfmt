@@ -90,7 +90,6 @@ with
                 null
             ) as turn_on_seat_reconciliation,
 
-
             -- metadata
             updatedbyid as updated_by_id,
             updateddate as updated_date,

@@ -32,7 +32,6 @@ with
             _deleted_date as _deleted_date
         from {{ source("bizible", "biz_ads") }}
 
-
     )
 
 select *

@@ -11,7 +11,6 @@ with
             created_at::timestamp as user_candidate_link_created_at,
             updated_at::timestamp as user_candidate_link_updated_at
 
-
         from source
 
     )

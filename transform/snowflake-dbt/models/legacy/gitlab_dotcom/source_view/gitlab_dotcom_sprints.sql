@@ -15,7 +15,6 @@ with
             }}
         from {{ ref("gitlab_dotcom_sprints_source") }}
 
-
     )
 
 select *

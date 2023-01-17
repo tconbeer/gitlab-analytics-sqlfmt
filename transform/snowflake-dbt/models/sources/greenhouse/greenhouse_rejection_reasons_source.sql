@@ -13,7 +13,6 @@ with
             created_at::timestamp as rejection_reason_created_at,
             updated_at::timestamp as rejection_reason_updated_at
 
-
         from source
 
     )

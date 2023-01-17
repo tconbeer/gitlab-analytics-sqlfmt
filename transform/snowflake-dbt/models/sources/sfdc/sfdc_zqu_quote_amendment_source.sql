@@ -28,7 +28,6 @@ with
             zqu__description__c::varchar as zqu__description,
             zqu__termstartdate__c::timestamp_tz as zqu__term_start_date,
 
-
             -- metadata
             createdbyid::varchar as created_by_id,
             createddate::timestamp_tz as created_date,

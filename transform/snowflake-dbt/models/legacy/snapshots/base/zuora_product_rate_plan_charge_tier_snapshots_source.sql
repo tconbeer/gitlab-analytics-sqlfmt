@@ -12,7 +12,6 @@ with
             currency as currency,
             price as price,
 
-
             -- snapshot metadata
             dbt_scd_id,
             dbt_updated_at,

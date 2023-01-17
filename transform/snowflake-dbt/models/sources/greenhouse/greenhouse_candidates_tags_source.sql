@@ -12,7 +12,6 @@ with
             created_at::timestamp as candidate_tag_created_at,
             updated_at::timestamp as candidate_tag_updated_at
 
-
         from source
 
     )

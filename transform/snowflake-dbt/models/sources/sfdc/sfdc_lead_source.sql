@@ -103,7 +103,6 @@ with
             sequence_step_type2__c as sequence_step_type,
             actively_being_sequenced__c::boolean as is_actively_being_sequenced,
 
-
             {{ sfdc_source_buckets("leadsource") }}
 
             -- territory success planning info
@@ -140,7 +139,6 @@ with
             account_demographics_upa_street__c as account_demographics_upa_street,
             account_demographics_upa_postal_code__c
             as account_demographics_upa_postal_code,
-
 
             -- path factory info
             pathfactory_experience_name__c as pathfactory_experience_name,

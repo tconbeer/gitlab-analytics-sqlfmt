@@ -52,6 +52,5 @@ with
 
     )
 
-
 select *
 from final

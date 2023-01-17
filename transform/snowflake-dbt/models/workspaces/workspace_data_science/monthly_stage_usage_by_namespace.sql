@@ -664,7 +664,6 @@ select
         else 'none'
     end as stage_most_used_alltime,
 
-
     -- NUMBER OF SEAT LICENSES USING EACH STAGE
     -- Cannot get at because of the level of granuality of the usage
     -- datflattened_metrics.

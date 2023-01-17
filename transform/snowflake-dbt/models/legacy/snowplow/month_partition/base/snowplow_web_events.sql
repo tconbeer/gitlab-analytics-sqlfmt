@@ -103,7 +103,6 @@ with
             , ev.{{ column }}
             {% endfor %}
 
-
         from events as ev
         inner join web_page_context as wp on ev.event_id = wp.root_id
 

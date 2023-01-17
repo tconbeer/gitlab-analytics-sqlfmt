@@ -12,7 +12,6 @@ with
         select '{{table}}' as table_name, max(updated_at) as max_date
         from {{ source("version", table) }}
 
-
         {% if not loop.last %}
         union all
         {% endif %}
@@ -26,7 +25,6 @@ with
         {% for table in tables %}
         select '{{table}}' as table_name, max(created_at) as max_date
         from {{ source("version", table) }}
-
 
         {% if not loop.last %}
         union all

@@ -422,9 +422,7 @@ with
             {{ unpack_unstructured_event(track_timing, "track_timing", "tt") }}
         from base_with_sorted_columns
 
-
     )
-
 
 select *
 from unnested_unstruct

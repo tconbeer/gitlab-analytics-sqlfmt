@@ -40,7 +40,6 @@ with
             lines_source.subscription_id as dim_subscription_id,
             lines_source.amendment_id as dim_amendment_id,
 
-
             -- purchase order ids
             lines_source.purchase_order_number,
             prep_quote.dim_quote_id,
@@ -54,7 +53,6 @@ with
             lines_source.order_id,
             lines_source.order_item_id,
             lines_source.order_action_id,
-
 
             -- product ids
             lines_source.product_id,
@@ -139,7 +137,6 @@ with
             lines_source.allocated_price,
             lines_source.below_fair_value_price,
             lines_source.above_fair_value_price,
-
 
             -- amounts
             lines_source.deferred_amount,

@@ -315,7 +315,6 @@ with
             case when mqls.first_mql_date is not null then 1 else 0 end as is_mql,
             case when true_inquiry_date is not null then 1 else 0 end as is_inquiry,
 
-
             -- information fields
             crm_person.name_of_active_sequence,
             crm_person.sequence_task_due_date,
@@ -341,7 +340,6 @@ with
             -- additive fields
             crm_person.person_score as person_score,
             mqls.mql_count as mql_count
-
 
         from crm_person
         left join sfdc_leads on crm_person.sfdc_record_id = sfdc_leads.lead_id

@@ -422,7 +422,6 @@ with
             on sfdc_account.ultimate_parent_account_id
             = ultimate_parent_account.account_id
 
-
     ),
     combined_charges as (
 

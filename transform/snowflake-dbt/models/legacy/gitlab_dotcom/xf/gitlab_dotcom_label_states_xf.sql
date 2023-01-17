@@ -23,7 +23,6 @@ with
 
     ),
 
-
     final as (  -- Leave removed_at NULL if less than added_at.
 
         select

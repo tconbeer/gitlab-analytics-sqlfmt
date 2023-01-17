@@ -19,7 +19,6 @@ with
             modifying_user::text as modifying_user,
             request_id::text as request_id
 
-
         from source
 
     )

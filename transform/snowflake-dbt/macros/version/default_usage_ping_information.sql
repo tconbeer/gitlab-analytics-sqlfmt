@@ -34,5 +34,4 @@ raw_usage_data_payload['active_user_count']::number(38, 0) as instance_user_coun
 raw_usage_data_payload['historical_max_users']::number(38, 0) as historical_max_users,
 raw_usage_data_payload['license_md5']::varchar as license_md5,
 
-
 {%- endmacro -%}

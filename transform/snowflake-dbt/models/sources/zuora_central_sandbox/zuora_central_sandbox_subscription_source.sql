@@ -73,7 +73,6 @@ with
             contract_auto_renew_c as contract_auto_renewal,
             contract_seat_reconciliation_c as contract_seat_reconciliation,
 
-
             -- metadata
             updated_by_id as updated_by_id,
             updated_date as updated_date,

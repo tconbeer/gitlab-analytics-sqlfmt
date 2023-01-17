@@ -87,7 +87,6 @@ final_opportunities as (
         sfdc_opportunity.subscription_start_date,
         sfdc_opportunity.subscription_end_date,
 
-
         -- common dimension keys
         {{ get_keyed_nulls("sfdc_opportunity.dim_crm_user_id") }} as dim_crm_user_id,
         {{ get_keyed_nulls("prep_crm_account.dim_crm_user_id") }}

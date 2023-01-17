@@ -18,7 +18,6 @@ with
 
     )
 
-
     {{
         dbt_audit(
             cte_ref="final",

@@ -135,7 +135,6 @@ with
         -- dim_crm_account_id is not unique at each snapshot date, hence the group by
         group by dim_crm_account_id
 
-
     ),
     target as (
 
@@ -156,7 +155,6 @@ with
             )
 
         group by dim_crm_account_id
-
 
     -- Snapshot for the set period prior to the "current" month (as specified by
     -- SNAPSHOT_DT).
@@ -229,7 +227,6 @@ with
             -- Remove Chinese accounts like this per feedback from Melia and Israel
             and is_jihu_account != 'TRUE'
         group by dim_crm_account_id
-
 
     -- Any metrics you would want to calculate the require multiple ARR_MONTHS. Could
     -- be lifetime metrics, over the last year, future expected ARR. etc.
@@ -659,7 +656,6 @@ with
         -- snapshots occur multiple times a day so data is not unique at the acccount
         -- + dbt_updated_at level.
         group by account_id
-
 
     ),
     bizible as (

@@ -20,7 +20,6 @@ with
             stage_name::varchar as scheduled_interview_stage_name,
             interview_name::varchar as scheduled_interview_name
 
-
         from source
 
     )

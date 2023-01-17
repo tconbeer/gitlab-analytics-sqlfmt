@@ -45,7 +45,6 @@ with
         select month_date, 'no_eeoc' as eeoc_field_name
         from date_details
 
-
     ),
     applications as (
 
@@ -68,7 +67,6 @@ with
             eeoc
             on greenhouse_recruiting_xf.application_id = eeoc.application_id
             and lower(eeoc.eeoc_field_name) = base.eeoc_field_name
-
 
     ),
     offers as (

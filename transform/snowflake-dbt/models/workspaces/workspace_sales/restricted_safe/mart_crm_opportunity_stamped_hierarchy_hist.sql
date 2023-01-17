@@ -314,7 +314,6 @@ final as (
         dim_crm_opportunity.sa_tech_evaluation_end_date,
         dim_crm_opportunity.sa_tech_evaluation_start_date,
 
-
         -- Command Plan fields
         dim_crm_opportunity.cp_partner,
         dim_crm_opportunity.cp_paper_process,

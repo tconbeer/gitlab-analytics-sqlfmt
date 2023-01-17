@@ -6,7 +6,6 @@ with
         -- info
         select id::number as organization_id, name::varchar as organization_name
 
-
         from source
 
     )

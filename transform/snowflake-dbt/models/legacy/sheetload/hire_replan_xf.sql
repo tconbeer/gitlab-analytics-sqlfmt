@@ -127,7 +127,6 @@ with
         from division_level
         where month_date >= '2020-06-01'
 
-
         union all
 
         select *

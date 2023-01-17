@@ -19,7 +19,6 @@ with
                 effective_end_date, termination_date, current_date()
             )
 
-
     ),
     unioned as (
 

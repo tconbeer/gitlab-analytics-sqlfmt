@@ -51,7 +51,6 @@ with
 
     )
 
-
 select *
 from renamed
 order by updated_at

@@ -7,7 +7,6 @@ with
         select '{{table}}' as table_name, max(uploaded_at) as max_date
         from {{ source("gitlab_snowplow", table) }}
 
-
         {% if not loop.last %}
         union all
         {% endif %}
@@ -15,7 +14,6 @@ with
         {% endfor %}
 
     )
-
 
 select *
 from snowplow_date

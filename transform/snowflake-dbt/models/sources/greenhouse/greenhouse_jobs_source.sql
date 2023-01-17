@@ -21,7 +21,6 @@ with
             notes::varchar as job_notes,
             updated_at::timestamp as job_updated_at
 
-
         from source
 
     )

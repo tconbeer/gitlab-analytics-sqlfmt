@@ -212,7 +212,6 @@ with
     -- dim_crm_account_id) > 1
     )
 
-
     {{
         dbt_audit(
             cte_ref="issue_summary",

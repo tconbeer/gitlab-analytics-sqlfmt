@@ -10,14 +10,12 @@ with
             rate_plan_charge_id as rate_plan_charge_id,
             subscription_id as subscription_id,
 
-
             -- invoice item metadata
             accounting_code as accounting_code,
             product_id as product_id,
             product_rate_plan_charge_id as product_rate_plan_charge_id,
             service_end_date as service_end_date,
             service_start_date as service_start_date,
-
 
             -- financial info
             charge_amount as charge_amount,
@@ -39,7 +37,6 @@ with
             updated_by_id as updated_by_id,
             updated_date as updated_date,
             _fivetran_deleted as is_deleted
-
 
         from source
 

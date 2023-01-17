@@ -41,7 +41,6 @@ select
     gitlab_dotcom_usage_data_events.user_id,
     gitlab_dotcom_usage_data_events.namespace_id,
 
-
     -- user dimensions
     case
         when gitlab_subscriptions.is_trial

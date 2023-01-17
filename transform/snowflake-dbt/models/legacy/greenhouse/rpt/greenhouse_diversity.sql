@@ -7,7 +7,6 @@ with
 
         select * from {{ ref("greenhouse_diversity_intermediate") }}
 
-
     ),
     breakout as (
 

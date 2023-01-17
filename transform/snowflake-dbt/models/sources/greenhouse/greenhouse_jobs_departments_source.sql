@@ -13,7 +13,6 @@ with
             created_at::timestamp as job_department_created_at,
             updated_at::timestamp as job_department_updated_at
 
-
         from source
 
     )

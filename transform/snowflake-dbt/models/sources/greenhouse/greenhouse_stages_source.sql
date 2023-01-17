@@ -13,7 +13,6 @@ with
             "order"::number as stage_order,
             active::boolean as is_active
 
-
         from source
 
     ),

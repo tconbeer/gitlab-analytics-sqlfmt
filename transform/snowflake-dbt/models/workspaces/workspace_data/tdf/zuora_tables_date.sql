@@ -26,7 +26,6 @@ with
         select '{{table}}' as table_name, max(createddate) as max_date
         from {{ source("zuora", table) }}
 
-
         {% if not loop.last %}
         union all
         {% endif %}
@@ -34,7 +33,6 @@ with
         {% endfor %}
 
     )
-
 
 select *
 from zuora_date

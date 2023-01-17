@@ -25,7 +25,6 @@ final as (
         -- 1st time we started capturing locality
         and bamboohr_locality.uploaded_at >= '2020-03-24'
 
-
 )
 
 select *

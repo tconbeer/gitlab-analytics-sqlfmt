@@ -40,7 +40,6 @@ with
         left join environment on environment.environment = license.environment
     )
 
-
     {{
         dbt_audit(
             cte_ref="final",

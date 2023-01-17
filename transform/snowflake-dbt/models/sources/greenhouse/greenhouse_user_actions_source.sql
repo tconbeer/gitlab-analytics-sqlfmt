@@ -12,7 +12,6 @@ with
             -- info
             type::varchar as user_action_type
 
-
         from source
 
     )

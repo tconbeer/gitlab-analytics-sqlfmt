@@ -54,7 +54,6 @@ with
             original_mrr
         from retention_subs
 
-
     ),
     joined as (
 

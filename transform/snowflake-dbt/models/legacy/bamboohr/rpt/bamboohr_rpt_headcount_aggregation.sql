@@ -129,7 +129,6 @@ with
                 )
             ) as retention_management,
 
-
             headcount_end_staff,
             headcount_average_staff,
             hired_staff,
@@ -148,7 +147,6 @@ with
                     / nullif(rolling_12_month_headcount_staff, 0)
                 )
             ) as retention_staff,
-
 
             headcount_end_individual_contributor,
             headcount_average_contributor,
@@ -191,7 +189,6 @@ with
             min(
                 headcount_average_contributor
             ) {{ ratio_to_report_partition_statement }} as min_headcount_contributor,
-
 
             ratio_to_report(headcount_end)
             {{ ratio_to_report_partition_statement }} as percent_of_headcount,
@@ -341,7 +338,6 @@ with
             rolling_12_month_headcount_leader,
             rolling_12_month_separations_leader,
             retention_leader,
-
 
             iff(
                 headcount_end_manager < 2 and eeoc_field_name != 'no_eeoc',

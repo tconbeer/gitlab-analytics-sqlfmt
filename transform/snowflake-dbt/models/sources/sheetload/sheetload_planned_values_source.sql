@@ -35,7 +35,6 @@ with
             planned_pio_apac::number as planned_pio_apac,
             planned_pio_pubsec::number as planned_pio_pubsec
 
-
         from source
 
     )

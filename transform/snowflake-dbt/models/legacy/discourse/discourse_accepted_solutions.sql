@@ -1,7 +1,6 @@
 with
     final_select as (select * from {{ ref("accepted_solutions") }})
 
-
     {{
         dbt_audit(
             cte_ref="final_select",

@@ -15,7 +15,6 @@ with
             veteran_status::varchar as candidate_veteran_status,
             submitted_at::timestamp as eeoc_response_submitted_at
 
-
         from source
         where eeoc_response_submitted_at is not null
 

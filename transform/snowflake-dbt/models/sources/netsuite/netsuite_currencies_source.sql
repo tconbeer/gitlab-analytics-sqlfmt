@@ -15,7 +15,6 @@ with
             is_inactive::boolean as is_currency_inactive,
             _fivetran_deleted::boolean as is_fivetran_deleted
 
-
         from source
 
     )

@@ -14,7 +14,6 @@ with
 
             sold_to_contact_id as sold_to_contact_id,
 
-
             account_id as account_id,
             bill_to_contact_id as bill_to_contact_id,
             default_payment_method_id as default_payment_method_id,

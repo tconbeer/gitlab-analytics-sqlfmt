@@ -80,7 +80,6 @@ with
             and created_at >= (select max(created_at) from {{ this }})
             {% endif %}
 
-
     ),
     unpacked_stage_metrics as (
 

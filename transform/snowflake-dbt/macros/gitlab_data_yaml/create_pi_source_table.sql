@@ -78,5 +78,4 @@ with
 select *
 from final
 
-
 {% endmacro %}

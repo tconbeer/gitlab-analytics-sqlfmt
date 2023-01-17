@@ -107,7 +107,6 @@ with
     ),
     base_keys as (
 
-
         select
             pipeline_summary.close_fiscal_quarter_name,
             pipeline_summary.close_fiscal_quarter_date,
@@ -126,7 +125,6 @@ with
                 select distinct close_day_of_fiscal_quarter_normalised
                 from pipeline_summary
             ) close_day
-
 
     ),
     pipeline_velocity_with_targets_per_day as (
@@ -220,7 +218,6 @@ with
             agg_demo_keys
             on agg.report_user_segment_geo_region_area_sqs_ot
             = agg_demo_keys.report_user_segment_geo_region_area_sqs_ot
-
 
     )
 

@@ -56,7 +56,6 @@ with
             bdr_lu__c as opportunity_business_development_representative_lookup,
             bdr_sdr__c as opportunity_development_representative,
 
-
             account_owner_team_o__c as account_owner_team_stamped,
 
             sales_accepted_date__c as sales_accepted_date,

@@ -29,5 +29,4 @@ select count(*)
 from grouped
 where count_rows_valid_on_date != 1
 
-
 {% endmacro %}

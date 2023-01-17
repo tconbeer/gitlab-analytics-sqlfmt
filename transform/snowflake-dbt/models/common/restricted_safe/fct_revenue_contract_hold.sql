@@ -43,7 +43,6 @@ with
             is_allow_manual_rel,
             is_line_hold_processed,
 
-
             -- metadata
             revenue_contract_hold_created_by,
             {{ get_date_id("revenue_contract_hold_created_date") }}

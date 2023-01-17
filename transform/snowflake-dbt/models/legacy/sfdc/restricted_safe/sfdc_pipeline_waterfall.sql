@@ -391,7 +391,6 @@ with
                 else 0
             end as duplicate_unqualified
 
-
         from combined
 
     ),

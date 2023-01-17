@@ -176,8 +176,6 @@ with
                 input => version_usage_data.raw_usage_data_payload, recursive => true
             ) f
 
-
-
     ),
     counter_data as (
 

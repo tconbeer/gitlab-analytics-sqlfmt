@@ -464,7 +464,6 @@ with
         from {{ ref("gitlab_dotcom_events") }}
         where target_type is null and event_action_type_id = 5
 
-
     ),
     action_monthly_active_users_design_management as (
 
@@ -713,7 +712,6 @@ with
                 )
             }}
         {% endif %}
-
 
         {% if not loop.last %}
         union

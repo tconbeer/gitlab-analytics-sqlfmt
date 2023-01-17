@@ -1,6 +1,5 @@
 with reporting_data as (select * from {{ ref("paid_digital") }})
 
-
 select
 
     reporting_date as reporting_date,

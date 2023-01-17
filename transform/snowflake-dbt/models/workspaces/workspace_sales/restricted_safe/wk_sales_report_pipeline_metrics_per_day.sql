@@ -554,8 +554,6 @@ with
                 reported_quarter.churned_contraction_deal_count, 0
             ) as churned_contraction_deal_count,
 
-
-
             -- reported quarter + 1
             coalesce(
                 report_quarter_plus_1.rq_plus_1_open_1plus_deal_count, 0
@@ -595,7 +593,6 @@ with
             coalesce(
                 reported_quarter.created_and_won_same_quarter_net_arr, 0
             ) as created_and_won_same_quarter_net_arr,
-
 
             -- reported quarter + 1
             coalesce(

@@ -13,7 +13,6 @@ with
             issue_id::number as issue_id
         from source
 
-
     )
 
 select distinct *

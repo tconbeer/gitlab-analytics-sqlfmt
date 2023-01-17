@@ -220,7 +220,6 @@ final as (
         dim_crm_user
         on fct_crm_touchpoint.dim_crm_user_id = dim_crm_user.dim_crm_user_id
 
-
 )
 
 {{

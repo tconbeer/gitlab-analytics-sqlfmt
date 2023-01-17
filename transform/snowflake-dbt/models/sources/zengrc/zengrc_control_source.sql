@@ -59,7 +59,6 @@ with
             as spreadsheet_review_parameters,
             parse_json(custom_attributes)['176']['value']::varchar as sub_process
 
-
         from source
 
     )

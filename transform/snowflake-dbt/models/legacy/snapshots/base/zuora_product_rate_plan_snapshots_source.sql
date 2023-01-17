@@ -28,7 +28,6 @@ with
             dbt_valid_from,
             dbt_valid_to
 
-
         from source
 
     )

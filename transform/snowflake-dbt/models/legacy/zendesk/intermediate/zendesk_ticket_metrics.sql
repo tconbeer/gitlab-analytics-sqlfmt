@@ -44,7 +44,6 @@ with
                 )
             ) as sla_reply_time_business_hours
 
-
         from source
 
     )

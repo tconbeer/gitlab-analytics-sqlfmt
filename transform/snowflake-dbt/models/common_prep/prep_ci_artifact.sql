@@ -21,7 +21,6 @@ ci_job_artifacts as (
 
     {% endif %}
 
-
 ),
 joined as (
 
