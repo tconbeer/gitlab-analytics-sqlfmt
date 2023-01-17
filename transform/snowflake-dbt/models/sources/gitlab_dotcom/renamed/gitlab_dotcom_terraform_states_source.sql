@@ -1,4 +1,3 @@
-
 with
     source as (select * from {{ ref("gitlab_dotcom_terraform_states_dedupe_source") }}),
     renamed as (

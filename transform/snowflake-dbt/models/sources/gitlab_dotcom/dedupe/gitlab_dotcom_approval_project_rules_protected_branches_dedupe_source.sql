@@ -1,4 +1,3 @@
-
 {{ config({"materialized": "incremental", "unique_key": "approval_project_rule_id"}) }}
 
 

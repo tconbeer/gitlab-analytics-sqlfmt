@@ -1,4 +1,3 @@
-
 {{
     schema_union_limit(
         "dotcom_usage_events_",

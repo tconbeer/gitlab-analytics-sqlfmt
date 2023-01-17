@@ -1,4 +1,3 @@
-
 {{ config(alias="report_targets_totals_per_quarter") }}
 
 with

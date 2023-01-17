@@ -1,4 +1,3 @@
-
 {{ config({"materialized": "incremental", "unique_key": "instance_path_id"}) }}
 
 with

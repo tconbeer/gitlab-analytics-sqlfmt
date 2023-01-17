@@ -1,4 +1,3 @@
-
 with
     source as (select * from {{ ref("gitlab_dotcom_todos_dedupe_source") }}),
     renamed as (

@@ -1,4 +1,3 @@
-
 {{ config({"materialized": "incremental", "unique_key": "issue_id"}) }}
 
 

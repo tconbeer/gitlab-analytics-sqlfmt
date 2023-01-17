@@ -1,4 +1,3 @@
-
 {{ config(alias="mart_sales_funnel_target") }}
 
 

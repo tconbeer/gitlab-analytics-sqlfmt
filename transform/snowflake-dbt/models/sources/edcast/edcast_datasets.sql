@@ -1,4 +1,3 @@
-
 with
     source as (select * from {{ source("edcast", "datasets") }}),
     renamed as (
