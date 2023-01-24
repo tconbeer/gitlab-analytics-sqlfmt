@@ -19,7 +19,9 @@ with
                         "users_name",
                     ],
                 )
-            }}, created_at as user_created_at, updated_at as user_updated_at
+            }},
+            created_at as user_created_at,
+            updated_at as user_updated_at
         from {{ ref("gitlab_dotcom_users") }}
 
     ),

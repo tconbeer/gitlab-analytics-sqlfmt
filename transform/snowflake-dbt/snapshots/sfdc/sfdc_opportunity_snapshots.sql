@@ -6,6 +6,9 @@
         strategy="timestamp",
         updated_at="systemmodstamp",
     )
-}} select * from {{ source("salesforce", "opportunity") }}
+}}
+
+select *
+from {{ source("salesforce", "opportunity") }}
 
 {% endsnapshot %}

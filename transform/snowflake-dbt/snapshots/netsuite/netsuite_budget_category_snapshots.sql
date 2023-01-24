@@ -11,6 +11,9 @@
             "name",
         ],
     )
-}} select * from {{ source("netsuite", "budget_category") }}
+}}
+
+select *
+from {{ source("netsuite", "budget_category") }}
 
 {% endsnapshot %}

@@ -18,6 +18,9 @@
             "to_subsidiary_id",
         ],
     )
-}} select * from {{ source("netsuite", "consolidated_exchange_rates") }}
+}}
+
+select *
+from {{ source("netsuite", "consolidated_exchange_rates") }}
 
 {% endsnapshot %}

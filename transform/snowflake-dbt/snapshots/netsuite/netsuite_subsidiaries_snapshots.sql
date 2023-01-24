@@ -6,6 +6,9 @@
         unique_key="subsidiary_id",
         updated_at="date_last_modified",
     )
-}} select * from {{ source("netsuite", "subsidiaries") }}
+}}
+
+select *
+from {{ source("netsuite", "subsidiaries") }}
 
 {% endsnapshot %}

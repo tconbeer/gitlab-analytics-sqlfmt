@@ -6,6 +6,9 @@
         unique_key="id",
         updated_at="updateddate",
     )
-}} select * from {{ source("zuora", "product_rate_plan_charge_tier") }}
+}}
+
+select *
+from {{ source("zuora", "product_rate_plan_charge_tier") }}
 
 {% endsnapshot %}

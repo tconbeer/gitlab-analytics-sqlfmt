@@ -7,7 +7,8 @@ with
                 dbt_utils.star(
                     from=ref("stages_yaml_source"), except=["STAGE_GROUPS"]
                 )
-            }}, d.value as data_by_row
+            }},
+            d.value as data_by_row
         from source, lateral flatten(input => parse_json(stage_groups::variant)[0]) d
 
     ),

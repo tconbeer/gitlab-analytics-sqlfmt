@@ -6,6 +6,9 @@
         unique_key="entity_id",
         updated_at="last_modified_date",
     )
-}} select * from {{ source("netsuite", "entity") }}
+}}
+
+select *
+from {{ source("netsuite", "entity") }}
 
 {% endsnapshot %}

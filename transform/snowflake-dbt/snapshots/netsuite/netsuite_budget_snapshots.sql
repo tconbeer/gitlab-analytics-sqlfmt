@@ -20,6 +20,9 @@
             "subsidiary_id",
         ],
     )
-}} select * from {{ source("netsuite", "budget") }}
+}}
+
+select *
+from {{ source("netsuite", "budget") }}
 
 {% endsnapshot %}

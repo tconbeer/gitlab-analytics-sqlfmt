@@ -6,6 +6,9 @@
         unique_key="id",
         updated_at="updateddate",
     )
-}} select * from {{ source("zuora", "revenue_schedule_item") }}
+}}
+
+select *
+from {{ source("zuora", "revenue_schedule_item") }}
 
 {% endsnapshot %}

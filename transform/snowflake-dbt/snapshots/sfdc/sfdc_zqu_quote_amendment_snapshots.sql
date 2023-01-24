@@ -6,6 +6,9 @@
         strategy="timestamp",
         updated_at="systemmodstamp",
     )
-}} select * from {{ source("salesforce", "zqu_quote_amendment") }}
+}}
+
+select *
+from {{ source("salesforce", "zqu_quote_amendment") }}
 
 {% endsnapshot %}

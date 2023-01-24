@@ -6,6 +6,9 @@
         unique_key="unique_key",
         updated_at="date_last_modified_gmt",
     )
-}} select * from {{ source("netsuite", "transaction_lines") }}
+}}
+
+select *
+from {{ source("netsuite", "transaction_lines") }}
 
 {% endsnapshot %}

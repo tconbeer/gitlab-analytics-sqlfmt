@@ -6,6 +6,9 @@
         unique_key="id",
         updated_at="updateddate",
     )
-}} select * from {{ source("zuora", "account") }}
+}}
+
+select *
+from {{ source("zuora", "account") }}
 
 {% endsnapshot %}

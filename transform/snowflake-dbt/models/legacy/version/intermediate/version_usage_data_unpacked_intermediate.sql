@@ -55,7 +55,8 @@ with
                     ],
                     relation_alias="usage_data",
                 )
-            }}, pivoted.*
+            }},
+            pivoted.*
 
         from usage_data
         left join pivoted on usage_data.id = pivoted.id

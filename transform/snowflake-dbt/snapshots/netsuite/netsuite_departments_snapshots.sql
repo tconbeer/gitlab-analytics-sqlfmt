@@ -6,6 +6,9 @@
         unique_key="department_id",
         updated_at="date_last_modified",
     )
-}} select * from {{ source("netsuite", "departments") }}
+}}
+
+select *
+from {{ source("netsuite", "departments") }}
 
 {% endsnapshot %}
