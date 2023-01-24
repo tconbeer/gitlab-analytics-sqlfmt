@@ -1,21 +1,14 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "organizations") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'organizations') }}
+        -- key
+        -- info
+        select id::number as organization_id, name::varchar as organization_name
 
-), renamed as (
+        from source
 
-	SELECT
- 			--key
- 			id::NUMBER			   AS organization_id,
+    )
 
- 			--info
-    		name::varchar		 AS organization_name
-
-
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

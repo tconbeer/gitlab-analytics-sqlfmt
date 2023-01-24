@@ -1,17 +1,14 @@
-WITH source AS (
+with
+    source as (select * from {{ source("airflow", "dag_run") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('airflow', 'dag_run') }}
+        select
+            dag_id::varchar as dag_id,
+            execution_date::timestamp as execution_date,
+            state::varchar as run_state
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      dag_id::VARCHAR           AS dag_id,
-      execution_date::TIMESTAMP AS execution_date,
-      state::VARCHAR            AS run_state
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

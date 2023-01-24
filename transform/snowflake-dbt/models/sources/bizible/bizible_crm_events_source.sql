@@ -1,27 +1,27 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      id                        AS crm_event_id,
-      created_date              AS created_date,
-      modified_date             AS modified_date,
-      lead_id                   AS lead_id,
-      lead_email                AS lead_email,
-      contact_id                AS contact_id,
-      contact_email             AS contact_email,
-      bizible_cookie_id         AS bizible_cookie_id,
-      activity_type             AS activity_type,
-      event_start_date          AS event_start_date,
-      event_end_date            AS event_end_date,
-      is_deleted                AS is_deleted,
-      custom_properties         AS custom_properties,
-      _created_date             AS _created_date,
-      _modified_date            AS _modified_date,
-      _deleted_date             AS _deleted_date
+        select
+            id as crm_event_id,
+            created_date as created_date,
+            modified_date as modified_date,
+            lead_id as lead_id,
+            lead_email as lead_email,
+            contact_id as contact_id,
+            contact_email as contact_email,
+            bizible_cookie_id as bizible_cookie_id,
+            activity_type as activity_type,
+            event_start_date as event_start_date,
+            event_end_date as event_end_date,
+            is_deleted as is_deleted,
+            custom_properties as custom_properties,
+            _created_date as _created_date,
+            _modified_date as _modified_date,
+            _deleted_date as _deleted_date
 
-    FROM {{ source('bizible', 'biz_crm_events') }}
- 
-)
+        from {{ source("bizible", "biz_crm_events") }}
 
-SELECT *
-FROM source
+    )
 
+select *
+from source

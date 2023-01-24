@@ -1,26 +1,25 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('demandbase', 'account_keyword_historical_rollup') }}
+        select * from {{ source("demandbase", "account_keyword_historical_rollup") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      jsontext['account_id']::NUMBER                AS account_id,
-      jsontext['backward_ordinal']::NUMBER          AS backward_ordinal,
-      jsontext['duration_count']::NUMBER            AS duration_count,
-      jsontext['duration_type']::VARCHAR            AS duration_type,
-      jsontext['keyword']::VARCHAR                  AS keyword,
-      jsontext['people_researching_count']::NUMBER  AS people_researching_count,
-      jsontext['start_date']::DATE                  AS start_date,
-      jsontext['partition_date']::DATE              AS partition_date
-    FROM source
-    WHERE partition_date = (
-        SELECT MAX(jsontext['partition_date']::DATE) 
-        FROM source
+        select
+            jsontext['account_id']::number as account_id,
+            jsontext['backward_ordinal']::number as backward_ordinal,
+            jsontext['duration_count']::number as duration_count,
+            jsontext['duration_type']::varchar as duration_type,
+            jsontext['keyword']::varchar as keyword,
+            jsontext['people_researching_count']::number as people_researching_count,
+            jsontext['start_date']::date as start_date,
+            jsontext['partition_date']::date as partition_date
+        from source
+        where
+            partition_date = (select max(jsontext['partition_date']::date) from source)
+
     )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

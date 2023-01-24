@@ -1,11 +1,18 @@
 {%- macro sales_segment_cleaning(column_1) -%}
 
-CASE WHEN lower({{ column_1 }}) = 'smb' THEN 'SMB'
-     WHEN LOWER({{ column_1 }}) LIKE ('mid%market') THEN 'Mid-Market'
-     WHEN lower({{ column_1 }}) = 'unknown' THEN 'SMB'
-     WHEN lower({{ column_1 }}) IS NULL THEN 'SMB'
-     WHEN lower({{ column_1 }}) = 'pubsec' THEN 'PubSec'
-     WHEN {{ column_1 }} IS NOT NULL THEN initcap({{ column_1 }})
-END
+case
+    when lower({{ column_1 }}) = 'smb'
+    then 'SMB'
+    when lower({{ column_1 }}) like ('mid%market')
+    then 'Mid-Market'
+    when lower({{ column_1 }}) = 'unknown'
+    then 'SMB'
+    when lower({{ column_1 }}) is null
+    then 'SMB'
+    when lower({{ column_1 }}) = 'pubsec'
+    then 'PubSec'
+    when {{ column_1 }} is not null
+    then initcap({{ column_1 }})
+end
 
 {%- endmacro -%}

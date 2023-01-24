@@ -1,22 +1,16 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_elasticsearch_indexed_namespaces') }}
+        select * from {{ ref("gitlab_dotcom_elasticsearch_indexed_namespaces") }}
 
-), latest AS (
+    ),
+    latest as (
 
-    SELECT
-      namespace_id,
-      created_at,
-      updated_at
-    FROM source
-    WHERE task_instance_name = (
-        SELECT
-          MAX(task_instance_name)
-        FROM source
+        select namespace_id, created_at, updated_at
+        from source
+        where task_instance_name = (select max(task_instance_name) from source)
+
     )
 
-)
-
-SELECT *
-FROM latest
+select *
+from latest

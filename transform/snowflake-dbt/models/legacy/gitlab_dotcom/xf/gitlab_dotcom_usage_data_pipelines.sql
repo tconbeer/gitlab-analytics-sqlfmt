@@ -1,12 +1,13 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-{{ config({
-        "materialized": "incremental",
-        "unique_key": "event_primary_key",
-        "automatic_clustering": true
-    })
+{{
+    config(
+        {
+            "materialized": "incremental",
+            "unique_key": "event_primary_key",
+            "automatic_clustering": true,
+        }
+    )
 }}
 
 /*
@@ -20,543 +21,553 @@
     * source_cte_name OR source_table_name
     * key_to_parent_project OR key_to_group_project (NOT both, see how clusters_applications_helm is included twice for group and project.
 */
-
 {%- set event_ctes = [
-  {
-    "event_name": "action_monthly_active_users_project_repo",
-    "source_cte_name": "action_monthly_active_users_project_repo_source",
-    "user_column_name": "author_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "event_id",
-    "stage_name": "create",
-    "is_representative_of_stage": "True"
-  }, {
-    "event_name": "action_monthly_active_users_design_management",
-    "source_cte_name": "action_monthly_active_users_design_management_source",
-    "user_column_name": "author_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "event_id",
-    "stage_name": "create",
-    "is_representative_of_stage": "False"
-  }, {
-    "event_name": "action_monthly_active_users_wiki_repo",
-    "source_cte_name": "action_monthly_active_users_wiki_repo_source",
-    "user_column_name": "author_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "event_id",
-    "stage_name": "create",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "api_fuzzing",
-    "source_cte_name": "api_fuzzing_jobs",
-    "user_column_name": "ci_build_user_id",
-    "key_to_parent_project": "ci_build_project_id",
-    "primary_key": "ci_build_id",
-    "stage_name": "secure",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "boards",
-    "source_table_name": "gitlab_dotcom_boards",
-    "user_column_name": "NULL",
-    "key_to_parent_project": "project_id",
-    "primary_key": "board_id",
-    "stage_name": "plan",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "successful_ci_pipelines",
-    "source_cte_name": "successful_ci_pipelines_source",
-    "user_column_name": "user_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "ci_pipeline_id",
-    "stage_name": "verify",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "clusters_applications_helm",
-    "source_table_name": "gitlab_dotcom_clusters_applications_helm_xf",
-    "user_column_name": "user_id",
-    "key_to_parent_project": "cluster_project_id",
-    "primary_key": "clusters_applications_helm_id",
-    "stage_name": "configure",
-    "is_representative_of_stage": "True"
-  },
-  {
-    "event_name": "container_scanning",
-    "source_cte_name": "container_scanning_jobs",
-    "user_column_name": "ci_build_user_id",
-    "key_to_parent_project": "ci_build_project_id",
-    "primary_key": "ci_build_id",
-    "stage_name": "protect",
-    "is_representative_of_stage": "True"
-  },
-  {
-    "event_name": "dast",
-    "source_cte_name": "dast_jobs",
-    "user_column_name": "ci_build_user_id",
-    "key_to_parent_project": "ci_build_project_id",
-    "primary_key": "ci_build_id",
-    "stage_name": "secure",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "dependency_scanning",
-    "source_cte_name": "dependency_scanning_jobs",
-    "user_column_name": "ci_build_user_id",
-    "key_to_parent_project": "ci_build_project_id",
-    "primary_key": "ci_build_id",
-    "stage_name": "secure",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "deployments",
-    "source_table_name": "gitlab_dotcom_deployments",
-    "user_column_name": "user_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "deployment_id",
-    "stage_name": "release",
-    "is_representative_of_stage": "True"
-  },
-  {
-    "event_name": "environments",
-    "source_table_name": "gitlab_dotcom_environments",
-    "user_column_name": "NULL",
-    "key_to_parent_project": "project_id",
-    "primary_key": "environment_id",
-    "stage_name": "release",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "epics",
-    "source_table_name": "gitlab_dotcom_epics",
-    "user_column_name": "author_id",
-    "key_to_parent_group": "group_id",
-    "primary_key": "epic_id",
-    "stage_name": "plan",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "labels",
-    "source_table_name": "gitlab_dotcom_labels",
-    "user_column_name": "NULL",
-    "key_to_parent_project": "project_id",
-    "primary_key": "label_id",
-    "stage_name": "plan",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "license_scanning",
-    "source_cte_name": "license_scanning_jobs",
-    "user_column_name": "ci_build_user_id",
-    "key_to_parent_project": "ci_build_project_id",
-    "primary_key": "ci_build_id",
-    "stage_name": "secure",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "merge_requests",
-    "source_table_name": "gitlab_dotcom_merge_requests",
-    "user_column_name": "author_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "merge_request_id",
-    "stage_name": "create",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "milestones",
-    "source_table_name": "gitlab_dotcom_milestones",
-    "user_column_name": "NULL",
-    "key_to_parent_project": "project_id",
-    "primary_key": "milestone_id",
-    "stage_name": "plan",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "packages",
-    "source_table_name": "gitlab_dotcom_packages_packages",
-    "user_column_name": "creator_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "packages_package_id",
-    "stage_name": "package",
-    "is_representative_of_stage": "True"
-  },
-  {
-    "event_name": "project_auto_devops",
-    "source_table_name": "gitlab_dotcom_project_auto_devops",
-    "user_column_name": "NULL",
-    "key_to_parent_project": "project_id",
-    "primary_key": "project_auto_devops_id",
-    "stage_name": "configure",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "projects_container_registry_enabled",
-    "source_cte_name": "projects_container_registry_enabled_source",
-    "user_column_name": "creator_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "project_id",
-    "stage_name": "package",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "projects_prometheus_active",
-    "source_cte_name": "projects_prometheus_active_source",
-    "user_column_name": "creator_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "project_id",
-    "stage_name": "monitor",
-    "is_representative_of_stage": "True"
-  },
-  {
-    "event_name": "releases",
-    "source_table_name": "gitlab_dotcom_releases",
-    "user_column_name": "author_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "release_id",
-    "stage_name": "release",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "requirements",
-    "source_table_name": "gitlab_dotcom_requirements",
-    "user_column_name": "author_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "requirement_id",
-    "stage_name": "plan",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "sast",
-    "source_cte_name": "sast_jobs",
-    "user_column_name": "ci_build_user_id",
-    "key_to_parent_project": "ci_build_project_id",
-    "primary_key": "ci_build_id",
-    "stage_name": "secure",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "secret_detection",
-    "source_cte_name": "secret_detection_jobs",
-    "user_column_name": "ci_build_user_id",
-    "key_to_parent_project": "ci_build_project_id",
-    "primary_key": "ci_build_id",
-    "stage_name": "secure",
-    "is_representative_of_stage": "True"
-  },
-  {
-    "event_name": "secure_stage_ci_jobs",
-    "source_table_name": "gitlab_dotcom_secure_stage_ci_jobs",
-    "user_column_name": "ci_build_user_id",
-    "key_to_parent_project": "ci_build_project_id",
-    "primary_key": "ci_build_id",
-    "stage_name": "secure",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "services",
-    "source_cte_name": "services_source",
-    "user_column_name": "NULL",
-    "key_to_parent_project": "project_id",
-    "primary_key": "service_id",
-    "stage_name": "create",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "snippets",
-    "source_table_name": "gitlab_dotcom_snippets",
-    "user_column_name": "author_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "snippet_id",
-    "stage_name": "create",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "terraform_reports",
-    "source_cte_name": "terraform_reports_source",
-    "user_column_name": "NULL",
-    "key_to_parent_project": "project_id",
-    "primary_key": "ci_job_artifact_id",
-    "stage_name": "configure",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "todos",
-    "source_table_name": "gitlab_dotcom_todos",
-    "user_column_name": "author_id",
-    "key_to_parent_project": "project_id",
-    "primary_key": "todo_id",
-    "stage_name": "plan",
-    "is_representative_of_stage": "False"
-  },
-  {
-    "event_name": "users",
-    "source_table_name": "gitlab_dotcom_users",
-    "user_column_name": "user_id",
-    "primary_key": "user_id",
-    "stage_name": "manage",
-    "is_representative_of_stage": "True"
-  },
-]
--%}
-
-
-{{ simple_cte([
-    ('gitlab_subscriptions', 'gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base'),
-    ('namespaces', 'gitlab_dotcom_namespaces_xf'),
-    ('plans', 'gitlab_dotcom_plans'),
-    ('projects', 'gitlab_dotcom_projects_xf'),
-    ('blocked_users', 'gitlab_dotcom_users_blocked_xf'),
-    ('user_details','gitlab_dotcom_users')
-]) }}
+    {
+        "event_name": "action_monthly_active_users_project_repo",
+        "source_cte_name": "action_monthly_active_users_project_repo_source",
+        "user_column_name": "author_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "event_id",
+        "stage_name": "create",
+        "is_representative_of_stage": "True",
+    },
+    {
+        "event_name": "action_monthly_active_users_design_management",
+        "source_cte_name": "action_monthly_active_users_design_management_source",
+        "user_column_name": "author_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "event_id",
+        "stage_name": "create",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "action_monthly_active_users_wiki_repo",
+        "source_cte_name": "action_monthly_active_users_wiki_repo_source",
+        "user_column_name": "author_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "event_id",
+        "stage_name": "create",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "api_fuzzing",
+        "source_cte_name": "api_fuzzing_jobs",
+        "user_column_name": "ci_build_user_id",
+        "key_to_parent_project": "ci_build_project_id",
+        "primary_key": "ci_build_id",
+        "stage_name": "secure",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "boards",
+        "source_table_name": "gitlab_dotcom_boards",
+        "user_column_name": "NULL",
+        "key_to_parent_project": "project_id",
+        "primary_key": "board_id",
+        "stage_name": "plan",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "successful_ci_pipelines",
+        "source_cte_name": "successful_ci_pipelines_source",
+        "user_column_name": "user_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "ci_pipeline_id",
+        "stage_name": "verify",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "clusters_applications_helm",
+        "source_table_name": "gitlab_dotcom_clusters_applications_helm_xf",
+        "user_column_name": "user_id",
+        "key_to_parent_project": "cluster_project_id",
+        "primary_key": "clusters_applications_helm_id",
+        "stage_name": "configure",
+        "is_representative_of_stage": "True",
+    },
+    {
+        "event_name": "container_scanning",
+        "source_cte_name": "container_scanning_jobs",
+        "user_column_name": "ci_build_user_id",
+        "key_to_parent_project": "ci_build_project_id",
+        "primary_key": "ci_build_id",
+        "stage_name": "protect",
+        "is_representative_of_stage": "True",
+    },
+    {
+        "event_name": "dast",
+        "source_cte_name": "dast_jobs",
+        "user_column_name": "ci_build_user_id",
+        "key_to_parent_project": "ci_build_project_id",
+        "primary_key": "ci_build_id",
+        "stage_name": "secure",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "dependency_scanning",
+        "source_cte_name": "dependency_scanning_jobs",
+        "user_column_name": "ci_build_user_id",
+        "key_to_parent_project": "ci_build_project_id",
+        "primary_key": "ci_build_id",
+        "stage_name": "secure",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "deployments",
+        "source_table_name": "gitlab_dotcom_deployments",
+        "user_column_name": "user_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "deployment_id",
+        "stage_name": "release",
+        "is_representative_of_stage": "True",
+    },
+    {
+        "event_name": "environments",
+        "source_table_name": "gitlab_dotcom_environments",
+        "user_column_name": "NULL",
+        "key_to_parent_project": "project_id",
+        "primary_key": "environment_id",
+        "stage_name": "release",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "epics",
+        "source_table_name": "gitlab_dotcom_epics",
+        "user_column_name": "author_id",
+        "key_to_parent_group": "group_id",
+        "primary_key": "epic_id",
+        "stage_name": "plan",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "labels",
+        "source_table_name": "gitlab_dotcom_labels",
+        "user_column_name": "NULL",
+        "key_to_parent_project": "project_id",
+        "primary_key": "label_id",
+        "stage_name": "plan",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "license_scanning",
+        "source_cte_name": "license_scanning_jobs",
+        "user_column_name": "ci_build_user_id",
+        "key_to_parent_project": "ci_build_project_id",
+        "primary_key": "ci_build_id",
+        "stage_name": "secure",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "merge_requests",
+        "source_table_name": "gitlab_dotcom_merge_requests",
+        "user_column_name": "author_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "merge_request_id",
+        "stage_name": "create",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "milestones",
+        "source_table_name": "gitlab_dotcom_milestones",
+        "user_column_name": "NULL",
+        "key_to_parent_project": "project_id",
+        "primary_key": "milestone_id",
+        "stage_name": "plan",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "packages",
+        "source_table_name": "gitlab_dotcom_packages_packages",
+        "user_column_name": "creator_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "packages_package_id",
+        "stage_name": "package",
+        "is_representative_of_stage": "True",
+    },
+    {
+        "event_name": "project_auto_devops",
+        "source_table_name": "gitlab_dotcom_project_auto_devops",
+        "user_column_name": "NULL",
+        "key_to_parent_project": "project_id",
+        "primary_key": "project_auto_devops_id",
+        "stage_name": "configure",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "projects_container_registry_enabled",
+        "source_cte_name": "projects_container_registry_enabled_source",
+        "user_column_name": "creator_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "project_id",
+        "stage_name": "package",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "projects_prometheus_active",
+        "source_cte_name": "projects_prometheus_active_source",
+        "user_column_name": "creator_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "project_id",
+        "stage_name": "monitor",
+        "is_representative_of_stage": "True",
+    },
+    {
+        "event_name": "releases",
+        "source_table_name": "gitlab_dotcom_releases",
+        "user_column_name": "author_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "release_id",
+        "stage_name": "release",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "requirements",
+        "source_table_name": "gitlab_dotcom_requirements",
+        "user_column_name": "author_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "requirement_id",
+        "stage_name": "plan",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "sast",
+        "source_cte_name": "sast_jobs",
+        "user_column_name": "ci_build_user_id",
+        "key_to_parent_project": "ci_build_project_id",
+        "primary_key": "ci_build_id",
+        "stage_name": "secure",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "secret_detection",
+        "source_cte_name": "secret_detection_jobs",
+        "user_column_name": "ci_build_user_id",
+        "key_to_parent_project": "ci_build_project_id",
+        "primary_key": "ci_build_id",
+        "stage_name": "secure",
+        "is_representative_of_stage": "True",
+    },
+    {
+        "event_name": "secure_stage_ci_jobs",
+        "source_table_name": "gitlab_dotcom_secure_stage_ci_jobs",
+        "user_column_name": "ci_build_user_id",
+        "key_to_parent_project": "ci_build_project_id",
+        "primary_key": "ci_build_id",
+        "stage_name": "secure",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "services",
+        "source_cte_name": "services_source",
+        "user_column_name": "NULL",
+        "key_to_parent_project": "project_id",
+        "primary_key": "service_id",
+        "stage_name": "create",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "snippets",
+        "source_table_name": "gitlab_dotcom_snippets",
+        "user_column_name": "author_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "snippet_id",
+        "stage_name": "create",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "terraform_reports",
+        "source_cte_name": "terraform_reports_source",
+        "user_column_name": "NULL",
+        "key_to_parent_project": "project_id",
+        "primary_key": "ci_job_artifact_id",
+        "stage_name": "configure",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "todos",
+        "source_table_name": "gitlab_dotcom_todos",
+        "user_column_name": "author_id",
+        "key_to_parent_project": "project_id",
+        "primary_key": "todo_id",
+        "stage_name": "plan",
+        "is_representative_of_stage": "False",
+    },
+    {
+        "event_name": "users",
+        "source_table_name": "gitlab_dotcom_users",
+        "user_column_name": "user_id",
+        "primary_key": "user_id",
+        "stage_name": "manage",
+        "is_representative_of_stage": "True",
+    },
+] -%}
 
 
 /* Source CTEs Start Here */
-, action_monthly_active_users_project_repo_source AS (
+{{
+    simple_cte(
+        [
+            (
+                "gitlab_subscriptions",
+                "gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base",
+            ),
+            ("namespaces", "gitlab_dotcom_namespaces_xf"),
+            ("plans", "gitlab_dotcom_plans"),
+            ("projects", "gitlab_dotcom_projects_xf"),
+            ("blocked_users", "gitlab_dotcom_users_blocked_xf"),
+            ("user_details", "gitlab_dotcom_users"),
+        ]
+    )
+}},
+action_monthly_active_users_project_repo_source as (
 
-    SELECT *
-    FROM  {{ ref('temp_gitlab_dotcom_events_filtered') }}
-    WHERE target_type IS NULL
-      AND event_action_type_id = 5
-), action_monthly_active_users_design_management_source AS (
+    select *
+    from {{ ref("temp_gitlab_dotcom_events_filtered") }}
+    where target_type is null and event_action_type_id = 5
+),
+action_monthly_active_users_design_management_source as (
 
-    SELECT *
-    FROM  {{ ref('temp_gitlab_dotcom_events_filtered') }}
-    WHERE target_type = 'DesignManagement::Design'
-      AND event_action_type_id IN (1, 2)
+    select *
+    from {{ ref("temp_gitlab_dotcom_events_filtered") }}
+    where target_type = 'DesignManagement::Design' and event_action_type_id in (1, 2)
 
-), action_monthly_active_users_wiki_repo_source AS (
+),
+action_monthly_active_users_wiki_repo_source as (
 
-    SELECT *
-    FROM  {{ ref('temp_gitlab_dotcom_events_filtered') }}
-    WHERE target_type = 'WikiPage::Meta'
-      AND event_action_type_id IN (1, 2)
+    select *
+    from {{ ref("temp_gitlab_dotcom_events_filtered") }}
+    where target_type = 'WikiPage::Meta' and event_action_type_id in (1, 2)
 
-), api_fuzzing_jobs AS (
+),
+api_fuzzing_jobs as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_secure_stage_ci_jobs') }}
-    WHERE secure_ci_job_type = 'api_fuzzing'
+    select *
+    from {{ ref("gitlab_dotcom_secure_stage_ci_jobs") }}
+    where secure_ci_job_type = 'api_fuzzing'
 
-), container_scanning_jobs AS (
+),
+container_scanning_jobs as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_secure_stage_ci_jobs') }}
-    WHERE secure_ci_job_type = 'container_scanning'
+    select *
+    from {{ ref("gitlab_dotcom_secure_stage_ci_jobs") }}
+    where secure_ci_job_type = 'container_scanning'
 
-), dast_jobs AS (
+),
+dast_jobs as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_secure_stage_ci_jobs') }}
-    WHERE secure_ci_job_type = 'dast'
+    select *
+    from {{ ref("gitlab_dotcom_secure_stage_ci_jobs") }}
+    where secure_ci_job_type = 'dast'
 
-), dependency_scanning_jobs AS (
+),
+dependency_scanning_jobs as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_secure_stage_ci_jobs') }}
-    WHERE secure_ci_job_type = 'dependency_scanning'
+    select *
+    from {{ ref("gitlab_dotcom_secure_stage_ci_jobs") }}
+    where secure_ci_job_type = 'dependency_scanning'
 
-), license_scanning_jobs AS (
+),
+license_scanning_jobs as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_secure_stage_ci_jobs') }}
-    WHERE secure_ci_job_type IN (
-                                  'license_scanning',
-                                  'license_management'
-                                )
+    select *
+    from {{ ref("gitlab_dotcom_secure_stage_ci_jobs") }}
+    where secure_ci_job_type in ('license_scanning', 'license_management')
 
-), projects_prometheus_active_source AS (
+),
+projects_prometheus_active_source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_projects_xf') }}
-    WHERE ARRAY_CONTAINS('PrometheusService'::VARIANT, active_service_types)
+    select *
+    from {{ ref("gitlab_dotcom_projects_xf") }}
+    where array_contains('PrometheusService'::variant, active_service_types)
 
-), projects_container_registry_enabled_source AS (
+),
+projects_container_registry_enabled_source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_projects_xf') }}
-    WHERE container_registry_enabled = True
+    select *
+    from {{ ref("gitlab_dotcom_projects_xf") }}
+    where container_registry_enabled = true
 
-), sast_jobs AS (
+),
+sast_jobs as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_secure_stage_ci_jobs') }}
-    WHERE secure_ci_job_type = 'sast'
+    select *
+    from {{ ref("gitlab_dotcom_secure_stage_ci_jobs") }}
+    where secure_ci_job_type = 'sast'
 
-), secret_detection_jobs AS (
+),
+secret_detection_jobs as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_secure_stage_ci_jobs') }}
-    WHERE secure_ci_job_type = 'secret_detection'
+    select *
+    from {{ ref("gitlab_dotcom_secure_stage_ci_jobs") }}
+    where secure_ci_job_type = 'secret_detection'
 
-), services_source AS (
+),
+services_source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_services') }}
-    WHERE service_type != 'GitlabIssueTrackerService'
+    select *
+    from {{ ref("gitlab_dotcom_services") }}
+    where service_type != 'GitlabIssueTrackerService'
 
-), successful_ci_pipelines_source AS (
+),
+successful_ci_pipelines_source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_ci_pipelines') }}
-    WHERE failure_reason IS NULL
+    select * from {{ ref("gitlab_dotcom_ci_pipelines") }} where failure_reason is null
 
-), terraform_reports_source AS (
+),
+terraform_reports_source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_ci_job_artifacts') }}
-    WHERE file_type = 18
+    select * from {{ ref("gitlab_dotcom_ci_job_artifacts") }} where file_type = 18
 
 )
 /* End of Source CTEs */
-
 {% for event_cte in event_ctes %}
 
-, {{ event_cte.event_name }} AS (
+,
+{{ event_cte.event_name }} as (
 
-    SELECT *,
-      MD5({{ event_cte.primary_key }} || '-' || '{{ event_cte.event_name }}')   AS event_primary_key
+    select
+        *,
+        md5(
+            {{ event_cte.primary_key }} || '-' || '{{ event_cte.event_name }}'
+        ) as event_primary_key
     /* Check for source_table_name, else use source_cte_name. */
     {% if event_cte.source_table_name is defined %}
-      FROM {{ ref(event_cte.source_table_name) }}
-    {% else %}
-      FROM {{ event_cte.source_cte_name }}
+    from {{ ref(event_cte.source_table_name) }}
+    {% else %} from {{ event_cte.source_cte_name }}
     {% endif %}
-    WHERE created_at IS NOT NULL
-      AND created_at >= DATEADD(MONTH, -25, CURRENT_DATE)
-      
-    {% if is_incremental() %}
+    where
+        created_at is not null and created_at >= dateadd(month, -25, current_date)
 
-      AND created_at >= (SELECT MAX(event_created_at) FROM {{this}} WHERE event_name = '{{ event_cte.event_name }}')
+        {% if is_incremental() %}
 
-    {% endif %}
+        and created_at >= (
+            select max(event_created_at)
+            from {{ this }}
+            where event_name = '{{ event_cte.event_name }}'
+        )
+
+        {% endif %}
 
 )
 
-{% endfor -%}
+{% endfor -%},
+data as (
 
-, data AS (
+    {% for event_cte in event_ctes %}
 
-{% for event_cte in event_ctes %}
-
-    SELECT
-      event_primary_key,
-      '{{ event_cte.event_name }}'                                                                        AS event_name,
-      ultimate_namespace.namespace_id,
-      ultimate_namespace.namespace_created_at,
-      IFF(blocked_users.user_id IS NOT NULL, TRUE, FALSE)                                                 AS is_blocked_namespace,
-      {% if 'NULL' in event_cte.user_column_name %}
-        NULL
-      {% else %}
-        {{ event_cte.event_name }}.{{ event_cte.user_column_name }}
-      {% endif %}                                                                                         AS user_id,
-      {% if event_cte.key_to_parent_project is defined %}
-        'project'                                                                                         AS parent_type,
-        projects.project_id                                                                               AS parent_id,
-        projects.project_created_at                                                                       AS parent_created_at,
-        projects.is_learn_gitlab                                                                          AS project_is_learn_gitlab,
-      {% elif event_cte.key_to_parent_group is defined %}
-        'group'                                                                                           AS parent_type,
-        namespaces.namespace_id                                                                           AS parent_id,
-        namespaces.namespace_created_at                                                                   AS parent_created_at,
-        NULL                                                                                              AS project_is_learn_gitlab,
-      {% else %}
-        NULL                                                                                              AS parent_type,
-        NULL                                                                                              AS parent_id,
-        NULL                                                                                              AS parent_created_at,
-        NULL                                                                                              AS project_is_learn_gitlab,
-      {% endif %}
-      ultimate_namespace.namespace_is_internal                                                            AS namespace_is_internal,
-      {{ event_cte.event_name }}.created_at                                                               AS event_created_at,
-      {{ event_cte.is_representative_of_stage }}::BOOLEAN                                                 AS is_representative_of_stage,
-      '{{ event_cte.stage_name }}'                                                                        AS stage_name,
-      CASE
-        WHEN gitlab_subscriptions.is_trial
-          THEN 'trial'
-        ELSE COALESCE(gitlab_subscriptions.plan_id, 34)::VARCHAR
-      END                                                                                                 AS plan_id_at_event_date,
-      CASE
-        WHEN gitlab_subscriptions.is_trial
-          THEN 'trial'
-        ELSE COALESCE(plans.plan_name, 'free')
-      END                                                                                                 AS plan_name_at_event_date,
-      COALESCE(plans.plan_is_paid, FALSE)                                                                 AS plan_was_paid_at_event_date
-    FROM {{ event_cte.event_name }}
-      /* Join with parent project. */
-      {% if event_cte.key_to_parent_project is defined %}
-      LEFT JOIN projects
-        ON {{ event_cte.event_name }}.{{ event_cte.key_to_parent_project }} = projects.project_id
-      /* Join with parent group. */
-      {% elif event_cte.key_to_parent_group is defined %}
-      LEFT JOIN namespaces
-        ON {{ event_cte.event_name }}.{{ event_cte.key_to_parent_group }} = namespaces.namespace_id
-      {% endif %}
-
-      -- Join on either the project's or the group's ultimate namespace.
-      LEFT JOIN namespaces AS ultimate_namespace
+    select
+        event_primary_key,
+        '{{ event_cte.event_name }}' as event_name,
+        ultimate_namespace.namespace_id,
+        ultimate_namespace.namespace_created_at,
+        iff(blocked_users.user_id is not null, true, false) as is_blocked_namespace,
+        {% if "NULL" in event_cte.user_column_name %} null
+        {% else %} {{ event_cte.event_name }}.{{ event_cte.user_column_name }}
+        {% endif %} as user_id,
         {% if event_cte.key_to_parent_project is defined %}
-        ON ultimate_namespace.namespace_id = projects.ultimate_parent_id
+        'project' as parent_type,
+        projects.project_id as parent_id,
+        projects.project_created_at as parent_created_at,
+        projects.is_learn_gitlab as project_is_learn_gitlab,
         {% elif event_cte.key_to_parent_group is defined %}
-        ON ultimate_namespace.namespace_id = namespaces.namespace_ultimate_parent_id
+        'group' as parent_type,
+        namespaces.namespace_id as parent_id,
+        namespaces.namespace_created_at as parent_created_at,
+        null as project_is_learn_gitlab,
         {% else %}
-        ON FALSE -- Don't join any rows.
+        null as parent_type,
+        null as parent_id,
+        null as parent_created_at,
+        null as project_is_learn_gitlab,
         {% endif %}
-
-      LEFT JOIN gitlab_subscriptions
-        ON ultimate_namespace.namespace_id = gitlab_subscriptions.namespace_id
-        AND {{ event_cte.event_name }}.created_at >= TO_DATE(gitlab_subscriptions.valid_from)
-        AND {{ event_cte.event_name }}.created_at < {{ coalesce_to_infinity("TO_DATE(gitlab_subscriptions.valid_to)") }}
-      LEFT JOIN plans
-        ON gitlab_subscriptions.plan_id = plans.plan_id
-      LEFT JOIN blocked_users
-        ON ultimate_namespace.creator_id = blocked_users.user_id
-    {% if 'NULL' not in event_cte.user_column_name %}
-      WHERE {{ filter_out_blocked_users(event_cte.event_name , event_cte.user_column_name) }}
+        ultimate_namespace.namespace_is_internal as namespace_is_internal,
+        {{ event_cte.event_name }}.created_at as event_created_at,
+        {{ event_cte.is_representative_of_stage }}::boolean
+        as is_representative_of_stage,
+        '{{ event_cte.stage_name }}' as stage_name,
+        case
+            when gitlab_subscriptions.is_trial
+            then 'trial'
+            else coalesce(gitlab_subscriptions.plan_id, 34)::varchar
+        end as plan_id_at_event_date,
+        case
+            when gitlab_subscriptions.is_trial
+            then 'trial'
+            else coalesce(plans.plan_name, 'free')
+        end as plan_name_at_event_date,
+        coalesce(plans.plan_is_paid, false) as plan_was_paid_at_event_date
+    from {{ event_cte.event_name }}
+    /* Join with parent project. */
+    {% if event_cte.key_to_parent_project is defined %}
+    left join
+        projects
+        on {{ event_cte.event_name }}.{{ event_cte.key_to_parent_project }}
+        = projects.project_id
+    /* Join with parent group. */
+    {% elif event_cte.key_to_parent_group is defined %}
+    left join
+        namespaces
+        on {{ event_cte.event_name }}.{{ event_cte.key_to_parent_group }}
+        = namespaces.namespace_id
     {% endif %}
 
+    -- Join on either the project's or the group's ultimate namespace.
+    left join
+        namespaces as ultimate_namespace
+        {% if event_cte.key_to_parent_project is defined %}
+        on ultimate_namespace.namespace_id = projects.ultimate_parent_id
+        {% elif event_cte.key_to_parent_group is defined %}
+        on ultimate_namespace.namespace_id = namespaces.namespace_ultimate_parent_id
+        {% else %} on false  -- Don't join any rows.
+        {% endif %}
+
+    left join
+        gitlab_subscriptions
+        on ultimate_namespace.namespace_id = gitlab_subscriptions.namespace_id
+        and {{ event_cte.event_name }}.created_at
+        >= to_date(gitlab_subscriptions.valid_from)
+        and {{ event_cte.event_name }}.created_at
+        < {{ coalesce_to_infinity("TO_DATE(gitlab_subscriptions.valid_to)") }}
+    left join plans on gitlab_subscriptions.plan_id = plans.plan_id
+    left join blocked_users on ultimate_namespace.creator_id = blocked_users.user_id
+    {% if "NULL" not in event_cte.user_column_name %}
+    where
+        {{ filter_out_blocked_users(event_cte.event_name, event_cte.user_column_name) }}
+    {% endif %}
 
     {% if not loop.last %}
-    UNION
+    union
     {% endif %}
     {% endfor -%}
 
-)
-
-, final AS (
-    SELECT
-      data.*,
-      user_details.created_at                             AS user_created_at,
-      FLOOR(
-      DATEDIFF('hour',
-              namespace_created_at,
-              event_created_at)/24)                       AS days_since_namespace_creation,
-      FLOOR(
-        DATEDIFF('hour',
-                namespace_created_at,
-                event_created_at)/(24 * 7))               AS weeks_since_namespace_creation,
-      FLOOR(
-        DATEDIFF('hour',
-                parent_created_at,
-                event_created_at)/24)                     AS days_since_parent_creation,
-      FLOOR(
-        DATEDIFF('hour',
-                parent_created_at,
-                event_created_at)/(24 * 7))               AS weeks_since_parent_creation,
-      FLOOR(
-        DATEDIFF('hour',
-                user_created_at,
-                event_created_at)/24)                     AS days_since_user_creation,
-      FLOOR(
-        DATEDIFF('hour',
-                user_created_at,
-                event_created_at)/(24 * 7))               AS weeks_since_user_creation
-    FROM data
-    LEFT JOIN user_details
-      ON data.user_id = user_details.user_id
-    WHERE event_created_at < CURRENT_DATE()
+),
+final as (
+    select
+        data.*,
+        user_details.created_at as user_created_at,
+        floor(
+            datediff('hour', namespace_created_at, event_created_at) / 24
+        ) as days_since_namespace_creation,
+        floor(
+            datediff('hour', namespace_created_at, event_created_at) / (24 * 7)
+        ) as weeks_since_namespace_creation,
+        floor(
+            datediff('hour', parent_created_at, event_created_at) / 24
+        ) as days_since_parent_creation,
+        floor(
+            datediff('hour', parent_created_at, event_created_at) / (24 * 7)
+        ) as weeks_since_parent_creation,
+        floor(
+            datediff('hour', user_created_at, event_created_at) / 24
+        ) as days_since_user_creation,
+        floor(
+            datediff('hour', user_created_at, event_created_at) / (24 * 7)
+        ) as weeks_since_user_creation
+    from data
+    left join user_details on data.user_id = user_details.user_id
+    where event_created_at < current_date()
 
 )
 
-SELECT *
-FROM final
+select *
+from final

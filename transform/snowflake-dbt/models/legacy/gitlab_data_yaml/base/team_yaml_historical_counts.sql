@@ -1,9 +1,6 @@
--- This file is loaded through dbt seed, your local runs will break unless you run dbt seed first.
+-- This file is loaded through dbt seed, your local runs will break unless you run dbt
+-- seed first.
+with source as (select * from {{ ref("historical_counts_maintainers_engineers") }})
 
-WITH source AS (
-
-    SELECT *
-    FROM {{ ref('historical_counts_maintainers_engineers') }}
-)
-
-SELECT * FROM source
+select *
+from source
