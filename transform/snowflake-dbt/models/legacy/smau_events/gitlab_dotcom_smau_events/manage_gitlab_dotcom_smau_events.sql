@@ -1,58 +1,49 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-{{ config({
-    "unique_key": "event_surrogate_key"
-    })
-}}
+{{ config({"unique_key": "event_surrogate_key"}) }}
 
-{%- set event_ctes = ["project_created",
-                      "user_created"
-                      ]
--%}
+{%- set event_ctes = ["project_created", "user_created"] -%}
 
-WITH project_created AS (
+with
+    project_created as (
 
-  SELECT
-    creator_id                    AS user_id,
-    TO_DATE(project_created_at)   AS event_date,
-    'project_created'             AS event_type,
-    {{ dbt_utils.surrogate_key(['event_date', 'event_type', 'project_id']) }}
-                                  AS event_surrogate_key
+        select
+            creator_id as user_id,
+            to_date(project_created_at) as event_date,
+            'project_created' as event_type,
+            {{ dbt_utils.surrogate_key(["event_date", "event_type", "project_id"]) }}
+            as event_surrogate_key
 
-  FROM {{ref('gitlab_dotcom_projects_xf')}}
-  WHERE project_created_at >= '2015-01-01'
+        from {{ ref("gitlab_dotcom_projects_xf") }}
+        where project_created_at >= '2015-01-01'
 
-)
+    ),
+    user_created as (
 
-, user_created AS (
+        select
+            user_id,
+            to_date(created_at) as event_date,
+            'user_created' as event_type,
+            {{ dbt_utils.surrogate_key(["event_date", "event_type", "user_id"]) }}
+            as event_surrogate_key
 
-  SELECT
-    user_id,
-    TO_DATE(created_at)   AS event_date,
-    'user_created'             AS event_type,
-    {{ dbt_utils.surrogate_key(['event_date', 'event_type', 'user_id']) }}
-                               AS event_surrogate_key
+        from {{ ref("gitlab_dotcom_users_xf") }}
+        where created_at >= '2015-01-01'
 
-  FROM {{ref('gitlab_dotcom_users_xf')}}
-  WHERE created_at >= '2015-01-01'
+    ),
+    unioned as (
+        {% for event_cte in event_ctes %}
 
-)
+        select *
+        from {{ event_cte }}
 
-, unioned AS (
-  {% for event_cte in event_ctes %}
+        {%- if not loop.last %}
+        union
+        {%- endif %}
 
-    SELECT *
-    FROM {{ event_cte }} 
+        {% endfor -%}
 
-    {%- if not loop.last %}
-      UNION
-    {%- endif %}
+    )
 
-  {% endfor -%}
-
-)
-
-SELECT *
-FROM unioned
+select *
+from unioned

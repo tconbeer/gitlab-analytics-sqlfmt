@@ -1,28 +1,25 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "openings") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'openings') }}
+        select
+            -- keys
+            id::number as job_opening_id,
+            job_id::number as job_id,
+            opening_id::varchar as opening_id,
+            hired_application_id::number as hired_application_id,
 
-), renamed as (
+            -- info
+            opened_at::timestamp as job_opened_at,
+            closed_at::timestamp as job_closed_at,
+            close_reason::varchar as close_reason,
+            created_at::timestamp as job_opening_created_at,
+            updated_at::timestamp as job_opening_updated_at,
+            target_start_date::date as target_start_date
 
-	SELECT
-            --keys
-            id::NUMBER                      AS job_opening_id,
-            job_id::NUMBER                  AS job_id,
-            opening_id::varchar             AS opening_id,
-            hired_application_id::NUMBER    AS hired_application_id,
+        from source
 
-            --info
-            opened_at::timestamp            AS job_opened_at,
-            closed_at::timestamp            AS job_closed_at,
-            close_reason::varchar           AS close_reason,
-            created_at::timestamp           AS job_opening_created_at,
-            updated_at::timestamp           AS job_opening_updated_at,
-            target_start_date::date         AS target_start_date
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

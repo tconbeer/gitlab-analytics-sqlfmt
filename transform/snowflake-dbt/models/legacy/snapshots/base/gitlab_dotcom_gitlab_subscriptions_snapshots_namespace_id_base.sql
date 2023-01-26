@@ -1,39 +1,46 @@
-{{ config({
-    "alias": "gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id"
-    })
-}}
+{{ config({"alias": "gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id"}) }}
 
 
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ source('snapshots', 'gitlab_dotcom_gitlab_subscriptions_namespace_id_snapshots') }}
-  WHERE id != 572635 -- This ID has NULL values for many of the important columns.
+        select *
+        from
+            {{
+                source(
+                    "snapshots",
+                    "gitlab_dotcom_gitlab_subscriptions_namespace_id_snapshots",
+                )
+            }}
+        where
+            id
+            != 572635  -- This ID has NULL values for many of the important columns.
 
-), renamed AS (
+    ),
+    renamed as (
 
-  SELECT
-    dbt_scd_id::VARCHAR                           AS gitlab_subscription_snapshot_id,
-    id::NUMBER                                    AS gitlab_subscription_id,
-    start_date::DATE                              AS gitlab_subscription_start_date,
-    end_date::DATE                                AS gitlab_subscription_end_date,
-    trial_ends_on::DATE                           AS gitlab_subscription_trial_ends_on,
-    namespace_id::NUMBER                          AS namespace_id,
-    hosted_plan_id::NUMBER                        AS plan_id,
-    max_seats_used::NUMBER                        AS max_seats_used,
-    seats::NUMBER                                 AS seats,
-    trial::BOOLEAN                                AS is_trial,
-    created_at::TIMESTAMP                         AS gitlab_subscription_created_at,
-    updated_at::TIMESTAMP                         AS gitlab_subscription_updated_at,
-    seats_in_use::NUMBER                          AS seats_in_use,
-    seats_owed::NUMBER                            AS seats_owed,
-    trial_extension_type::NUMBER                  AS trial_extension_type,
-    "DBT_VALID_FROM"::TIMESTAMP                   AS valid_from,
-    "DBT_VALID_TO"::TIMESTAMP                     AS valid_to
-  
-  FROM source
-    
-)
+        select
+            dbt_scd_id::varchar as gitlab_subscription_snapshot_id,
+            id::number as gitlab_subscription_id,
+            start_date::date as gitlab_subscription_start_date,
+            end_date::date as gitlab_subscription_end_date,
+            trial_ends_on::date as gitlab_subscription_trial_ends_on,
+            namespace_id::number as namespace_id,
+            hosted_plan_id::number as plan_id,
+            max_seats_used::number as max_seats_used,
+            seats::number as seats,
+            trial::boolean as is_trial,
+            created_at::timestamp as gitlab_subscription_created_at,
+            updated_at::timestamp as gitlab_subscription_updated_at,
+            seats_in_use::number as seats_in_use,
+            seats_owed::number as seats_owed,
+            trial_extension_type::number as trial_extension_type,
+            "DBT_VALID_FROM"::timestamp as valid_from,
+            "DBT_VALID_TO"::timestamp as valid_to
 
-SELECT *
-FROM renamed
+        from source
+
+    )
+
+select *
+from renamed

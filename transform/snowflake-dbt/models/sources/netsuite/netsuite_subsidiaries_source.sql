@@ -1,28 +1,25 @@
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "subsidiaries") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'subsidiaries') }}
+        select
+            -- Primary Key
+            subsidiary_id::float as subsidiary_id,
 
-), renamed AS (
+            -- Info
+            full_name::varchar as subsidiary_full_name,
+            name::varchar as subsidiary_name,
+            base_currency_id::float as base_currency_id,
+            fiscal_calendar_id::float as fiscal_calendar_id,
+            parent_id::float as parent_id,
 
-    SELECT
-      --Primary Key
-      subsidiary_id::FLOAT               AS subsidiary_id,
+            -- Meta
+            isinactive::boolean as is_subsidiary_inactive,
+            is_elimination::boolean as is_elimination_subsidiary
 
-      --Info
-      full_name::VARCHAR                 AS subsidiary_full_name,
-      name::VARCHAR                      AS subsidiary_name,
-      base_currency_id::FLOAT            AS base_currency_id,
-      fiscal_calendar_id::FLOAT          AS fiscal_calendar_id,
-      parent_id::FLOAT                   AS parent_id,
+        from source
 
-      --Meta
-      isinactive::BOOLEAN                AS is_subsidiary_inactive,
-      is_elimination::BOOLEAN            AS is_elimination_subsidiary
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

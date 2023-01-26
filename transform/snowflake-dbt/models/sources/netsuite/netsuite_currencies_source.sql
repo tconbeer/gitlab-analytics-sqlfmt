@@ -1,27 +1,23 @@
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "currencies") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'currencies') }}
+        select
+            -- Primary Key
+            currency_id::float as currency_id,
 
-), renamed AS (
+            -- Info
+            name::varchar as currency_name,
+            precision_0::float as decimal_precision,
+            symbol::varchar as currency_symbol,
 
-    SELECT
-      --Primary Key
-      currency_id::FLOAT             AS currency_id,
+            -- Meta
+            is_inactive::boolean as is_currency_inactive,
+            _fivetran_deleted::boolean as is_fivetran_deleted
 
-      --Info
-      name::VARCHAR                  AS currency_name,
-      precision_0::FLOAT             AS decimal_precision,
-      symbol::VARCHAR                AS currency_symbol,
+        from source
 
-      --Meta
-      is_inactive::BOOLEAN           AS is_currency_inactive,
-      _fivetran_deleted::BOOLEAN     AS is_fivetran_deleted
+    )
 
-
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,30 +1,26 @@
-WITH zuora_subscriptions_new AS (
+with
+    zuora_subscriptions_new as (select * from {{ ref("zuora_subscriptions_new") }}),
+    zuora_subscriptions_updated as (
 
-    SELECT *
-    FROM {{ ref('zuora_subscriptions_new') }}
+        select * from {{ ref("zuora_subscriptions_updated") }}
 
-), zuora_subscriptions_updated AS (
+    ),
+    dim_date as (select * from {{ ref("dim_date") }}),
+    final as (
 
-    SELECT *
-    FROM {{ ref('zuora_subscriptions_updated') }}
+        select
+            dates.date_day as date_day,
+            new_records.rowcount as new_records,
+            updated_records.rowcount as updated_records
+        from dim_date dates
+        left join
+            zuora_subscriptions_new new_records on new_records.date_day = dates.date_day
+        left join
+            zuora_subscriptions_updated updated_records
+            on updated_records.date_day = dates.date_day
+        where (new_records.rowcount > 0 or updated_records.rowcount > 0)
 
-), dim_date AS (
+    )
 
-    SELECT *
-    FROM {{ ref('dim_date') }}
-
-), final AS (
-
-    SELECT
-      dates.date_day            AS date_day,
-      new_records.rowcount      AS new_records,
-      updated_records.rowcount  AS updated_records
-    FROM dim_date dates
-    LEFT JOIN zuora_subscriptions_new new_records ON new_records.date_day = dates.date_day
-    LEFT JOIN zuora_subscriptions_updated updated_records ON updated_records.date_day = dates.date_day
-    WHERE (new_records.rowcount > 0 OR updated_records.rowcount > 0)
-
-)
-
-SELECT *
-FROM final
+select *
+from final

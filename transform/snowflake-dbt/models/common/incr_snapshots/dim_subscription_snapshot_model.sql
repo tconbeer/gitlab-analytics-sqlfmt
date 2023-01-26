@@ -1,47 +1,54 @@
-{{ config({
-        "materialized": "incremental",
-        "unique_key": "dim_subscription_snapshot_id",
-        "tags": ["edm_snapshot", "subscription_snapshot"]
-    })
+{{
+    config(
+        {
+            "materialized": "incremental",
+            "unique_key": "dim_subscription_snapshot_id",
+            "tags": ["edm_snapshot", "subscription_snapshot"],
+        }
+    )
 }}
 
 
-WITH snapshot_dates AS (
+with
+    snapshot_dates as (
 
-   SELECT *
-   FROM {{ ref('dim_date') }}
-   WHERE date_actual >= '2020-03-01' and date_actual <= CURRENT_DATE
-   {% if is_incremental() %}
+        select *
+        from {{ ref("dim_date") }}
+        where
+            date_actual >= '2020-03-01' and date_actual <= current_date
+            {% if is_incremental() %}
 
-   -- this filter will only be applied on an incremental run
-   AND date_id > (SELECT max(snapshot_id) FROM {{ this }})
+            -- this filter will only be applied on an incremental run
+            and date_id > (select max(snapshot_id) from {{ this }})
 
-   {% endif %}
+            {% endif %}
 
-), dim_subscription AS (
+    ),
+    dim_subscription as (
 
-    SELECT
-      *
-    FROM {{ ref('prep_dim_subscription_snapshot_base') }}
+        select * from {{ ref("prep_dim_subscription_snapshot_base") }}
 
-),  dim_subscription_spined AS (
+    ),
+    dim_subscription_spined as (
 
-    SELECT
-      snapshot_dates.date_id AS snapshot_id,
-      dim_subscription.*
-    FROM dim_subscription
-    INNER JOIN snapshot_dates
-      ON snapshot_dates.date_actual >= dim_subscription.dbt_valid_from
-      AND snapshot_dates.date_actual < {{ coalesce_to_infinity('dim_subscription.dbt_valid_to') }}
+        select snapshot_dates.date_id as snapshot_id, dim_subscription.*
+        from dim_subscription
+        inner join
+            snapshot_dates
+            on snapshot_dates.date_actual >= dim_subscription.dbt_valid_from
+            and snapshot_dates.date_actual
+            < {{ coalesce_to_infinity("dim_subscription.dbt_valid_to") }}
 
-), final AS (
+    ),
+    final as (
 
-    SELECT
-      {{ dbt_utils.surrogate_key(['snapshot_id', 'dim_subscription_id']) }} AS dim_subscription_snapshot_id,
-       *
-    FROM dim_subscription_spined
+        select
+            {{ dbt_utils.surrogate_key(["snapshot_id", "dim_subscription_id"]) }}
+            as dim_subscription_snapshot_id,
+            *
+        from dim_subscription_spined
 
-)
+    )
 
-SELECT * 
-FROM final
+select *
+from final

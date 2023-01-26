@@ -4,86 +4,83 @@
 -- dtcv
 -- tcv
 -- uom
+with
+    source as (select * from {{ source("zuora_api_sandbox", "rate_plan_charge") }}),
+    renamed as (
 
+        select
+            id as rate_plan_charge_id,
+            name as rate_plan_charge_name,
+            -- keys
+            originalid as original_id,
+            rateplanid as rate_plan_id,
+            productrateplanchargeid as product_rate_plan_charge_id,
+            productrateplanid as product_rate_plan_id,
+            productid as product_id,
 
-WITH source AS (
+            -- recognition
+            revenuerecognitionrulename as revenue_recognition_rule_name,
+            revreccode as revenue_recognition_code,
+            revrectriggercondition as revenue_recognition_trigger_condition,
 
-    SELECT *
-    FROM {{ source('zuora_api_sandbox', 'rate_plan_charge') }}
+            -- info
+            effectivestartdate as effective_start_date,
+            effectiveenddate as effective_end_date,
+            date_trunc('month', effectivestartdate)::date as effective_start_month,
+            date_trunc('month', effectiveenddate)::date as effective_end_month,
+            enddatecondition as end_date_condition,
 
-), renamed AS(
+            mrr,
+            quantity as quantity,
+            tcv,
+            uom as unit_of_measure,
 
-    SELECT
-      id                                                    AS rate_plan_charge_id,
-      name                                                  AS rate_plan_charge_name,
-      --keys
-      originalid                                            AS original_id,
-      rateplanid                                            AS rate_plan_id,
-      productrateplanchargeid                               AS product_rate_plan_charge_id,
-      productrateplanid                                     AS product_rate_plan_id,
-      productid                                             AS product_id,
+            accountid as account_id,
+            accountingcode as accounting_code,
+            applydiscountto as apply_discount_to,
+            billcycleday as bill_cycle_day,
+            billcycletype as bill_cycle_type,
+            billingperiod as billing_period,
+            billingperiodalignment as billing_period_alignment,
+            chargedthroughdate as charged_through_date,
+            chargemodel as charge_model,
+            chargenumber as rate_plan_charge_number,
+            chargetype as charge_type,
+            description as description,
+            discountlevel as discount_level,
+            dmrc
+            as delta_mrc,  -- delta monthly recurring charge
+            dtcv
+            as delta_tcv,  -- delta total contract value
 
-      --recognition
-      revenuerecognitionrulename                            AS revenue_recognition_rule_name,
-      revreccode                                            AS revenue_recognition_code,
-      revrectriggercondition                                AS revenue_recognition_trigger_condition,
+            islastsegment as is_last_segment,
+            listpricebase as list_price_base,
+            -- numberofperiods                                       AS
+            -- number_of_periods,
+            overagecalculationoption as overage_calculation_option,
+            overageunusedunitscreditoption as overage_unused_units_credit_option,
+            processedthroughdate as processed_through_date,
 
-      -- info
-      effectivestartdate                                    AS effective_start_date,
-      effectiveenddate                                      AS effective_end_date,
-      date_trunc('month', effectivestartdate)::DATE         AS effective_start_month,
-      date_trunc('month', effectiveenddate)::DATE           AS effective_end_month,
-      enddatecondition                                      AS end_date_condition,
+            segment as segment,
+            specificbillingperiod as specific_billing_period,
+            specificenddate as specific_end_date,
+            triggerdate as trigger_date,
+            triggerevent as trigger_event,
+            uptoperiods as up_to_period,
+            uptoperiodstype as up_to_periods_type,
+            version as version,
 
-      mrr,
-      quantity                                              AS quantity,
-      tcv,
-      uom                                                   AS unit_of_measure,
+            -- ext1, ext2, ext3, ... ext13
+            -- metadata
+            createdbyid as created_by_id,
+            createddate as created_date,
+            updatedbyid as updated_by_id,
+            updateddate as updated_date,
+            deleted as is_deleted
 
-      accountid                                             AS account_id,
-      accountingcode                                        AS accounting_code,
-      applydiscountto                                       AS apply_discount_to,
-      billcycleday                                          AS bill_cycle_day,
-      billcycletype                                         AS bill_cycle_type,
-      billingperiod                                         AS billing_period,
-      billingperiodalignment                                AS billing_period_alignment,
-      chargedthroughdate                                    AS charged_through_date,
-      chargemodel                                           AS charge_model,
-      chargenumber                                          AS rate_plan_charge_number,
-      chargetype                                            AS charge_type,
-      description                                           AS description,
-      discountlevel                                         AS discount_level,
-      dmrc                                                  AS delta_mrc, -- delta monthly recurring charge
-      dtcv                                                  AS delta_tcv, -- delta total contract value
+        from source
 
-      islastsegment                                         AS is_last_segment,
-      listpricebase                                         AS list_price_base,
-      --numberofperiods                                       AS number_of_periods,
-      overagecalculationoption                              AS overage_calculation_option,
-      overageunusedunitscreditoption                        AS overage_unused_units_credit_option,
-      processedthroughdate                                  AS processed_through_date,
+    )
 
-      segment                                               AS segment,
-      specificbillingperiod                                 AS specific_billing_period,
-      specificenddate                                       AS specific_end_date,
-      triggerdate                                           AS trigger_date,
-      triggerevent                                          AS trigger_event,
-      uptoperiods                                           AS up_to_period,
-      uptoperiodstype                                       AS up_to_periods_type,
-      version                                               AS version,
-
-      --ext1, ext2, ext3, ... ext13
-
-      --metadata
-      createdbyid                                           AS created_by_id,
-      createddate                                           AS created_date,
-      updatedbyid                                           AS updated_by_id,
-      updateddate                                           AS updated_date,
-      deleted                                               AS is_deleted
-
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed
