@@ -5,8 +5,9 @@ with
 
         select *
         from {{ source("snapshots", "gitlab_dotcom_gitlab_subscriptions_snapshots") }}
-        -- This ID has NULL values for many of the important columns.
-        where id != 572635 and namespace_id is not null
+        where
+            id != 572635  -- This ID has NULL values for many of the important columns.
+            and namespace_id is not null
 
     ),
     renamed as (

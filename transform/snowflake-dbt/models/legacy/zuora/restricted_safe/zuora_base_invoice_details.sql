@@ -3,8 +3,12 @@ with
     zuora_subs as (select * from {{ ref("zuora_subscription") }}),
     zuora_rp as (select * from {{ ref("zuora_rate_plan") }}),
     zuora_rpc as (select * from {{ ref("zuora_rate_plan_charge") }}),
-    -- posted is important!
-    zuora_i as (select * from {{ ref("zuora_invoice") }} where status = 'Posted'),
+    zuora_i as (
+
+        -- posted is important!
+        select * from {{ ref("zuora_invoice") }} where status = 'Posted'
+
+    ),
     zuora_ii as (
 
         -- use current month

@@ -59,5 +59,7 @@ with
 
 select *
 from zuora_partitioned_filter
--- exclude circularly referenced subscriptions
-where subscription_id not in (select subscription_id from circular)
+where
+    subscription_id not in (  -- exclude circularly referenced subscriptions
+        select subscription_id from circular
+    )

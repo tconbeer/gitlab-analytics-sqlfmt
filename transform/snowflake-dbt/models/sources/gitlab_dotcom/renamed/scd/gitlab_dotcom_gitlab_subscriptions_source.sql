@@ -22,8 +22,10 @@ with
             valid_from  -- Column was added in distinct_source CTE
 
         from distinct_source
-        -- This ID has NULL values for many of the important columns. 
-        where gitlab_subscription_id != 572635 and namespace_id is not null
+        where
+            -- This ID has NULL values for many of the important columns. 
+            gitlab_subscription_id != 572635
+            and namespace_id is not null
 
     )
 

@@ -22,8 +22,8 @@ with
         where is_deleted = 'FALSE'
 
     ),
-    -- the number of attribution touches a given opp has in total
     date_details as (select * from {{ ref("date_details") }}),
+    -- the number of attribution touches a given opp has in total
     linear_attribution_base as (
         -- linear attribution IACV of an opp / all touches (count_touches) for each
         -- opp - weighted by the number of touches in the given bucket

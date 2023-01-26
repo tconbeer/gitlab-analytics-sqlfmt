@@ -456,8 +456,8 @@ with
     namespaces as (select * from {{ ref("gitlab_dotcom_namespaces_xf") }}),
     plans as (select * from {{ ref("gitlab_dotcom_plans") }}),
     projects as (select * from {{ ref("gitlab_dotcom_projects_xf") }}),
-    /* Source CTEs Start Here */
     users as (select * from {{ ref("gitlab_dotcom_users") }}),
+    /* Source CTEs Start Here */
     action_monthly_active_users_project_repo as (
 
         select *

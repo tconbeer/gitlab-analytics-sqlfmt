@@ -32,5 +32,7 @@ with
 
 select *
 from renamed
--- https://gitlab.com/gitlab-data/analytics/merge_requests/1423
-where note_id not in (203215238)
+where
+    note_id not in (
+        203215238  -- https://gitlab.com/gitlab-data/analytics/merge_requests/1423
+    )

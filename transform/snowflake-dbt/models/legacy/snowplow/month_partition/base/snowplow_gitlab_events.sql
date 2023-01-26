@@ -198,8 +198,10 @@ with
 
                 or
 
-                -- ruby backend tracker
-                (v_tracker like 'rb%')
+                (
+                    -- ruby backend tracker
+                    v_tracker like 'rb%'
+                )
             )
             -- removing it after approval from @rparker2 in this issue:
             -- https://gitlab.com/gitlab-data/analytics/-/issues/9112

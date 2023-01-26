@@ -61,7 +61,6 @@
 ] -%}
 
 
-/* Source CTEs Start Here */
 {{
     simple_cte(
         [
@@ -77,6 +76,7 @@
         ]
     )
 }},
+/* Source CTEs Start Here */
 epic_notes_source as (select * from {{ ref("gitlab_dotcom_epic_notes_xf") }}),
 issue_notes_source as (
 

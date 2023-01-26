@@ -11,9 +11,9 @@ with
 
     ),
     date_details as (select * from {{ ref("wk_sales_date_details") }}),
+    sfdc_opportunity_xf as (select * from {{ ref("wk_sales_sfdc_opportunity_xf") }}),
     -- after every stage change, as it is a tracked field
     -- a record would be created in the field history table
-    sfdc_opportunity_xf as (select * from {{ ref("wk_sales_sfdc_opportunity_xf") }}),
     history_base as (
 
         select

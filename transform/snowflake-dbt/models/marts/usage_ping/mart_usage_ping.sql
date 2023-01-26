@@ -106,8 +106,7 @@ renamed as (
         -- product info
         license_md5,
         -- is_trial                AS ping_is_trial_license,
-        -- might rename it in the payload model
-        product_tier as ping_product_tier,
+        product_tier as ping_product_tier,  -- might rename it in the payload model
 
         -- location info
         dim_location_country_id,

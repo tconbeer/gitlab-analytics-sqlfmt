@@ -130,8 +130,11 @@ flattened_high_level as (
     from joined_payload
 
 ),
+metric_attributes as (
+
+    select * from dim_service_ping_metric
 -- WHERE time_frame != 'none'
-metric_attributes as (select * from dim_service_ping_metric),
+),
 final as (
 
     select

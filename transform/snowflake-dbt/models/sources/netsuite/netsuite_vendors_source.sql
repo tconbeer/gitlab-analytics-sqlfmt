@@ -26,5 +26,8 @@ with
     )
 
 select *
--- We no longer have first and last names for folks who are paid by contracts.
-from renamed
+from
+    renamed
+
+    -- We no longer have first and last names for folks who are paid by contracts.
+    

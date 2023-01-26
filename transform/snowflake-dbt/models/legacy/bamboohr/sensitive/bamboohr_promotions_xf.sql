@@ -234,9 +234,9 @@ with
             coalesce(ote_usd, 0) as ote_usd,
             coalesce(prior_ote_usd, 0) as prior_ote_usd,
             coalesce(ote_change, 0) as ote_change,
-            iff(  -- -incorrectly labeled 
+            iff(
                 compensation_update_id = 20263,
-                null,
+                null,  -- -incorrectly labeled 
                 coalesce(ote_change, 0) + change_in_comp_usd
             ) as total_change_in_comp,
             iff(

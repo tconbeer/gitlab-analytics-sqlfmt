@@ -31,9 +31,8 @@ with
         from mr_files
         inner join
             merge_requests
-            -- handbook project
             on mr_files.merge_request_iid = merge_requests.merge_request_iid
-            and merge_requests.project_id = 7764
+            and merge_requests.project_id = 7764  -- handbook project
         left join
             file_classifications
             on lower(mr_files.handbook_file_edited)

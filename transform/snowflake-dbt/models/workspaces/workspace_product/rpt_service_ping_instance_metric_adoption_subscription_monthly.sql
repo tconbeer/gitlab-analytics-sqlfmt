@@ -1,6 +1,5 @@
 {{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
--- Assign key to subscription info (possible subscriptions)
 {{
     simple_cte(
         [
@@ -17,14 +16,19 @@
         ]
     )
 }},
+-- Assign key to subscription info (possible subscriptions)
 subscription_info as (
 
     select *, 1 as key from rpt_service_ping_instance_subcription_opt_in_monthly
 
 -- Assign key to metric info (all metrics)
 ),
+metrics as (
+
+    select *, 1 as key from dim_service_ping_metric
+
 -- Join to get combo of all possible subscriptions and the metrics
-metrics as (select *, 1 as key from dim_service_ping_metric),
+),
 sub_combo as (
 
     select subscription_info.*, metrics_path as metrics_path

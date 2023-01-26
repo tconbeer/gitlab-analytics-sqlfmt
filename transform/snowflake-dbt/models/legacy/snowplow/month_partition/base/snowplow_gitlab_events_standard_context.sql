@@ -30,8 +30,10 @@ with
 
                 or
 
-                -- ruby backend tracker
-                (v_tracker like 'rb%')
+                (
+                    -- ruby backend tracker
+                    v_tracker like 'rb%'
+                )
             )
             and try_to_timestamp(derived_tstamp) is not null
     ),

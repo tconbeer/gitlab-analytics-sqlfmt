@@ -31,9 +31,8 @@ with
         from mr_files
         inner join
             merge_requests
-            -- marketing site project
             on mr_files.merge_request_iid = merge_requests.merge_request_iid
-            and merge_requests.project_id = 7764
+            and merge_requests.project_id = 7764  -- marketing site project
         left join
             file_classifications
             on lower(mr_files.marketing_site_file_edited)

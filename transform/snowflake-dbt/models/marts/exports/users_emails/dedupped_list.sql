@@ -51,12 +51,12 @@ with
             state,
             bucket
         from unioned_list
-        -- Given a combination of email and email, if there are multiple states, only
-        -- pick where active, if not inactive, if not it's only blocked
         qualify
             row_number() over (
                 partition by full_name, notification_email, plan_title order by state
             )
+            -- Given a combination of email and email, if there are multiple states,
+            -- only pick where active, if not inactive, if not it's only blocked
             = 1
 
     )

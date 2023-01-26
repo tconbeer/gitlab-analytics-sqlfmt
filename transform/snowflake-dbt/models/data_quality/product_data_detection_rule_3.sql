@@ -1,6 +1,5 @@
 {{ config(tags=["mnpi_exception"]) }}
 
--- Add a flag to dim_subscription which specify if the subscription is the last version
 {{
     simple_cte(
         [
@@ -12,6 +11,7 @@
         ]
     )
 }},
+-- Add a flag to dim_subscription which specify if the subscription is the last version
 dim_subscription as (
 
     select
@@ -83,9 +83,9 @@ subscription_renewal_mapping as (
     from dim_subscription
     where is_last_subscription_version
 
+),
 -- Get subscriptions versions that are the product of the amendments listed in the
 -- WHERE clause
-),
 amendments as (
     -- These amendments are the ones that should have a license attached to them
     -- In the qualify statement, we get only the latest version that is part of the
@@ -136,8 +136,8 @@ amendments as (
         )
         = 1
 
--- Pull the latest subscription version and append it to the ammendments found above.
 ),
+-- Pull the latest subscription version and append it to the ammendments found above.
 ammendments_and_last_version as (
     -- Reason for this is to look for the license id in the last amendment in case it
     -- is not in the past CTE
@@ -178,8 +178,8 @@ ammendments_and_last_version as (
         = subscription_amendments_issue_license_mapping.subscription_name
     where is_last_subscription_version
 
-),  -- Get subscription_id from self managed subscriptions
-self_managed_subscriptions as (
+),
+self_managed_subscriptions as (  -- Get subscription_id from self managed subscriptions
 
     select distinct fct_mrr.dim_subscription_id
     from fct_mrr
@@ -197,7 +197,8 @@ self_managed_subscriptions as (
         )
         = 'Self-Managed'
 
-),  -- Get subscriptions names that are currently paying ARR.
+),
+-- Get subscriptions names that are currently paying ARR.
 subscriptions_with_arr_in_current_month as (
     -- If the subscription is not paying ARR no reason to investigate it
     select subscription_name, sum(arr) as arr
@@ -205,7 +206,8 @@ subscriptions_with_arr_in_current_month as (
     where arr > 0 and arr_month = date_trunc('month', current_date)
     group by 1
 
-),  -- Filter the amendments / subscription_versions to be of self managed    
+),
+-- Filter the amendments / subscription_versions to be of self managed    
 self_managed_amendments as (
 
     select ammendments_and_last_version.*
@@ -215,8 +217,8 @@ self_managed_amendments as (
         on ammendments_and_last_version.dim_subscription_id
         = self_managed_subscriptions.dim_subscription_id
 
-),  -- Join subscriptions to licenses
-subscription_to_licenses as (
+),
+subscription_to_licenses as (  -- Join subscriptions to licenses
 
     select
         self_managed_amendments.*,
@@ -235,9 +237,9 @@ subscription_to_licenses as (
         self_managed_amendments.subscription_name,
         self_managed_amendments.subscription_version
 
+),
 -- If the latest subscription version or the amendment from the amendment list has a
 -- valid license
-),
 subscription_to_licenses_final as (
 
     select *

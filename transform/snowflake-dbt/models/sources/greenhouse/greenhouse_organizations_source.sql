@@ -2,9 +2,12 @@ with
     source as (select * from {{ source("greenhouse", "organizations") }}),
     renamed as (
 
-        -- key
-        -- info
-        select id::number as organization_id, name::varchar as organization_name
+        select
+            -- key
+            id::number as organization_id,
+
+            -- info
+            name::varchar as organization_name
 
         from source
 

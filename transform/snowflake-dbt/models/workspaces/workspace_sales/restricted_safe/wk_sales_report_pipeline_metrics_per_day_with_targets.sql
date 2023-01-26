@@ -17,9 +17,12 @@ with
         select * from {{ ref("wk_sales_mart_sales_funnel_target_daily") }}
 
     ),
-    -- keys used for aggregated historical analysis
+    agg_demo_keys as (
+        -- keys used for aggregated historical analysis
+        select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}
+
     -- make sure the aggregation works at the level we want it
-    agg_demo_keys as (select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}),
+    ),
     consolidated_metrics as (
 
         select

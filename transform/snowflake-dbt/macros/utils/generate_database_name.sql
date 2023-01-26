@@ -35,8 +35,9 @@
 
 {%- else -%}
 
+{%- if custom_database_name is none -%}
 {# Should probably never happen.. #}
-{%- if custom_database_name is none -%} {{ target.database | trim }}
+{{ target.database | trim }}
 
 {%- else -%} {{ target.database }}_{{ custom_database_name | trim }}
 

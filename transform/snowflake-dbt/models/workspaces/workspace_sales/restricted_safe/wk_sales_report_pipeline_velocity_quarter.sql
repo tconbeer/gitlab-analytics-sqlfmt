@@ -7,8 +7,11 @@ with
         where is_deleted = 0 and is_edu_oss = 0 and is_excluded_flag = 0
 
     ),
-    -- keys used for aggregated historical analysis
-    agg_demo_keys as (select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}),
+    agg_demo_keys as (
+        -- keys used for aggregated historical analysis
+        select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}
+
+    ),
     report_pipeline_velocity_quarter as (
 
         select

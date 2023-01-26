@@ -87,8 +87,8 @@ with
             {{ dbt_utils.group_by(n=20) }}
         order by 1, 3
 
-    ),  -- add annualized billing list price
-    final as (
+    ),
+    final as (  -- add annualized billing list price
 
         select
             joined.*,

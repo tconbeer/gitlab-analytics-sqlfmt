@@ -1,9 +1,8 @@
 {{ config({"materialized": "ephemeral"}) }}
 
 with
-    -- explodes the files in the list of diffs
     base as (select * from {{ ref("handbook_merge_requests_source") }}),
-    exploded_file_paths as (
+    exploded_file_paths as (  -- explodes the files in the list of diffs
 
         select
             file_diffs.value:file_path::varchar as marketing_site_file_edited,

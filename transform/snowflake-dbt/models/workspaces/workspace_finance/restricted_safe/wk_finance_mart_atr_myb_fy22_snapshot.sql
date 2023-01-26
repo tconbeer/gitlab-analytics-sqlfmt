@@ -76,8 +76,8 @@ with
         where sub_1.zuora_renewal_subscription_name != ''
         qualify rank = 1
 
-    ),  -- get the base data set of recurring charges.
-    base as (
+    ),
+    base as (  -- get the base data set of recurring charges.
 
         select
             fct_charge.charge_id,
@@ -174,9 +174,9 @@ with
             fct_charge.effective_start_month <= '2021-01-01'
             and fct_charge.effective_end_month > '2021-01-01'
 
+    ),
     -- get the starting and ending month ARR for charges with charge terms <= 12
     -- months. These charges do not need additional logic.
-    ),
     agg_charge_term_less_than_equal_12 as (
 
         select
@@ -202,9 +202,9 @@ with
         from base
         where charge_term <= 12 {{ dbt_utils.group_by(n=18) }}
 
+    ),
     -- get the starting and ending month ARR for charges with charge terms > 12
     -- months. These charges need additional logic.
-    ),
     agg_charge_term_greater_than_12 as (
 
         select
@@ -244,9 +244,9 @@ with
         from base
         where charge_term > 12 {{ dbt_utils.group_by(n=18) }}
 
+    ),
     -- create records for the intermitent renewals for multi-year charges that are not
     -- in the Zuora data. The start and end months are in the agg_myb for MYB.
-    ),
     twenty_four_mth_term as (
 
         select
@@ -276,9 +276,9 @@ with
             charge_term between 13 and 24
             and effective_end_month > '2022-01-01' {{ dbt_utils.group_by(n=18) }}
 
+    ),
     -- create records for the intermitent renewals for MYBs that are not in the Zuora
     -- data. The start and end months are in the agg_myb for MYBs.
-    ),
     thirty_six_mth_term as (
 
         select
@@ -336,9 +336,9 @@ with
             and effective_end_month > '2022-01-01' {{ dbt_utils.group_by(n=18) }}
         order by 1
 
+    ),
     -- create records for the intermitent renewals for MYBs that are not in the Zuora
     -- data. The start and end months are in the agg_myb for MYBs.
-    ),
     forty_eight_mth_term as (
 
         select
@@ -423,9 +423,9 @@ with
             and effective_end_month > '2022-01-01' {{ dbt_utils.group_by(n=18) }}
         order by 1
 
+    ),
     -- create records for the intermitent renewals for MYBs that are not in the Zuora
     -- data. The start and end months are in the agg_myb for MYBs.
-    ),
     sixty_mth_term as (
 
         select
@@ -537,8 +537,8 @@ with
             and effective_end_month > '2022-01-01' {{ dbt_utils.group_by(n=18) }}
         order by 1
 
-    ),  -- union all of the charges
-    combined as (
+    ),
+    combined as (  -- union all of the charges
 
         select *
         from agg_charge_term_less_than_equal_12
@@ -558,8 +558,8 @@ with
         select *
         from sixty_mth_term
 
-    ),  -- create the renewal report for the applicable fiscal year.
-    renewal_report as (
+    ),
+    renewal_report as (  -- create the renewal report for the applicable fiscal year.
 
         select
             dim_date.fiscal_year,

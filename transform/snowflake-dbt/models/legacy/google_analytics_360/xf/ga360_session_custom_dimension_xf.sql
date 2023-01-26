@@ -7,9 +7,12 @@ with
     ),
     named_dims as (
 
-        -- dimensions
-        -- index names
-        select session_custom_dims.*, ga_index_names.name as dimension_name
+        select
+            -- dimensions
+            session_custom_dims.*,
+
+            -- index names
+            ga_index_names.name as dimension_name
 
         from session_custom_dims
         left join

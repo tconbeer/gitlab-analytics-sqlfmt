@@ -6,9 +6,9 @@ with
         from {{ ref("current_arr_segmentation_all_levels") }}
         where level_ = 'sfdc_account_id'
 
+    ),
     -- get all the subscription + their lineage + the month we're looking for MRR for
     -- (12 month in the future)
-    ),
     list as (
 
         select
@@ -19,9 +19,9 @@ with
         from mrr_totals_levelled
         group by 1, 2, 3
 
+    ),
     -- find which of those subscriptions are real and group them by their sub you're
     -- comparing to.
-    ),
     retention_subs as (
 
         select
@@ -88,5 +88,8 @@ from joined
 left join
     current_arr_segmentation_all_levels
     on joined.sfdc_account_id = current_arr_segmentation_all_levels.id
---
-where retention_month <= dateadd(month, -1, current_date)
+where
+    retention_month <= dateadd(month, -1, current_date)
+
+    --
+    

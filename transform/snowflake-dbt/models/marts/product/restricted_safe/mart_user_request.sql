@@ -285,9 +285,9 @@ epic_labels as (
         end product_group_level
     from label_links_joined
 
+),
 -- There is a bug in the product where some scoped labels are used twice. This is a
 -- temporary fix for that for the group::* label
-),
 issue_group_label as (
 
     select dim_issue_id, group_label
@@ -305,8 +305,8 @@ issue_group_extended_label as (
         row_number() over (partition by dim_issue_id order by product_group_level desc)
         = 1
 
--- Since category: is not an scoped label, need to make sure I only pull one of them
 ),
+-- Since category: is not an scoped label, need to make sure I only pull one of them
 issue_category_dedup as (
 
     select dim_issue_id, category_label
@@ -315,9 +315,9 @@ issue_category_dedup as (
     qualify
         row_number() over (partition by dim_issue_id order by category_label desc) = 1
 
+),
 -- There is a bug in the product where some scoped labels are used twice. This is a
 -- temporary fix for that for the type::* label
-),
 issue_type_label as (
 
     select dim_issue_id, type_label
@@ -325,9 +325,9 @@ issue_type_label as (
     where type_label is not null
     qualify row_number() over (partition by dim_issue_id order by type_label) = 1
 
+),
 -- There is a bug in the product where some scoped labels are used twice. This is a
 -- temporary fix for that for the devops::* label
-),
 issue_devops_label as (
 
     select dim_issue_id, devops_label
@@ -335,7 +335,8 @@ issue_devops_label as (
     where devops_label is not null
     qualify row_number() over (partition by dim_issue_id order by devops_label) = 1
 
-),  -- Some issues for some reason had two valid workflow labels, this dedup them
+),
+-- Some issues for some reason had two valid workflow labels, this dedup them
 issue_status as (
 
     select
@@ -350,9 +351,9 @@ issue_status as (
     qualify
         row_number() over (partition by dim_issue_id order by workflow_label desc) = 1
 
+),
 -- There is a bug in the product where some scoped labels are used twice. This is a
 -- temporary fix for that for the group::* label
-),
 epic_group_label as (
 
     select dim_epic_id, group_label
@@ -370,8 +371,8 @@ epic_group_extended_label as (
         row_number() over (partition by dim_epic_id order by product_group_level desc)
         = 1
 
--- Since category: is not an scoped label, need to make sure I only pull one of them
 ),
+-- Since category: is not an scoped label, need to make sure I only pull one of them
 epic_category_dedup as (
 
     select dim_epic_id, category_label
@@ -380,9 +381,9 @@ epic_category_dedup as (
     qualify
         row_number() over (partition by dim_epic_id order by category_label desc) = 1
 
+),
 -- There is a bug in the product where some scoped labels are used twice. This is a
 -- temporary fix for that for the type::* label
-),
 epic_type_label as (
 
     select dim_epic_id, type_label
@@ -390,9 +391,9 @@ epic_type_label as (
     where type_label is not null
     qualify row_number() over (partition by dim_epic_id order by type_label) = 1
 
+),
 -- There is a bug in the product where some scoped labels are used twice. This is a
 -- temporary fix for that for the devops::* label
-),
 epic_devops_label as (
 
     select dim_epic_id, devops_label
@@ -400,8 +401,8 @@ epic_devops_label as (
     where devops_label is not null
     qualify row_number() over (partition by dim_epic_id order by devops_label) = 1
 
-),  -- Get issue milestone with the latest due dates for epics
-epic_last_milestone as (
+),
+epic_last_milestone as (  -- Get issue milestone with the latest due dates for epics
 
     select dim_epic_id, milestone_title, milestone_due_date
     from dim_issue

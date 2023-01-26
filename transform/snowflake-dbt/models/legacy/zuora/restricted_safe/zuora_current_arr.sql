@@ -15,7 +15,8 @@ with
         join
             rate_plan_charge
             on rate_plan_charge.rate_plan_id::varchar = rate_plan.rate_plan_id::varchar
-        where  -- DOUBLE CHECK THIS
+        where
+            -- DOUBLE CHECK THIS
             (subscription.subscription_status not in ('Draft', 'Expired'))
             and rate_plan_charge.effective_start_date <= current_date
             and (

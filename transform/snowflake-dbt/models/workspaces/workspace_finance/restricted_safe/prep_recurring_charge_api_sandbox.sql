@@ -44,9 +44,9 @@ with
 
         select * from {{ ref("sheetload_manual_arr_true_up_allocation_source") }}
 
+    ),
     -- added as a work around until there is an automated method for adding true-up
     -- adjustments to Zuora Revenue/Zuora Billing
-    ),
     manual_charges as (
 
         select

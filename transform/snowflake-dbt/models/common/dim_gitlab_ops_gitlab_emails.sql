@@ -10,8 +10,8 @@ with
             split_part(notification_email, '@', 0) as email_handle,
             {{ include_gitlab_email(column_name) }} as include_email_flg
         from gitlab_ops_users_xf
-        where  -- removes records with just one number  
-            length(email_handle) > 1
+        where
+            length(email_handle) > 1  -- removes records with just one number  
             and notification_email ilike '%gitlab.com'
             and include_email_flg = 'Include'
 

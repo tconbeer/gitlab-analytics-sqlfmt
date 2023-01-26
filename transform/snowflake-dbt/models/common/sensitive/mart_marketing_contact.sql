@@ -1,4 +1,3 @@
--- ------------------------ Start of PQL logic: --------------------------
 {{
     simple_cte(
         [
@@ -22,6 +21,7 @@
         ]
     )
 }},
+-- ------------------------ Start of PQL logic: --------------------------
 namespaces as (
 
     select
@@ -53,16 +53,18 @@ flattened_members as (
         members.invite_created_at,
         min(members.invite_accepted_at) as invite_accepted_at
     from gitlab_dotcom_members_source members
-    -- limit to just namespaces we care about
-    -- same as namespace_id for group namespaces
-    inner join namespaces on members.source_id = namespaces.dim_namespace_id
-    where  -- only looking at namespace invites
+    inner join
+        namespaces  -- limit to just namespaces we care about
+        -- same as namespace_id for group namespaces
+        on members.source_id = namespaces.dim_namespace_id
+    where
+        -- only looking at namespace invites
         lower(members.member_source_type) = 'namespace'
         -- invite created after namespace created
         and members.invite_created_at >= namespaces.namespace_created_at
+        and ifnull(members.invite_accepted_at, current_timestamp)
         -- invite accepted after invite created (removes weird edge cases with
         -- imported projects, etc)
-        and ifnull(members.invite_accepted_at, current_timestamp)
         >= members.invite_created_at
         {{ dbt_utils.group_by(3) }}
 
@@ -79,8 +81,6 @@ invite_status as (
         namespaces
         -- same as namespace_id for group namespaces
         on members.source_id = namespaces.dim_namespace_id
-        -- this blocks namespaces created within two minutes of the namespace creator
-        -- accepting their invite
         and (
             invite_accepted_at is null
             or (
@@ -88,8 +88,11 @@ invite_status as (
                 not in (0, 1, 2)
             )
         )
+        -- this blocks namespaces created within two minutes of the namespace creator
+        -- accepting their invite
         = true
-    left join  -- record added once invite is accepted/user has access
+    left join
+        -- record added once invite is accepted/user has access
         gitlab_dotcom_memberships memberships
         on members.user_id = memberships.user_id
         and members.source_id = memberships.membership_source_id
@@ -261,8 +264,8 @@ latest_pql as (
     qualify
         row_number() over (partition by email order by pql_event_created_at desc) = 1
 
--- ------------------------ End of PQL logic --------------------------
 ),
+-- ------------------------ End of PQL logic --------------------------
 services_by_marketing_contact_id as (
 
     select

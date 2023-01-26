@@ -64,8 +64,8 @@ with
             external::boolean as is_external_user,
             organization as organization,  -- noqa:L029
             auditor::boolean as auditor,
-            require_two_factor_authentication_from_group::boolean  -- noqa:L016
-            as does_require_two_factor_authentication_from_group,
+            require_two_factor_authentication_from_group::boolean
+            as does_require_two_factor_authentication_from_group,  -- noqa:L016
             two_factor_grace_period::number as two_factor_grace_period,
             last_activity_on::timestamp as last_activity_on,
             notified_of_own_activity::boolean as is_notified_of_own_activity,

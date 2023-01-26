@@ -143,12 +143,12 @@ with
             plan_title,
             state
         from unioned_data_set
-        -- If user combination plan is active in one of the systems and inactive in
-        -- another one, only consider where active
         qualify
             row_number() over (
                 partition by full_name, email, plan_title order by state asc
             )
+            -- If user combination plan is active in one of the systems and inactive
+            -- in another one, only consider where active
             = 1
 
     )

@@ -303,7 +303,6 @@
 ] -%}
 
 
-/* Source CTEs Start Here */
 {{
     simple_cte(
         [
@@ -319,6 +318,7 @@
         ]
     )
 }},
+/* Source CTEs Start Here */
 action_monthly_active_users_project_repo_source as (
 
     select *

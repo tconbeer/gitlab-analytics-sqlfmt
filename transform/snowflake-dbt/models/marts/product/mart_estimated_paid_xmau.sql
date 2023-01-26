@@ -173,10 +173,10 @@ instance_gmau as (
         = fct_usage_ping_payload.dim_usage_ping_id
     where
         (
-            -- if a specific paid_gmau metric has beeen creeated we don't need to
-            -- exclude SaaS
             (is_paid_gmau = true and usage_ping_delivery_type = 'Self-Managed')
             or (is_paid_gmau = true and is_gmau = false)
+        -- if a specific paid_gmau metric has beeen creeated we don't need to exclude
+        -- SaaS
         )
         and product_tier <> 'Core'
 

@@ -114,8 +114,9 @@ with
             eeoc
             on greenhouse_recruiting_xf.application_id = eeoc.application_id
             and lower(eeoc.eeoc_field_name) = base.eeoc_field_name
-        -- 1st date we started capturing eeoc data
-        where base.month_date >= '2018-09-01' and offer_status = 'accepted'
+        where
+            base.month_date >= '2018-09-01'  -- 1st date we started capturing eeoc data
+            and offer_status = 'accepted'
 
     ),
     final as (

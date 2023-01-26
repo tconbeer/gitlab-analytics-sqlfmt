@@ -70,7 +70,6 @@
 ] -%}
 
 
-/* Source CTEs Start Here */
 {{
     simple_cte(
         [
@@ -86,6 +85,7 @@
         ]
     )
 }},
+/* Source CTEs Start Here */
 incident_labeled_issues_source as (
 
     select *, issue_created_at as created_at

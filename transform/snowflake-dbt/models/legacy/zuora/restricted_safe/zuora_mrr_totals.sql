@@ -1,7 +1,6 @@
 with
-    -- calculate service_type
     base_mrr as (select * from {{ ref("zuora_base_mrr_amortized") }}),
-    service_type as (
+    service_type as (  -- calculate service_type
 
         select
             country,
@@ -26,9 +25,9 @@ with
             quantity
         from base_mrr
 
+    ),
     -- one row per sub slug for counting x product_category x mrr_month combo, with
     -- first of other values
-    ),
     uniqueified as (
 
         select
@@ -62,8 +61,8 @@ with
 
     )
 
-select  -- calculate new values
-    *,
+select
+    *,  -- calculate new values
     datediff(
         month, zuora_subscription_cohort_month, mrr_month
     ) as months_since_zuora_subscription_cohort_start,

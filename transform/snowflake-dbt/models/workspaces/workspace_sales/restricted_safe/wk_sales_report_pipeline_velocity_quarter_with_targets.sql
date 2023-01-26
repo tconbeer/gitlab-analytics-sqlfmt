@@ -20,8 +20,11 @@ with
         where date_actual = current_date
 
     ),
-    -- keys used for aggregated historical analysis
-    agg_demo_keys as (select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}),
+    agg_demo_keys as (
+        -- keys used for aggregated historical analysis
+        select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}
+
+    ),
     sfdc_opportunity_xf as (
 
         select *

@@ -34,12 +34,12 @@ with
             zuora_subscription.renewal_term,
             zuora_subscription.renewal_term_period_type,
             zuora_subscription.eoa_starter_bronze_offer_accepted,
-            -- All Self-Service / Web direct subscriptions are identified by these
-            -- created_by_ids
             iff(
                 zuora_subscription.created_by_id in (
                     '2c92a0107bde3653017bf00cd8a86d5a',
                     '2c92a0fd55822b4d015593ac264767f2'
+                -- All Self-Service / Web direct subscriptions are identified by these
+                -- created_by_ids
                 ),
                 'Self-Service',
                 'Sales-Assisted'

@@ -31,10 +31,10 @@ with
             first_day_of_fiscal_quarter as report_fiscal_quarter_date
         from date_details
 
+    ),
     -- using the daily perspective and the max, min and resolution dates from the
     -- quarterly view
     -- it is possible to reconstruct a daily changes perspective
-    ),
     daily_pipeline_changes as (
 
         select

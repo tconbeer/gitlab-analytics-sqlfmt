@@ -18,8 +18,12 @@ with
     projects as (select * from {{ ref("gitlab_dotcom_projects") }}),
     namespaces as (select * from {{ ref("gitlab_dotcom_namespaces_xf") }}),
     sfdc_accounts as (select * from {{ ref("sfdc_accounts_xf") }}),
+    sfdc_opportunities as (
+
+        select * from {{ ref("sfdc_opportunity_xf") }}
+
     /* Created 4 Separate CTEs to be unioned */
-    sfdc_opportunities as (select * from {{ ref("sfdc_opportunity_xf") }}),
+    ),
     sfdc_accounts_from_issue_notes as (
 
         select distinct

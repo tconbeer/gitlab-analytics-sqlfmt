@@ -1,7 +1,7 @@
 {{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
--- Determine monthly sub and user count
 {{ simple_cte([("mart_arr", "mart_arr")]) }},
+-- Determine monthly sub and user count
 subscription_info as (
 
     select

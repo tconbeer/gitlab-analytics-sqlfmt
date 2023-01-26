@@ -25,21 +25,23 @@ with recursive
         select
             iter.namespace_id,
             iter.parent_id,
-            array_insert(  -- Copy the lineage array of parent, inserting self at start
+            array_insert(
                 anchor.upstream_lineage, 0, iter.namespace_id
+            -- Copy the lineage array of parent, inserting self at start
             ) as upstream_lineage
         from recursive_namespaces as anchor  -- Parent namespace
-        -- Child namespace
-        inner join namespaces as iter on anchor.namespace_id = iter.parent_id
+        inner join
+            namespaces as iter  -- Child namespace
+            on anchor.namespace_id = iter.parent_id
 
     ),
     extracted as (
 
         select
             *,
-            get(  -- Last item is the ultimate parent.
+            get(
                 upstream_lineage, array_size(upstream_lineage) - 1
-            ) as ultimate_parent_id
+            ) as ultimate_parent_id  -- Last item is the ultimate parent.
         from recursive_namespaces
 
         union all

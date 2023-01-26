@@ -145,8 +145,8 @@ unioned as (
         rpt_sfdc_bizible_tp_person_lifecycle.bizible_ad_campaign_name,
         rpt_sfdc_bizible_tp_person_lifecycle.lead_source,
         rpt_sfdc_bizible_tp_person_lifecycle.campaign_type,
-        rpt_sfdc_bizible_tp_person_lifecycle.mql_datetime_least::date  -- 30
-        as mql_datetime_least,
+        rpt_sfdc_bizible_tp_person_lifecycle.mql_datetime_least::date
+        as mql_datetime_least,  -- 30
         rpt_sfdc_bizible_tp_person_lifecycle.true_inquiry_date,
         rpt_sfdc_bizible_tp_person_lifecycle.dim_crm_person_id as dim_crm_person_id,
         is_inquiry,

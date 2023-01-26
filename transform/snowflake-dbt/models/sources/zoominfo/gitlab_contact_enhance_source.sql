@@ -65,11 +65,10 @@ with
             "Ticker"::varchar as ticker,  -- noqa:L059
             "Revenue (in 000s)"::varchar as revenue,
             "Revenue Range"::varchar as revenue_range,
-            -- noqa:L026,L028,L016
             "Est. Marketing Department Budget (in 000s)"::varchar
-            as est_marketing_department_budget,
-            "Est. Finance Department Budget (in 000s)"::varchar  -- noqa:L026,L016
-            as est_finance_department_budget,
+            as est_marketing_department_budget,  -- noqa:L026,L028,L016
+            "Est. Finance Department Budget (in 000s)"::varchar
+            as est_finance_department_budget,  -- noqa:L026,L016
             -- noqa:L026
             "Est. IT Department Budget (in 000s)"::varchar as est_it_department_budget,
             -- noqa:L026

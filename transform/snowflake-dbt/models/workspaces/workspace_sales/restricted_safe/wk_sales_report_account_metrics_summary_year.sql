@@ -1,8 +1,13 @@
 {{ config(alias="report_account_metrics_summary_year") }}
 
 with
-    -- FROM  prod.workspace_sales.date_details
-    date_details as (select * from {{ ref("wk_sales_date_details") }}),
+    date_details as (
+
+        select *
+        -- FROM  prod.workspace_sales.date_details
+        from {{ ref("wk_sales_date_details") }}
+
+    ),
     sfdc_opportunity_xf as (
 
         select *
@@ -41,16 +46,37 @@ with
         from {{ source("zuora", "subscription") }} s
 
     ),
-    -- FROM prod.restricted_safe_common_mart_sales.mart_arr
-    mart_arr as (select * from {{ ref("mart_arr") }}),
-    -- FROM prod.restricted_safe_common.dim_crm_account
-    dim_crm_account as (select * from {{ ref("dim_crm_account") }}),
+    mart_arr as (
+
+        select *
+        -- FROM prod.restricted_safe_common_mart_sales.mart_arr
+        from {{ ref("mart_arr") }}
+
+    ),
+    dim_crm_account as (
+
+        select *
+        -- FROM prod.restricted_safe_common.dim_crm_account
+        from {{ ref("dim_crm_account") }}
+
+    ),
+    sfdc_accounts_xf as (
+
+        select * from prod.restricted_safe_legacy.sfdc_accounts_xf
     -- FROM {{ref('sfdc_accounts_xf')}} 
-    sfdc_accounts_xf as (select * from prod.restricted_safe_legacy.sfdc_accounts_xf),
+    ),
+    stitch_account as (
+
+        select * from raw.salesforce_stitch.account
     -- FROM {{ source('salesforce', 'account') }}
-    stitch_account as (select * from raw.salesforce_stitch.account),
-    -- FROM prod.workspace_sales.sfdc_users_xf
-    sfdc_users_xf as (select * from {{ ref("wk_sales_sfdc_users_xf") }}),
+    ),
+    sfdc_users_xf as (
+
+        select *
+        -- FROM prod.workspace_sales.sfdc_users_xf
+        from {{ ref("wk_sales_sfdc_users_xf") }}
+
+    ),
     report_dates as (
 
         select distinct

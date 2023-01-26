@@ -63,8 +63,8 @@ final as (
         case
             when content_type = 'Free Trial'
             then 'Free Trial'
-            -- team=digital  captures the paid ads for digital and not including field 
             when team = 'digital' and medium = 'sponsorship'
+            -- team=digital  captures the paid ads for digital and not including field 
             then 'Publishers/Sponsorships'
             when campaign_code like '%operationalefficiencies%'
             then 'Increase Operational Efficiencies'

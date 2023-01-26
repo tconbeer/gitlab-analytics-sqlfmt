@@ -1,7 +1,10 @@
 with
+    mapping as (
+
+        select * from {{ ref("bamboohr_id_employee_number_mapping") }}
     -- mapping on bamboohr_id_employee_number_mapping as this has accounted for all
     -- hired employees whereas bamboohr_directory_source has not
-    mapping as (select * from {{ ref("bamboohr_id_employee_number_mapping") }}),
+    ),
     bamboohr_directory as (
 
         select *

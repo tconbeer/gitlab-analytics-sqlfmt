@@ -53,7 +53,8 @@ with
                 snapshot_day_of_fiscal_quarter_normalised
             ) as min_snapshot_day_of_fiscal_quarter_normalised
         from sfdc_opportunity_snapshot_history_xf
-        where  -- closing in the same quarter of the snapshot
+        where
+            -- closing in the same quarter of the snapshot
             snapshot_fiscal_quarter_date = close_fiscal_quarter_date
             and stage_name not in (
                 '9-Unqualified',
@@ -80,7 +81,8 @@ with
                 snapshot_day_of_fiscal_quarter_normalised
             ) as min_snapshot_day_of_fiscal_quarter_normalised
         from sfdc_opportunity_snapshot_history_xf
-        where  -- closing in the same quarter of the snapshot
+        where
+            -- closing in the same quarter of the snapshot
             snapshot_fiscal_quarter_date = close_fiscal_quarter_date
             and stage_name not in (
                 '9-Unqualified',
@@ -146,7 +148,8 @@ with
             = starting_list.snapshot_fiscal_quarter_date
             and starting.snapshot_day_of_fiscal_quarter_normalised
             = starting_list.max_snapshot_day_of_fiscal_quarter_normalised
-        where  -- closing in the same quarter of the snapshot
+        where
+            -- closing in the same quarter of the snapshot
             starting.snapshot_fiscal_quarter_date = starting.close_fiscal_quarter_date
             -- exclude deals that were before day 5, unless they were at day 5
             and starting_list.max_snapshot_day_of_fiscal_quarter_normalised = 5

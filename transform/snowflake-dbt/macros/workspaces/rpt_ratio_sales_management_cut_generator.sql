@@ -40,9 +40,6 @@
     "Large MQLs & Trials",
 ] %}
 
--- For the rpt_models align the column names and how Missing values are encoded with
--- the null_or_missing macro.
--- Also, add the variable extra_where_clause to filter the base data
 {{
     simple_cte(
         [
@@ -61,6 +58,9 @@
         ]
     )
 }},
+-- For the rpt_models align the column names and how Missing values are encoded with
+-- the null_or_missing macro.
+-- Also, add the variable extra_where_clause to filter the base data
 crm_person as (
 
     select
@@ -199,9 +199,9 @@ factor_to_date as (
         - 1 and extract(year from current_date)
         + 1
 
+),
 -- Union all the data sources columns to create a base list that can be used to join
 -- all the metrics too
-),
 prep_base_list as (
 
     select
@@ -251,9 +251,9 @@ prep_base_list as (
     from sales_funnel_target
     where kpi_name in ('MQL', 'Trials')
 
+),
 -- To the above base list add support for subtotals and a total column that will be
 -- joined later
-),
 base_list as (
 
     select *
@@ -289,11 +289,11 @@ base_list as (
         {% endfor %}
     from prep_base_list
 
+),
 -- Calculate the metrics in each CTE. Uses Group by ROLLUP to also calculate subtotal
 -- and total columns
 -- The IFNULL in the select_column is used because the Subtotal and Total columns
 -- calculated by the rollup come back as NULL
-),
 new_logos_actual as (
 
     select

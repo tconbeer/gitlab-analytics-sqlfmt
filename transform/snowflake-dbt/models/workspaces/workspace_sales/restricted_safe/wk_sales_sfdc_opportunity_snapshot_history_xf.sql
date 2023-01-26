@@ -788,8 +788,8 @@ with
             -- If the opportunity exists, use the ratio from the opportunity sheetload
             -- I am faking that using the opportunity table directly
             case
-                when  -- only consider won deals
-                    sfdc_opportunity_xf.is_won = 1
+                when
+                    sfdc_opportunity_xf.is_won = 1  -- only consider won deals
                     -- contract resets have a special way of calculating net iacv
                     and sfdc_opportunity_xf.opportunity_category <> 'Contract Reset'
                     and coalesce(sfdc_opportunity_xf.raw_net_arr, 0) <> 0
@@ -819,14 +819,15 @@ with
             -- must rely on iacv
             -- Using opty ratio for open deals doesn't seem to work well
             case
-                when  -- OPEN DEAL
+                when
                     opp_snapshot.stage_name not in (
                         '8-Closed Lost', '9-Unqualified', 'Closed Won', '10-Duplicate'
-                    )
+                    )  -- OPEN DEAL
                 then
                     coalesce(opp_snapshot.incremental_acv, 0)
                     * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
-                when  -- CLOSED LOST DEAL and no Net IACV
+                when
+                    -- CLOSED LOST DEAL and no Net IACV
                     opp_snapshot.stage_name in ('8-Closed Lost')
                     and coalesce(opp_snapshot.net_incremental_acv, 0) = 0
                 then
@@ -852,9 +853,9 @@ with
                 -- All deals before cutoff and that were not updated to Net ARR
                 when opp_snapshot.snapshot_date < '2021-02-01'::date
                 then calculated_from_ratio_net_arr
-                -- After cutoff date, for all deals earlier than FY19 that are closed
-                -- and have no net arr
                 when
+                    -- After cutoff date, for all deals earlier than FY19 that are
+                    -- closed and have no net arr
                     opp_snapshot.snapshot_date >= '2021-02-01'::date
                     and opp_snapshot.close_date < '2018-02-01'::date
                     and opp_snapshot.is_open = 0
@@ -1102,17 +1103,19 @@ with
             = sfdc_opportunity_xf.opportunity_owner_user_segment
             and net_iacv_to_net_arr_ratio.order_type_stamped
             = sfdc_opportunity_xf.order_type_stamped
-        where  -- remove test account
+        where
+            -- remove test account
             opp_snapshot.raw_account_id not in ('0014M00001kGcORQA0')
             and (
                 sfdc_accounts_xf.ultimate_parent_account_id
                 not in ('0016100001YUkWVAA1')
-                or sfdc_accounts_xf.account_id is null  -- remove test account
-            )
+                or sfdc_accounts_xf.account_id is null
+            )  -- remove test account
             and opp_snapshot.is_deleted = 0
             -- NF 20210906 remove JiHu opties from the models
             and sfdc_accounts_xf.is_jihu_account = 0
 
+    ),
     -- in Q2 FY21 a few deals where created in the wrong stage, and as they were
     -- purely aspirational,
     -- they needed to be removed from stage 1, eventually by the end of the quarter
@@ -1120,7 +1123,6 @@ with
     -- The goal of this list is to use in the Created Pipeline flag, to exclude those
     -- deals that at
     -- day 90 had stages of less than 1, that should smooth the chart
-    ),
     vision_opps as (
 
         select

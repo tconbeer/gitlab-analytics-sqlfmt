@@ -86,9 +86,9 @@ with
             bizible.bizible_medium,
             bizible.bizible_form_url_raw,
             case
-                -- based on issue
-                -- https://gitlab.com/gitlab-com/marketing/marketing-strategy-performance/-/issues/246
                 when
+                    -- based on issue
+                    -- https://gitlab.com/gitlab-com/marketing/marketing-strategy-performance/-/issues/246
                     dim_parent_campaign_id = '7014M000001dowZQAQ'
                     or (
                         bizible_medium = 'sponsorship'
@@ -439,8 +439,9 @@ with
                         and bizible_ad_campaign_name ilike '%_Brand%'
                     )
                 then 'Brand'
-                when  -- added 2021-06-04 MSandP: 332
+                when
                     (
+                        -- added 2021-06-04 MSandP: 332
                         bizible_touchpoint_type = 'Web Form'
                         and (
                             bizible_landing_page like '%contact-us-ultimate%'
@@ -450,8 +451,9 @@ with
                         )
                     )
                 then 'Premium to Ultimate'
-                when  -- added 2021-06-04 MSandP: 346
+                when
                     (
+                        -- added 2021-06-04 MSandP: 346
                         bizible_touchpoint_type = 'Web Form'
                         and (
                             bizible_form_url_raw like '%webcast-gitops-multicloudapp%'
@@ -463,8 +465,9 @@ with
                     )
                     or (dim_parent_campaign_id like '%7014M000001dpmf%')
                 then 'GitOps GTM webcast'
-                when  -- added 2021-06-04 MSandP: 346
+                when
                     (
+                        -- added 2021-06-04 MSandP: 346
                         bizible_touchpoint_type = 'Web Form'
                         and (
                             bizible_form_url_raw like '%devopsgtm%'
@@ -477,8 +480,9 @@ with
                     or dim_campaign_id like '%7014M000001vbtw%'
                 then 'DevOps GTM'
 
-                when  -- added 2021-06-04 MSandP: 346
+                when
                     (
+                        -- added 2021-06-04 MSandP: 346
                         bizible_touchpoint_type = 'Web Form'
                         and (
                             (
@@ -505,8 +509,9 @@ with
                     or dim_parent_campaign_id like '%7014M000001vcDr%'
                     or dim_campaign_id like '%7014M000001vcDr%'
                 then 'Cloud Partner Campaign'
-                when  -- added 2021-06-04 MSandP: 346
+                when
                     (
+                        -- added 2021-06-04 MSandP: 346
                         bizible_touchpoint_type = 'Web Form'
                         and (
                             (
@@ -528,8 +533,9 @@ with
                 then 'GitLab 14 webcast'
                 when dim_campaign_id like '%7014M000001drcQ%'
                 then '20210512_ISSAWebcast'
-                when  -- added 2021-08-30 MSandP: 325
+                when
                     (
+                        -- added 2021-08-30 MSandP: 325
                         bizible_touchpoint_type = 'Web Form'
                         and (
                             (
@@ -547,8 +553,9 @@ with
                         )
                     )
                 then 'PubSec Nurture'
-                when  -- added 2021-11-22 MSandP: 585
+                when
                     (
+                        -- added 2021-11-22 MSandP: 585
                         bizible_touchpoint_type = 'Web Form'
                         and (
                             (
@@ -566,8 +573,9 @@ with
                         )
                     )
                 then 'FY22 GitHub Competitive Campaign'
-                when  -- added 2021-11-22 MSandP: 570
+                when
                     (
+                        -- added 2021-11-22 MSandP: 570
                         bizible_touchpoint_type = 'Web Form'
                         and (
                             (
@@ -579,9 +587,9 @@ with
                     )
                     or dim_campaign_id like '%7014M000001dqb2%'
                 then 'DOI Webcast'
-                when  -- MSandP 657
+                when
                     (
-                        bizible_touchpoint_type = 'Web Form'
+                        bizible_touchpoint_type = 'Web Form'  -- MSandP 657
                         and (
                             bizible_form_url_raw like '%utm_campaign=cdusecase%'
                             or bizible_landing_page_raw like '%utm_campaign=cdusecase%'
@@ -605,8 +613,9 @@ with
                         '20210512_ISSAWebcast'
                     )
                 then 'CI/CD'
-                when  -- override for TechDemo Series
+                when
                     dim_parent_campaign_id = '7014M000001vm9KQAQ'
+                    -- override for TechDemo Series
                     and campaign.gtm_motion = 'CI (CI/CD)'
                 then 'CI/CD'
                 when
@@ -622,26 +631,28 @@ with
                         'FY22 GitHub Competitive Campaign'
                     )
                 then 'DevOps'
-                when  -- override for TechDemo Series
+                when
                     dim_parent_campaign_id = '7014M000001vm9KQAQ'
+                    -- override for TechDemo Series
                     and campaign.gtm_motion = 'DevOps Platform'
                 then 'DevOps'
                 when
                     bizible_integrated_campaign_grouping
                     in ('GitOps Use Case', 'GitOps GTM webcast')
                 then 'GitOps'
-                when  -- override for TechDemo Series
+                when
                     dim_parent_campaign_id = '7014M000001vm9KQAQ'
-                    and campaign.gtm_motion = 'GITOPS'
+                    and campaign.gtm_motion = 'GITOPS'  -- override for TechDemo Series
                 then 'GitOps'
                 else null
             end as gtm_motion,
-            iff(  -- override for TechDemo Series
+            iff(
                 bizible_integrated_campaign_grouping <> 'None'
                 or dim_parent_campaign_id = '7014M000001vm9KQAQ',
                 'Demand Gen',
                 'Other'
-            ) as touchpoint_segment,
+            )  -- override for TechDemo Series
+            as touchpoint_segment,
             case
                 -- Specific touchpoint overrides
                 when touchpoint_id ilike 'a6061000000CeS0%'
@@ -685,8 +696,9 @@ with
                     bizible_marketing_channel_path
                     in ('Marketing Site.Web Referral', 'Web Referral')
                 then 'Web Referral'
-                when  -- Added to Web Direct
+                when
                     bizible_marketing_channel_path
+                    -- Added to Web Direct
                     in ('Marketing Site.Web Direct', 'Web Direct')
                     or dim_campaign_id in (
                         '701610000008ciRAAQ',  -- Trial - GitLab.com

@@ -2,13 +2,12 @@
 
 {{ config({"schema": "common_mart_marketing"}) }}
 
--- the number of touches a given opp has in total
 {{
     simple_cte(
         [("mart_crm_attribution_touchpoint", "mart_crm_attribution_touchpoint")]
     )
 }},
-linear_base as (
+linear_base as (  -- the number of touches a given opp has in total
     -- linear attribution Net_Arr of an opp / all touches (count_touches) for each opp
     -- - weighted by the number of touches in the given bucket (campaign,channel,etc)
     select
@@ -40,10 +39,10 @@ final as (
         mart_crm_attribution_touchpoint.dim_crm_touchpoint_id,
         mart_crm_attribution_touchpoint.dim_campaign_id,
         mart_crm_attribution_touchpoint.sfdc_record_id,
-        coalesce(  -- 5
+        coalesce(
             mart_crm_attribution_touchpoint.crm_account_billing_country,
             mart_crm_attribution_touchpoint.crm_person_country
-        ) as country,
+        ) as country,  -- 5
         mart_crm_attribution_touchpoint.crm_person_title,
         mart_crm_attribution_touchpoint.bizible_salesforce_campaign,
         mart_crm_attribution_touchpoint.campaign_name,

@@ -8,9 +8,9 @@
 ) -%}
 
 case
-    -- Only compare prices per seat when the unit of measure of the original and new
-    -- plans is seats
     when
+        -- Only compare prices per seat when the unit of measure of the original and
+        -- new plans is seats
         not (
             {{ original_unit_of_measure }} = array_construct('Seats')
             and {{ new_unit_of_measure }} = array_construct('Seats')

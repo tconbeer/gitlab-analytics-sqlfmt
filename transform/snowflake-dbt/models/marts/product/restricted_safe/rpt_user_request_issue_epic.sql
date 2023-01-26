@@ -1,6 +1,6 @@
 with
-    -- First we summarise at the issue/epic - crm_account grain
     mart_user_request as (select * from {{ ref("mart_user_request") }}),
+    -- First we summarise at the issue/epic - crm_account grain
     issue_account_summary as (
 
         select
@@ -76,8 +76,8 @@ with
 
         from mart_user_request {{ dbt_utils.group_by(n=44) }}
 
-    ),  -- Then we summarise at the issue/epic grain
-    prep_issue_summary as (
+    ),
+    prep_issue_summary as (  -- Then we summarise at the issue/epic grain
 
         select
             dim_issue_id,

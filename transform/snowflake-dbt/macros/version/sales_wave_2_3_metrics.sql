@@ -213,12 +213,12 @@ as projects_jira_active_all_time_event,
         "raw_usage_data_payload['counts']['projects_drone_ci_active']"
     )
 }} as projects_drone_ci_active_all_time_event,
--- this metrics is deprecated, keeping it around for historical reference
 {{
     null_negative_numbers(
         "raw_usage_data_payload['usage_activity_by_stage_monthly']['manage']['issue_imports']['jira']"
     )
 }}
+-- this metrics is deprecated, keeping it around for historical reference
 as jira_imports_28_days_event,
 {{
     null_negative_numbers(

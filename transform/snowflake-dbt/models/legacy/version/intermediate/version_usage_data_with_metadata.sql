@@ -49,10 +49,11 @@ joined as (
         on licenses.zuora_subscription_id = zuora_subscriptions.subscription_id
     left join
         zuora_accounts on zuora_subscriptions.account_id = zuora_accounts.account_id
-    left join  -- Join on the version of the ping itself.
-        version_releases as ping_version
+    left join
+        version_releases as ping_version  -- Join on the version of the ping itself.
         on usage_data.major_minor_version = ping_version.major_minor_version
-    left join  -- Join the latest version released at the time of the ping.
+    left join
+        -- Join the latest version released at the time of the ping.
         version_releases as latest_version
         on usage_data.created_at
         between latest_version.release_date

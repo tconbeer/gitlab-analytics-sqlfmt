@@ -177,9 +177,9 @@ with
             on gitlab_dotcom_namespaces.namespace_id
             = gitlab_dotcom_namespace_routes.namespace_id
 
+    ),
     -- In case there are various issues with the same link to issues and
     -- dim_crm_account_id, dedup them by taking the latest updated link
-    ),
     final as (
 
         select

@@ -1,5 +1,5 @@
-with  -- direct group and project members
-    members as (
+with
+    members as (  -- direct group and project members
 
         select *
         from {{ ref("gitlab_dotcom_members") }} members
@@ -18,16 +18,15 @@ with  -- direct group and project members
     namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }}),
     namespace_lineage as (select * from {{ ref("gitlab_dotcom_namespace_lineage") }}),
     users as (select * from {{ ref("gitlab_dotcom_users") }}),
-    -- groups invited to groups
     projects as (select * from {{ ref("gitlab_dotcom_projects") }}),
-    group_group_links as (
+    group_group_links as (  -- groups invited to groups
 
         select *
         from {{ ref("gitlab_dotcom_group_group_links") }}
         where is_currently_valid = true
 
-    ),  -- groups invited to projects
-    project_group_links as (
+    ),
+    project_group_links as (  -- groups invited to projects
 
         select *
         from {{ ref("gitlab_dotcom_project_group_links") }}
@@ -221,8 +220,8 @@ with  -- direct group and project members
                 user_state = 'active'
                 and (user_type != 6 or user_type is null)
                 and requested_at is null,
-                true,  -- must be active, not a project bot, and not awaiting access
-                false
+                true,
+                false  -- must be active, not a project bot, and not awaiting access
             ) as is_active,
             iff(
                 (
@@ -231,8 +230,8 @@ with  -- direct group and project members
                     and is_guest = false
                 )
                 or (ultimate_parent_plan_title != 'gold' and is_active = true),
-                true,  -- exclude guests if namespace has gold plan
-                false
+                true,
+                false  -- exclude guests if namespace has gold plan
             ) as is_billable
         from joined
 

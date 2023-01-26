@@ -134,11 +134,11 @@ with
                 else false
             end as is_excluded_from_disc_analysis,
             dim_product_detail.annual_billing_list_price,
-            -- All Self-Service / Web direct subscriptions are identified by that
-            -- created_by_id
             array_agg(
                 iff(
                     zuora_subscription.created_by_id
+                    -- All Self-Service / Web direct subscriptions are identified by
+                    -- that created_by_id
                     = '2c92a0fd55822b4d015593ac264767f2',
                     'Self-Service',
                     'Sales-Assisted'

@@ -1,8 +1,5 @@
 {{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
-/*
-Determine latest version for each subscription to determine if the potential metric is valid for a given month
-*/
 {{
     simple_cte(
         [
@@ -15,6 +12,9 @@ Determine latest version for each subscription to determine if the potential met
         ]
     )
 }},
+/*
+Determine latest version for each subscription to determine if the potential metric is valid for a given month
+*/
 subscriptions_w_versions as (
 
     select

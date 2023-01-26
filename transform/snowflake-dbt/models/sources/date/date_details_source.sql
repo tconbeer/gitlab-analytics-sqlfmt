@@ -30,9 +30,8 @@ with
             end as first_day_of_week,
 
             case
-                -- remove this column
                 when day_name = 'Sun' then week(date_day) + 1 else week(date_day)
-            end as week_of_year_temp,
+            end as week_of_year_temp,  -- remove this column
 
             case
                 when

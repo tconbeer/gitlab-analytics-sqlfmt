@@ -47,11 +47,17 @@ with
             and date_part(month, try_to_timestamp(derived_tstamp)) = '{{ month_value }}'
             and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
             and (
-                -- js backend tracker
-                (v_tracker like 'js%' and app_id = 'gitlab-staging') or
+                (
+                    -- js backend tracker
+                    v_tracker like 'js%' and app_id = 'gitlab-staging'
+                )
 
-                -- ruby backend tracker
-                (v_tracker like 'rb%')
+                or
+
+                (
+                    -- ruby backend tracker
+                    v_tracker like 'rb%'
+                )
             )
             and try_to_timestamp(derived_tstamp) is not null
 

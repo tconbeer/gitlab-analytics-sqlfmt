@@ -1,8 +1,8 @@
 {%- macro product_ranking(product_category) -%}
 
-max(  -- Need to account for the 'other' categories
+max(
     decode(
-        {{ product_category }},
+        {{ product_category }},  -- Need to account for the 'other' categories
         'Bronze',
         1,
         'Silver',

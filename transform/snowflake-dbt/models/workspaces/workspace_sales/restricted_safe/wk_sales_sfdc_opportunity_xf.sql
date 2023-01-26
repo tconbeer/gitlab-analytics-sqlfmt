@@ -13,8 +13,11 @@ with
     sfdc_users_xf as (select * from {{ ref("wk_sales_sfdc_users_xf") }}),
     sfdc_accounts_xf as (select * from {{ ref("sfdc_accounts_xf") }}),
     date_details as (select * from {{ ref("wk_sales_date_details") }}),
-    -- keys used for aggregated historical analysis
-    agg_demo_keys as (select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}),
+    agg_demo_keys as (
+        -- keys used for aggregated historical analysis
+        select * from {{ ref("wk_sales_report_agg_demo_sqs_ot_keys") }}
+
+    ),
     today as (
 
         select distinct
@@ -903,7 +906,8 @@ with
             churn_metrics
             on churn_metrics.opportunity_id = sfdc_opportunity_xf.opportunity_id
 
-        where  -- remove test account
+        where
+            -- remove test account
             sfdc_accounts_xf.ultimate_parent_account_id not in ('0016100001YUkWVAA1')
             -- remove test account
             and sfdc_opportunity_xf.account_id not in ('0014M00001kGcORQA0')
@@ -930,14 +934,15 @@ with
             -- must rely on iacv
             -- Using opty ratio for open deals doesn't seem to work well
             case
-                when  -- OPEN DEAL
+                when
                     oppty_final.stage_name not in (
                         '8-Closed Lost', '9-Unqualified', 'Closed Won', '10-Duplicate'
-                    )
+                    )  -- OPEN DEAL
                 then
                     coalesce(oppty_final.incremental_acv, 0)
                     * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
-                when  -- CLOSED LOST DEAL and no Net IACV
+                when
+                    -- CLOSED LOST DEAL and no Net IACV
                     oppty_final.stage_name in ('8-Closed Lost')
                     and coalesce(oppty_final.net_incremental_acv, 0) = 0
                 then

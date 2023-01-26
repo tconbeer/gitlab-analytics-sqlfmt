@@ -183,8 +183,8 @@ with
 
         {% endfor %}
 
-    ),  -- union all of tables with different column name for id
-    final_group as (
+    ),
+    final_group as (  -- union all of tables with different column name for id
 
         select *
         from sub_group

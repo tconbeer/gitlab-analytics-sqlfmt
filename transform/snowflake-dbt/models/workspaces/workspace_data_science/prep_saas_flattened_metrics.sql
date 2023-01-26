@@ -10,8 +10,9 @@ with
             ping_date >= '2021-03-01'::date
             and ping_name like 'usage_activity_by_stage%'
             and counter_value > 0  -- Filter out non-instances
-            -- Only return data for complete months
-            and ping_date < date_trunc('month', current_date)
+            and ping_date < date_trunc(  -- Only return data for complete months
+                'month', current_date
+            )
 
             {% if is_incremental() %}
             and date_trunc('month', ping_date)

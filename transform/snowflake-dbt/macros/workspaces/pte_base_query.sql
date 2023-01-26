@@ -102,8 +102,6 @@ with
             sum(
                 case when product_delivery_type = 'Others' then 1 else 0 end
             ) as others_instance_count,
-            -- added 3 months before counting active subscriptions as cancelled per
-            -- Israel's feedback
             count(distinct(product_tier_name)) as num_products_purchased,
             sum(
                 case
@@ -117,13 +115,15 @@ with
                     then 1
                     else 0
                 end
+            -- added 3 months before counting active subscriptions as cancelled per
+            -- Israel's feedback
             ) as cancelled_subs
         from mart_arr_snapshot_bottom_up
         -- Contains true-up snapshots for every date from 2020-03-01 to Present.
         -- MART_ARR_SNAPSHOT_MODEL contained non-true-up data but contains misisng
         -- data prior to 2021-06
-        -- limit to snapshot to day before our prediction window
         where
+            -- limit to snapshot to day before our prediction window
             snapshot_date = '{{ end_date }}'
             -- limit data for just the month the '{{ end_date }}' falls in. arr_month
             -- is unique at the dim_crm_account_id & snapshot_date level
@@ -199,8 +199,6 @@ with
             ) as is_service_type_full_service_prev,
             max(
                 case when service_type = 'Support Only' then 1 else 0 end
-            -- added 3 months before counting active subscriptions as cancelled per
-            -- Israel's feedback
             ) as is_service_type_support_only_prev,
             sum(
                 case
@@ -214,15 +212,18 @@ with
                     then 1
                     else 0
                 end
+            -- added 3 months before counting active subscriptions as cancelled per
+            -- Israel's feedback
             ) as cancelled_subs_prev
         from mart_arr_snapshot_bottom_up
-        where  -- limit to snapshot to day before our prediction window
+        where
+            -- limit to snapshot to day before our prediction window
             snapshot_date = '{{ end_date }}'
-            -- limit to customer's data for just the PERIOD prior to where the '{{
-            -- end_date }}' falls
             and arr_month = date_trunc(
                 'MONTH',
                 dateadd('{{ period_type }}', -365, cast('{{ end_date }}' as date))
+            -- limit to customer's data for just the PERIOD prior to where the '{{
+            -- end_date }}' falls
             )
             -- Remove Chinese accounts like this per feedback from Melia and Israel
             and is_jihu_account != 'TRUE'
@@ -489,10 +490,11 @@ with
             ) as renewal_event_count,
             sum(case when event_type is not null then 1 else 0 end) as total_event_count
         from {{ ref("sfdc_event_source") }}
-        -- filter PERIOD window. Because no histroic event table, going off createddate
         where
             created_at between dateadd(
                 '{{ period_type }}', - '{{ delta_value }}', '{{ end_date }}'
+            -- filter PERIOD window. Because no histroic event table, going off
+            -- createddate
             ) and '{{ end_date }}'
         group by account_id
 
@@ -514,10 +516,11 @@ with
             sum(is_left_message__c) as is_left_message_task,
             sum(is_not_answered__c) as is_not_answered_task
         from {{ source("salesforce", "task") }}
-        -- filter PERIOD window. Because no histroic task table, going on createddate
         where
             createddate between dateadd(
                 '{{ period_type }}', - '{{ delta_value }}', '{{ end_date }}'
+            -- filter PERIOD window. Because no histroic task table, going on
+            -- createddate
             ) and '{{ end_date }}'
         group by account_id
 
@@ -530,10 +533,10 @@ with
             max(zi_industry__c) as zi_industry,
             max(zi_sic_code__c) as zi_sic_code,
             max(zi_naics_code__c) as zi_naics_code,
+            max(zi_number_of_developers__c) as zi_developers_cnt,
             -- , MAX(zi_products_and_services__c) AS zi_products_and_services --
             -- Leaving out for now but could be useful to parse later
             -- Atlassian
-            max(zi_number_of_developers__c) as zi_developers_cnt,
             max(
                 case when contains(zi_technologies__c, 'ARE_USED: Atlassian') then 1 end
             ) as zi_atlassian_flag,
@@ -557,8 +560,8 @@ with
                         )
                     then 1
                 end
-            -- GCP
             ) as zi_jira_flag,
+            -- GCP
             max(
                 case
                     when
@@ -570,8 +573,8 @@ with
                         )
                     then 1
                 end
-            -- Github
             ) as zi_gcp_flag,
+            -- Github
             max(
                 case when contains(zi_technologies__c, 'ARE_USED: GitHub') then 1 end
             ) as zi_github_flag,
@@ -580,8 +583,8 @@ with
                     when contains(zi_technologies__c, 'ARE_USED: GitHub Enterprise')
                     then 1
                 end
-            -- AWS
             ) as zi_github_enterprise_flag,
+            -- AWS
             max(
                 case when contains(zi_technologies__c, 'ARE_USED: AWS') then 1 end
             ) as zi_aws_flag,
@@ -606,8 +609,8 @@ with
                     when contains(zi_technologies__c, 'ARE_USED: Amazon AWS CloudTrail')
                     then 1
                 end
-            -- Other CI
             ) as zi_aws_cloud_trail_flag,
+            -- Other CI
             max(
                 case when contains(zi_technologies__c, 'ARE_USED: Hashicorp') then 1 end
             ) as zi_hashicorp_flag,
@@ -625,8 +628,8 @@ with
             ) as zi_circleci_flag,
             max(
                 case when contains(zi_technologies__c, 'ARE_USED: TravisCI') then 1 end
-            -- Open Source/Free
             ) as zi_travisci_flag,
+            -- Open Source/Free
             max(
                 case
                     when
@@ -895,9 +898,8 @@ with
 
 -- This is the final output table that creates the modeling dataset
 select
-    -- Outcome variables
-    -- If there is more than a 10% increase in ARR
     p1.dim_crm_account_id as crm_account_id,
+    -- Outcome variables
     case
         when
             coalesce(p1.sum_arr, 0) != 0
@@ -906,11 +908,11 @@ select
                 / coalesce(p1.sum_arr, 0)
             )
             > 0.1
-        then 1
+        then 1  -- If there is more than a 10% increase in ARR
         else 0
     end as is_expanded_flag,
-    -- Zuora Fields
     coalesce(t.future_arr, 0) - coalesce(p1.sum_arr, 0) as is_expanded_amt,
+    -- Zuora Fields
     p1.num_of_subs as subs_cnt,
     p1.cancelled_subs as cancelled_subs_cnt,
     case
@@ -926,8 +928,8 @@ select
         when p1.crm_account_tsp_region is null
         then 'Unknown'
         else p1.crm_account_tsp_region
-    -- , COALESCE(p1.crm_account_tsp_region, 'Unknown') AS account_region
     end as account_region,
+    -- , COALESCE(p1.crm_account_tsp_region, 'Unknown') AS account_region
     coalesce(p1.parent_crm_account_sales_segment, 'Unknown') as account_sales_segment,
     coalesce(p1.parent_crm_account_industry, 'Unknown') as account_industry,
     coalesce(
@@ -950,8 +952,8 @@ select
         when p1.parent_crm_account_tsp_region is null
         then 'Unknown'
         else p1.parent_crm_account_tsp_region
-    -- , COALESCE(p1.parent_crm_account_tsp_region, 'Unknown') AS parent_account_region
     end as parent_account_region,
+    -- , COALESCE(p1.parent_crm_account_tsp_region, 'Unknown') AS parent_account_region
     coalesce(
         p1.parent_crm_account_tsp_sub_region, 'Unknown'
     ) as parent_account_sub_region,
@@ -977,8 +979,8 @@ select
     coalesce(p1.self_managed_instance_count, 0) as self_managed_instance_cnt,
     coalesce(p1.saas_instance_count, 0) as saas_instance_cnt,
     coalesce(p1.others_instance_count, 0) as others_instance_cnt,
-    -- Previous Period Zuora Fields
     coalesce(p1.num_products_purchased, 0) as products_purchased_cnt,
+    -- Previous Period Zuora Fields
     coalesce(p2.sum_arr_prev, 0) as arr_prev_amt,
     coalesce(p2.sum_mrr_prev, 0) as mrr_prev_amt,
     coalesce(p2.cancelled_subs_prev, 0) as cancelled_subs_prev_cnt,
@@ -986,8 +988,8 @@ select
     coalesce(
         crm_account_tsp_account_employees_prev, 0
     ) as crm_account_tsp_account_employees_prev_cnt,
-    -- Zuora Change Fields
     coalesce(license_count_prev, 0) as license_prev_cnt,
+    -- Zuora Change Fields
     case
         when sum_arr_prev > 0 then (sum_arr - sum_arr_prev) / sum_arr_prev else 1
     end as arr_change_pct,
@@ -1044,8 +1046,8 @@ select
     ) as service_type_full_service_change_cnt,
     coalesce(p1.is_service_type_support_only, 0) - coalesce(
         p2.is_service_type_support_only_prev, 0
-    -- Salesforce Opportunity Fields
     ) as service_type_support_only_change_cnt,
+    -- Salesforce Opportunity Fields
     coalesce(o.num_opportunities, 0) as opportunities_cnt,
     coalesce(o.sales_path_sales_assisted_cnt, 0) as sales_path_sales_assisted_cnt,
     coalesce(o.sales_path_web_direct_cnt, 0) as sales_path_web_direct_cnt,
@@ -1112,8 +1114,8 @@ select
     coalesce(o.use_case_other, 0) as use_case_other_cnt,
     coalesce(o.use_case_cloud_native, 0) as use_case_cloud_native_cnt,
     coalesce(o.use_case_git_ops, 0) as use_case_git_ops_cnt,
-    -- ZoomInfo Fields
     case when o.account_id is not null then 1 else 0 end as has_sfdc_opportunities_flag,
+    -- ZoomInfo Fields
     zt.zi_revenue as zi_revenue,
     zt.zi_industry as zi_industry,
     zt.zi_sic_code as zi_sic_code,
@@ -1151,8 +1153,8 @@ select
         zt.zi_tortoise_svn_flag,
         zt.zi_kubernetes_flag,
         0
-    -- Event Salesforce
     ) as zi_open_source_any_flag,
+    -- Event Salesforce
     coalesce(
         es.initial_qualifying_meeting_event_count, 0
     ) as initial_qualifying_meeting_event_cnt,
@@ -1163,8 +1165,8 @@ select
     coalesce(es.in_person_event_count, 0) as in_person_event_cnt,
     coalesce(es.renewal_event_count, 0) as renewal_event_cnt,
     coalesce(es.total_event_count, 0) as total_event_cnt,
-    -- Task Salesforce
     case when es.account_id is not null then 1 else 0 end as has_sfdc_events_flag,
+    -- Task Salesforce
     coalesce(ts.email_task_count, 0) as email_task_cnt,
     coalesce(ts.call_task_count, 0) as call_task_cnt,
     coalesce(ts.demo_task_count, 0) as demo_task_cnt,
@@ -1175,8 +1177,8 @@ select
     coalesce(ts.is_correct_contact_task, 0) as is_correct_contact_task_flag,
     coalesce(ts.is_left_message_task, 0) as is_left_message_task_flag,
     coalesce(ts.is_not_answered_task, 0) as is_not_answered_task_flag,
-    -- Bizible Fields
     case when ts.account_id is not null then 1 else 0 end as has_sfdc_tasks_flag,
+    -- Bizible Fields
     coalesce(b.num_bizible_touchpoints, 0) as bizible_touchpoints_cnt,
     coalesce(b.num_campaigns, 0) as campaigns_cnt,
     coalesce(b.touchpoint_source_web_direct, 0) as touchpoint_source_web_direct_cnt,
@@ -1258,8 +1260,8 @@ select
     ) as touchpoint_crm_person_title_software_dev_team_lead_cnt,
     case
         when b.dim_crm_account_id is not null then 1 else 0
-    -- Product Usage
     end as has_bizible_data_flag,
+    -- Product Usage
     u.unique_active_user as unique_active_user_cnt,
     u.action_monthly_active_users_project_repo_avg
     as action_monthly_active_users_project_repo_avg,

@@ -27,8 +27,8 @@ with
     departments as (select * from {{ ref("netsuite_departments_xf") }}),
     subsidiaries as (select * from {{ ref("netsuite_subsidiaries_source") }}),
     transactions as (select * from {{ ref("netsuite_transactions_source") }}),
-    -- exchange rates used, by accounting period, to convert to parent subsidiary
     transaction_lines as (select * from {{ ref("netsuite_transaction_lines_xf") }}),
+    -- exchange rates used, by accounting period, to convert to parent subsidiary
     period_exchange_rate_map as (
 
         select
@@ -40,13 +40,15 @@ with
             consolidated_exchange_rates.to_subsidiary_id
         from consolidated_exchange_rates
         where
-            consolidated_exchange_rates.to_subsidiary_id
-            -- constrait - only the primary subsidiary has no parent
-            in (select subsidiary_id from subsidiaries where parent_id is null)
+            consolidated_exchange_rates.to_subsidiary_id in (
+                -- constrait - only the primary subsidiary has no parent
+                select subsidiary_id from subsidiaries where parent_id is null
+            )
             and consolidated_exchange_rates.accounting_book_id
             in (select accounting_book_id from accounting_books where is_primary = true)
 
-    ),  -- account table with exchange rate details by accounting period
+    ),
+    -- account table with exchange rate details by accounting period
     account_period_exchange_rate_map as (
 
         select
@@ -66,7 +68,8 @@ with
         from accounts
         cross join period_exchange_rate_map
 
-    ),  -- transaction line totals, by accounts, accounting period and subsidiary
+    ),
+    -- transaction line totals, by accounts, accounting period and subsidiary
     transaction_lines_w_accounting_period as (
 
         select
@@ -88,9 +91,9 @@ with
             on transaction_lines.transaction_id = transactions.transaction_id
         where lower(transactions.transaction_type) != 'revenue arrangement'
 
+    ),
     -- period ids with all future period ids.  this is needed to calculate cumulative
     -- totals by correct exchange rates.
-    ),
     period_id_list_to_current_period as (
 
         select

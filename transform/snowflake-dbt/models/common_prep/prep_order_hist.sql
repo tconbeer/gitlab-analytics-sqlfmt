@@ -16,8 +16,10 @@
 }},
 customers_db_versions as (
 
+    select *
+    from versions
     -- selecting only orders
-    select * from versions where item_type = 'Order' and object is not null
+    where item_type = 'Order' and object is not null
 
 ),
 flattened_object as (

@@ -16,9 +16,11 @@ with
 
         select *
         from {{ ref("zuora_central_sandbox_account_source") }}
-        -- Exclude Batch20 which are the test accounts. This method replaces the
-        -- manual dbt seed exclusion file.
-        where is_deleted = false and lower(batch) != 'batch20'
+        where
+            is_deleted = false
+            -- Exclude Batch20 which are the test accounts. This method replaces the
+            -- manual dbt seed exclusion file.
+            and lower(batch) != 'batch20'
 
     ),
     zuora_rate_plan as (

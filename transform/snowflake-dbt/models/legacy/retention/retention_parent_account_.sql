@@ -6,9 +6,9 @@ with
         from {{ ref("current_arr_segmentation_all_levels") }}
         where level_ = 'parent_account_id'
 
+    ),
     -- get all the subscription + their lineage + the month we're looking for MRR for
     -- (12 month in the future)
-    ),
     list as (
 
         select
@@ -19,9 +19,9 @@ with
         from mrr_totals_levelled
         group by 1, 2, 3
 
+    ),
     -- find which of those subscriptions are real and group them by their sub you're
     -- comparing to.
-    ),
     retention_subs as (
 
         select

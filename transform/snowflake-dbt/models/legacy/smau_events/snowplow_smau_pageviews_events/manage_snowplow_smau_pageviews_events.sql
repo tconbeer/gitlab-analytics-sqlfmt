@@ -83,12 +83,12 @@ with
         )
     }}
 
+    {% endfor -%},
     /*
     Looks at referrer_url in addition to page_url.
     Regex matches for successful sign-in authentications,
     meaning /sign_in redirects to a real GitLab page.
   */
-    {% endfor -%},
     user_authenticated as (
 
         select

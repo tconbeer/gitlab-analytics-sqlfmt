@@ -30,9 +30,9 @@ with
                 order by unit_of_measure asc
             ) as original_unit_of_measure,
 
-            max(  -- Need to account for the 'other' categories
+            max(
                 decode(
-                    product_tier_name,
+                    product_tier_name,  -- Need to account for the 'other' categories
                     'Bronze',
                     1,
                     'Silver',
@@ -54,9 +54,9 @@ with
             sum(mrr) as original_mrr
         from raw_mrr_totals_levelled {{ dbt_utils.group_by(n=10) }}
 
+    ),
     -- get all the subscription + their lineage + the month we're looking for MRR for
     -- (12 month in the future)
-    ),
     list as (
 
         select
@@ -69,9 +69,9 @@ with
             lateral flatten(input => split(lineage, ',')) c
             {{ dbt_utils.group_by(n=4) }}
 
+    ),
     -- find which of those subscriptions are real and group them by their sub you're
     -- comparing to.
-    ),
     retention_subs as (
 
         select
