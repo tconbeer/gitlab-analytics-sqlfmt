@@ -1,92 +1,106 @@
-with raw_mrr_totals_levelled AS (
+with
+    raw_mrr_totals_levelled as (select * from {{ ref("mart_arr") }}),
+    mrr_totals_levelled as (
 
-       SELECT * FROM {{ref('mart_arr')}}
+        select
+            subscription_name,
+            subscription_name_slugify,
+            dim_crm_account_id as sfdc_account_id,
+            oldest_subscription_in_cohort as oldest_subscription_in_cohort,
+            subscription_lineage as lineage,
+            arr_month as mrr_month,
+            subscription_cohort_month as zuora_subscription_cohort_month,
+            subscription_cohort_quarter as zuora_subscription_cohort_quarter,
+            months_since_subscription_cohort_start
+            as months_since_zuora_subscription_cohort_start,
+            quarters_since_subscription_cohort_start
+            as quarters_since_zuora_subscription_cohort_start,
+            sum(mrr) as mrr
+        from raw_mrr_totals_levelled {{ dbt_utils.group_by(n=10) }}
 
-), mrr_totals_levelled AS (
+    ),
+    current_arr_segmentation_all_levels as (
 
-      SELECT subscription_name, 
-              subscription_name_slugify,
-              dim_crm_account_id                                        AS sfdc_account_id,
-              oldest_subscription_in_cohort                             AS oldest_subscription_in_cohort,
-              subscription_lineage                                      AS lineage,
-              arr_month                                                 AS mrr_month,
-              subscription_cohort_month                                 AS zuora_subscription_cohort_month,
-              subscription_cohort_quarter                               AS zuora_subscription_cohort_quarter,
-              months_since_subscription_cohort_start                    AS months_since_zuora_subscription_cohort_start,
-              quarters_since_subscription_cohort_start                  AS quarters_since_zuora_subscription_cohort_start,
-              sum(mrr)                                                  AS mrr
-      FROM raw_mrr_totals_levelled
-      {{ dbt_utils.group_by(n=10) }}
+        select *
+        from {{ ref("current_arr_segmentation_all_levels") }}
+        where level_ = 'zuora_subscription_id'
 
-), current_arr_segmentation_all_levels AS (
+    ),
+    mapping as (
 
-       SELECT * FROM {{ref('current_arr_segmentation_all_levels')}}
-       WHERE level_ = 'zuora_subscription_id'
+        select subscription_name, sfdc_account_id
+        from mrr_totals_levelled {{ dbt_utils.group_by(n=2) }}
 
-), mapping AS (
-      
-       SELECT  subscription_name, sfdc_account_id
-       FROM mrr_totals_levelled
-       {{ dbt_utils.group_by(n=2) }}
+    ),
+    -- get all the subscription + their lineage + the month we're looking for MRR for
+    -- (12 month in the future)
+    list as (
 
-), list AS ( --get all the subscription + their lineage + the month we're looking for MRR for (12 month in the future)
+        select
+            subscription_name_slugify as original_sub,
+            c.value::varchar as subscriptions_in_lineage,
+            mrr_month as original_mrr_month,
+            dateadd('year', 1, mrr_month) as retention_month
+        from
+            mrr_totals_levelled,
+            lateral flatten(input => split(lineage, ',')) c
+            {{ dbt_utils.group_by(n=4) }}
 
-       SELECT subscription_name_slugify   AS original_sub,
-                     c.value::VARCHAR     AS subscriptions_in_lineage,
-                     mrr_month            AS original_mrr_month,
-                     dateadd('year', 1, mrr_month) AS retention_month
-       FROM mrr_totals_levelled,
-       lateral flatten(input =>split(lineage, ',')) C
-       {{ dbt_utils.group_by(n=4) }}
+    ),
+    -- find which of those subscriptions are real and group them by their sub you're
+    -- comparing to.
+    retention_subs as (
 
-), retention_subs AS ( --find which of those subscriptions are real and group them by their sub you're comparing to.
+        select
+            original_sub, retention_month, original_mrr_month, sum(mrr) as retention_mrr
+        from list
+        inner join
+            mrr_totals_levelled as subs
+            on retention_month = mrr_month
+            and subscriptions_in_lineage = subscription_name_slugify
+            {{ dbt_utils.group_by(n=3) }}
 
-       SELECT original_sub,
-               retention_month,
-               original_mrr_month,
-               sum(mrr) AS retention_mrr
-       FROM list
-       INNER JOIN mrr_totals_levelled AS subs
-       ON retention_month = mrr_month
-       AND subscriptions_in_lineage = subscription_name_slugify
-       {{ dbt_utils.group_by(n=3) }}
+    ),
+    finals as (
 
-), finals AS (
+        select
+            coalesce(retention_subs.retention_mrr, 0) as net_retention_mrr,
+            case
+                when net_retention_mrr > 0 then least(net_retention_mrr, mrr) else 0
+            end as gross_retention_mrr,
+            retention_month,
+            mrr_totals_levelled.*
+        from mrr_totals_levelled
+        left join
+            retention_subs
+            on subscription_name_slugify = original_sub
+            and retention_subs.original_mrr_month = mrr_totals_levelled.mrr_month
 
-       SELECT coalesce(retention_subs.retention_mrr, 0) AS net_retention_mrr,
-              CASE WHEN net_retention_mrr > 0 
-                  THEN least(net_retention_mrr, mrr)
-                  ELSE 0 END AS gross_retention_mrr,
-              retention_month, 
-              mrr_totals_levelled.*
-       FROM mrr_totals_levelled
-       LEFT JOIN retention_subs
-       ON subscription_name_slugify = original_sub
-       AND retention_subs.original_mrr_month = mrr_totals_levelled.mrr_month
+    ),
+    joined as (
 
-), joined as (
+        select
+            finals.subscription_name as zuora_subscription_name,
+            finals.oldest_subscription_in_cohort as zuora_subscription_id,
+            mapping.sfdc_account_id as salesforce_account_id,
+            -- THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
+            dateadd('year', 1, finals.mrr_month) as retention_month,
+            finals.mrr as original_mrr,
+            finals.net_retention_mrr,
+            finals.gross_retention_mrr,
+            finals.zuora_subscription_cohort_month,
+            finals.zuora_subscription_cohort_quarter,
+            finals.months_since_zuora_subscription_cohort_start,
+            finals.quarters_since_zuora_subscription_cohort_start,
+            {{ churn_type("original_mrr", "net_retention_mrr") }}
+        from finals
+        left join mapping on mapping.subscription_name = finals.subscription_name
 
-      SELECT finals.subscription_name             AS zuora_subscription_name,
-             finals.oldest_subscription_in_cohort AS zuora_subscription_id,
-             mapping.sfdc_account_id              AS salesforce_account_id,
-             dateadd('year', 1, finals.mrr_month) AS retention_month, --THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
-             finals.mrr                           AS original_mrr,
-             finals.net_retention_mrr,
-             finals.gross_retention_mrr,
-             finals.zuora_subscription_cohort_month,
-             finals.zuora_subscription_cohort_quarter,
-             finals.months_since_zuora_subscription_cohort_start,
-             finals.quarters_since_zuora_subscription_cohort_start,
-             {{ churn_type('original_mrr', 'net_retention_mrr') }}
-      FROM finals
-      LEFT JOIN mapping
-      ON mapping.subscription_name = finals.subscription_name
+    )
 
-)
-
-SELECT joined.*, 
-        current_arr_segmentation_all_levels.arr_segmentation
-FROM joined
-LEFT JOIN current_arr_segmentation_all_levels
-ON joined.zuora_subscription_id = current_arr_segmentation_all_levels.id
-WHERE retention_month <= dateadd(month, -1, CURRENT_DATE)
+select joined.*, current_arr_segmentation_all_levels.arr_segmentation
+from joined
+left join
+    current_arr_segmentation_all_levels
+    on joined.zuora_subscription_id = current_arr_segmentation_all_levels.id
+where retention_month <= dateadd(month, -1, current_date)

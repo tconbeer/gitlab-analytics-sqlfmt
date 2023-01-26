@@ -1,9 +1,1 @@
-with base as (
-
-    SELECT * 
-    FROM {{ source('salesforce', 'user_role') }}
-
-)
-
-SELECT *
-FROM base
+with base as (select * from {{ source("salesforce", "user_role") }}) select * from base

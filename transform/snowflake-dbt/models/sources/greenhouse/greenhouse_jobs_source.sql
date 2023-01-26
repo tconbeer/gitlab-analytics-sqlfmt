@@ -1,33 +1,29 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "jobs") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'jobs') }}
+        select
 
-), renamed as (
+            -- keys
+            id::number as job_id,
+            organization_id::number as organization_id,
+            requisition_id::varchar as requisition_id,
+            department_id::number as department_id,
 
-	SELECT
+            -- info
+            name::varchar as job_name,
+            status::varchar as job_status,
+            opened_at::timestamp as job_opened_at,
+            closed_at::timestamp as job_closed_at,
+            level::varchar as job_level,
+            confidential::boolean as is_confidential,
+            created_at::timestamp as job_created_at,
+            notes::varchar as job_notes,
+            updated_at::timestamp as job_updated_at
 
-			--keys
-    		id::NUMBER							    AS job_id,
-    		organization_id::NUMBER 		AS organization_id,
-    		requisition_id::varchar			AS requisition_id,
-    		department_id::NUMBER				AS department_id,
+        from source
 
-    		--info
-    		name::varchar						    AS job_name,
-    		status::varchar					    AS job_status,
-    		opened_at::timestamp				AS job_opened_at,
-    		closed_at::timestamp				AS job_closed_at,
-    		level::varchar 					    AS job_level,
-    		confidential::boolean				AS is_confidential,
-    		created_at::timestamp				AS job_created_at,
-    		notes::varchar						  AS job_notes,
-    		updated_at::timestamp				AS job_updated_at
+    )
 
-
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

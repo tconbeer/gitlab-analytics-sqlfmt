@@ -1,24 +1,21 @@
-{{ config({
-    "materialized": "view"
-    })
-}}
+{{ config({"materialized": "view"}) }}
 
-WITH category_marketing_security_merge_requests_count AS (
+with
+    category_marketing_security_merge_requests_count as (
 
-    SELECT *
-    FROM {{ ref('category_marketing_security_merge_requests_count') }}
+        select * from {{ ref("category_marketing_security_merge_requests_count") }}
 
-), marketing_security_total_count_department AS (
+    ),
+    marketing_security_total_count_department as (
 
-    SELECT
-      DATE_TRUNC('MONTH', merge_request_merged_at)    AS month_merged_at,
-      SUM(mr_count_security)                          AS mr_count_security
-    FROM category_marketing_security_merge_requests_count
-    WHERE merge_request_state = 'merged'
-      AND merge_request_merged_at IS NOT NULL
-    GROUP BY 1
+        select
+            date_trunc('MONTH', merge_request_merged_at) as month_merged_at,
+            sum(mr_count_security) as mr_count_security
+        from category_marketing_security_merge_requests_count
+        where merge_request_state = 'merged' and merge_request_merged_at is not null
+        group by 1
 
-)
+    )
 
-SELECT *
-FROM marketing_security_total_count_department
+select *
+from marketing_security_total_count_department

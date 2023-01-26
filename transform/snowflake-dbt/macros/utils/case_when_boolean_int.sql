@@ -1,5 +1,5 @@
 {%- macro case_when_boolean_int(value) -%}
 
-  CASE WHEN {{ value }} > 0 THEN 1 END
+case when {{ value }} > 0 then 1 end
 
 {%- endmacro -%}

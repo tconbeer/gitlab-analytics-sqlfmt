@@ -1,24 +1,26 @@
-WITH snapshot_dates AS (
-    --Use the 45th calendar day to snapshot ATR
-    SELECT DISTINCT
-      first_day_of_month,
-      snapshot_date_billings
-    FROM {{ ref('dim_date') }}
-    ORDER BY 1 DESC
+with
+    snapshot_dates as (
+        -- Use the 45th calendar day to snapshot ATR
+        select distinct first_day_of_month, snapshot_date_billings
+        from {{ ref("dim_date") }}
+        order by 1 desc
 
-), mart_available_to_renew_snapshot AS (
+    ),
+    mart_available_to_renew_snapshot as (
 
-    SELECT *
-    FROM {{ ref('mart_available_to_renew_snapshot_model') }}
+        select * from {{ ref("mart_available_to_renew_snapshot_model") }}
 
-), final AS (
+    ),
+    final as (
 
-    SELECT *
-    FROM mart_available_to_renew_snapshot
-    INNER JOIN snapshot_dates
-      ON mart_available_to_renew_snapshot.snapshot_date = snapshot_dates.snapshot_date_billings
+        select *
+        from mart_available_to_renew_snapshot
+        inner join
+            snapshot_dates
+            on mart_available_to_renew_snapshot.snapshot_date
+            = snapshot_dates.snapshot_date_billings
 
-)
+    )
 
-SELECT *
-FROM final
+select *
+from final

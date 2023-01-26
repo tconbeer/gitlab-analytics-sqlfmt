@@ -1,29 +1,24 @@
-{{ 
-    config({
-        "materialized": "incremental",
-        "unique_key": "dim_usage_ping_id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "dim_usage_ping_id"}) }}
 
-WITH prep_usage_ping AS (
+with
+    prep_usage_ping as (
 
-    SELECT * 
-    FROM {{ ref('prep_usage_ping') }}
-    WHERE license_md5 IS NULL 
+        select * from {{ ref("prep_usage_ping") }} where license_md5 is null
 
-), final AS (
+    ),
+    final as (
 
-    SELECT
-    {{ default_usage_ping_information() }}
-    {{ sales_wave_2_3_metrics() }}
-    FROM prep_usage_ping
-  
-)
+        select {{ default_usage_ping_information() }} {{ sales_wave_2_3_metrics() }}
+        from prep_usage_ping
 
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@kathleentam",
-    updated_by="@ischweickartDD",
-    created_date="2021-01-11",
-    updated_date="2021-04-05"
-) }}
+    )
+
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@kathleentam",
+            updated_by="@ischweickartDD",
+            created_date="2021-01-11",
+            updated_date="2021-04-05",
+        )
+    }}

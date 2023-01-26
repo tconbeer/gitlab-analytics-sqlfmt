@@ -1,22 +1,23 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      id                      AS account_id,
-      created_date            AS created_date,
-      modified_date           AS modified_date,
-      name                    AS name,
-      web_site                AS web_site,
-      engagement_rating       AS engagement_rating,
-      engagement_score        AS engagement_score,
-      domain                  AS domain,
-      is_deleted              AS is_deleted,
-      custom_properties       AS custom_properties,
-      _created_date           AS _created_date,
-      _modified_date          AS _modified_date,
-      _deleted_date           AS _deleted_date      
-    FROM {{ source('bizible', 'biz_accounts') }}
- 
-)
+        select
+            id as account_id,
+            created_date as created_date,
+            modified_date as modified_date,
+            name as name,
+            web_site as web_site,
+            engagement_rating as engagement_rating,
+            engagement_score as engagement_score,
+            domain as domain,
+            is_deleted as is_deleted,
+            custom_properties as custom_properties,
+            _created_date as _created_date,
+            _modified_date as _modified_date,
+            _deleted_date as _deleted_date
+        from {{ source("bizible", "biz_accounts") }}
 
-SELECT *
-FROM source
+    )
+
+select *
+from source

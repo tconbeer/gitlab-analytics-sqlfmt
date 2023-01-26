@@ -1,16 +1,11 @@
-
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "id"}) }}
 
 
-SELECT *
-FROM {{ source('gitlab_dotcom', 'requirements_management_test_reports') }}
+select *
+from {{ source("gitlab_dotcom", "requirements_management_test_reports") }}
 {% if is_incremental() %}
 
-WHERE _uploaded_at >= (SELECT MAX(_uploaded_at) FROM {{this}})
+where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
 
 {% endif %}
-QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY _uploaded_at DESC) = 1
+qualify row_number() over (partition by id order by _uploaded_at desc) = 1
