@@ -12,8 +12,7 @@ where type_of_match = '{{type_of_match}}'
 {% if execute %}
 {# Return the first column #}
 {% set results_list = results.columns[0].values() %}
-{% else %}
-{% set results_list = [] %}
+{% else %} {% set results_list = [] %}
 {% endif %}
 
 {{ return(results_list) }}

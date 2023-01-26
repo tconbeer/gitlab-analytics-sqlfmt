@@ -1,76 +1,89 @@
-{% set column_name = 'notification_email_handle' %}
+{% set column_name = "notification_email_handle" %}
 
-WITH gitlab_dotcom_members AS (
+with
+    gitlab_dotcom_members as (select * from {{ ref("gitlab_dotcom_members") }}),
+    gitlab_dotcom_users as (
 
-    SELECT * 
-    FROM {{ref('gitlab_dotcom_members')}} 
+        select
+            *,
+            split_part(notification_email, '@', 0) as notification_email_handle,
+            {{ include_gitlab_email(column_name) }} as include_notification_email
+        from {{ ref("gitlab_dotcom_users") }}
 
-), gitlab_dotcom_users AS (
+    ),
+    gitlab_dotcom_gitlab_emails_cleaned as (
 
-    SELECT *,
-      SPLIT_PART(notification_email,'@', 0) AS notification_email_handle,
-      {{include_gitlab_email(column_name)}} AS include_notification_email
-    FROM {{ref('gitlab_dotcom_users')}} 
+        select distinct user_id, email_address, email_handle
+        from {{ ref("gitlab_dotcom_gitlab_emails") }}
+        where length(email_handle) > 1 and include_email_flg = 'Include'
 
-), gitlab_dotcom_gitlab_emails_cleaned AS (
+    ),
+    sheetload_infrastructure_gitlab_employee as (
 
-    SELECT DISTINCT 
-      user_id, 
-      email_address, 
-      email_handle
-    FROM {{ref('gitlab_dotcom_gitlab_emails')}} 
-    WHERE LENGTH (email_handle) > 1
-      AND include_email_flg = 'Include'
+        select * from {{ ref("sheetload_infrastructure_missing_employees") }}
 
-), sheetload_infrastructure_gitlab_employee AS (
+    ),
+    gitlab_dotcom_team_members_user_id as (
 
-    SELECT * 
-    FROM {{ref('sheetload_infrastructure_missing_employees')}}
+        -- This CTE returns the user_id for any team member in the GitLab.com or
+        -- GitLab.org project
+        select distinct user_id as gitlab_dotcom_user_id
+        from gitlab_dotcom_members
+        where
+            is_currently_valid = true
+            and member_source_type = 'Namespace'
+            and source_id in (
+                9970, 6543
+            )  -- 9970 = gitlab-org, 6543 = gitlab-com
 
-), gitlab_dotcom_team_members_user_id AS (
+    ),
+    notification_email as (
 
-    -- This CTE returns the user_id for any team member in the GitLab.com or GitLab.org project 
-    SELECT DISTINCT user_id                                    AS gitlab_dotcom_user_id
-    FROM gitlab_dotcom_members
-    WHERE is_currently_valid = TRUE 
-      AND member_source_type = 'Namespace'
-      AND source_id IN (9970,6543) -- 9970 = gitlab-org, 6543 = gitlab-com
+        -- This CTE cleans and maps GitLab.com user_name and emails for most GitLab
+        -- team members
+        -- The email field here is notification_email 
+        select distinct
+            gitlab_dotcom_user_id,
+            user_name,
+            case
+                when length(gitlab_dotcom_users.notification_email) < 3
+                then null
+                when gitlab_dotcom_users.include_notification_email = 'Exclude'
+                then null
+                else gitlab_dotcom_users.notification_email
+            end as notification_email
+        from gitlab_dotcom_team_members_user_id
+        inner join
+            gitlab_dotcom_users
+            on gitlab_dotcom_team_members_user_id.gitlab_dotcom_user_id
+            = gitlab_dotcom_users.user_id
+        where user_name not ilike '%admin%'
 
-), notification_email AS (
+    ),
+    all_known_employee_gitlab_emails as (
 
-    -- This CTE cleans and maps GitLab.com user_name and emails for most GitLab team members 
-    -- The email field here is notification_email 
-    SELECT DISTINCT
-      gitlab_dotcom_user_id, 
-      user_name,
-      CASE
-        WHEN length (gitlab_dotcom_users.notification_email) < 3 
-          THEN NULL
-        WHEN gitlab_dotcom_users.include_notification_email = 'Exclude'
-          THEN NULL
-        ELSE gitlab_dotcom_users.notification_email                        END AS notification_email
-    FROM gitlab_dotcom_team_members_user_id
-    INNER JOIN gitlab_dotcom_users
-      ON gitlab_dotcom_team_members_user_id.gitlab_dotcom_user_id = gitlab_dotcom_users.user_id
-    WHERE user_name NOT ILIKE '%admin%'
-  
-), all_known_employee_gitlab_emails AS (
+        -- This CTE cleans and maps supplemental GitLab.com email addresses from the
+        -- `emails` table in gitlab_dotcom, and in the case both are null captures
+        -- work email from sheetload
+        select
+            notification_email.gitlab_dotcom_user_id,
+            user_name as gitlab_dotcom_user_name,
+            coalesce(
+                notification_email.notification_email,
+                gitlab_dotcom_gitlab_emails_cleaned.email_address,
+                sheetload_infrastructure_gitlab_employee.work_email
+            ) as gitlab_dotcom_email_address
+        from notification_email
+        left join
+            gitlab_dotcom_gitlab_emails_cleaned
+            on notification_email.gitlab_dotcom_user_id
+            = gitlab_dotcom_gitlab_emails_cleaned.user_id
+        left join
+            sheetload_infrastructure_gitlab_employee
+            on notification_email.gitlab_dotcom_user_id
+            = sheetload_infrastructure_gitlab_employee.gitlab_dotcom_user_id
 
-    -- This CTE cleans and maps supplemental GitLab.com email addresses from the `emails` table in gitlab_dotcom, and in the case both are null captures work email from sheetload
-    SELECT 
-      notification_email.gitlab_dotcom_user_id, 
-      user_name                                                         AS gitlab_dotcom_user_name,
-      COALESCE(notification_email.notification_email,
-               gitlab_dotcom_gitlab_emails_cleaned.email_address,
-               sheetload_infrastructure_gitlab_employee.work_email)     AS gitlab_dotcom_email_address
-    FROM notification_email
-    LEFT JOIN gitlab_dotcom_gitlab_emails_cleaned 
-      ON notification_email.gitlab_dotcom_user_id = gitlab_dotcom_gitlab_emails_cleaned.user_id 
-    LEFT JOIN sheetload_infrastructure_gitlab_employee
-      ON notification_email.gitlab_dotcom_user_id = sheetload_infrastructure_gitlab_employee.gitlab_dotcom_user_id
+    )
 
-) 
-
-SELECT * 
-FROM all_known_employee_gitlab_emails
-
+select *
+from all_known_employee_gitlab_emails

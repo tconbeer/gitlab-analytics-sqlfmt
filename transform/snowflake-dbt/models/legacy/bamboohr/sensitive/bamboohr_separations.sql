@@ -1,53 +1,46 @@
-WITH dim_date AS (
+with
+    dim_date as (select * from {{ ref("dim_date") }}),
+    separations as (
 
-    SELECT *
-    FROM {{ ref('dim_date') }}
+        select
+            employee_number,
+            employee_id,
+            hire_date,
+            date_actual as separation_date,
+            date_trunc(month, date_actual) as separation_month,
+            division_mapped_current as division,
+            department_modified as department,
+            job_title as job_title
+        from {{ ref("employee_directory_intermediate") }}
+        where is_termination_date = true and date_actual >= '2020-02-01'
 
-), separations AS (
+    ),
+    separation_type as (
 
-    SELECT
-      employee_number,
-      employee_id,
-      hire_date,
-      date_actual                       AS separation_date, 
-      DATE_TRUNC(month, date_actual)    AS separation_month, 
-      division_mapped_current           AS division, 
-      department_modified               AS department,
-      job_title                         AS job_title
-    FROM {{ ref('employee_directory_intermediate') }}
-    WHERE is_termination_date = TRUE
-      AND date_actual>='2020-02-01'
+        select *
+        from {{ ref("bamboohr_employment_status_source") }}
+        where lower(employment_status) = 'terminated'
 
-), separation_type AS (
+    ),
+    eeoc as (select * from {{ ref("bamboohr_id_employee_number_mapping") }}),
+    final as (
 
-    SELECT *
-    FROM {{ ref('bamboohr_employment_status_source') }}
-    WHERE LOWER(employment_status) = 'terminated'
+        select
+            dim_date.fiscal_year,
+            separations.*,
+            termination_type,
+            eeoc.gender,
+            eeoc.ethnicity,
+            eeoc.region
+        from separations
+        left join dim_date on separations.separation_date = dim_date.date_actual
+        left join
+            separation_type
+            on separations.employee_id = separation_type.employee_id
+            and separations.separation_date = separation_type.effective_date
+        left join eeoc on separations.employee_id = eeoc.employee_id
 
-), eeoc AS (
+    )
 
-    SELECT *
-    FROM {{ ref('bamboohr_id_employee_number_mapping') }}
-
-), final AS (
-
-    SELECT 
-      dim_date.fiscal_year,
-      separations.*,
-      termination_type,
-      eeoc.gender,
-      eeoc.ethnicity,
-      eeoc.region
-    FROM separations
-    LEFT JOIN dim_date
-      ON separations.separation_date = dim_date.date_actual
-    LEFT JOIN separation_type 
-      ON separations.employee_id = separation_type.employee_id
-      AND separations.separation_date = separation_type.effective_date
-    LEFT JOIN eeoc 
-      ON separations.employee_id = eeoc.employee_id
-
-)
-
-SELECT *
-FROM final
+select *
+from final

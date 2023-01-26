@@ -1,10 +1,5 @@
-WITH source AS (
+with source as (select * from {{ ref("netsuite_classes_source") }})
 
-    SELECT *
-    FROM {{ ref('netsuite_classes_source') }}
-
-)
-
-SELECT *
-FROM source
-WHERE is_fivetran_deleted = FALSE
+select *
+from source
+where is_fivetran_deleted = false

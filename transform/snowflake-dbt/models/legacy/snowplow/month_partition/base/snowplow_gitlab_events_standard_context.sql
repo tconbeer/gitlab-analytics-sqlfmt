@@ -1,56 +1,45 @@
-{% set year_value = var('year', run_started_at.strftime('%Y')) %}
-{% set month_value = var('month', run_started_at.strftime('%m')) %}
+{% set year_value = var("year", run_started_at.strftime("%Y")) %}
+{% set month_value = var("month", run_started_at.strftime("%m")) %}
 
-{{config({
-    "unique_key":"event_id"
-  })
-}}
+{{ config({"unique_key": "event_id"}) }}
 
-WITH filtered_source as (
+with
+    filtered_source as (
 
-    SELECT
-        event_id,
-        contexts
-    {% if target.name not in ("prod") -%}
+        select event_id, contexts
+        {% if target.name not in ("prod") -%}
 
-    FROM {{ ref('snowplow_gitlab_good_events_sample_source') }}
+        from {{ ref("snowplow_gitlab_good_events_sample_source") }}
 
-    {%- else %}
+        {%- else %} from {{ ref("snowplow_gitlab_good_events_source") }}
 
-    FROM {{ ref('snowplow_gitlab_good_events_source') }}
+        {%- endif %}
 
-    {%- endif %}
+        where
+            app_id is not null
+            and date_part(month, try_to_timestamp(derived_tstamp)) = '{{ month_value }}'
+            and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
+            and (
+                (
+                    -- js backend tracker
+                    v_tracker like 'js%'
+                    and lower(page_url) not like 'https://staging.gitlab.com/%'
+                    and lower(page_url) not like 'https://customers.stg.gitlab.com/%'
+                    and lower(page_url) not like 'http://localhost:%'
+                )
 
-    WHERE app_id IS NOT NULL
-      AND DATE_PART(month, TRY_TO_TIMESTAMP(derived_tstamp)) = '{{ month_value }}'
-      AND DATE_PART(year, TRY_TO_TIMESTAMP(derived_tstamp)) = '{{ year_value }}'
-      AND 
-        (
-          (
-            -- js backend tracker
-            v_tracker LIKE 'js%'
-            AND lower(page_url) NOT LIKE 'https://staging.gitlab.com/%'
-            AND lower(page_url) NOT LIKE 'https://customers.stg.gitlab.com/%'
-            AND lower(page_url) NOT LIKE 'http://localhost:%'
-          )
-          
-          OR
-          
-          (
-            -- ruby backend tracker
-            v_tracker LIKE 'rb%'
-          )
-        )
-      AND TRY_TO_TIMESTAMP(derived_tstamp) is not null
-)
+                or
 
-, base AS (
-  
-    SELECT DISTINCT * 
-    FROM filtered_source
-
-), events_with_context_flattened AS (
-    /*
+                (
+                    -- ruby backend tracker
+                    v_tracker like 'rb%'
+                )
+            )
+            and try_to_timestamp(derived_tstamp) is not null
+    ),
+    base as (select distinct * from filtered_source),
+    events_with_context_flattened as (
+        /*
     we need to extract the GitLab standard context fields from the contexts JSON provided in the raw events
     A contexts json look like a list of context attached to an event:
 
@@ -60,33 +49,36 @@ WITH filtered_source as (
     To in this CTE for any event, we use LATERAL FLATTEN to create one row per context per event.
     We then extract the context schema and the context data
     */
-    SELECT 
-      base.*,
-      f.value['schema']::VARCHAR  AS context_data_schema,
-      f.value['data']             AS context_data
-    FROM base,
-    lateral flatten(input => TRY_PARSE_JSON(contexts), path => 'data') f
+        select
+            base.*,
+            f.value['schema']::varchar as context_data_schema,
+            f.value['data'] as context_data
+        from base, lateral flatten(input => try_parse_json(contexts), path => 'data') f
 
-)
+    )
 
 /*
 in this CTE we take the results from the previous CTE and isolate the only context we are interested in:
 the gitlab standard context, which has this context schema: iglu:com.gitlab/gitlab_standard/jsonschema/1-0-5
 Then we extract the id from the context_data column
 */
-SELECT
-    events_with_context_flattened.event_id::VARCHAR        AS event_id,
+select
+    events_with_context_flattened.event_id::varchar as event_id,
     context_data_schema,
-    context_data['environment']::VARCHAR                   AS environment,
-    TRY_PARSE_JSON(context_data['extra'])::VARIANT         AS extra,
-    context_data['namespace_id']::NUMBER                   AS namespace_id,
-    context_data['plan']::VARCHAR                          AS plan,
-    context_data['google_analytics_id']::VARCHAR           AS google_analytics_id,
-    IFF(google_analytics_id = '', NULL,
-        SPLIT_PART(google_analytics_id, '.', 3) || '.' ||
-        SPLIT_PART(google_analytics_id, '.', 4))::VARCHAR  AS google_analytics_client_id,
-    context_data['project_id']::NUMBER                     AS project_id,
-    context_data['user_id']::VARCHAR                       AS pseudonymized_user_id,
-    context_data['source']::VARCHAR                        AS source
-FROM events_with_context_flattened
-WHERE context_data_schema like 'iglu:com.gitlab/gitlab_standard/jsonschema/%'
+    context_data['environment']::varchar as environment,
+    try_parse_json(context_data['extra'])::variant as extra,
+    context_data['namespace_id']::number as namespace_id,
+    context_data['plan']::varchar as plan,
+    context_data['google_analytics_id']::varchar as google_analytics_id,
+    iff(
+        google_analytics_id = '',
+        null,
+        split_part(google_analytics_id, '.', 3)
+        || '.'
+        || split_part(google_analytics_id, '.', 4)
+    )::varchar as google_analytics_client_id,
+    context_data['project_id']::number as project_id,
+    context_data['user_id']::varchar as pseudonymized_user_id,
+    context_data['source']::varchar as source
+from events_with_context_flattened
+where context_data_schema like 'iglu:com.gitlab/gitlab_standard/jsonschema/%'

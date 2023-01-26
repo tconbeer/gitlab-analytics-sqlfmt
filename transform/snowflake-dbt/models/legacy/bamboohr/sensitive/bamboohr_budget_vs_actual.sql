@@ -1,148 +1,145 @@
-WITH dates AS (
+with
+    dates as (select * from {{ ref("dim_date") }}),
+    promotions as (select * from {{ ref("bamboohr_promotions_xf") }}),
+    sheetload_people_budget as (select * from {{ ref("sheetload_people_budget") }}),
+    budget as (
 
-    SELECT *
-    FROM {{ ref('dim_date') }}
+        select
+            case
+                when division = 'Engineering_Meltano'
+                then 'Engineering/Meltano'
+                when division = 'People_CEO'
+                then 'People Group/CEO'
+                when division = 'Marketing'
+                then 'Marketing - Including SDR'
+                else division
+            end as division,
+            fiscal_year,
+            fiscal_quarter,
+            budget,
+            excess_from_previous_quarter,
+            annual_comp_review
+        from sheetload_people_budget
 
-), promotions AS (
+        union all
 
-    SELECT *
-    FROM {{ ref('bamboohr_promotions_xf') }}
+        select
+            'Total - Including SDR' as division,
+            fiscal_year,
+            fiscal_quarter,
+            sum(budget) as budget,
+            sum(excess_from_previous_quarter) as excess_from_previous_quarter,
+            sum(annual_comp_review) as annual_comp_review
+        from sheetload_people_budget
+        group by 1, 2, 3
 
-), sheetload_people_budget AS (
+        union all
 
-    SELECT *
-    FROM {{ ref('sheetload_people_budget') }}
-  
-), budget AS (
+        select
+            'Total - Excluding SDR' as division,
+            fiscal_year,
+            fiscal_quarter,
+            sum(budget) as budget,
+            sum(excess_from_previous_quarter) as excess_from_previous_quarter,
+            sum(annual_comp_review) as annual_comp_review
+        from sheetload_people_budget
+        where division != 'Sales Development'
+        group by 1, 2, 3
 
-    SELECT 
-      CASE WHEN division = 'Engineering_Meltano'
-            THEN 'Engineering/Meltano'
-           WHEN division ='People_CEO'
-            THEN 'People Group/CEO'
-           WHEN division = 'Marketing'
-            THEN 'Marketing - Including SDR'
-           ELSE division END                          AS division,
-      fiscal_year,
-      fiscal_quarter,
-      budget,
-      excess_from_previous_quarter,
-      annual_comp_review
-    FROM sheetload_people_budget
+    ),
+    promotions_aggregated as (
 
-    UNION ALL
+        select
+            division_grouping as division,
+            dates.fiscal_year,
+            dates.fiscal_quarter,
+            sum(total_change_in_comp) as total_spend
+        from promotions
+        left join dates on promotions.promotion_month = dates.date_actual
+        group by 1, 2, 3
 
-    SELECT 
-      'Total - Including SDR'                                   AS division,
-      fiscal_year,
-      fiscal_quarter, 
-      SUM(budget)                                               AS budget,
-      SUM(excess_from_previous_quarter)                         AS excess_from_previous_quarter,
-      SUM(annual_comp_review)                                   AS annual_comp_review
-    FROM sheetload_people_budget
-    GROUP BY 1,2,3
+        union all
 
-    UNION ALL
-    
-    SELECT 
-      'Total - Excluding SDR'                                   AS division,
-      fiscal_year,
-      fiscal_quarter, 
-      SUM(budget)                                               AS budget,
-      SUM(excess_from_previous_quarter)                         AS excess_from_previous_quarter,
-      SUM(annual_comp_review)                                   AS annual_comp_review
-    FROM sheetload_people_budget
-    WHERE division != 'Sales Development'
-    GROUP BY 1,2,3
+        select
+            'Marketing - Excluding SDR' as division,
+            dates.fiscal_year,
+            dates.fiscal_quarter,
+            sum(total_change_in_comp) as total_spend
+        from promotions
+        left join dates on promotions.promotion_month = dates.date_actual
+        where division = 'Marketing' and department != 'Sales Development'
+        group by 1, 2, 3
 
-), promotions_aggregated AS (
+        union all
 
-    SELECT
-      division_grouping                                         AS division,
-      dates.fiscal_year,
-      dates.fiscal_quarter,
-      SUM(total_change_in_comp)                                 AS total_spend
-    FROM promotions
-    LEFT JOIN dates
-      ON promotions.promotion_month = dates.date_actual
-    GROUP BY 1,2,3
+        select
+            'Sales Development' as division,
+            dates.fiscal_year,
+            dates.fiscal_quarter,
+            sum(total_change_in_comp) as total_spend
+        from promotions
+        left join dates on promotions.promotion_month = dates.date_actual
+        where division = 'Marketing' and department = 'Sales Development'
+        group by 1, 2, 3
 
-    UNION ALL
+        union all
 
-    SELECT
-      'Marketing - Excluding SDR'                               AS division,
-      dates.fiscal_year,
-      dates.fiscal_quarter,
-      SUM(total_change_in_comp)                                 AS total_spend
-    FROM promotions
-    LEFT JOIN dates
-      ON promotions.promotion_month = dates.date_actual
-    WHERE division = 'Marketing'
-      AND department != 'Sales Development'
-    GROUP BY 1,2,3
+        select
+            'Total - Including SDR' as division,
+            dates.fiscal_year,
+            dates.fiscal_quarter,
+            sum(total_change_in_comp) as total_spend
+        from promotions
+        left join dates on promotions.promotion_month = dates.date_actual
+        group by 1, 2, 3
 
-    UNION ALL
+        union all
 
-    SELECT
-      'Sales Development'                                       AS division,
-      dates.fiscal_year,
-      dates.fiscal_quarter,
-      SUM(total_change_in_comp)                                 AS total_spend
-    FROM promotions
-    LEFT JOIN dates
-      ON promotions.promotion_month = dates.date_actual
-    WHERE division = 'Marketing'
-      AND department = 'Sales Development'
-    GROUP BY 1,2,3
+        select
+            'Total - Excluding SDR' as division,
+            dates.fiscal_year,
+            dates.fiscal_quarter,
+            sum(total_change_in_comp) as total_spend
+        from promotions
+        left join dates on promotions.promotion_month = dates.date_actual
+        where department != 'Sales Development'
+        group by 1, 2, 3
 
-    UNION ALL 
+    ),
+    final as (
 
-    SELECT
-      'Total - Including SDR'                                  AS division,
-      dates.fiscal_year,
-      dates.fiscal_quarter,
-      SUM(total_change_in_comp)                                AS total_spend
-    FROM promotions
-    LEFT JOIN dates
-      ON promotions.promotion_month = dates.date_actual
-    GROUP BY 1,2,3
+        select
+            iff(
+                budget.fiscal_year = 2021,
+                'FY' || budget.fiscal_year || ' - Q' || budget.fiscal_quarter,
+                'FY' || budget.fiscal_year
+            ) as fiscal_quarter_name,
+            budget.fiscal_year,
+            budget.fiscal_quarter,
+            budget.division,
+            budget.budget,
+            budget.excess_from_previous_quarter,
+            coalesce(
+                promotions_aggregated_fy.total_spend, promotions_aggregated.total_spend
+            )
+            - budget.annual_comp_review as total_spend
+        from budget
+        left join
+            promotions_aggregated
+            on budget.division = promotions_aggregated.division
+            and budget.fiscal_year = promotions_aggregated.fiscal_year
+            and budget.fiscal_quarter = promotions_aggregated.fiscal_quarter
+            and budget.fiscal_year = 2021
+        left join
+            promotions_aggregated as promotions_aggregated_fy
+            on budget.division = promotions_aggregated_fy.division
+            and budget.fiscal_year = promotions_aggregated_fy.fiscal_year
+            and budget.fiscal_year
+            -- Prior to FY22 the budget was determined by quarter, and since then it
+            -- is based at fiscal year budget level
+            >= 2022
 
-    UNION ALL
+    )
 
-    SELECT
-      'Total - Excluding SDR'                                  AS division,
-      dates.fiscal_year,
-      dates.fiscal_quarter,
-      SUM(total_change_in_comp)                                AS total_spend
-    FROM promotions
-    LEFT JOIN dates
-      ON promotions.promotion_month = dates.date_actual
-    WHERE department != 'Sales Development'
-    GROUP BY 1,2,3
-  
-), final AS (
-
-    SELECT
-      IFF(budget.fiscal_year = 2021, 'FY' || budget.fiscal_year || ' - Q' || budget.fiscal_quarter, 'FY'||budget.fiscal_year) AS fiscal_quarter_name,
-      budget.fiscal_year,
-      budget.fiscal_quarter,
-      budget.division,
-      budget.budget,
-      budget.excess_from_previous_quarter,
-      COALESCE(promotions_aggregated_fy.total_spend, promotions_aggregated.total_spend) - budget.annual_comp_review AS total_spend
-    FROM budget
-    LEFT JOIN promotions_aggregated
-      ON budget.division = promotions_aggregated.division
-      AND budget.fiscal_year = promotions_aggregated.fiscal_year
-      AND budget.fiscal_quarter = promotions_aggregated.fiscal_quarter
-      AND budget.fiscal_year = 2021
-  LEFT JOIN promotions_aggregated AS promotions_aggregated_fy
-      ON budget.division = promotions_aggregated_fy.division
-      AND budget.fiscal_year = promotions_aggregated_fy.fiscal_year
-      AND budget.fiscal_year >= 2022 --Prior to FY22 the budget was determined by quarter, and since then it is based at fiscal year budget level
-
-)
-
-SELECT *,
-      1- (budget - total_spend)/budget AS percent_of_budget_remaining
-FROM final
+select *, 1 - (budget - total_spend) / budget as percent_of_budget_remaining
+from final

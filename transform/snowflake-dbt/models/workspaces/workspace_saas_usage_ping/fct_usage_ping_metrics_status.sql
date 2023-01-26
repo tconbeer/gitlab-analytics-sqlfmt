@@ -1,27 +1,28 @@
+{{
+    simple_cte(
+        [
+            ("saas_usage_ping_namespace", "saas_usage_ping_namespace"),
+            ("dim_date", "dim_date"),
+        ]
+    )
+}},
+transformed as (
 
-{{ simple_cte([
-    ('saas_usage_ping_namespace', 'saas_usage_ping_namespace'),
-    ('dim_date', 'dim_date')
-]) }}
+    select
+        ping_name,
+        ping_date,
+        ping_level,
+        iff(error = 'Success', true, false) as is_success,
+        count(distinct namespace_ultimate_parent_id) as namespace_with_value
+    from saas_usage_ping_namespace
+    group by 1, 2, 3, 4
 
-, transformed AS (
+),
+joined as (
 
-    SELECT 
-      ping_name,
-      ping_date,
-      ping_level,  
-      IFF(error = 'Success', TRUE, FALSE)          AS is_success,
-      COUNT(DISTINCT namespace_ultimate_parent_id) AS namespace_with_value
-    FROM saas_usage_ping_namespace
-    GROUP BY 1,2,3,4
-
-), joined AS (
-
-    SELECT transformed.*
-    FROM transformed
-    INNER JOIN dim_date ON ping_date = date_day
+    select transformed.* from transformed inner join dim_date on ping_date = date_day
 
 )
 
-SELECT *
-FROM joined
+select *
+from joined
