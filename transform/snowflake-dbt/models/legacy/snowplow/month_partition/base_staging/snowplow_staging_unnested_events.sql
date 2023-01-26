@@ -1,14 +1,6 @@
-{{config({
-    "unique_key":"event_id"
-  })
-}}
+{{ config({"unique_key": "event_id"}) }}
 
-WITH gitlab as (
+with gitlab as (select * from {{ ref("snowplow_gitlab_staging_events") }})
 
-    SELECT *
-    FROM {{ ref('snowplow_gitlab_staging_events') }}
-
-)
-
-SELECT *
-FROM gitlab
+select *
+from gitlab

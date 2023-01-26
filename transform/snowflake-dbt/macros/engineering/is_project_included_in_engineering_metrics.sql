@@ -1,19 +1,19 @@
 {% macro is_project_included_in_engineering_metrics() %}
 
-    {%- call statement('get_project_ids', fetch_result=True) %}
+{%- call statement("get_project_ids", fetch_result=True) %}
 
-        SELECT distinct project_id
-        FROM {{ref('engineering_productivity_metrics_projects_to_include')}}
-        WHERE project_id IS NOT NULL
+select distinct project_id
+from {{ ref("engineering_productivity_metrics_projects_to_include") }}
+where project_id is not null
 
-    {%- endcall -%}
+{%- endcall -%}
 
-    {%- set value_list = load_result('get_project_ids') -%}
+{%- set value_list = load_result("get_project_ids") -%}
 
-    {%- if value_list and value_list['data'] -%}
-      {%- set values = value_list['data'] | map(attribute=0) | join(', ') %}
-    {%- endif -%}
+{%- if value_list and value_list["data"] -%}
+{%- set values = value_list["data"] | map(attribute=0) | join(", ") %}
+{%- endif -%}
 
-    {{ return(values) }}
+{{ return(values) }}
 
- {% endmacro %}
+{% endmacro %}
