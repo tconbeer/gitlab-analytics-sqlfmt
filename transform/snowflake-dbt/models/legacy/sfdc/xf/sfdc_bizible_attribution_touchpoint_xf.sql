@@ -11,8 +11,7 @@ with
             date_trunc('month', opps.close_date) as close_month,
             touches.*,
             case
-                -- Specific touchpoint overrides
-                when touchpoint_id ilike 'a6061000000CeS0%'
+                when touchpoint_id ilike 'a6061000000CeS0%'  -- Specific touchpoint overrides
                 then 'Field Event'
                 when bizible_marketing_channel_path = 'CPC.AdWords'
                 then 'Google AdWords'

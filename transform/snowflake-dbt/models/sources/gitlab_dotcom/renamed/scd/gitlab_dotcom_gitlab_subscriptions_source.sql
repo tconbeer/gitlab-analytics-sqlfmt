@@ -23,8 +23,7 @@ with
 
         from distinct_source
         where
-            -- This ID has NULL values for many of the important columns. 
-            gitlab_subscription_id != 572635
+            gitlab_subscription_id != 572635  -- This ID has NULL values for many of the important columns. 
             and namespace_id is not null
 
     )

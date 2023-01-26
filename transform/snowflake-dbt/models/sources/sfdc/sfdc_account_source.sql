@@ -69,8 +69,7 @@ with
             first_order_available__c::boolean as is_first_order_available,
             replace(
                 zi_technologies__c,
-                -- noqa:L016
-                'The technologies that are used and not used at this account, according to ZoomInfo, after completing a scan are:',
+                'The technologies that are used and not used at this account, according to ZoomInfo, after completing a scan are:',  -- noqa:L016
                 ''
             ) as zi_technologies,
             technical_account_manager_date__c::date as technical_account_manager_date,

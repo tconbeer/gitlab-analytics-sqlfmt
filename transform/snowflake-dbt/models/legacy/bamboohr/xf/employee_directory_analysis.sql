@@ -23,8 +23,7 @@ with
             full_name,
             work_email,
             gitlab_username,
-            -- the below case when statement is also used in bamboohr_job_info;
-            job_title,
+            job_title,  -- the below case when statement is also used in bamboohr_job_info;
             case
                 when division = 'Alliances'
                 then 'Alliances'

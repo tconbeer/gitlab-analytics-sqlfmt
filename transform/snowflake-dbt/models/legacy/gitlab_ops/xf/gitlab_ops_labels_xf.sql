@@ -12,8 +12,7 @@ with
             label_id,
 
             case
-                -- AND namespace_id NOT IN (SELECT * FROM internal_namespaces) 
-                when projects.visibility_level != 'public'
+                when projects.visibility_level != 'public'  -- AND namespace_id NOT IN (SELECT * FROM internal_namespaces) 
                 then 'content masked'
                 else label_title
             end as masked_label_title,

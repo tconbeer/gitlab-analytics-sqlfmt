@@ -22,8 +22,7 @@ with
         from {{ ref("dim_date") }}
         where
             (
-                -- last day we captured before transitioning to new report
-                last_day_of_month < '2020-05-20'
+                last_day_of_month < '2020-05-20'  -- last day we captured before transitioning to new report
                 or last_day_of_month >= '2020-10-31'
             )  -- started capturing again from new report
             and last_day_of_month <= current_date()

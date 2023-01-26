@@ -40,8 +40,7 @@ namespaces as (
 recursive_namespaces(namespace_id, parent_id, upstream_lineage) as (
 
     -- Select all namespaces without parents
-    -- Initiate lineage array
-    select namespace_id, parent_id, to_array(namespace_id) as upstream_lineage
+    select namespace_id, parent_id, to_array(namespace_id) as upstream_lineage  -- Initiate lineage array
     from namespaces
     where parent_id is null
 
@@ -51,8 +50,7 @@ recursive_namespaces(namespace_id, parent_id, upstream_lineage) as (
     select
         iter.namespace_id,
         iter.parent_id,
-        -- Copy the lineage array of parent, append self to end
-        array_append(anchor.upstream_lineage, iter.namespace_id) as upstream_lineage
+        array_append(anchor.upstream_lineage, iter.namespace_id) as upstream_lineage  -- Copy the lineage array of parent, append self to end
     from recursive_namespaces as anchor  -- Parent namespace
     inner join
         namespaces as iter  -- Child namespace
@@ -89,12 +87,8 @@ with_plans as (
         iff(
             ultimate_parent_gitlab_subscriptions.is_trial
             and ifnull(ultimate_parent_gitlab_subscriptions.plan_id, 34)
-            -- Excluded Premium (103) and Free (34) Trials from being remapped as
-            -- Ultimate Trials
-            not in (34, 103),
-            -- All historical trial GitLab subscriptions were Ultimate/Gold Trials
-            -- (102)
-            102,
+            not in (34, 103),  -- Excluded Premium (103) and Free (34) Trials from being remapped as Ultimate Trials
+            102,  -- All historical trial GitLab subscriptions were Ultimate/Gold Trials (102)
             ifnull(ultimate_parent_plans.plan_id, 34)
         ) as ultimate_parent_plan_id,
         iff(

@@ -25,8 +25,7 @@ epic_extended as (
     from epic
     inner join
         map_namespace_lineage on epic.group_id = map_namespace_lineage.dim_namespace_id
-    -- Gitlab-org group namespace id
-    where map_namespace_lineage.dim_namespace_ultimate_parent_id = 9970
+    where map_namespace_lineage.dim_namespace_ultimate_parent_id = 9970  -- Gitlab-org group namespace id
 
 ),
 gitlab_epic_description_parsing as (

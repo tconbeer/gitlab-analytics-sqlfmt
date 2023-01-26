@@ -36,14 +36,10 @@ with
             subscription.dim_crm_account_id,
             iff(
                 license.dim_subscription_id is not null, true, false
-            -- does the license table have a value in both license_id and
-            -- subscription_id
-            ) as is_license_mapped_to_subscription,
+            ) as is_license_mapped_to_subscription,  -- does the license table have a value in both license_id and subscription_id
             iff(
                 subscription.dim_subscription_id is null, false, true
-            -- is the subscription_id in the license table valid (does it exist in the
-            -- dim_subscription table?)
-            ) as is_license_subscription_id_valid
+            ) as is_license_subscription_id_valid  -- is the subscription_id in the license table valid (does it exist in the dim_subscription table?)
         from license
         left join
             subscription

@@ -907,10 +907,8 @@ with
             on churn_metrics.opportunity_id = sfdc_opportunity_xf.opportunity_id
 
         where
-            -- remove test account
-            sfdc_accounts_xf.ultimate_parent_account_id not in ('0016100001YUkWVAA1')
-            -- remove test account
-            and sfdc_opportunity_xf.account_id not in ('0014M00001kGcORQA0')
+            sfdc_accounts_xf.ultimate_parent_account_id not in ('0016100001YUkWVAA1')  -- remove test account
+            and sfdc_opportunity_xf.account_id not in ('0014M00001kGcORQA0')  -- remove test account
             and sfdc_opportunity_xf.is_deleted = 0
 
     ),
@@ -942,14 +940,12 @@ with
                     coalesce(oppty_final.incremental_acv, 0)
                     * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
                 when
-                    -- CLOSED LOST DEAL and no Net IACV
-                    oppty_final.stage_name in ('8-Closed Lost')
+                    oppty_final.stage_name in ('8-Closed Lost')  -- CLOSED LOST DEAL and no Net IACV
                     and coalesce(oppty_final.net_incremental_acv, 0) = 0
                 then
                     coalesce(oppty_final.incremental_acv, 0)
                     * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
-                -- REST of CLOSED DEAL
-                when oppty_final.stage_name in ('8-Closed Lost', 'Closed Won')
+                when oppty_final.stage_name in ('8-Closed Lost', 'Closed Won')  -- REST of CLOSED DEAL
                 then
                     coalesce(oppty_final.net_incremental_acv, 0)
                     * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
@@ -963,8 +959,7 @@ with
                     oppty_final.close_date < '2018-02-01'::date
                     and coalesce(oppty_final.raw_net_arr, 0) = 0
                 then calculated_from_ratio_net_arr
-                -- Rest of deals after cut off date
-                else coalesce(oppty_final.raw_net_arr, 0)
+                else coalesce(oppty_final.raw_net_arr, 0)  -- Rest of deals after cut off date
             end as net_arr,
 
             -- -------------------------------------------------------------------------------------------

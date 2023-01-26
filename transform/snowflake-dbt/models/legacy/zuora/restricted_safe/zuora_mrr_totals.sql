@@ -26,9 +26,7 @@ with
         from base_mrr
 
     ),
-    -- one row per sub slug for counting x product_category x mrr_month combo, with
-    -- first of other values
-    uniqueified as (
+    uniqueified as (  -- one row per sub slug for counting x product_category x mrr_month combo, with first of other values
 
         select
             {{

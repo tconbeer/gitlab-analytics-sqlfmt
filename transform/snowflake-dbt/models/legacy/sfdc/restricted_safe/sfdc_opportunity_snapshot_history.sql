@@ -65,8 +65,7 @@ with
 
             -- opportunity information
             acv_2__c as acv,
-            -- so that you can exclude closed deals that had negative impact
-            iff(acv_2__c >= 0, 1, 0) as closed_deals,
+            iff(acv_2__c >= 0, 1, 0) as closed_deals,  -- so that you can exclude closed deals that had negative impact
             competitors__c as competitors,
             critical_deal_flag__c as critical_deal_flag,
             {{ sfdc_deal_size("incremental_acv_2__c", "deal_size") }},

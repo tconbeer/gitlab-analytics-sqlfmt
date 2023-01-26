@@ -1,7 +1,6 @@
 with
     mart_user_request as (select * from {{ ref("mart_user_request") }}),
-    -- First we summarise at the issue/epic - crm_account grain
-    issue_account_summary as (
+    issue_account_summary as (  -- First we summarise at the issue/epic - crm_account grain
 
         select
             dim_issue_id,

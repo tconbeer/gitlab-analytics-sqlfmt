@@ -21,8 +21,7 @@ with
         from invoices
         left join zuora_account on invoices.account_id = zuora_account.account_id
         left join
-            -- 60 day window before and after the invoice date.
-            invoices as before_and_after
+            invoices as before_and_after  -- 60 day window before and after the invoice date.
             on invoices.account_id = before_and_after.account_id
             and before_and_after.invoice_date
             between dateadd('days', -60, invoices.invoice_date) and dateadd(

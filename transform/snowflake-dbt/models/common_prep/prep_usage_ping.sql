@@ -43,8 +43,7 @@ with
             split_part(cleaned_version, '.', 2)::number as minor_version,
             major_version || '.' || minor_version as major_minor_version
         from source
-        -- Messy data that's not worth parsing
-        where uuid is not null and version not like ('%VERSION%')
+        where uuid is not null and version not like ('%VERSION%')  -- Messy data that's not worth parsing
 
     ),
     joined as (

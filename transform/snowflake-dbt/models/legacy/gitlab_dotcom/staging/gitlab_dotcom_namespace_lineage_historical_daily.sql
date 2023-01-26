@@ -53,12 +53,8 @@ with_plans as (
         ) as namespace_is_internal,
         iff(
             namespace_subscription_snapshots.is_trial
-            -- Excluded Premium (103) and Free (34) Trials from being remapped as
-            -- Ultimate Trials
-            and ifnull(namespace_subscription_snapshots.plan_id, 34) not in (34, 103),
-            -- All historical trial GitLab subscriptions were Ultimate/Gold Trials
-            -- (102)
-            102,
+            and ifnull(namespace_subscription_snapshots.plan_id, 34) not in (34, 103),  -- Excluded Premium (103) and Free (34) Trials from being remapped as Ultimate Trials
+            102,  -- All historical trial GitLab subscriptions were Ultimate/Gold Trials (102)
             ifnull(namespace_subscription_snapshots.plan_id, 34)
         ) as ultimate_parent_plan_id,
         namespace_subscription_snapshots.seats,

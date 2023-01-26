@@ -8,8 +8,7 @@ with
     ),
     filtered as (
 
-        -- Transactions Issue Type
-        select * from zendesk_custom_fields where ticket_custom_field_id = 360020421853
+        select * from zendesk_custom_fields where ticket_custom_field_id = 360020421853  -- Transactions Issue Type
 
     )
 

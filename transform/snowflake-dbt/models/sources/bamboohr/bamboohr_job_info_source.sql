@@ -32,8 +32,7 @@ with
         select
             employee_id,
             valid_from_date,
-            -- -adding a day to capture termination date
-            dateadd(day, 1, valid_from_date) as valid_to_date
+            dateadd(day, 1, valid_from_date) as valid_to_date  -- -adding a day to capture termination date
         from {{ ref("bamboohr_employment_status_xf") }}
         where employment_status = 'Terminated'
 
@@ -49,9 +48,7 @@ with
             job_id,
             renamed.employee_id,
             job_title,
-            -- the below case when statement is also used in
-            -- employee_directory_analysis until we upgrade to 0.14.0 of dbt
-            renamed.effective_date,
+            renamed.effective_date,  -- the below case when statement is also used in employee_directory_analysis until we upgrade to 0.14.0 of dbt
             case
                 when division = 'Alliances'
                 then 'Alliances'
@@ -103,9 +100,7 @@ with
             cleaned.division,
             cleaned.entity,
             cleaned.reports_to,
-            -- - This will only appear for records prior to 2020-02-28 -- after this
-            -- data populates in bamboohr_job_role
-            sheetload_job_roles.job_role
+            sheetload_job_roles.job_role  -- - This will only appear for records prior to 2020-02-28 -- after this data populates in bamboohr_job_role
         from cleaned
         left join
             sheetload_job_roles on sheetload_job_roles.job_title = cleaned.job_title

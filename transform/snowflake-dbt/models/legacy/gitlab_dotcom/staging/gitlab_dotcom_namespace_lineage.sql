@@ -27,8 +27,7 @@ with recursive
             iter.parent_id,
             array_insert(
                 anchor.upstream_lineage, 0, iter.namespace_id
-            -- Copy the lineage array of parent, inserting self at start
-            ) as upstream_lineage
+            ) as upstream_lineage  -- Copy the lineage array of parent, inserting self at start
         from recursive_namespaces as anchor  -- Parent namespace
         inner join
             namespaces as iter  -- Child namespace

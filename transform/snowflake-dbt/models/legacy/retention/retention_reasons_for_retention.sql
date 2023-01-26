@@ -55,9 +55,7 @@ with
         from raw_mrr_totals_levelled {{ dbt_utils.group_by(n=10) }}
 
     ),
-    -- get all the subscription + their lineage + the month we're looking for MRR for
-    -- (12 month in the future)
-    list as (
+    list as (  -- get all the subscription + their lineage + the month we're looking for MRR for (12 month in the future)
 
         select
             subscription_name_slugify as original_sub,
@@ -70,9 +68,7 @@ with
             {{ dbt_utils.group_by(n=4) }}
 
     ),
-    -- find which of those subscriptions are real and group them by their sub you're
-    -- comparing to.
-    retention_subs as (
+    retention_subs as (  -- find which of those subscriptions are real and group them by their sub you're comparing to.
 
         select
             list.original_sub,
@@ -209,8 +205,7 @@ with
         select
             subscription_name as zuora_subscription_name,
             oldest_subscription_in_cohort as zuora_subscription_id,
-            -- THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
-            dateadd('year', 1, mrr_month) as retention_month,
+            dateadd('year', 1, mrr_month) as retention_month,  -- THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
             retention_type,
             retention_reason,
             plan_change,
@@ -233,8 +228,7 @@ with
         select
             subscription_name as zuora_subscription_name,
             oldest_subscription_in_cohort as zuora_subscription_id,
-            -- THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
-            dateadd('year', 1, mrr_month) as retention_month,
+            dateadd('year', 1, mrr_month) as retention_month,  -- THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
             retention_type,
             retention_reason,
             plan_change,

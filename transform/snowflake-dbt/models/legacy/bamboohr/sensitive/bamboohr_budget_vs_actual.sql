@@ -134,9 +134,7 @@ with
             promotions_aggregated as promotions_aggregated_fy
             on budget.division = promotions_aggregated_fy.division
             and budget.fiscal_year = promotions_aggregated_fy.fiscal_year
-            -- Prior to FY22 the budget was determined by quarter, and since then it
-            -- is based at fiscal year budget level
-            and budget.fiscal_year >= 2022
+            and budget.fiscal_year >= 2022  -- Prior to FY22 the budget was determined by quarter, and since then it is based at fiscal year budget level
 
     )
 

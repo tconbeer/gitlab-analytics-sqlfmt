@@ -62,10 +62,8 @@ with
         from {{ ref("zuora_rate_plan_charge_snapshots_source") }}
         where
             charge_type = 'Recurring'
-            /* This excludes Education customers (charge name EDU or OSS) with free subscriptions */
-            and mrr != 0
-            /* Only include charges that have effective dates in 2 or more months. This aligns to the ARR calc used in mart_arr */
-            and effective_end_month > effective_start_month
+            and mrr != 0  /* This excludes Education customers (charge name EDU or OSS) with free subscriptions */
+            and effective_end_month > effective_start_month  /* Only include charges that have effective dates in 2 or more months. This aligns to the ARR calc used in mart_arr */
 
     ),
     zuora_rate_plan_charge_spined as (

@@ -16,8 +16,7 @@ with
             quantity,
             unit_of_measure
         from {{ ref("prep_recurring_charge_central_sandbox") }}
-        /* This excludes Education customers (charge name EDU or OSS) with free subscriptions */
-        where mrr != 0
+        where mrr != 0  /* This excludes Education customers (charge name EDU or OSS) with free subscriptions */
     )
 
     {{

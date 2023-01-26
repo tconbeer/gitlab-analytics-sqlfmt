@@ -147,9 +147,7 @@ with
             row_number() over (
                 partition by full_name, email, plan_title order by state asc
             )
-            -- If user combination plan is active in one of the systems and inactive
-            -- in another one, only consider where active
-            = 1
+            = 1  -- If user combination plan is active in one of the systems and inactive in another one, only consider where active
 
     )
 

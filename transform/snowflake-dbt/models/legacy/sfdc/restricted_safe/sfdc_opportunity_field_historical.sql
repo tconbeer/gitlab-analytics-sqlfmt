@@ -61,8 +61,7 @@ with
             field_history.opportunity_id,
             field_modified_at as valid_to,
             opportunity_field,
-            -- retain record of fields that transitioned from NULL to another state
-            coalesce(old_value, 'true null') as old_value
+            coalesce(old_value, 'true null') as old_value  -- retain record of fields that transitioned from NULL to another state
         from {{ ref("sfdc_opportunity_field_history") }} field_history
         inner join
             first_snapshot

@@ -40,8 +40,7 @@ with
             group_group_links.group_group_link_id,
             group_group_links.shared_with_group_id,  -- the "guest" group
             group_group_links.group_access,
-            -- all parent namespaces for the "guest" group
-            namespace_lineage.upstream_lineage as base_and_ancestors
+            namespace_lineage.upstream_lineage as base_and_ancestors  -- all parent namespaces for the "guest" group
         from group_group_links
         inner join
             namespace_lineage
@@ -51,13 +50,11 @@ with
     project_group_links_lineage as (
 
         select
-            -- the "host" group the project directly belongs to
-            projects.namespace_id as shared_group_id,
+            projects.namespace_id as shared_group_id,  -- the "host" group the project directly belongs to
             project_group_links.project_group_link_id,
             project_group_links.group_id as shared_with_group_id,  -- the "guest" group
             project_group_links.group_access,
-            -- all parent namespaces for the "guest" group
-            namespace_lineage.upstream_lineage as base_and_ancestors
+            namespace_lineage.upstream_lineage as base_and_ancestors  -- all parent namespaces for the "guest" group
         from project_group_links
         inner join projects on project_group_links.project_id = projects.project_id
         inner join
@@ -67,8 +64,7 @@ with
     ),
     group_group_links_flattened as (
 
-        -- creates one row for each "guest" group and its parent namespaces
-        select group_group_links_lineage.*, f.value as shared_with_group_lineage
+        select group_group_links_lineage.*, f.value as shared_with_group_lineage  -- creates one row for each "guest" group and its parent namespaces
         from
             group_group_links_lineage,
             table(flatten(group_group_links_lineage.base_and_ancestors)) f
@@ -76,8 +72,7 @@ with
     ),
     project_group_links_flattened as (
 
-        -- creates one row for each "guest" group and its parent namespaces
-        select project_group_links_lineage.*, f.value as shared_with_group_lineage
+        select project_group_links_lineage.*, f.value as shared_with_group_lineage  -- creates one row for each "guest" group and its parent namespaces
         from
             project_group_links_lineage,
             table(flatten(project_group_links_lineage.base_and_ancestors)) f
@@ -145,8 +140,7 @@ with
                 shared_with_group_lineage = shared_with_group_id,
                 'group_group_link',
                 'group_group_link_ancestor'
-            -- differentiate "guest" group from its parent namespaces
-            ) as membership_source_type,
+            ) as membership_source_type,  -- differentiate "guest" group from its parent namespaces
             group_group_link_id as membership_source_id,
             access_level,
             group_access,
@@ -162,8 +156,7 @@ with
                 shared_with_group_lineage = shared_with_group_id,
                 'project_group_link',
                 'project_group_link_ancestor'
-            -- differentiate "guest" group from its parent namespaces
-            ) as membership_source_type,
+            ) as membership_source_type,  -- differentiate "guest" group from its parent namespaces
             project_group_link_id as membership_source_id,
             access_level,
             group_access,
@@ -214,8 +207,7 @@ with
             user_id,
             user_state,
             user_type,
-            -- exclude any user with guest access
-            iff(access_level = 10 or group_access = 10, true, false) as is_guest,
+            iff(access_level = 10 or group_access = 10, true, false) as is_guest,  -- exclude any user with guest access
             iff(
                 user_state = 'active'
                 and (user_type != 6 or user_type is null)

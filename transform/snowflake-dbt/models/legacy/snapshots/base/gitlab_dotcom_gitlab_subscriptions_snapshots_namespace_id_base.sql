@@ -12,8 +12,7 @@ with
                     "gitlab_dotcom_gitlab_subscriptions_namespace_id_snapshots",
                 )
             }}
-        -- This ID has NULL values for many of the important columns.
-        where id != 572635
+        where id != 572635  -- This ID has NULL values for many of the important columns.
 
     ),
     renamed as (

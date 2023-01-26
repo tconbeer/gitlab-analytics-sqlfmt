@@ -18,8 +18,7 @@ with
 
         select
             jsontext['added_lines']::number as added_lines,
-            -- this occasionally has `+` - ie `374+`
-            jsontext['real_size']::varchar as real_size,
+            jsontext['real_size']::varchar as real_size,  -- this occasionally has `+` - ie `374+`
             jsontext['removed_lines']::number as removed_lines,
             jsontext['plain_diff_path']::varchar as plain_diff_url_path,
             jsontext['merge_request_diff']['created_at']::timestamp

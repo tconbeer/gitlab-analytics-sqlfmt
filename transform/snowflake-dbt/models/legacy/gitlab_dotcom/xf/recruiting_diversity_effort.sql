@@ -1,8 +1,7 @@
 with
     issues as (
 
-        -- Recruiting for Open Positions
-        select * from {{ ref("gitlab_dotcom_issues_xf") }} where project_id = 16492321
+        select * from {{ ref("gitlab_dotcom_issues_xf") }} where project_id = 16492321  -- Recruiting for Open Positions
 
     ),
     users as (select * from {{ ref("gitlab_dotcom_users") }}),

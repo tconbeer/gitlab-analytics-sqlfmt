@@ -115,38 +115,26 @@ with
                     then 1
                     else 0
                 end
-            -- added 3 months before counting active subscriptions as cancelled per
-            -- Israel's feedback
-            ) as cancelled_subs
+            ) as cancelled_subs  -- added 3 months before counting active subscriptions as cancelled per Israel's feedback
         from mart_arr_snapshot_bottom_up
         -- Contains true-up snapshots for every date from 2020-03-01 to Present.
         -- MART_ARR_SNAPSHOT_MODEL contained non-true-up data but contains misisng
         -- data prior to 2021-06
         where
-            -- limit to snapshot to day before our prediction window
-            snapshot_date = '{{ end_date }}'
-            -- limit data for just the month the '{{ end_date }}' falls in. arr_month
-            -- is unique at the dim_crm_account_id & snapshot_date level
-            and arr_month = date_trunc('MONTH', cast('{{ end_date }}' as date))
-            -- Remove Chinese accounts like this per feedback from Melia and Israel
-            and is_jihu_account != 'TRUE'
-            -- filter to just active subscriptions per feedback by Melia
-            and subscription_end_date >= '{{ end_date }}'
-        -- dim_crm_account_id is not unique at each snapshot date, hence the group by
-        group by dim_crm_account_id
+            snapshot_date = '{{ end_date }}'  -- limit to snapshot to day before our prediction window
+            and arr_month = date_trunc('MONTH', cast('{{ end_date }}' as date))  -- limit data for just the month the '{{ end_date }}' falls in. arr_month is unique at the dim_crm_account_id & snapshot_date level
+            and is_jihu_account != 'TRUE'  -- Remove Chinese accounts like this per feedback from Melia and Israel
+            and subscription_end_date >= '{{ end_date }}'  -- filter to just active subscriptions per feedback by Melia
+        group by dim_crm_account_id  -- dim_crm_account_id is not unique at each snapshot date, hence the group by
 
     ),
     target as (
 
-        -- Provides the maximum ARR that account reached during our prediction window. 
-        select dim_crm_account_id, max(sum_arr) as future_arr
-        -- For accounts with multiple subscriptions we first have to sum their ARR to
-        -- the arr_month level
-        from
+        select dim_crm_account_id, max(sum_arr) as future_arr  -- Provides the maximum ARR that account reached during our prediction window. 
+        from  -- For accounts with multiple subscriptions we first have to sum their ARR to the arr_month level
             (
                 select dim_crm_account_id, arr_month, sum(arr) as sum_arr
-                -- Contains Snapshot for every date from 2020-03-01 to Present
-                from prod.restricted_safe_common_mart_sales.mart_arr_snapshot_bottom_up
+                from prod.restricted_safe_common_mart_sales.mart_arr_snapshot_bottom_up  -- Contains Snapshot for every date from 2020-03-01 to Present
                 where
                     snapshot_date = '{{ prediction_date }}'
                     and arr_month > '{{ end_date }}'
@@ -212,21 +200,15 @@ with
                     then 1
                     else 0
                 end
-            -- added 3 months before counting active subscriptions as cancelled per
-            -- Israel's feedback
-            ) as cancelled_subs_prev
+            ) as cancelled_subs_prev  -- added 3 months before counting active subscriptions as cancelled per Israel's feedback
         from mart_arr_snapshot_bottom_up
         where
-            -- limit to snapshot to day before our prediction window
-            snapshot_date = '{{ end_date }}'
+            snapshot_date = '{{ end_date }}'  -- limit to snapshot to day before our prediction window
             and arr_month = date_trunc(
                 'MONTH',
                 dateadd('{{ period_type }}', -365, cast('{{ end_date }}' as date))
-            -- limit to customer's data for just the PERIOD prior to where the '{{
-            -- end_date }}' falls
-            )
-            -- Remove Chinese accounts like this per feedback from Melia and Israel
-            and is_jihu_account != 'TRUE'
+            )  -- limit to customer's data for just the PERIOD prior to where the '{{ end_date }}' falls
+            and is_jihu_account != 'TRUE'  -- Remove Chinese accounts like this per feedback from Melia and Israel
         group by dim_crm_account_id
 
     -- Any metrics you would want to calculate the require multiple ARR_MONTHS. Could
@@ -459,8 +441,7 @@ with
         from {{ ref("wk_sales_sfdc_opportunity_snapshot_history_xf") }}
         where
             snapshot_date = '{{ end_date }}'
-            -- filter as requested by Noel
-            and opportunity_category in ('Standard', 'Decommissioned', 'Ramp Deal')
+            and opportunity_category in ('Standard', 'Decommissioned', 'Ramp Deal')  -- filter as requested by Noel
             and created_date between dateadd(
                 '{{ period_type }}', - '{{ delta_value }}', '{{ end_date }}'
             ) and '{{ end_date }}'
@@ -493,9 +474,7 @@ with
         where
             created_at between dateadd(
                 '{{ period_type }}', - '{{ delta_value }}', '{{ end_date }}'
-            -- filter PERIOD window. Because no histroic event table, going off
-            -- createddate
-            ) and '{{ end_date }}'
+            ) and '{{ end_date }}'  -- filter PERIOD window. Because no histroic event table, going off createddate
         group by account_id
 
     ),
@@ -519,9 +498,7 @@ with
         where
             createddate between dateadd(
                 '{{ period_type }}', - '{{ delta_value }}', '{{ end_date }}'
-            -- filter PERIOD window. Because no histroic task table, going on
-            -- createddate
-            ) and '{{ end_date }}'
+            ) and '{{ end_date }}'  -- filter PERIOD window. Because no histroic task table, going on createddate
         group by account_id
 
     ),
@@ -654,11 +631,8 @@ with
                 end
             ) as zi_kubernetes_flag
         from {{ source("snapshots", "sfdc_account_snapshots") }}
-        -- Cast from datetime to date
-        where cast(dbt_updated_at as date) = '{{ end_date }}'
-        -- snapshots occur multiple times a day so data is not unique at the acccount
-        -- + dbt_updated_at level.
-        group by account_id
+        where cast(dbt_updated_at as date) = '{{ end_date }}'  -- Cast from datetime to date
+        group by account_id  -- snapshots occur multiple times a day so data is not unique at the acccount + dbt_updated_at level.
 
     ),
     bizible as (

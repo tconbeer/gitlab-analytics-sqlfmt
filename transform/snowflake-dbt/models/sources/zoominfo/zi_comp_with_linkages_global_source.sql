@@ -132,8 +132,7 @@ with
             nullif(
                 zi_c_company_revenue_range::varchar, ''
             ) as headquarters_revenue_range,
-            -- convert from thousand
-            zi_c_company_revenue::number * 1000 as headquarters_revenue,
+            zi_c_company_revenue::number * 1000 as headquarters_revenue,  -- convert from thousand
             nullif(zi_c_company_phone::varchar, '') as headquarters_company_phone,
             nullif(zi_c_company_fax::varchar, '') as headquarters_company_fax,
             nullif(zi_c_linkedin_url::varchar, '') as linkedin_url,

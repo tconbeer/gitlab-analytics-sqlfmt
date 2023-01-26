@@ -17,8 +17,7 @@ with
         where
             date_day <= last_day(current_date)
             and day_of_month = 1
-            -- min employment_status_date in bamboohr_employment_status model
-            and date_actual >= '2013-07-01'
+            and date_actual >= '2013-07-01'  -- min employment_status_date in bamboohr_employment_status model
 
     ),
     mapping as (

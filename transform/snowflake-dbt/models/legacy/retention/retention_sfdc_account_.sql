@@ -7,9 +7,7 @@ with
         where level_ = 'sfdc_account_id'
 
     ),
-    -- get all the subscription + their lineage + the month we're looking for MRR for
-    -- (12 month in the future)
-    list as (
+    list as (  -- get all the subscription + their lineage + the month we're looking for MRR for (12 month in the future)
 
         select
             dim_crm_account_id as sfdc_account_id,
@@ -20,9 +18,7 @@ with
         group by 1, 2, 3
 
     ),
-    -- find which of those subscriptions are real and group them by their sub you're
-    -- comparing to.
-    retention_subs as (
+    retention_subs as (  -- find which of those subscriptions are real and group them by their sub you're comparing to.
 
         select
             list.sfdc_account_id,
@@ -61,8 +57,7 @@ with
             finals.sfdc_account_id,
             finals.sfdc_account_id as salesforce_account_id,
             crm_account_name as sfdc_account_name,
-            -- THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
-            dateadd('year', 1, finals.original_mrr_month) as retention_month,
+            dateadd('year', 1, finals.original_mrr_month) as retention_month,  -- THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
             original_mrr,
             net_retention_mrr,
             gross_retention_mrr,

@@ -41,9 +41,7 @@ with
 
     experiment_contexts as (
 
-        -- Some event_id are not unique dispite haveing the same experiment context as
-        -- discussed in MR 6288
-        select distinct
+        select distinct  -- Some event_id are not unique dispite haveing the same experiment context as discussed in MR 6288
             event_id,
             context_data['experiment']::varchar as experiment_name,
             context_data['key']::varchar as context_key,

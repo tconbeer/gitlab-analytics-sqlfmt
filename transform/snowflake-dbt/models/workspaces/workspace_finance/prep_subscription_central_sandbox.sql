@@ -45,9 +45,7 @@ with
             zuora_central_sandbox_subscription.eoa_starter_bronze_offer_accepted,
             iff(
                 zuora_central_sandbox_subscription.created_by_id
-                -- All Self-Service / Web direct subscriptions are identified by that
-                -- created_by_id
-                = '2c92a0fd55822b4d015593ac264767f2',
+                = '2c92a0fd55822b4d015593ac264767f2',  -- All Self-Service / Web direct subscriptions are identified by that created_by_id
                 'Self-Service',
                 'Sales-Assisted'
             ) as subscription_sales_type,

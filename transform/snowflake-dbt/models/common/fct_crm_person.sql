@@ -158,8 +158,7 @@ with
             -- common dimension keys
             crm_person.dim_crm_user_id as dim_crm_user_id,
             crm_person.dim_crm_account_id as dim_crm_account_id,
-            -- dim_parent_crm_account_id
-            account_dims_mapping.dim_parent_crm_account_id,
+            account_dims_mapping.dim_parent_crm_account_id,  -- dim_parent_crm_account_id
             coalesce(
                 account_dims_mapping.dim_account_sales_segment_id,
                 sales_segment.dim_sales_segment_id
@@ -171,19 +170,13 @@ with
             coalesce(
                 account_dims_mapping.dim_account_industry_id, industry.dim_industry_id
             ) as dim_account_industry_id,
-            -- dim_account_location_country_id
-            account_dims_mapping.dim_account_location_country_id,
-            -- dim_account_location_region_id
-            account_dims_mapping.dim_account_location_region_id,
-            -- dim_parent_sales_segment_id
-            account_dims_mapping.dim_parent_sales_segment_id,
-            -- dim_parent_sales_territory_id
-            account_dims_mapping.dim_parent_sales_territory_id,
+            account_dims_mapping.dim_account_location_country_id,  -- dim_account_location_country_id
+            account_dims_mapping.dim_account_location_region_id,  -- dim_account_location_region_id
+            account_dims_mapping.dim_parent_sales_segment_id,  -- dim_parent_sales_segment_id
+            account_dims_mapping.dim_parent_sales_territory_id,  -- dim_parent_sales_territory_id
             account_dims_mapping.dim_parent_industry_id,  -- dim_parent_industry_id
-            -- dim_parent_location_country_id
-            account_dims_mapping.dim_parent_location_country_id,
-            -- dim_parent_location_region_id
-            account_dims_mapping.dim_parent_location_region_id,
+            account_dims_mapping.dim_parent_location_country_id,  -- dim_parent_location_country_id
+            account_dims_mapping.dim_parent_location_region_id,  -- dim_parent_location_region_id
             {{
                 get_keyed_nulls(
                     "bizible_marketing_channel_path.dim_bizible_marketing_channel_path_id"

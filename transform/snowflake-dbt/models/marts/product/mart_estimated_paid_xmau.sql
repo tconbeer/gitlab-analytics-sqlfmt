@@ -175,9 +175,7 @@ instance_gmau as (
         (
             (is_paid_gmau = true and usage_ping_delivery_type = 'Self-Managed')
             or (is_paid_gmau = true and is_gmau = false)
-        -- if a specific paid_gmau metric has beeen creeated we don't need to exclude
-        -- SaaS
-        )
+        )  -- if a specific paid_gmau metric has beeen creeated we don't need to exclude SaaS
         and product_tier <> 'Core'
 
         {{ dbt_utils.group_by(n=14) }}

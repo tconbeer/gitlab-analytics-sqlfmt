@@ -541,9 +541,7 @@ with
         group by 1
 
     ),
-    -- All subscription_ids that do not have multiple opportunities associated with
-    -- them
-    non_duplicates as (
+    non_duplicates as (  -- All subscription_ids that do not have multiple opportunities associated with them
 
         select *
         from final_subs_opps
@@ -556,9 +554,7 @@ with
             )
 
     ),
-    -- GET ALL SUBSCRIPTION_IDS WITH MULTIPLE OPPORTUNITY_IDS, DUPLICATES (6,620)
-    -- (4,600 -- with stage_name != '10-duplicate')
-    dupes as (
+    dupes as (  -- GET ALL SUBSCRIPTION_IDS WITH MULTIPLE OPPORTUNITY_IDS, DUPLICATES (6,620) (4,600 -- with stage_name != '10-duplicate')
 
         select *
         from final_subs_opps
@@ -677,8 +673,7 @@ with
         from dupes
         where
             dim_subscription_id
-            -- 460 non-distinct, 200 distinct
-            not in (select distinct dim_subscription_id from dupes_with_amount_matches)
+            not in (select distinct dim_subscription_id from dupes_with_amount_matches)  -- 460 non-distinct, 200 distinct
 
     ),
     multi_invoice_subs_with_opp_amounts as (
@@ -756,9 +751,7 @@ with
         from multi_invoice_subs_with_opp_amounts_that_sum_to_invoice_total_first_opp
 
     ),
-    -- the fixes applied to these duplicates are not as strong, so we are peeling them
-    -- out and applying different solutions
-    dupes_part_2 as (
+    dupes_part_2 as (  -- the fixes applied to these duplicates are not as strong, so we are peeling them out and applying different solutions
 
         select *
         from dupes

@@ -28,9 +28,7 @@ windowed as (
     select
         {{ casted_cte }}.*,
 
-        -- First, look for the row immediately following by PK and subtract one
-        -- millisecond from its timestamp.
-        coalesce(
+        coalesce(  -- First, look for the row immediately following by PK and subtract one millisecond from its timestamp.
             dateadd(
                 'millisecond',
                 -1,

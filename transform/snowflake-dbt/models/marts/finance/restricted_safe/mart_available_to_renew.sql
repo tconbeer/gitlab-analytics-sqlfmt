@@ -513,9 +513,7 @@ base_{{ renewal_fiscal_year }} as (  -- get the base data set of recurring charg
         and mart_charge.term_end_month > concat('{{renewal_fiscal_year}}' - 1, '-01-01')
 
 ),
--- get the starting and ending month ARR for charges with current terms <= 12 months.
--- These terms do not need additional logic.
-agg_charge_term_less_than_equal_12_{{ renewal_fiscal_year }} as (
+agg_charge_term_less_than_equal_12_{{ renewal_fiscal_year }} as (  -- get the starting and ending month ARR for charges with current terms <= 12 months. These terms do not need additional logic.
 
     select
         case
@@ -548,9 +546,7 @@ agg_charge_term_less_than_equal_12_{{ renewal_fiscal_year }} as (
     where current_term <= 12 {{ dbt_utils.group_by(n=22) }}
 
 ),
--- get the starting and ending month ARR for terms > 12 months. These terms need
--- additional logic.
-agg_charge_term_greater_than_12_{{ renewal_fiscal_year }} as (
+agg_charge_term_greater_than_12_{{ renewal_fiscal_year }} as (  -- get the starting and ending month ARR for terms > 12 months. These terms need additional logic.
 
     select
         case
@@ -559,11 +555,7 @@ agg_charge_term_greater_than_12_{{ renewal_fiscal_year }} as (
         is_multi_year_booking,
         is_multi_year_booking_with_multi_subs,
         -- current_term,
-        -- the below odd term charges do not behave well in the multi-year bookings
-        -- logic and end up with duplicate renewals in the fiscal year. This CASE
-        -- statement smooths out the charges so they only have one renewal entry in
-        -- the fiscal year.
-        case
+        case  -- the below odd term charges do not behave well in the multi-year bookings logic and end up with duplicate renewals in the fiscal year. This CASE statement smooths out the charges so they only have one renewal entry in the fiscal year.
             when current_term = 25
             then 24
             when current_term = 26
@@ -619,10 +611,7 @@ agg_charge_term_greater_than_12_{{ renewal_fiscal_year }} as (
     where current_term > 12 {{ dbt_utils.group_by(n=22) }}
 
 ),
--- create records for the intermitent renewals for multi-year charges that are not in
--- the Zuora data. The start and end months are in the agg_myb for multi-year
--- bookings.
-twenty_four_mth_term_{{ renewal_fiscal_year }} as (
+twenty_four_mth_term_{{ renewal_fiscal_year }} as (  -- create records for the intermitent renewals for multi-year charges that are not in the Zuora data. The start and end months are in the agg_myb for multi-year bookings.
 
     select
         renewal_type,
@@ -655,10 +644,7 @@ twenty_four_mth_term_{{ renewal_fiscal_year }} as (
         {{ dbt_utils.group_by(n=22) }}
 
 ),
--- create records for the intermitent renewals for multi-year bookings that are not in
--- the Zuora data. The start and end months are in the agg_myb for multi-year
--- bookings.
-thirty_six_mth_term_{{ renewal_fiscal_year }} as (
+thirty_six_mth_term_{{ renewal_fiscal_year }} as (  -- create records for the intermitent renewals for multi-year bookings that are not in the Zuora data. The start and end months are in the agg_myb for multi-year bookings.
 
     select
         renewal_type,
@@ -724,10 +710,7 @@ thirty_six_mth_term_{{ renewal_fiscal_year }} as (
     order by 1
 
 ),
--- create records for the intermitent renewals for multi-year bookings that are not in
--- the Zuora data. The start and end months are in the agg_MYB for multi-year
--- bookings.
-forty_eight_mth_term_{{ renewal_fiscal_year }} as (
+forty_eight_mth_term_{{ renewal_fiscal_year }} as (  -- create records for the intermitent renewals for multi-year bookings that are not in the Zuora data. The start and end months are in the agg_MYB for multi-year bookings.
 
     select
         renewal_type,
@@ -825,10 +808,7 @@ forty_eight_mth_term_{{ renewal_fiscal_year }} as (
     order by 1
 
 ),
--- create records for the intermitent renewals for multi-year bookings that are not in
--- the Zuora data. The start and end months are in the agg_MYB for multi-year
--- bookings.
-sixty_mth_term_{{ renewal_fiscal_year }} as (
+sixty_mth_term_{{ renewal_fiscal_year }} as (  -- create records for the intermitent renewals for multi-year bookings that are not in the Zuora data. The start and end months are in the agg_MYB for multi-year bookings.
 
     select
         renewal_type,
@@ -1028,8 +1008,7 @@ opportunity_term_group as (
         = fct_crm_opportunity.dim_crm_opportunity_id
 
 ),
--- create the renewal report for the applicable fiscal year.
-renewal_report_{{ renewal_fiscal_year }} as (
+renewal_report_{{ renewal_fiscal_year }} as (  -- create the renewal report for the applicable fiscal year.
 
     select
         concat(

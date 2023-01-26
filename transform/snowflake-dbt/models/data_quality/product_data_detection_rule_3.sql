@@ -11,8 +11,7 @@
         ]
     )
 }},
--- Add a flag to dim_subscription which specify if the subscription is the last version
-dim_subscription as (
+dim_subscription as (  -- Add a flag to dim_subscription which specify if the subscription is the last version
 
     select
         iff(
@@ -84,9 +83,7 @@ subscription_renewal_mapping as (
     where is_last_subscription_version
 
 ),
--- Get subscriptions versions that are the product of the amendments listed in the
--- WHERE clause
-amendments as (
+amendments as (  -- Get subscriptions versions that are the product of the amendments listed in the WHERE clause
     -- These amendments are the ones that should have a license attached to them
     -- In the qualify statement, we get only the latest version that is part of the
     -- amendment list, since the latest one is the one we care about
@@ -137,8 +134,7 @@ amendments as (
         = 1
 
 ),
--- Pull the latest subscription version and append it to the ammendments found above.
-ammendments_and_last_version as (
+ammendments_and_last_version as (  -- Pull the latest subscription version and append it to the ammendments found above.
     -- Reason for this is to look for the license id in the last amendment in case it
     -- is not in the past CTE
     select *
@@ -198,8 +194,7 @@ self_managed_subscriptions as (  -- Get subscription_id from self managed subscr
         = 'Self-Managed'
 
 ),
--- Get subscriptions names that are currently paying ARR.
-subscriptions_with_arr_in_current_month as (
+subscriptions_with_arr_in_current_month as (  -- Get subscriptions names that are currently paying ARR.
     -- If the subscription is not paying ARR no reason to investigate it
     select subscription_name, sum(arr) as arr
     from mart_arr
@@ -207,8 +202,7 @@ subscriptions_with_arr_in_current_month as (
     group by 1
 
 ),
--- Filter the amendments / subscription_versions to be of self managed    
-self_managed_amendments as (
+self_managed_amendments as (  -- Filter the amendments / subscription_versions to be of self managed    
 
     select ammendments_and_last_version.*
     from ammendments_and_last_version
@@ -238,9 +232,7 @@ subscription_to_licenses as (  -- Join subscriptions to licenses
         self_managed_amendments.subscription_version
 
 ),
--- If the latest subscription version or the amendment from the amendment list has a
--- valid license
-subscription_to_licenses_final as (
+subscription_to_licenses_final as (  -- If the latest subscription version or the amendment from the amendment list has a valid license 
 
     select *
     from subscription_to_licenses

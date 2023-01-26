@@ -207,9 +207,7 @@ with
         where gitlab_dotcom_project_routes.path like 'gitlab-org%'
 
     ),
-    -- In case there are various issues that merge to the same, dedup them by taking
-    -- the latest updated link
-    final as (
+    final as (  -- In case there are various issues that merge to the same, dedup them by taking the latest updated link
 
         select
             map_moved_duplicated_issue.dim_issue_id,

@@ -28,9 +28,7 @@ rule_run_date as (
 
     select distinct date_day as rule_run_date, 'Product' as type_of_data
     from {{ ref("dim_date") }}
-    -- date when the code would be pushed to Production,we would be joining this with
-    -- the dbt updated data for the models.
-    where rule_run_date between '2021-06-23' and to_date(dbt_updated_at)
+    where rule_run_date between '2021-06-23' and to_date(dbt_updated_at)  -- date when the code would be pushed to Production,we would be joining this with the dbt updated data for the models.
 
 ),
 bdg_namespace_order_subscription as (

@@ -23,8 +23,7 @@ with
 
     ),
     date_details as (select * from {{ ref("date_details") }}),
-    -- the number of attribution touches a given opp has in total
-    linear_attribution_base as (
+    linear_attribution_base as (  -- the number of attribution touches a given opp has in total
         -- linear attribution IACV of an opp / all touches (count_touches) for each
         -- opp - weighted by the number of touches in the given bucket
         -- (campaign,channel,etc)

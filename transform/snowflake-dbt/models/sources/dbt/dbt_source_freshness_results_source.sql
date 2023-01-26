@@ -27,13 +27,10 @@ with
         inner join lateral flatten(jsontext['sources']) s
         where
             jsontext['metadata']['dbt_version'] is null
-            -- impossible to know what freshness is, so filtered out
-            and s.value['state']::varchar != 'runtime error'
+            and s.value['state']::varchar != 'runtime error'  -- impossible to know what freshness is, so filtered out
             and s.value['max_loaded_at']::timestamp is not null  -- latest_load_at
-            -- freshness_observed_at
-            and s.value['snapshotted_at']::timestamp is not null
-            -- time_since_loaded_seconds
-            and s.value['max_loaded_at_time_ago_in_s']::float is not null
+            and s.value['snapshotted_at']::timestamp is not null  -- freshness_observed_at
+            and s.value['max_loaded_at_time_ago_in_s']::float is not null  -- time_since_loaded_seconds
 
     ),
     v1parsed as (
@@ -61,10 +58,8 @@ with
         where
             jsontext['metadata']['dbt_version'] is not null
             and s.value['max_loaded_at']::timestamp is not null  -- latest_load_at
-            -- freshness_observed_at
-            and s.value['snapshotted_at']::timestamp is not null
-            -- time_since_loaded_seconds
-            and s.value['max_loaded_at_time_ago_in_s']::float is not null
+            and s.value['snapshotted_at']::timestamp is not null  -- freshness_observed_at
+            and s.value['max_loaded_at_time_ago_in_s']::float is not null  -- time_since_loaded_seconds
     )
 
 select *

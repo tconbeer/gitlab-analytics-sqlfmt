@@ -1,16 +1,10 @@
--- > First date in dim_date, used to back-fill the initial default settings for CI
--- minutes and storage limits.
 {%- set first_ = dbt_utils.get_query_results_as_dict(
     "SELECT MIN(date_actual) AS date FROM " ~ ref("dim_date")
-) -%}
+) -%}  -- > First date in dim_date, used to back-fill the initial default settings for CI minutes and storage limits.
 {%- set first_ci_minute_limit = 2000 -%}
 {%- set first_repository_storage_limit = 10737418240 -%}  -- > 1 GiB, in bytes.
--- > Date that the default limit for CI minutes was updated from 2000 to 400.
-{%- set first_ci_minute_limit_change_date = "2020-10-01" -%}
--- > This will be used to identify the row we need to back-fill to
--- {{first_ci_minute_limit_change_date}} since the snapshot table was created several
--- month after the default setting was updated.
-{%- set first_app_settings_snapshot_id = "442ab0695cfd8a3fa7ffbddb959903ad" -%}
+{%- set first_ci_minute_limit_change_date = "2020-10-01" -%}  -- > Date that the default limit for CI minutes was updated from 2000 to 400.
+{%- set first_app_settings_snapshot_id = "442ab0695cfd8a3fa7ffbddb959903ad" -%}  -- > This will be used to identify the row we need to back-fill to {{first_ci_minute_limit_change_date}} since the snapshot table was created several month after the default setting was updated.
 
 {{
     simple_cte(

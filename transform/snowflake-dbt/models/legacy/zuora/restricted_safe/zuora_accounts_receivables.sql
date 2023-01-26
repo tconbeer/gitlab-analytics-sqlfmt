@@ -47,8 +47,7 @@ from zuora_invoice
 inner join zuora_account on zuora_invoice.account_id = zuora_account.account_id
 left join
     zuora_contact as zuora_contact_bill
-    -- I don't really love this method, but it works. 
-    on zuora_contact_bill.contact_id = zuora_account.bill_to_contact_id
+    on zuora_contact_bill.contact_id = zuora_account.bill_to_contact_id  -- I don't really love this method, but it works. 
 left join
     zuora_contact as zuora_contact_sold
     on zuora_contact_sold.contact_id = zuora_account.sold_to_contact_id

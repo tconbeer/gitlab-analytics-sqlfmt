@@ -38,9 +38,7 @@ with
                 zuora_subscription.created_by_id in (
                     '2c92a0107bde3653017bf00cd8a86d5a',
                     '2c92a0fd55822b4d015593ac264767f2'
-                -- All Self-Service / Web direct subscriptions are identified by these
-                -- created_by_ids
-                ),
+                ),  -- All Self-Service / Web direct subscriptions are identified by these created_by_ids
                 'Self-Service',
                 'Sales-Assisted'
             ) as subscription_sales_type,
@@ -88,8 +86,7 @@ with
             zuora_subscription.turn_on_operational_metrics,
             zuora_subscription.contract_operational_metrics,
             -- zuora_subscription.turn_on_usage_ping_required_metrics,
-            -- https://gitlab.com/gitlab-data/analytics/-/issues/10172
-            null as turn_on_usage_ping_required_metrics,
+            null as turn_on_usage_ping_required_metrics,  -- https://gitlab.com/gitlab-data/analytics/-/issues/10172
             zuora_subscription.contract_auto_renewal,
             zuora_subscription.turn_on_auto_renewal,
             zuora_subscription.contract_seat_reconciliation,

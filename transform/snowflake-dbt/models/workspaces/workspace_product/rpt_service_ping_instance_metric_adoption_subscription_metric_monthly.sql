@@ -67,18 +67,13 @@ joined_counts as (
         reported_actuals.is_gmau as is_gmau,
         reported_actuals.is_paid_gmau as is_paid_gmau,
         reported_actuals.is_umau as is_umau,
-        -- actually reported
-        reported_actuals.subscription_count as reported_subscription_count,
+        reported_actuals.subscription_count as reported_subscription_count,  -- actually reported
         reported_actuals.seat_count as reported_seat_count,  -- actually reported
-        -- could have reported
-        potential_report_counts.total_licensed_users as total_licensed_users,
-        -- could have reported
-        potential_report_counts.total_subscription_count as total_subscription_count,
+        potential_report_counts.total_licensed_users as total_licensed_users,  -- could have reported
+        potential_report_counts.total_subscription_count as total_subscription_count,  -- could have reported
         total_subscription_count
-        -- could have reported, but didn't
-        - reported_subscription_count as no_reporting_subscription_count,
-        -- could have reported, but didn't
-        total_licensed_users - reported_seat_count as no_reporting_seat_count
+        - reported_subscription_count as no_reporting_subscription_count,  -- could have reported, but didn't
+        total_licensed_users - reported_seat_count as no_reporting_seat_count  -- could have reported, but didn't
     from reported_actuals
     left join
         potential_report_counts

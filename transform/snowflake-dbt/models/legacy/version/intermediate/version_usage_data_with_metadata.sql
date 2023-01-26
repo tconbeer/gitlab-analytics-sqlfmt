@@ -53,16 +53,14 @@ joined as (
         version_releases as ping_version  -- Join on the version of the ping itself.
         on usage_data.major_minor_version = ping_version.major_minor_version
     left join
-        -- Join the latest version released at the time of the ping.
-        version_releases as latest_version
+        version_releases as latest_version  -- Join the latest version released at the time of the ping.
         on usage_data.created_at
         between latest_version.release_date
         and {{ coalesce_to_infinity("latest_version.next_version_release_date") }}
     where
         (
             licenses.email is null
-            -- Exclude internal tests licenses.
-            or not (email like '%@gitlab.com' and lower(company) like '%gitlab%')
+            or not (email like '%@gitlab.com' and lower(company) like '%gitlab%')  -- Exclude internal tests licenses.
             or uuid = 'ea8bf810-1d6f-4a6a-b4fd-93e8cbd8b57f'
         )
 

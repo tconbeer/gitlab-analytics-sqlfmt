@@ -29,8 +29,7 @@ issue_extended as (
     inner join
         map_namespace_lineage
         on project.namespace_id = map_namespace_lineage.dim_namespace_id
-    -- Gitlab-org group namespace id
-    where map_namespace_lineage.dim_namespace_ultimate_parent_id = 9970
+    where map_namespace_lineage.dim_namespace_ultimate_parent_id = 9970  -- Gitlab-org group namespace id
 
 ),
 gitlab_issue_description_parsing as (

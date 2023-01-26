@@ -54,8 +54,7 @@ with
             ) as min_snapshot_day_of_fiscal_quarter_normalised
         from sfdc_opportunity_snapshot_history_xf
         where
-            -- closing in the same quarter of the snapshot
-            snapshot_fiscal_quarter_date = close_fiscal_quarter_date
+            snapshot_fiscal_quarter_date = close_fiscal_quarter_date  -- closing in the same quarter of the snapshot
             and stage_name not in (
                 '9-Unqualified',
                 '10-Duplicate',
@@ -82,8 +81,7 @@ with
             ) as min_snapshot_day_of_fiscal_quarter_normalised
         from sfdc_opportunity_snapshot_history_xf
         where
-            -- closing in the same quarter of the snapshot
-            snapshot_fiscal_quarter_date = close_fiscal_quarter_date
+            snapshot_fiscal_quarter_date = close_fiscal_quarter_date  -- closing in the same quarter of the snapshot
             and stage_name not in (
                 '9-Unqualified',
                 '10-Duplicate',
@@ -149,10 +147,8 @@ with
             and starting.snapshot_day_of_fiscal_quarter_normalised
             = starting_list.max_snapshot_day_of_fiscal_quarter_normalised
         where
-            -- closing in the same quarter of the snapshot
-            starting.snapshot_fiscal_quarter_date = starting.close_fiscal_quarter_date
-            -- exclude deals that were before day 5, unless they were at day 5
-            and starting_list.max_snapshot_day_of_fiscal_quarter_normalised = 5
+            starting.snapshot_fiscal_quarter_date = starting.close_fiscal_quarter_date  -- closing in the same quarter of the snapshot
+            and starting_list.max_snapshot_day_of_fiscal_quarter_normalised = 5  -- exclude deals that were before day 5, unless they were at day 5
 
     ),
     pipeline_type_quarter_created as (

@@ -178,9 +178,7 @@ with
             = gitlab_dotcom_namespace_routes.namespace_id
 
     ),
-    -- In case there are various issues with the same link to issues and
-    -- dim_crm_account_id, dedup them by taking the latest updated link
-    final as (
+    final as (  -- In case there are various issues with the same link to issues and dim_crm_account_id, dedup them by taking the latest updated link
 
         select
             gitlab_epics.epic_id as dim_epic_id,

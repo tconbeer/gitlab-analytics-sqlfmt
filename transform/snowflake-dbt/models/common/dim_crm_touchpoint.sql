@@ -136,8 +136,7 @@ with
             bizible_campaign_grouping.gtm_motion,
             bizible_campaign_grouping.touchpoint_segment,
             case
-                -- Specific touchpoint overrides
-                when combined_touchpoints.dim_crm_touchpoint_id ilike 'a6061000000CeS0%'
+                when combined_touchpoints.dim_crm_touchpoint_id ilike 'a6061000000CeS0%'  -- Specific touchpoint overrides
                 then 'Field Event'
                 when combined_touchpoints.bizible_marketing_channel_path = 'CPC.AdWords'
                 then 'Google AdWords'

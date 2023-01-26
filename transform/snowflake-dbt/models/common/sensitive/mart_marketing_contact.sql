@@ -55,17 +55,12 @@ flattened_members as (
     from gitlab_dotcom_members_source members
     inner join
         namespaces  -- limit to just namespaces we care about
-        -- same as namespace_id for group namespaces
-        on members.source_id = namespaces.dim_namespace_id
+        on members.source_id = namespaces.dim_namespace_id  -- same as namespace_id for group namespaces
     where
-        -- only looking at namespace invites
-        lower(members.member_source_type) = 'namespace'
-        -- invite created after namespace created
-        and members.invite_created_at >= namespaces.namespace_created_at
+        lower(members.member_source_type) = 'namespace'  -- only looking at namespace invites
+        and members.invite_created_at >= namespaces.namespace_created_at  -- invite created after namespace created
         and ifnull(members.invite_accepted_at, current_timestamp)
-        -- invite accepted after invite created (removes weird edge cases with
-        -- imported projects, etc)
-        >= members.invite_created_at
+        >= members.invite_created_at  -- invite accepted after invite created (removes weird edge cases with imported projects, etc)
         {{ dbt_utils.group_by(3) }}
 
 ),
@@ -74,13 +69,11 @@ invite_status as (
     select  -- pull in relevant namespace data, invite status, etc
         namespaces.dim_namespace_id,
         members.user_id,
-        -- flag whether the user actually joined the namespace
-        iff(memberships.user_id is not null, true, false) as invite_was_successful
+        iff(memberships.user_id is not null, true, false) as invite_was_successful  -- flag whether the user actually joined the namespace
     from flattened_members members
     join
         namespaces
-        -- same as namespace_id for group namespaces
-        on members.source_id = namespaces.dim_namespace_id
+        on members.source_id = namespaces.dim_namespace_id  -- same as namespace_id for group namespaces
         and (
             invite_accepted_at is null
             or (
@@ -88,17 +81,13 @@ invite_status as (
                 not in (0, 1, 2)
             )
         )
-        -- this blocks namespaces created within two minutes of the namespace creator
-        -- accepting their invite
-        = true
+        = true  -- this blocks namespaces created within two minutes of the namespace creator accepting their invite
     left join
-        -- record added once invite is accepted/user has access
-        gitlab_dotcom_memberships memberships
+        gitlab_dotcom_memberships memberships  -- record added once invite is accepted/user has access
         on members.user_id = memberships.user_id
         and members.source_id = memberships.membership_source_id
         and memberships.is_billable = true
-    -- not an "invite" if user created namespace
-    where members.user_id != namespaces.creator_id
+    where members.user_id != namespaces.creator_id  -- not an "invite" if user created namespace
 
 ),
 namespaces_with_user_count as (
@@ -119,8 +108,7 @@ subscriptions as (
         namespaces on charges.current_gitlab_namespace_id = namespaces.dim_namespace_id
     where
         charges.current_gitlab_namespace_id is not null
-        -- changing to product category field, used by the charges table
-        and charges.product_category in ('SaaS - Ultimate', 'SaaS - Premium')
+        and charges.product_category in ('SaaS - Ultimate', 'SaaS - Premium')  -- changing to product category field, used by the charges table
     group by 1
 
 ),
@@ -187,9 +175,7 @@ stages_adopted as (
     left join subscriptions on subscriptions.namespace_id = namespaces.dim_namespace_id
     where
         days_since_namespace_creation between 0 and 365
-        -- Added in to only use events from a free or trial namespace (which filters
-        -- based on the selection chose for the `free_or_trial` filter
-        and events.plan_name_at_event_date in ('trial', 'free', 'ultimate_trial')
+        and events.plan_name_at_event_date in ('trial', 'free', 'ultimate_trial')  -- Added in to only use events from a free or trial namespace (which filters based on the selection chose for the `free_or_trial` filter
         and xmau.smau = true
         and events.event_date between namespaces.namespace_created_at_date and ifnull(
             subscriptions.min_subscription_start_date, current_date

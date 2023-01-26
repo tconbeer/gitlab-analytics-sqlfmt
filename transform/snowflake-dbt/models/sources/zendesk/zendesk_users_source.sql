@@ -12,12 +12,10 @@ with
             -- fields
             case
                 when lower(email) like '%gitlab.com%' then name else md5(name)
-            -- masking folks who are submitting tickets! We don't need to surface that.
-            end as name,
+            end as name,  -- masking folks who are submitting tickets! We don't need to surface that.
             case
                 when lower(email) like '%gitlab.com%' then email else md5(email)
-            -- masking folks who are submitting tickets! We don't need to surface that.
-            end as email,
+            end as email,  -- masking folks who are submitting tickets! We don't need to surface that.
             restricted_agent as is_restricted_agent,
             role,
             suspended as is_suspended,

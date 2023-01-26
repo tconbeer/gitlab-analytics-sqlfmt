@@ -88,8 +88,7 @@ opportunity_net_arr as (
         dim_crm_opportunity
         on dim_crm_opportunity.dim_crm_opportunity_id
         = fct_crm_opportunity.dim_crm_opportunity_id
-    -- Net ARR is only good after 2019-02-01
-    where fct_crm_opportunity.close_date >= '2019-02-01'
+    where fct_crm_opportunity.close_date >= '2019-02-01'  -- Net ARR is only good after 2019-02-01
 
 ),
 account_lost_opp_arr as (
@@ -286,9 +285,7 @@ epic_labels as (
     from label_links_joined
 
 ),
--- There is a bug in the product where some scoped labels are used twice. This is a
--- temporary fix for that for the group::* label
-issue_group_label as (
+issue_group_label as (  -- There is a bug in the product where some scoped labels are used twice. This is a temporary fix for that for the group::* label
 
     select dim_issue_id, group_label
     from issue_labels
@@ -306,8 +303,7 @@ issue_group_extended_label as (
         = 1
 
 ),
--- Since category: is not an scoped label, need to make sure I only pull one of them
-issue_category_dedup as (
+issue_category_dedup as (  -- Since category: is not an scoped label, need to make sure I only pull one of them
 
     select dim_issue_id, category_label
     from issue_labels
@@ -316,9 +312,7 @@ issue_category_dedup as (
         row_number() over (partition by dim_issue_id order by category_label desc) = 1
 
 ),
--- There is a bug in the product where some scoped labels are used twice. This is a
--- temporary fix for that for the type::* label
-issue_type_label as (
+issue_type_label as (  -- There is a bug in the product where some scoped labels are used twice. This is a temporary fix for that for the type::* label
 
     select dim_issue_id, type_label
     from issue_labels
@@ -326,9 +320,7 @@ issue_type_label as (
     qualify row_number() over (partition by dim_issue_id order by type_label) = 1
 
 ),
--- There is a bug in the product where some scoped labels are used twice. This is a
--- temporary fix for that for the devops::* label
-issue_devops_label as (
+issue_devops_label as (  -- There is a bug in the product where some scoped labels are used twice. This is a temporary fix for that for the devops::* label
 
     select dim_issue_id, devops_label
     from issue_labels
@@ -336,8 +328,7 @@ issue_devops_label as (
     qualify row_number() over (partition by dim_issue_id order by devops_label) = 1
 
 ),
--- Some issues for some reason had two valid workflow labels, this dedup them
-issue_status as (
+issue_status as (  -- Some issues for some reason had two valid workflow labels, this dedup them
 
     select
         label_links_joined.dim_issue_id,
@@ -352,9 +343,7 @@ issue_status as (
         row_number() over (partition by dim_issue_id order by workflow_label desc) = 1
 
 ),
--- There is a bug in the product where some scoped labels are used twice. This is a
--- temporary fix for that for the group::* label
-epic_group_label as (
+epic_group_label as (  -- There is a bug in the product where some scoped labels are used twice. This is a temporary fix for that for the group::* label
 
     select dim_epic_id, group_label
     from epic_labels
@@ -372,8 +361,7 @@ epic_group_extended_label as (
         = 1
 
 ),
--- Since category: is not an scoped label, need to make sure I only pull one of them
-epic_category_dedup as (
+epic_category_dedup as (  -- Since category: is not an scoped label, need to make sure I only pull one of them
 
     select dim_epic_id, category_label
     from epic_labels
@@ -382,9 +370,7 @@ epic_category_dedup as (
         row_number() over (partition by dim_epic_id order by category_label desc) = 1
 
 ),
--- There is a bug in the product where some scoped labels are used twice. This is a
--- temporary fix for that for the type::* label
-epic_type_label as (
+epic_type_label as (  -- There is a bug in the product where some scoped labels are used twice. This is a temporary fix for that for the type::* label
 
     select dim_epic_id, type_label
     from epic_labels
@@ -392,9 +378,7 @@ epic_type_label as (
     qualify row_number() over (partition by dim_epic_id order by type_label) = 1
 
 ),
--- There is a bug in the product where some scoped labels are used twice. This is a
--- temporary fix for that for the devops::* label
-epic_devops_label as (
+epic_devops_label as (  -- There is a bug in the product where some scoped labels are used twice. This is a temporary fix for that for the devops::* label
 
     select dim_epic_id, devops_label
     from epic_labels

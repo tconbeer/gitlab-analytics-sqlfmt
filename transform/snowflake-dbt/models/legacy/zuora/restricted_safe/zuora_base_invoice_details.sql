@@ -5,14 +5,12 @@ with
     zuora_rpc as (select * from {{ ref("zuora_rate_plan_charge") }}),
     zuora_i as (
 
-        -- posted is important!
-        select * from {{ ref("zuora_invoice") }} where status = 'Posted'
+        select * from {{ ref("zuora_invoice") }} where status = 'Posted'  -- posted is important!
 
     ),
     zuora_ii as (
 
-        -- use current month
-        select *, date_trunc('month', service_start_date)::date as service_month
+        select *, date_trunc('month', service_start_date)::date as service_month  -- use current month
         from {{ ref("zuora_invoice_item") }}
 
     ),

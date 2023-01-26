@@ -1,12 +1,6 @@
--- To convert storage (usage) sizes from bytes in source to GiB for reporting (1 GiB =
--- 2^30 bytes = 1,073,741,824 bytes)
-{% set bytes_to_gib_conversion = 1073741824 %}
--- To convert storage (usage) sizes from bytes in source to MiB for reporting (1 MiB =
--- 2^20 bytes = 1,048,576 bytes)
-{% set bytes_to_mib_conversion = 1048576 %}
--- To convert storage limit sizes from GiB in "source" to MiB for reporting (1 GiB =
--- 1024 MiB)
-{% set mib_to_gib_conversion = 1024 %}
+{% set bytes_to_gib_conversion = 1073741824 %}  -- To convert storage (usage) sizes from bytes in source to GiB for reporting (1 GiB = 2^30 bytes = 1,073,741,824 bytes)
+{% set bytes_to_mib_conversion = 1048576 %}  -- To convert storage (usage) sizes from bytes in source to MiB for reporting (1 MiB = 2^20 bytes = 1,048,576 bytes)
+{% set mib_to_gib_conversion = 1024 %}  -- To convert storage limit sizes from GiB in "source" to MiB for reporting (1 GiB = 1024 MiB)
 
 with
     project_statistics_snapshot_monthly_all as (
@@ -106,16 +100,14 @@ with
             between date_trunc('month', order_start_date) and dateadd(
                 month, -1, date_trunc('month', order_end_date)
             )
-        -- only storage rate plan, 10GiB of storage
-        where product_rate_plan_id = '2c92a00f7279a6f5017279d299d01cf9'
+        where product_rate_plan_id = '2c92a00f7279a6f5017279d299d01cf9'  -- only storage rate plan, 10GiB of storage
         group by 1, 2
 
     ),
     top_level_namespace_storage_summary as (
 
         select
-            -- Only top level namespaces
-            namespace_lineage_monthly_all.ultimate_parent_id,
+            namespace_lineage_monthly_all.ultimate_parent_id,  -- Only top level namespaces
             namespace_lineage_monthly_all.snapshot_month,
             sum(
                 coalesce(purchased_storage.purchased_storage_gib, 0)

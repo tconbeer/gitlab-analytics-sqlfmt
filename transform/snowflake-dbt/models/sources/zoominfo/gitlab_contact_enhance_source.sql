@@ -69,10 +69,8 @@ with
             as est_marketing_department_budget,  -- noqa:L026,L028,L016
             "Est. Finance Department Budget (in 000s)"::varchar
             as est_finance_department_budget,  -- noqa:L026,L016
-            -- noqa:L026
-            "Est. IT Department Budget (in 000s)"::varchar as est_it_department_budget,
-            -- noqa:L026
-            "Est. HR Department Budget (in 000s)"::varchar as est_hr_department_budget,
+            "Est. IT Department Budget (in 000s)"::varchar as est_it_department_budget,  -- noqa:L026
+            "Est. HR Department Budget (in 000s)"::varchar as est_hr_department_budget,  -- noqa:L026
             "Employees"::varchar as employees,  -- noqa:L059
             "Employee Range"::varchar as employee_range,
             "Past 1 Year Employee Growth Rate"::varchar

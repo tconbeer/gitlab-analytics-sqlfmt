@@ -176,8 +176,7 @@ with
             = namespace_snapshots_monthly_all.namespace_id
             and namespace_statistic_monthly_all.snapshot_month
             = namespace_snapshots_monthly_all.snapshot_month
-            -- Only top level namespaces
-            and namespace_snapshots_monthly_all.parent_id is null
+            and namespace_snapshots_monthly_all.parent_id is null  -- Only top level namespaces
 
     ),
     ci_minutes_logic as (

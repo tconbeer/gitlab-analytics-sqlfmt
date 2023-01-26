@@ -24,8 +24,7 @@ saas_subscriptions as (
         zuora_subscriptions.dim_billing_account_id,
         dates.first_day_of_month as snapshot_month
     from zuora_subscriptions
-    -- first month Usage Ping was collected
-    inner join dates on dates.date_actual between '2017-04-01' and current_date
+    inner join dates on dates.date_actual between '2017-04-01' and current_date  -- first month Usage Ping was collected
     where
         zuora_subscriptions.product_delivery_type = 'SaaS' {{ dbt_utils.group_by(n=4) }}
 

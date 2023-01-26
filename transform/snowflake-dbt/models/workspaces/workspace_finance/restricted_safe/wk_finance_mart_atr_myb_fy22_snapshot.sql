@@ -175,9 +175,7 @@ with
             and fct_charge.effective_end_month > '2021-01-01'
 
     ),
-    -- get the starting and ending month ARR for charges with charge terms <= 12
-    -- months. These charges do not need additional logic.
-    agg_charge_term_less_than_equal_12 as (
+    agg_charge_term_less_than_equal_12 as (  -- get the starting and ending month ARR for charges with charge terms <= 12 months. These charges do not need additional logic.
 
         select
             case when is_myb = true then 'MYB' else 'Non-MYB' end as renewal_type,
@@ -203,20 +201,14 @@ with
         where charge_term <= 12 {{ dbt_utils.group_by(n=18) }}
 
     ),
-    -- get the starting and ending month ARR for charges with charge terms > 12
-    -- months. These charges need additional logic.
-    agg_charge_term_greater_than_12 as (
+    agg_charge_term_greater_than_12 as (  -- get the starting and ending month ARR for charges with charge terms > 12 months. These charges need additional logic.
 
         select
             case when is_myb = true then 'MYB' else 'Non-MYB' end as renewal_type,
             is_myb,
             is_myb_with_multi_subs,
             current_term,
-            -- the below odd term charges do not behave well in the MYB logic and end
-            -- up with duplicate renewals in the fiscal year. This CASE statement
-            -- smooths out the charges so they only have one renewal entry in the
-            -- fiscal year.
-            case
+            case  -- the below odd term charges do not behave well in the MYB logic and end up with duplicate renewals in the fiscal year. This CASE statement smooths out the charges so they only have one renewal entry in the fiscal year.
                 when charge_term = 26
                 then 24
                 when charge_term = 28
@@ -245,9 +237,7 @@ with
         where charge_term > 12 {{ dbt_utils.group_by(n=18) }}
 
     ),
-    -- create records for the intermitent renewals for multi-year charges that are not
-    -- in the Zuora data. The start and end months are in the agg_myb for MYB.
-    twenty_four_mth_term as (
+    twenty_four_mth_term as (  -- create records for the intermitent renewals for multi-year charges that are not in the Zuora data. The start and end months are in the agg_myb for MYB.
 
         select
             renewal_type,
@@ -277,9 +267,7 @@ with
             and effective_end_month > '2022-01-01' {{ dbt_utils.group_by(n=18) }}
 
     ),
-    -- create records for the intermitent renewals for MYBs that are not in the Zuora
-    -- data. The start and end months are in the agg_myb for MYBs.
-    thirty_six_mth_term as (
+    thirty_six_mth_term as (  -- create records for the intermitent renewals for MYBs that are not in the Zuora data. The start and end months are in the agg_myb for MYBs.
 
         select
             renewal_type,
@@ -337,9 +325,7 @@ with
         order by 1
 
     ),
-    -- create records for the intermitent renewals for MYBs that are not in the Zuora
-    -- data. The start and end months are in the agg_myb for MYBs.
-    forty_eight_mth_term as (
+    forty_eight_mth_term as (  -- create records for the intermitent renewals for MYBs that are not in the Zuora data. The start and end months are in the agg_myb for MYBs.
 
         select
             renewal_type,
@@ -424,9 +410,7 @@ with
         order by 1
 
     ),
-    -- create records for the intermitent renewals for MYBs that are not in the Zuora
-    -- data. The start and end months are in the agg_myb for MYBs.
-    sixty_mth_term as (
+    sixty_mth_term as (  -- create records for the intermitent renewals for MYBs that are not in the Zuora data. The start and end months are in the agg_myb for MYBs.
 
         select
             renewal_type,

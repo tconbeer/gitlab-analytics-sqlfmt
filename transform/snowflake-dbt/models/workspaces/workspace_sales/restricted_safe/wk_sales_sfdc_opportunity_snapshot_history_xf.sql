@@ -790,8 +790,7 @@ with
             case
                 when
                     sfdc_opportunity_xf.is_won = 1  -- only consider won deals
-                    -- contract resets have a special way of calculating net iacv
-                    and sfdc_opportunity_xf.opportunity_category <> 'Contract Reset'
+                    and sfdc_opportunity_xf.opportunity_category <> 'Contract Reset'  -- contract resets have a special way of calculating net iacv
                     and coalesce(sfdc_opportunity_xf.raw_net_arr, 0) <> 0
                     and coalesce(sfdc_opportunity_xf.net_incremental_acv, 0) <> 0
                 then
@@ -827,14 +826,12 @@ with
                     coalesce(opp_snapshot.incremental_acv, 0)
                     * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
                 when
-                    -- CLOSED LOST DEAL and no Net IACV
-                    opp_snapshot.stage_name in ('8-Closed Lost')
+                    opp_snapshot.stage_name in ('8-Closed Lost')  -- CLOSED LOST DEAL and no Net IACV
                     and coalesce(opp_snapshot.net_incremental_acv, 0) = 0
                 then
                     coalesce(opp_snapshot.incremental_acv, 0)
                     * coalesce(segment_order_type_iacv_to_net_arr_ratio, 0)
-                -- REST of CLOSED DEAL
-                when opp_snapshot.stage_name in ('8-Closed Lost', 'Closed Won')
+                when opp_snapshot.stage_name in ('8-Closed Lost', 'Closed Won')  -- REST of CLOSED DEAL
                 then
                     coalesce(opp_snapshot.net_incremental_acv, 0) * coalesce(
                         opportunity_based_iacv_to_net_arr_ratio,
@@ -850,19 +847,15 @@ with
             -- To account for those issues and give a directionally correct answer, we
             -- apply a ratio to everything before FY22
             case
-                -- All deals before cutoff and that were not updated to Net ARR
-                when opp_snapshot.snapshot_date < '2021-02-01'::date
+                when opp_snapshot.snapshot_date < '2021-02-01'::date  -- All deals before cutoff and that were not updated to Net ARR
                 then calculated_from_ratio_net_arr
                 when
-                    -- After cutoff date, for all deals earlier than FY19 that are
-                    -- closed and have no net arr
-                    opp_snapshot.snapshot_date >= '2021-02-01'::date
+                    opp_snapshot.snapshot_date >= '2021-02-01'::date  -- After cutoff date, for all deals earlier than FY19 that are closed and have no net arr
                     and opp_snapshot.close_date < '2018-02-01'::date
                     and opp_snapshot.is_open = 0
                     and coalesce(opp_snapshot.raw_net_arr, 0) = 0
                 then calculated_from_ratio_net_arr
-                -- Rest of deals after cut off date
-                else coalesce(opp_snapshot.raw_net_arr, 0)
+                else coalesce(opp_snapshot.raw_net_arr, 0)  -- Rest of deals after cut off date
             end as net_arr,
 
             -- ----------------------------
@@ -1104,8 +1097,7 @@ with
             and net_iacv_to_net_arr_ratio.order_type_stamped
             = sfdc_opportunity_xf.order_type_stamped
         where
-            -- remove test account
-            opp_snapshot.raw_account_id not in ('0014M00001kGcORQA0')
+            opp_snapshot.raw_account_id not in ('0014M00001kGcORQA0')  -- remove test account
             and (
                 sfdc_accounts_xf.ultimate_parent_account_id
                 not in ('0016100001YUkWVAA1')

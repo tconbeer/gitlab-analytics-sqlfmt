@@ -18,8 +18,7 @@ sm_subscriptions as (
         dim_billing_account_id,
         first_day_of_month as snapshot_month
     from subscriptions
-    -- first month Usage Ping was collected
-    inner join dates on dates.date_actual between '2017-04-01' and current_date
+    inner join dates on dates.date_actual between '2017-04-01' and current_date  -- first month Usage Ping was collected
     where product_delivery_type = 'Self-Managed' {{ dbt_utils.group_by(n=4) }}
 
 ),

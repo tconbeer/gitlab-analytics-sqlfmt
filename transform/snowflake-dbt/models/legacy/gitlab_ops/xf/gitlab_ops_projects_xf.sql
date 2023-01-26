@@ -76,8 +76,7 @@ with
 
             {% for field in sensitive_fields %}
             case
-                -- AND NOT namespace_lineage.namespace_is_internal -- missing table 
-                when projects.visibility_level != 'public'
+                when projects.visibility_level != 'public'  -- AND NOT namespace_lineage.namespace_is_internal -- missing table 
                 then 'project is private/internal'
                 else {{ field }}
             end as {{ field }},
