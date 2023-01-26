@@ -1,185 +1,202 @@
-{{ config(
-    materialized='table',
-    tags=["mnpi_exception"]
-) }}
+{{ config(materialized="table", tags=["mnpi_exception"]) }}
 
-{{ simple_cte([
-    ('accounts','sfdc_account_source'),
-    ('contacts','sfdc_contact_source'),
-    ('leads','sfdc_lead_source'),
-    ('zoom_info','zi_comp_with_linkages_global_source')
-]) }},
+{{
+    simple_cte(
+        [
+            ("accounts", "sfdc_account_source"),
+            ("contacts", "sfdc_contact_source"),
+            ("leads", "sfdc_lead_source"),
+            ("zoom_info", "zi_comp_with_linkages_global_source"),
+        ]
+    )
+}},
 
-salesforce_accounts AS (
-  SELECT
-    zoom_info_dozisf_zi_id AS company_id,
-    zoom_info_company_name AS company_name,
-    zoom_info_company_revenue AS company_revenue,
-    zoom_info_company_employee_count AS company_employee_count,
-    zoom_info_company_industry AS company_industry,
-    zoom_info_company_state_province AS company_state_province,
-    zoom_info_company_country AS company_country,
-    IFF(company_industry IS NOT NULL, 1, 0)
-    + IFF(company_state_province IS NOT NULL, 1, 0 )
-    + IFF(company_country IS NOT NULL, 1, 0) AS completeness_score
-  FROM accounts
-  WHERE company_id IS NOT NULL
-    AND is_excluded_from_zoom_info_enrich = FALSE
-  QUALIFY MAX(company_revenue) OVER (PARTITION BY company_id) = company_revenue
-    AND ROW_NUMBER() OVER (PARTITION BY company_id ORDER BY completeness_score DESC) = 1
+salesforce_accounts as (
+    select
+        zoom_info_dozisf_zi_id as company_id,
+        zoom_info_company_name as company_name,
+        zoom_info_company_revenue as company_revenue,
+        zoom_info_company_employee_count as company_employee_count,
+        zoom_info_company_industry as company_industry,
+        zoom_info_company_state_province as company_state_province,
+        zoom_info_company_country as company_country,
+        iff(company_industry is not null, 1, 0)
+        + iff(company_state_province is not null, 1, 0)
+        + iff(company_country is not null, 1, 0) as completeness_score
+    from accounts
+    where company_id is not null and is_excluded_from_zoom_info_enrich = false
+    qualify
+        max(company_revenue) over (partition by company_id) = company_revenue
+        and row_number() over (partition by company_id order by completeness_score desc)
+        = 1
 ),
 
-salesforce_leads AS (
-  SELECT
-    zoominfo_company_id AS company_id,
-    company AS company_name,
-    zoominfo_company_revenue AS company_revenue,
-    zoominfo_company_employee_count AS company_employee_count,
-    zoominfo_company_industry AS company_industry,
-    zoominfo_company_state AS company_state_province,
-    zoominfo_company_country AS company_country,
-    IFF(company_industry IS NOT NULL, 1, 0)
-    + IFF(company_state_province IS NOT NULL, 1, 0 )
-    + IFF(company_country IS NOT NULL, 1, 0) AS completeness_score
-  FROM leads
-  WHERE company_id IS NOT NULL
-  QUALIFY MAX(company_revenue) OVER (PARTITION BY company_id) = company_revenue
-    AND ROW_NUMBER() OVER (PARTITION BY company_id ORDER BY completeness_score DESC) = 1
+salesforce_leads as (
+    select
+        zoominfo_company_id as company_id,
+        company as company_name,
+        zoominfo_company_revenue as company_revenue,
+        zoominfo_company_employee_count as company_employee_count,
+        zoominfo_company_industry as company_industry,
+        zoominfo_company_state as company_state_province,
+        zoominfo_company_country as company_country,
+        iff(company_industry is not null, 1, 0)
+        + iff(company_state_province is not null, 1, 0)
+        + iff(company_country is not null, 1, 0) as completeness_score
+    from leads
+    where company_id is not null
+    qualify
+        max(company_revenue) over (partition by company_id) = company_revenue
+        and row_number() over (partition by company_id order by completeness_score desc)
+        = 1
 ),
 
-salesforce_contacts AS (
-  SELECT
-    zoominfo_company_id AS company_id,
-    zoominfo_company_revenue AS company_revenue,
-    zoominfo_company_employee_count AS company_employee_count,
-    zoominfo_company_industry AS company_industry,
-    zoominfo_company_state_province AS company_state_province,
-    zoominfo_company_country AS company_country,
-    IFF(company_industry IS NOT NULL, 1, 0)
-    + IFF(company_state_province IS NOT NULL, 1, 0 )
-    + IFF(company_country IS NOT NULL, 1, 0) AS completeness_score
-  FROM contacts
-  WHERE company_id IS NOT NULL
-  QUALIFY MAX(company_revenue) OVER (PARTITION BY company_id) = company_revenue
-    AND ROW_NUMBER() OVER (PARTITION BY company_id ORDER BY completeness_score DESC) = 1
+salesforce_contacts as (
+    select
+        zoominfo_company_id as company_id,
+        zoominfo_company_revenue as company_revenue,
+        zoominfo_company_employee_count as company_employee_count,
+        zoominfo_company_industry as company_industry,
+        zoominfo_company_state_province as company_state_province,
+        zoominfo_company_country as company_country,
+        iff(company_industry is not null, 1, 0)
+        + iff(company_state_province is not null, 1, 0)
+        + iff(company_country is not null, 1, 0) as completeness_score
+    from contacts
+    where company_id is not null
+    qualify
+        max(company_revenue) over (partition by company_id) = company_revenue
+        and row_number() over (partition by company_id order by completeness_score desc)
+        = 1
 ),
 
-zoom_info_base AS (
-  SELECT
-    company_id AS company_id,
-    headquarters_company_name AS company_name,
-    headquarters_employees AS company_employee_count,
-    industry_primary AS company_industry,
-    headquarters_company_state AS company_state_province,
-    headquarters_company_country AS company_country,
-    merged_previous_company_ids,
-    headquarters_revenue AS company_revenue
-  FROM zoom_info
-  WHERE is_headquarters = TRUE
+zoom_info_base as (
+    select
+        company_id as company_id,
+        headquarters_company_name as company_name,
+        headquarters_employees as company_employee_count,
+        industry_primary as company_industry,
+        headquarters_company_state as company_state_province,
+        headquarters_company_country as company_country,
+        merged_previous_company_ids,
+        headquarters_revenue as company_revenue
+    from zoom_info
+    where is_headquarters = true
 ),
 
-zoom_info_merged AS (
-  SELECT DISTINCT
-    merged_company_ids.value::VARCHAR AS company_id,
-    zoom_info_base.company_name,
-    zoom_info_base.company_revenue,
-    zoom_info_base.company_employee_count,
-    zoom_info_base.company_industry,
-    zoom_info_base.company_state_province,
-    zoom_info_base.company_country,
-    zoom_info_base.company_id AS source_company_id
-  FROM zoom_info_base
-  INNER JOIN LATERAL FLATTEN(INPUT =>SPLIT(merged_previous_company_ids, '|')) AS merged_company_ids
+zoom_info_merged as (
+    select distinct
+        merged_company_ids.value::varchar as company_id,
+        zoom_info_base.company_name,
+        zoom_info_base.company_revenue,
+        zoom_info_base.company_employee_count,
+        zoom_info_base.company_industry,
+        zoom_info_base.company_state_province,
+        zoom_info_base.company_country,
+        zoom_info_base.company_id as source_company_id
+    from zoom_info_base
+    inner join
+        lateral flatten(
+            input => split(merged_previous_company_ids, '|')
+        ) as merged_company_ids
 ),
 
-company_id_spine AS (
+company_id_spine as (
 
-  SELECT company_id
-  FROM salesforce_accounts
+    select company_id
+    from salesforce_accounts
 
-  UNION
+    union
 
-  SELECT company_id
-  FROM salesforce_leads
+    select company_id
+    from salesforce_leads
 
-  UNION
+    union
 
-  SELECT company_id
-  FROM salesforce_contacts
+    select company_id
+    from salesforce_contacts
 
-  UNION
+    union
 
-  SELECT company_id
-  FROM zoom_info_base
+    select company_id
+    from zoom_info_base
 
-  UNION
+    union
 
-  SELECT company_id
-  FROM zoom_info_merged
+    select company_id
+    from zoom_info_merged
 
 ),
 
-report AS (
-  SELECT DISTINCT
-    {{ dbt_utils.surrogate_key(['company_id_spine.company_id::INT']) }} AS dim_company_id,
-    company_id_spine.company_id::INT AS company_id,
-    zoom_info_merged.source_company_id,
-    COALESCE(zoom_info_base.company_name,
-      zoom_info_merged.company_name,
-      salesforce_accounts.company_name,
-      salesforce_leads.company_name,
-      'Unknown Company Name') AS company_name,
-    COALESCE(zoom_info_base.company_revenue,
-      zoom_info_merged.company_revenue,
-      salesforce_accounts.company_revenue,
-      salesforce_contacts.company_revenue,
-      salesforce_leads.company_revenue) AS company_revenue,
-    COALESCE(zoom_info_base.company_employee_count,
-      zoom_info_merged.company_employee_count,
-      salesforce_accounts.company_employee_count,
-      salesforce_contacts.company_employee_count,
-      salesforce_leads.company_employee_count) AS company_employee_count,
-    COALESCE(zoom_info_base.company_industry,
-      zoom_info_merged.company_industry,
-      salesforce_accounts.company_industry,
-      salesforce_contacts.company_industry,
-      salesforce_leads.company_industry) AS company_industry,
-    COALESCE(zoom_info_base.company_country,
-      zoom_info_merged.company_country,
-      salesforce_accounts.company_country,
-      salesforce_contacts.company_country,
-      salesforce_leads.company_country) AS company_country,
-    COALESCE(zoom_info_base.company_state_province,
-      zoom_info_merged.company_state_province,
-      salesforce_accounts.company_state_province,
-      salesforce_contacts.company_state_province,
-      salesforce_leads.company_state_province) AS company_state_province,
-    IFF(
-      salesforce_accounts.company_id IS NOT NULL, TRUE, FALSE
-    ) AS has_crm_account,
-    IFF(
-      salesforce_leads.company_id IS NOT NULL, TRUE, FALSE
-    ) AS has_crm_lead,
-    IFF(
-      salesforce_contacts.company_id IS NOT NULL, TRUE, FALSE
-    ) AS has_crm_contact,
-    IFF(
-      zoom_info_base.company_id IS NOT NULL, TRUE, FALSE
-    ) AS is_company_hq,
-    IFF(zoom_info_merged.company_id IS NOT NULL, TRUE, FALSE) AS is_merged_company_id
-  FROM company_id_spine
-  LEFT JOIN zoom_info_base
-    ON company_id_spine.company_id = zoom_info_base.company_id
-  LEFT JOIN salesforce_accounts
-    ON company_id_spine.company_id = salesforce_accounts.company_id
-  LEFT JOIN zoom_info_merged
-    ON company_id_spine.company_id = zoom_info_merged.company_id
-  LEFT JOIN salesforce_leads
-    ON company_id_spine.company_id = salesforce_leads.company_id
-  LEFT JOIN salesforce_contacts
-    ON company_id_spine.company_id = salesforce_contacts.company_id
-  WHERE company_id_spine.company_id IS NOT NULL
+report as (
+    select distinct
+        {{ dbt_utils.surrogate_key(["company_id_spine.company_id::INT"]) }}
+        as dim_company_id,
+        company_id_spine.company_id::int as company_id,
+        zoom_info_merged.source_company_id,
+        coalesce(
+            zoom_info_base.company_name,
+            zoom_info_merged.company_name,
+            salesforce_accounts.company_name,
+            salesforce_leads.company_name,
+            'Unknown Company Name'
+        ) as company_name,
+        coalesce(
+            zoom_info_base.company_revenue,
+            zoom_info_merged.company_revenue,
+            salesforce_accounts.company_revenue,
+            salesforce_contacts.company_revenue,
+            salesforce_leads.company_revenue
+        ) as company_revenue,
+        coalesce(
+            zoom_info_base.company_employee_count,
+            zoom_info_merged.company_employee_count,
+            salesforce_accounts.company_employee_count,
+            salesforce_contacts.company_employee_count,
+            salesforce_leads.company_employee_count
+        ) as company_employee_count,
+        coalesce(
+            zoom_info_base.company_industry,
+            zoom_info_merged.company_industry,
+            salesforce_accounts.company_industry,
+            salesforce_contacts.company_industry,
+            salesforce_leads.company_industry
+        ) as company_industry,
+        coalesce(
+            zoom_info_base.company_country,
+            zoom_info_merged.company_country,
+            salesforce_accounts.company_country,
+            salesforce_contacts.company_country,
+            salesforce_leads.company_country
+        ) as company_country,
+        coalesce(
+            zoom_info_base.company_state_province,
+            zoom_info_merged.company_state_province,
+            salesforce_accounts.company_state_province,
+            salesforce_contacts.company_state_province,
+            salesforce_leads.company_state_province
+        ) as company_state_province,
+        iff(salesforce_accounts.company_id is not null, true, false) as has_crm_account,
+        iff(salesforce_leads.company_id is not null, true, false) as has_crm_lead,
+        iff(salesforce_contacts.company_id is not null, true, false) as has_crm_contact,
+        iff(zoom_info_base.company_id is not null, true, false) as is_company_hq,
+        iff(
+            zoom_info_merged.company_id is not null, true, false
+        ) as is_merged_company_id
+    from company_id_spine
+    left join zoom_info_base on company_id_spine.company_id = zoom_info_base.company_id
+    left join
+        salesforce_accounts
+        on company_id_spine.company_id = salesforce_accounts.company_id
+    left join
+        zoom_info_merged on company_id_spine.company_id = zoom_info_merged.company_id
+    left join
+        salesforce_leads on company_id_spine.company_id = salesforce_leads.company_id
+    left join
+        salesforce_contacts
+        on company_id_spine.company_id = salesforce_contacts.company_id
+    where company_id_spine.company_id is not null
 )
 
-SELECT *
-FROM report
+select *
+from report

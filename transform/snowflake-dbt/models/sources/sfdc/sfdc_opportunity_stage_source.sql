@@ -1,26 +1,20 @@
-{{ config(
-    tags=["mnpi"]
-) }}
+{{ config(tags=["mnpi"]) }}
 
-WITH source AS ( 
+with
+    source as (select * from {{ source("salesforce", "opportunity_stage") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('salesforce', 'opportunity_stage') }}
+        select
+            id as sfdc_id,
+            masterlabel as primary_label,
+            defaultprobability as default_probability,
+            forecastcategoryname as forecast_category_name,
+            isactive as is_active,
+            isclosed as is_closed,
+            iswon as is_won
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      id                   AS sfdc_id,
-      masterlabel          AS primary_label,
-      defaultprobability   AS default_probability,
-      forecastcategoryname AS forecast_category_name,
-      isactive             AS is_active,
-      isclosed             AS is_closed,
-      iswon                AS is_won
-    FROM source
-
-)    
-
-SELECT *
-FROM renamed
-
+select *
+from renamed

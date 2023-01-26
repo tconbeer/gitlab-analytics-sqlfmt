@@ -1,28 +1,24 @@
-WITH environment AS (
+with
+    environment as (
 
+        select 1 as dim_environment_id, 'Gitlab.com' as environment
 
-    SELECT
-      1 AS dim_environment_id,
-      'Gitlab.com' AS environment
+        union
 
-    UNION
+        select 2 as dim_environment_id, 'License DB' as environment
 
-    SELECT
-      2 AS dim_environment_id,
-      'License DB' AS environment
+        union
 
-    UNION
+        select 3 as dim_environment_id, 'Customers Portal' as environment
 
-    SELECT
-      3 AS dim_environment_id,
-      'Customers Portal' AS environment
+    )
 
-)
-
-{{ dbt_audit(
-    cte_ref="environment",
-    created_by="@jpeguero",
-    updated_by="@jpeguero",
-    created_date="2021-09-22",
-    updated_date="2021-09-22"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="environment",
+            created_by="@jpeguero",
+            updated_by="@jpeguero",
+            created_date="2021-09-22",
+            updated_date="2021-09-22",
+        )
+    }}

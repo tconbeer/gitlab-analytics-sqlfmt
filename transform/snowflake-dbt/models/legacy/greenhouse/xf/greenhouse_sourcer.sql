@@ -1,46 +1,24 @@
-WITH applications AS (
+with
+    applications as (select * from {{ ref("greenhouse_applications_source") }}),
+    referrer as (select * from {{ ref("greenhouse_referrers_source") }}),
+    source as (select * from {{ ref("greenhouse_sources_source") }}),
+    candidate as (select * from {{ ref("greenhouse_candidates_source") }}),
+    intermediate as (
 
-    SELECT *
-    FROM  {{ ref ('greenhouse_applications_source') }}
+        select
+            application_id,
+            applications.candidate_id,
+            applications.referrer_id,
+            referrer_name as sourcer_name,
+            applied_at as application_date,
+            candidate_created_at
+        from applications
+        left join referrer on applications.referrer_id = referrer.referrer_id
+        left join source on applications.source_id = source.source_id
+        left join candidate on applications.candidate_id = candidate.candidate_id
+        where source.source_type = 'Prospecting'
 
-), referrer AS (
+    )
 
-    SELECT *
-    FROM  {{ ref ('greenhouse_referrers_source') }}
-
-), source AS (
-
-    SELECT *
-    FROM  {{ ref ('greenhouse_sources_source') }}
-
-
-), candidate AS (
-
-    SELECT *
-    FROM  {{ ref ('greenhouse_candidates_source') }}
-
-), intermediate AS (
-
-    SELECT 
-      application_id,
-      applications.candidate_id,
-      applications.referrer_id,
-      referrer_name         AS sourcer_name,
-      applied_at            AS application_date, 
-      candidate_created_at
-    FROM applications
-    LEFT JOIN referrer
-      ON applications.referrer_id = referrer.referrer_id
-    LEFT JOIN source  
-      ON applications.source_Id = source.source_id
-    LEFT JOIN candidate
-      ON applications.candidate_id =  candidate.candidate_id 
-    WHERE source.source_type = 'Prospecting'  
-  
-)
-
-SELECT * 
-FROM intermediate
-
-
-
+select *
+from intermediate

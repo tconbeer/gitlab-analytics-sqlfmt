@@ -1,9 +1,9 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('sheetload_gitlab_contributing_organizations_source') }}
+        select * from {{ ref("sheetload_gitlab_contributing_organizations_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

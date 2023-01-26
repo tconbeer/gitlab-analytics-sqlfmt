@@ -1,14 +1,13 @@
-{{ config(
-    tags=["product"]
-) }}
+{{ config(tags=["product"]) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('usage_ping_metrics_source') }}
-    QUALIFY MAX(uploaded_at) OVER() = uploaded_at
+        select *
+        from {{ ref("usage_ping_metrics_source") }}
+        qualify max(uploaded_at) over () = uploaded_at
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

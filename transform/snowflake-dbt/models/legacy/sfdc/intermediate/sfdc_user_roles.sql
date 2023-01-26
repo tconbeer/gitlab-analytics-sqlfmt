@@ -1,9 +1,1 @@
-with base as (
-
-    SELECT * 
-    FROM {{ ref('sfdc_user_roles_source') }}
-
-)
-
-SELECT *
-FROM base
+with base as (select * from {{ ref("sfdc_user_roles_source") }}) select * from base

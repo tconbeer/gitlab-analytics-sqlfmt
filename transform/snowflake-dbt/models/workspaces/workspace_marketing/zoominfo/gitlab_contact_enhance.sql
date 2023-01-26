@@ -1,10 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT {{ hash_sensitive_columns('gitlab_contact_enhance_source') }}
-    FROM {{ ref('gitlab_contact_enhance_source') }}
+        select {{ hash_sensitive_columns("gitlab_contact_enhance_source") }}
+        from {{ ref("gitlab_contact_enhance_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
-
+select *
+from source

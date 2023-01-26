@@ -1,36 +1,36 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('snapshots', 'zuora_product_rate_plan_snapshots') }}
+        select * from {{ source("snapshots", "zuora_product_rate_plan_snapshots") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      --Primary Keys
-      id::VARCHAR                       AS product_rate_plan_id,
+        select
+            -- Primary Keys
+            id::varchar as product_rate_plan_id,
 
-      --Info
-      productid::VARCHAR                AS product_id,
-      description::VARCHAR              AS product_rate_plan_description,
-      effectiveenddate::TIMESTAMP_TZ    AS effective_end_date,
-      effectivestartdate::TIMESTAMP_TZ  AS effective_start_date,
-      name::VARCHAR                     AS product_rate_plan_name,
-      createdbyid::VARCHAR              AS created_by_id,
-      createddate::TIMESTAMP_TZ         AS created_date,
-      updatedbyid::VARCHAR              AS updated_by_id,
-      updateddate::TIMESTAMP_TZ         AS updated_date,
-      deleted                           AS is_deleted,
+            -- Info
+            productid::varchar as product_id,
+            description::varchar as product_rate_plan_description,
+            effectiveenddate::timestamp_tz as effective_end_date,
+            effectivestartdate::timestamp_tz as effective_start_date,
+            name::varchar as product_rate_plan_name,
+            createdbyid::varchar as created_by_id,
+            createddate::timestamp_tz as created_date,
+            updatedbyid::varchar as updated_by_id,
+            updateddate::timestamp_tz as updated_date,
+            deleted as is_deleted,
 
-      -- snapshot metadata
-      dbt_scd_id,
-      dbt_updated_at,
-      dbt_valid_from,
-      dbt_valid_to
+            -- snapshot metadata
+            dbt_scd_id,
+            dbt_updated_at,
+            dbt_valid_from,
+            dbt_valid_to
 
+        from source
 
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

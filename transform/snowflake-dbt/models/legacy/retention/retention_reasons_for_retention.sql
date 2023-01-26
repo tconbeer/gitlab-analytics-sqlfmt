@@ -1,169 +1,257 @@
-WITH raw_mrr_totals_levelled AS (
+with
+    raw_mrr_totals_levelled as (
 
-    SELECT *
-    FROM {{ref('mart_arr')}}
-    WHERE product_tier_name != 'Trueup'
+        select * from {{ ref("mart_arr") }} where product_tier_name != 'Trueup'
 
-), mrr_totals_levelled AS (
+    ),
+    mrr_totals_levelled as (
 
-    SELECT 
-        subscription_name,
-        subscription_name_slugify,
-        dim_crm_account_id                                                                                              AS sfdc_account_id,
-        oldest_subscription_in_cohort                                                                                   AS oldest_subscription_in_cohort,
-        subscription_lineage                                                                                            AS lineage,
-        arr_month                                                                                                       AS mrr_month,
-        subscription_cohort_month                                                                                       AS zuora_subscription_cohort_month,
-        subscription_cohort_quarter                                                                                     AS zuora_subscription_cohort_quarter,
-        months_since_subscription_cohort_start                                                                          AS months_since_zuora_subscription_cohort_start,
-        quarters_since_subscription_cohort_start                                                                        AS quarters_since_zuora_subscription_cohort_start,
+        select
+            subscription_name,
+            subscription_name_slugify,
+            dim_crm_account_id as sfdc_account_id,
+            oldest_subscription_in_cohort as oldest_subscription_in_cohort,
+            subscription_lineage as lineage,
+            arr_month as mrr_month,
+            subscription_cohort_month as zuora_subscription_cohort_month,
+            subscription_cohort_quarter as zuora_subscription_cohort_quarter,
+            months_since_subscription_cohort_start
+            as months_since_zuora_subscription_cohort_start,
+            quarters_since_subscription_cohort_start
+            as quarters_since_zuora_subscription_cohort_start,
 
-        ARRAY_AGG(DISTINCT product_tier_name) WITHIN GROUP (ORDER BY product_tier_name ASC)                             AS original_product_category,
-        ARRAY_AGG(DISTINCT product_delivery_type) WITHIN GROUP (ORDER BY product_delivery_type ASC)                     AS original_delivery,
-        ARRAY_AGG(DISTINCT unit_of_measure) WITHIN GROUP (ORDER BY unit_of_measure ASC)                                 AS original_unit_of_measure,
-        
-        MAX(DECODE(product_tier_name,   --Need to account for the 'other' categories
-        'Bronze', 1,
-        'Silver', 2,
-        'Gold', 3,
+            array_agg(distinct product_tier_name) within group (
+                order by product_tier_name asc
+            ) as original_product_category,
+            array_agg(distinct product_delivery_type) within group (
+                order by product_delivery_type asc
+            ) as original_delivery,
+            array_agg(distinct unit_of_measure) within group (
+                order by unit_of_measure asc
+            ) as original_unit_of_measure,
 
-        'Starter', 1,
-        'Premium', 2,
-        'Ultimate', 3,
+            max(
+                decode(
+                    product_tier_name,  -- Need to account for the 'other' categories
+                    'Bronze',
+                    1,
+                    'Silver',
+                    2,
+                    'Gold',
+                    3,
 
-        0
-        ))                                                                                                              AS original_product_ranking,
-        SUM(quantity)                                                                                                   AS original_quantity,
-        SUM(mrr)                                                                                                        AS original_mrr
-    FROM raw_mrr_totals_levelled
-    {{ dbt_utils.group_by(n=10) }}
+                    'Starter',
+                    1,
+                    'Premium',
+                    2,
+                    'Ultimate',
+                    3,
 
-), list AS ( --get all the subscription + their lineage + the month we're looking for MRR for (12 month in the future)
+                    0
+                )
+            ) as original_product_ranking,
+            sum(quantity) as original_quantity,
+            sum(mrr) as original_mrr
+        from raw_mrr_totals_levelled {{ dbt_utils.group_by(n=10) }}
 
-    SELECT
-        subscription_name_slugify       AS original_sub,
-        c.value::VARCHAR                AS subscriptions_in_lineage,
-        mrr_month                       AS original_mrr_month,
-        DATEADD('year', 1, mrr_month)   AS retention_month
-    FROM mrr_totals_levelled,
-    LATERAL FLATTEN(input =>SPLIT(lineage, ',')) C
-    {{ dbt_utils.group_by(n=4) }}
+    ),
+    list as (  -- get all the subscription + their lineage + the month we're looking for MRR for (12 month in the future)
 
-), retention_subs AS ( --find which of those subscriptions are real and group them by their sub you're comparing to.
+        select
+            subscription_name_slugify as original_sub,
+            c.value::varchar as subscriptions_in_lineage,
+            mrr_month as original_mrr_month,
+            dateadd('year', 1, mrr_month) as retention_month
+        from
+            mrr_totals_levelled,
+            lateral flatten(input => split(lineage, ',')) c
+            {{ dbt_utils.group_by(n=4) }}
 
-    SELECT   
-        list.original_sub,
-        list.retention_month,
-        list.original_mrr_month,
-        mrr_totals_levelled.original_product_category      AS retention_product_category,
-        mrr_totals_levelled.original_delivery              AS retention_delivery,
-        mrr_totals_levelled.original_quantity              AS retention_quantity,
-        mrr_totals_levelled.original_unit_of_measure       AS retention_unit_of_measure,
-        mrr_totals_levelled.original_product_ranking       AS retention_product_ranking,
-        COALESCE(SUM(mrr_totals_levelled.original_mrr), 0) AS retention_mrr
-    FROM list
-    INNER JOIN mrr_totals_levelled
-       ON retention_month = mrr_month
-       AND subscriptions_in_lineage = subscription_name_slugify
-    {{ dbt_utils.group_by(n=8) }}
+    ),
+    retention_subs as (  -- find which of those subscriptions are real and group them by their sub you're comparing to.
 
-), expansion AS (
+        select
+            list.original_sub,
+            list.retention_month,
+            list.original_mrr_month,
+            mrr_totals_levelled.original_product_category as retention_product_category,
+            mrr_totals_levelled.original_delivery as retention_delivery,
+            mrr_totals_levelled.original_quantity as retention_quantity,
+            mrr_totals_levelled.original_unit_of_measure as retention_unit_of_measure,
+            mrr_totals_levelled.original_product_ranking as retention_product_ranking,
+            coalesce(sum(mrr_totals_levelled.original_mrr), 0) as retention_mrr
+        from list
+        inner join
+            mrr_totals_levelled
+            on retention_month = mrr_month
+            and subscriptions_in_lineage = subscription_name_slugify
+            {{ dbt_utils.group_by(n=8) }}
 
-    SELECT
-        mrr_totals_levelled.*,
-        retention_subs.*,
-        COALESCE(retention_subs.retention_mrr, 0) AS net_retention_mrr,
-        {{ retention_type('original_mrr', 'net_retention_mrr') }},
-        {{ retention_reason('original_mrr', 'original_product_category', 'original_product_ranking',
-                            'original_quantity', 'net_retention_mrr', 'retention_product_category', 
-                            'retention_product_ranking', 'retention_quantity') }},
-        {{ plan_change('original_product_ranking', 'original_mrr',
-                       'retention_product_ranking', 'net_retention_mrr') }},
-        {{ seat_change('original_quantity', 'original_unit_of_measure', 'original_mrr',
-                       'retention_quantity', 'retention_unit_of_measure', 'net_retention_mrr') }},
-        {{ monthly_price_per_seat_change('original_mrr', 'original_quantity', 'original_unit_of_measure',
-                                         'net_retention_mrr', 'retention_quantity', 'retention_unit_of_measure') }}
+    ),
+    expansion as (
 
-    FROM mrr_totals_levelled
-    LEFT JOIN retention_subs
-        ON subscription_name_slugify = original_sub
-        AND retention_subs.original_mrr_month = mrr_totals_levelled.mrr_month
-    WHERE retention_mrr > original_mrr
+        select
+            mrr_totals_levelled.*,
+            retention_subs.*,
+            coalesce(retention_subs.retention_mrr, 0) as net_retention_mrr,
+            {{ retention_type("original_mrr", "net_retention_mrr") }},
+            {{
+                retention_reason(
+                    "original_mrr",
+                    "original_product_category",
+                    "original_product_ranking",
+                    "original_quantity",
+                    "net_retention_mrr",
+                    "retention_product_category",
+                    "retention_product_ranking",
+                    "retention_quantity",
+                )
+            }},
+            {{
+                plan_change(
+                    "original_product_ranking",
+                    "original_mrr",
+                    "retention_product_ranking",
+                    "net_retention_mrr",
+                )
+            }},
+            {{
+                seat_change(
+                    "original_quantity",
+                    "original_unit_of_measure",
+                    "original_mrr",
+                    "retention_quantity",
+                    "retention_unit_of_measure",
+                    "net_retention_mrr",
+                )
+            }},
+            {{
+                monthly_price_per_seat_change(
+                    "original_mrr",
+                    "original_quantity",
+                    "original_unit_of_measure",
+                    "net_retention_mrr",
+                    "retention_quantity",
+                    "retention_unit_of_measure",
+                )
+            }}
 
-), churn AS (
+        from mrr_totals_levelled
+        left join
+            retention_subs
+            on subscription_name_slugify = original_sub
+            and retention_subs.original_mrr_month = mrr_totals_levelled.mrr_month
+        where retention_mrr > original_mrr
 
-    SELECT
-        mrr_totals_levelled.*,
-        retention_subs.*,
-        COALESCE(retention_subs.retention_mrr, 0)               AS net_retention_mrr,
-        {{ retention_type('original_mrr', 'net_retention_mrr') }},
-        {{ retention_reason('original_mrr', 'original_product_category', 'original_product_ranking',
-                            'original_quantity', 'net_retention_mrr', 'retention_product_category', 
-                            'retention_product_ranking', 'retention_quantity') }},
-        {{ plan_change('original_product_ranking', 'original_mrr',
-                       'retention_product_ranking', 'net_retention_mrr') }},
-        {{ seat_change('original_quantity', 'original_unit_of_measure', 'original_mrr',
-                       'retention_quantity', 'retention_unit_of_measure', 'net_retention_mrr') }},
-        {{ monthly_price_per_seat_change('original_mrr', 'original_quantity', 'original_unit_of_measure',
-                                         'net_retention_mrr', 'retention_quantity', 'retention_unit_of_measure') }}
+    ),
+    churn as (
 
-    FROM mrr_totals_levelled
-    LEFT JOIN retention_subs
-        ON subscription_name_slugify = original_sub
-        AND retention_subs.original_mrr_month = mrr_totals_levelled.mrr_month
-    WHERE net_retention_mrr < original_mrr
+        select
+            mrr_totals_levelled.*,
+            retention_subs.*,
+            coalesce(retention_subs.retention_mrr, 0) as net_retention_mrr,
+            {{ retention_type("original_mrr", "net_retention_mrr") }},
+            {{
+                retention_reason(
+                    "original_mrr",
+                    "original_product_category",
+                    "original_product_ranking",
+                    "original_quantity",
+                    "net_retention_mrr",
+                    "retention_product_category",
+                    "retention_product_ranking",
+                    "retention_quantity",
+                )
+            }},
+            {{
+                plan_change(
+                    "original_product_ranking",
+                    "original_mrr",
+                    "retention_product_ranking",
+                    "net_retention_mrr",
+                )
+            }},
+            {{
+                seat_change(
+                    "original_quantity",
+                    "original_unit_of_measure",
+                    "original_mrr",
+                    "retention_quantity",
+                    "retention_unit_of_measure",
+                    "net_retention_mrr",
+                )
+            }},
+            {{
+                monthly_price_per_seat_change(
+                    "original_mrr",
+                    "original_quantity",
+                    "original_unit_of_measure",
+                    "net_retention_mrr",
+                    "retention_quantity",
+                    "retention_unit_of_measure",
+                )
+            }}
 
-), joined AS (
+        from mrr_totals_levelled
+        left join
+            retention_subs
+            on subscription_name_slugify = original_sub
+            and retention_subs.original_mrr_month = mrr_totals_levelled.mrr_month
+        where net_retention_mrr < original_mrr
 
-    SELECT
-        subscription_name              AS zuora_subscription_name,
-        oldest_subscription_in_cohort  AS zuora_subscription_id,
-        DATEADD('year', 1, mrr_month)  AS retention_month, --THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
-        retention_type,
-        retention_reason,
-        plan_change,
-        seat_change,
-        monthly_price_per_seat_change,
-        original_product_category,
-        retention_product_category,
-        original_delivery,
-        retention_delivery,
-        original_quantity,
-        retention_quantity,
-        original_unit_of_measure,
-        retention_unit_of_measure,
-        original_mrr,
-        net_retention_mrr AS retention_mrr
-    FROM expansion
+    ),
+    joined as (
 
-    UNION ALL
+        select
+            subscription_name as zuora_subscription_name,
+            oldest_subscription_in_cohort as zuora_subscription_id,
+            dateadd('year', 1, mrr_month) as retention_month,  -- THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
+            retention_type,
+            retention_reason,
+            plan_change,
+            seat_change,
+            monthly_price_per_seat_change,
+            original_product_category,
+            retention_product_category,
+            original_delivery,
+            retention_delivery,
+            original_quantity,
+            retention_quantity,
+            original_unit_of_measure,
+            retention_unit_of_measure,
+            original_mrr,
+            net_retention_mrr as retention_mrr
+        from expansion
 
-    SELECT 
-        subscription_name                                             AS zuora_subscription_name,
-        oldest_subscription_in_cohort                                 AS zuora_subscription_id,
-        DATEADD('year', 1, mrr_month)                                 AS retention_month, --THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
-        retention_type,
-        retention_reason,
-        plan_change,
-        seat_change,
-        monthly_price_per_seat_change,
-        original_product_category,
-        retention_product_category,
-        original_delivery,
-        retention_delivery,
-        original_quantity,
-        retention_quantity,
-        original_unit_of_measure,
-        retention_unit_of_measure,
-        original_mrr,
-        net_retention_mrr                                             AS retention_mrr
-    FROM churn
+        union all
 
-)
+        select
+            subscription_name as zuora_subscription_name,
+            oldest_subscription_in_cohort as zuora_subscription_id,
+            dateadd('year', 1, mrr_month) as retention_month,  -- THIS IS THE RETENTION MONTH, NOT THE MRR MONTH!!
+            retention_type,
+            retention_reason,
+            plan_change,
+            seat_change,
+            monthly_price_per_seat_change,
+            original_product_category,
+            retention_product_category,
+            original_delivery,
+            retention_delivery,
+            original_quantity,
+            retention_quantity,
+            original_unit_of_measure,
+            retention_unit_of_measure,
+            original_mrr,
+            net_retention_mrr as retention_mrr
+        from churn
 
-SELECT
+    )
+
+select
     joined.*,
-    RANK() OVER(PARTITION by zuora_subscription_id, retention_type
-        ORDER BY retention_month ASC)   AS rank_retention_type_month
-FROM joined
-WHERE retention_month <= DATEADD(month, -1, CURRENT_DATE)
+    rank() over (
+        partition by zuora_subscription_id, retention_type order by retention_month asc
+    ) as rank_retention_type_month
+from joined
+where retention_month <= dateadd(month, -1, current_date)
