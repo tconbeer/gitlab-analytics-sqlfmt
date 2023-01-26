@@ -102,7 +102,7 @@ with
         -- Get contact information for self-managed subscriptions 
         select distinct
             -- contact_id
-            --    AS user_id,
+            -- AS user_id,
             subscription.subscription_id,
             subscription.account_id,
             first_name || ' ' || last_name as full_name,
