@@ -1,23 +1,24 @@
-    
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_approval_merge_request_rules_dedupe_source') }}
-  
-), renamed AS (
+        select *
+        from {{ ref("gitlab_dotcom_approval_merge_request_rules_dedupe_source") }}
 
-  SELECT
-    id::NUMBER                      AS approval_merge_request_rule_id,
-    merge_request_id::NUMBER        AS merge_request_id,
-    approvals_required::NUMBER      AS is_approvals_required,
-    rule_type::VARCHAR              AS rule_type,
-    report_type::VARCHAR            AS report_type,
-    created_at::TIMESTAMP           AS created_at,
-    updated_at::TIMESTAMP           AS updated_at
+    ),
+    renamed as (
 
-  FROM source
+        select
+            id::number as approval_merge_request_rule_id,
+            merge_request_id::number as merge_request_id,
+            approvals_required::number as is_approvals_required,
+            rule_type::varchar as rule_type,
+            report_type::varchar as report_type,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

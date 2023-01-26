@@ -1,16 +1,17 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("customers_db_customers_source") }}),
+    customers_db_customers_pii as (
 
-    SELECT *
-    FROM {{ ref('customers_db_customers_source') }}
+        select
+            customer_id,
+            {{
+                nohash_sensitive_columns(
+                    "customers_db_customers_source", "customer_email"
+                )
+            }}
+        from source
 
-), customers_db_customers_pii AS (
+    )
 
-    SELECT
-      customer_id,
-      {{ nohash_sensitive_columns('customers_db_customers_source', 'customer_email') }}
-    FROM source
-
-)
-
-SELECT *
-FROM customers_db_customers_pii
+select *
+from customers_db_customers_pii

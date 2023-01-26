@@ -1,9 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_clusters_applications_elastic_stacks_source') }}
+        select *
+        from {{ ref("gitlab_dotcom_clusters_applications_elastic_stacks_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

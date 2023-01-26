@@ -1,22 +1,23 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_pipeline_schedule_variables_dedupe_source') }}
-  
-), renamed AS (
+        select *
+        from {{ ref("gitlab_dotcom_ci_pipeline_schedule_variables_dedupe_source") }}
 
-    SELECT
-      id::NUMBER                   AS ci_pipeline_schedule_variable_id,
-      key                           AS key,
-      pipeline_schedule_id::NUMBER AS ci_pipeline_schedule_id,
-      created_at::TIMESTAMP         AS created_at,
-      updated_at::TIMESTAMP         AS updated_at,
-      variable_type                 AS variable_type
+    ),
+    renamed as (
 
-    FROM source
+        select
+            id::number as ci_pipeline_schedule_variable_id,
+            key as key,
+            pipeline_schedule_id::number as ci_pipeline_schedule_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            variable_type as variable_type
 
-)
+        from source
 
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

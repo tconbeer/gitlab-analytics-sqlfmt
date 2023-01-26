@@ -1,100 +1,126 @@
-{{ simple_cte([
-    ('namespaces_current', 'gitlab_dotcom_namespaces_source'),
-    ('plans', 'gitlab_dotcom_plans_source'),
-    ('gitlab_subscriptions', 'gitlab_dotcom_gitlab_subscriptions_source')
-]) }}
+{{
+    simple_cte(
+        [
+            ("namespaces_current", "gitlab_dotcom_namespaces_source"),
+            ("plans", "gitlab_dotcom_plans_source"),
+            ("gitlab_subscriptions", "gitlab_dotcom_gitlab_subscriptions_source"),
+        ]
+    )
+}},
+active_gitlab_subscriptions as (
 
-, active_gitlab_subscriptions AS (
+    select *
+    from gitlab_subscriptions
+    where
+        is_currently_valid = true
+        and ifnull(gitlab_subscription_end_date, current_date) >= current_date
 
-    SELECT *
-    FROM gitlab_subscriptions
-    WHERE is_currently_valid = TRUE
-      AND IFNULL(gitlab_subscription_end_date, CURRENT_DATE) >= CURRENT_DATE
+),
+namespaces as (
 
-), namespaces AS (
+    select namespace_id, parent_id
+    from namespaces_current
 
-    SELECT
-      namespace_id,
-      parent_id
-    FROM namespaces_current
-
-    UNION ALL
+    union all
     /*
       Union parent_ids with deleted namespace_ids. These cause their child namespaces to be missed by the top-down recursive CTE.
       Child namespaces with deleted parents are quite rare (n=82 on 2020-01-06, n=113 on 2020-12-17, n=114 on 2021-05-01),
       but need to be included in this model for full coverage.
     */
-    SELECT
-      deleted_parents.parent_id                                                 AS namespace_id,
-      NULL                                                                      AS parent_id
-    FROM namespaces_current deleted_parents
-    LEFT JOIN namespaces_current ultimate_parents
-      ON deleted_parents.parent_id = ultimate_parents.namespace_id
-    WHERE deleted_parents.parent_id IS NOT NULL
-      AND ultimate_parents.namespace_id IS NULL
-    GROUP BY 1,2
+    select deleted_parents.parent_id as namespace_id, null as parent_id
+    from namespaces_current deleted_parents
+    left join
+        namespaces_current ultimate_parents
+        on deleted_parents.parent_id = ultimate_parents.namespace_id
+    where
+        deleted_parents.parent_id is not null and ultimate_parents.namespace_id is null
+    group by 1, 2
 
-), recursive_namespaces(namespace_id, parent_id, upstream_lineage) AS (
+),
+recursive_namespaces(namespace_id, parent_id, upstream_lineage) as (
 
-  -- Select all namespaces without parents
-    SELECT
-      namespace_id,
-      parent_id,
-      TO_ARRAY(namespace_id)                                                    AS upstream_lineage -- Initiate lineage array
-    FROM namespaces
-    WHERE parent_id IS NULL
+    -- Select all namespaces without parents
+    -- Initiate lineage array
+    select namespace_id, parent_id, to_array(namespace_id) as upstream_lineage
+    from namespaces
+    where parent_id is null
 
-    UNION ALL
+    union all
 
     -- Recursively iterate through each of the children namespaces 
-  
-    SELECT
-      iter.namespace_id,
-      iter.parent_id,
-      ARRAY_APPEND(anchor.upstream_lineage, iter.namespace_id)                  AS upstream_lineage -- Copy the lineage array of parent, append self to end
-    FROM recursive_namespaces AS anchor -- Parent namespace
-    INNER JOIN namespaces AS iter -- Child namespace
-      ON anchor.namespace_id = iter.parent_id
+    select
+        iter.namespace_id,
+        iter.parent_id,
+        -- Copy the lineage array of parent, append self to end
+        array_append(anchor.upstream_lineage, iter.namespace_id) as upstream_lineage
+    from recursive_namespaces as anchor  -- Parent namespace
+    inner join
+        namespaces as iter  -- Child namespace
+        on anchor.namespace_id = iter.parent_id
 
-), extracted AS (
+),
+extracted as (
 
-    SELECT
-      recursive_namespaces.*,
-      recursive_namespaces.upstream_lineage[0]::NUMBER                          AS ultimate_parent_id, -- First item is the ultimate parent.
-      IFF(namespaces_current.namespace_id IS NOT NULL,
-          TRUE, FALSE)                                                          AS is_currently_valid 
-    FROM recursive_namespaces
-    LEFT JOIN namespaces_current
-      ON recursive_namespaces.namespace_id = namespaces_current.namespace_id
-    WHERE recursive_namespaces.namespace_id != 0
-  
-), with_plans AS (
+    select
+        recursive_namespaces.*,
+        -- First item is the ultimate parent.
+        recursive_namespaces.upstream_lineage[0]::number as ultimate_parent_id,
+        iff(
+            namespaces_current.namespace_id is not null, true, false
+        ) as is_currently_valid
+    from recursive_namespaces
+    left join
+        namespaces_current
+        on recursive_namespaces.namespace_id = namespaces_current.namespace_id
+    where recursive_namespaces.namespace_id != 0
 
-    SELECT
-      extracted.*,
-      namespace_plans.plan_id                                                   AS namespace_plan_id,
-      namespace_plans.plan_title                                                AS namespace_plan_title,
-      namespace_plans.plan_is_paid                                              AS namespace_plan_is_paid,
-      IFF(ultimate_parent_gitlab_subscriptions.is_trial
-            AND IFNULL(ultimate_parent_gitlab_subscriptions.plan_id, 34) NOT IN (34, 103), -- Excluded Premium (103) and Free (34) Trials from being remapped as Ultimate Trials
-          102, -- All historical trial GitLab subscriptions were Ultimate/Gold Trials (102)
-          IFNULL(ultimate_parent_plans.plan_id, 34))                            AS ultimate_parent_plan_id,
-      IFF(ultimate_parent_plan_id = 102,
-          'Ultimate Trial', IFNULL(ultimate_parent_plans.plan_title, 'Free'))   AS ultimate_parent_plan_title,
-      IFF(ultimate_parent_gitlab_subscriptions.is_trial,
-          FALSE, IFNULL(ultimate_parent_plans.plan_is_paid, FALSE))             AS ultimate_parent_plan_is_paid
-    FROM extracted
+),
+with_plans as (
+
+    select
+        extracted.*,
+        namespace_plans.plan_id as namespace_plan_id,
+        namespace_plans.plan_title as namespace_plan_title,
+        namespace_plans.plan_is_paid as namespace_plan_is_paid,
+        iff(
+            ultimate_parent_gitlab_subscriptions.is_trial
+            and ifnull(ultimate_parent_gitlab_subscriptions.plan_id, 34)
+            -- Excluded Premium (103) and Free (34) Trials from being remapped as
+            -- Ultimate Trials
+            not in (34, 103),
+            -- All historical trial GitLab subscriptions were Ultimate/Gold Trials
+            -- (102)
+            102,
+            ifnull(ultimate_parent_plans.plan_id, 34)
+        ) as ultimate_parent_plan_id,
+        iff(
+            ultimate_parent_plan_id = 102,
+            'Ultimate Trial',
+            ifnull(ultimate_parent_plans.plan_title, 'Free')
+        ) as ultimate_parent_plan_title,
+        iff(
+            ultimate_parent_gitlab_subscriptions.is_trial,
+            false,
+            ifnull(ultimate_parent_plans.plan_is_paid, false)
+        ) as ultimate_parent_plan_is_paid
+    from extracted
     -- Get plan information for the namespace.
-    LEFT JOIN active_gitlab_subscriptions AS namespace_gitlab_subscriptions
-      ON extracted.namespace_id = namespace_gitlab_subscriptions.namespace_id
-    LEFT JOIN plans AS namespace_plans
-      ON IFNULL(namespace_gitlab_subscriptions.plan_id, 34) = namespace_plans.plan_id
+    left join
+        active_gitlab_subscriptions as namespace_gitlab_subscriptions
+        on extracted.namespace_id = namespace_gitlab_subscriptions.namespace_id
+    left join
+        plans as namespace_plans
+        on ifnull(namespace_gitlab_subscriptions.plan_id, 34) = namespace_plans.plan_id
     -- Get plan information for the ultimate parent namespace.
-    LEFT JOIN active_gitlab_subscriptions AS ultimate_parent_gitlab_subscriptions
-      ON extracted.ultimate_parent_id = ultimate_parent_gitlab_subscriptions.namespace_id
-    LEFT JOIN plans AS ultimate_parent_plans
-      ON IFNULL(ultimate_parent_gitlab_subscriptions.plan_id, 34) = ultimate_parent_plans.plan_id
+    left join
+        active_gitlab_subscriptions as ultimate_parent_gitlab_subscriptions
+        on extracted.ultimate_parent_id
+        = ultimate_parent_gitlab_subscriptions.namespace_id
+    left join
+        plans as ultimate_parent_plans
+        on ifnull(ultimate_parent_gitlab_subscriptions.plan_id, 34)
+        = ultimate_parent_plans.plan_id
 
 )
-SELECT *
-FROM with_plans
+select *
+from with_plans

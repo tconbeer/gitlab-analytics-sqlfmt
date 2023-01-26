@@ -1,328 +1,365 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-{{ config({
-        "materialized": "table",
-        "schema": "common_mart_product",
-        "unique_key": "primary_key"
-    })
+{{
+    config(
+        {
+            "materialized": "table",
+            "schema": "common_mart_product",
+            "unique_key": "primary_key",
+        }
+    )
 }}
 
-{{ simple_cte([
-    ('dim_date','dim_date'),
-    ('estimated_value','mart_monthly_counter_adoption'),
-    ('fct_usage_ping_payload','fct_usage_ping_payload'),
-    ('fct_monthly_usage_data','fct_monthly_usage_data'),
-    ('fct_daily_event_400','fct_daily_event_400'),
-    ('map_saas_event_to_gmau','map_saas_event_to_gmau'),
-    ('map_saas_event_to_smau','map_saas_event_to_smau')
-]) }}
+{{
+    simple_cte(
+        [
+            ("dim_date", "dim_date"),
+            ("estimated_value", "mart_monthly_counter_adoption"),
+            ("fct_usage_ping_payload", "fct_usage_ping_payload"),
+            ("fct_monthly_usage_data", "fct_monthly_usage_data"),
+            ("fct_daily_event_400", "fct_daily_event_400"),
+            ("map_saas_event_to_gmau", "map_saas_event_to_gmau"),
+            ("map_saas_event_to_smau", "map_saas_event_to_smau"),
+        ]
+    )
+}},
+smau as (
 
-, smau AS (
+    select
+        ping_created_month,
+        clean_metrics_name,
+        edition,
+        product_tier,
+        group_name,
+        stage_name,
+        section_name,
+        is_smau,
+        is_gmau,
+        is_paid_gmau,
+        is_umau,
+        usage_ping_delivery_type,
+        sum(monthly_metric_value) as monthly_metric_value_sum
+    from fct_monthly_usage_data
+    inner join
+        fct_usage_ping_payload
+        on fct_monthly_usage_data.dim_usage_ping_id
+        = fct_usage_ping_payload.dim_usage_ping_id
+    where
+        is_smau = true
+        and product_tier <> 'Core'
+        and usage_ping_delivery_type = 'Self-Managed'
+        {{ dbt_utils.group_by(n=12) }}
 
-    SELECT 
-      ping_created_month,
-      clean_metrics_name,
-      edition,
-      product_tier,
-      group_name,
-      stage_name,
-      section_name, 
-      is_smau,
-      is_gmau,
-      is_paid_gmau,
-      is_umau,
-      usage_ping_delivery_type,
-      SUM(monthly_metric_value) AS monthly_metric_value_sum
-    FROM fct_monthly_usage_data
-    INNER JOIN fct_usage_ping_payload
-      ON fct_monthly_usage_data.dim_usage_ping_id = fct_usage_ping_payload.dim_usage_ping_id
-    WHERE is_smau = TRUE
-      AND product_tier <> 'Core'
-      AND usage_ping_delivery_type = 'Self-Managed'
-    {{ dbt_utils.group_by(n=12) }}
+),
+smau_joined as (
 
+    select
+        smau.*,
+        usage_ping_delivery_type as delivery,
+        'SMAU' as xmau_level,
+        product_tier not in ('Core', 'CE')
+        and usage_ping_delivery_type = 'Self-Managed' as is_paid,
+        coalesce(
+            estimated_value.pct_subscriptions_with_counters, 1
+        ) as pct_subscriptions_with_counters
+    from smau
+    left join
+        estimated_value
+        on estimated_value.is_smau
+        and smau.usage_ping_delivery_type = 'Self-Managed'
+        and smau.ping_created_month = estimated_value.reporting_month
+        and smau.stage_name = estimated_value.stage_name
+        and smau.section_name = estimated_value.section_name
+        and smau.edition = estimated_value.edition
 
+),
+saas_smau as (
 
-), smau_joined AS (
+    select
+        first_day_of_month as reporting_month,
+        'SaaS' as delivery,
+        null as section_name,
+        stage_name,
+        null as group_name,
+        'SMAU' as xmau_level,
+        'SaaS' as product_tier,
+        'SaaS' as edition,
+        count(distinct dim_user_id) as recorded_monthly_metric_value_sum,
+        recorded_monthly_metric_value_sum as estimated_monthly_metric_value_sum
 
-    SELECT 
-      smau.*,
-      usage_ping_delivery_type                                                         AS delivery,
-      'SMAU'                                                              AS xmau_level,
-      product_tier NOT IN ('Core', 'CE') AND usage_ping_delivery_type = 'Self-Managed' AS is_paid,
-      COALESCE(estimated_value.pct_subscriptions_with_counters, 1)        AS pct_subscriptions_with_counters
-    FROM smau
-    LEFT JOIN estimated_value
-      ON estimated_value.is_smau
-        AND smau.usage_ping_delivery_type = 'Self-Managed'
-        AND smau.ping_created_month  = estimated_value.reporting_month
-        AND smau.stage_name = estimated_value.stage_name 
-        AND smau.section_name = estimated_value.section_name
-        AND smau.edition = estimated_value.edition
-  
-), saas_smau AS (
-  
-    SELECT 
-      first_day_of_month                AS reporting_month,
-      'SaaS'                            AS delivery,
-      NULL                              AS section_name,
-      stage_name,
-      NULL                              AS group_name,
-      'SMAU'                            AS xmau_level,
-      'SaaS'                            AS product_tier,
-      'SaaS'                            AS edition,
-      COUNT(DISTINCT dim_user_id)       AS recorded_monthly_metric_value_sum,
-      recorded_monthly_metric_value_sum AS estimated_monthly_metric_value_sum
+    from fct_daily_event_400
+    inner join
+        map_saas_event_to_smau
+        on fct_daily_event_400.event_name = map_saas_event_to_smau.event_name
+    inner join
+        dim_date
+        on fct_daily_event_400.event_created_date = dim_date.date_day
+        and datediff('day', event_created_date, last_day_of_month) < 28
+    where
+        fct_daily_event_400.dim_plan_id_at_event_date <> 34
+        {{ dbt_utils.group_by(n=8) }}
 
-    FROM fct_daily_event_400
-    INNER JOIN map_saas_event_to_smau
-      ON fct_daily_event_400.event_name = map_saas_event_to_smau.event_name
-    INNER JOIN dim_date
-      ON fct_daily_event_400.event_created_date = dim_date.date_day
-      AND DATEDIFF('day', event_created_date, last_day_of_month) < 28
-    WHERE fct_daily_event_400.dim_plan_id_at_event_date <> 34
-    {{ dbt_utils.group_by(n=8) }}
+),
+umau as (
 
+    select
+        ping_created_month,
+        clean_metrics_name,
+        edition,
+        product_tier,
+        group_name,
+        stage_name,
+        section_name,
+        is_smau,
+        is_gmau,
+        is_paid_gmau,
+        is_umau,
+        usage_ping_delivery_type,
+        sum(monthly_metric_value) as monthly_metric_value_sum
+    from fct_monthly_usage_data
+    inner join
+        fct_usage_ping_payload
+        on fct_monthly_usage_data.dim_usage_ping_id
+        = fct_usage_ping_payload.dim_usage_ping_id
+    where
+        is_umau = true
+        and product_tier <> 'Core'
+        and usage_ping_delivery_type = 'Self-Managed'
+        {{ dbt_utils.group_by(n=12) }}
 
-), umau AS (
+),
+umau_joined as (
 
-    SELECT 
-      ping_created_month,
-      clean_metrics_name,
-      edition,
-      product_tier,
-      group_name,
-      stage_name,
-      section_name, 
-      is_smau,
-      is_gmau,
-      is_paid_gmau,
-      is_umau,
-      usage_ping_delivery_type,
-      SUM(monthly_metric_value) AS monthly_metric_value_sum
-    FROM fct_monthly_usage_data
-    INNER JOIN fct_usage_ping_payload
-      ON fct_monthly_usage_data.dim_usage_ping_id = fct_usage_ping_payload.dim_usage_ping_id
-    WHERE is_umau = TRUE
-      AND product_tier <> 'Core'
-      AND usage_ping_delivery_type = 'Self-Managed'
-    {{ dbt_utils.group_by(n=12) }}
+    select
+        umau.*,
+        usage_ping_delivery_type as delivery,
+        'UMAU' as xmau_level,
+        product_tier not in ('Core', 'CE')
+        and usage_ping_delivery_type = 'Self-Managed' as is_paid,
+        coalesce(
+            estimated_value.pct_subscriptions_with_counters, 1
+        ) as pct_subscriptions_with_counters
+    from umau
+    left join
+        estimated_value
+        on estimated_value.is_umau
+        and umau.usage_ping_delivery_type = 'Self-Managed'
+        and umau.ping_created_month = estimated_value.reporting_month
+        and umau.edition = estimated_value.edition
 
+),
+instance_gmau as (
 
+    select
+        ping_created_month,
+        clean_metrics_name,
+        fct_monthly_usage_data.host_name,
+        fct_monthly_usage_data.dim_instance_id,
+        edition,
+        product_tier,
+        group_name,
+        stage_name,
+        section_name,
+        is_smau,
+        is_gmau,
+        is_paid_gmau,
+        is_umau,
+        usage_ping_delivery_type,
+        max(monthly_metric_value) as monthly_metric_value
+    from fct_monthly_usage_data
+    inner join
+        fct_usage_ping_payload
+        on fct_monthly_usage_data.dim_usage_ping_id
+        = fct_usage_ping_payload.dim_usage_ping_id
+    where
+        (
+            (is_paid_gmau = true and usage_ping_delivery_type = 'Self-Managed')
+            or (is_paid_gmau = true and is_gmau = false)
+        -- if a specific paid_gmau metric has beeen creeated we don't need to exclude
+        -- SaaS
+        )
+        and product_tier <> 'Core'
 
-), umau_joined AS (
+        {{ dbt_utils.group_by(n=14) }}
 
-    SELECT 
-      umau.*,
-      usage_ping_delivery_type                                                         AS delivery,
-      'UMAU'                                                              AS xmau_level,
-      product_tier NOT IN ('Core', 'CE') AND usage_ping_delivery_type = 'Self-Managed' AS is_paid,
-      COALESCE(estimated_value.pct_subscriptions_with_counters, 1)        AS pct_subscriptions_with_counters
-    FROM umau
-    LEFT JOIN estimated_value
-      ON estimated_value.is_umau
-        AND umau.usage_ping_delivery_type = 'Self-Managed'
-        AND umau.ping_created_month  = estimated_value.reporting_month
-        AND umau.edition = estimated_value.edition
-  
-), instance_gmau AS (
+),
+gmau as (
 
-    SELECT 
-      ping_created_month,
-      clean_metrics_name,
-      fct_monthly_usage_data.host_name,
-      fct_monthly_usage_data.dim_instance_id,
-      edition,
-      product_tier,
-      group_name,
-      stage_name,
-      section_name, 
-      is_smau,
-      is_gmau,
-      is_paid_gmau,
-      is_umau,
-      usage_ping_delivery_type,
-      MAX(monthly_metric_value) AS monthly_metric_value
-    FROM fct_monthly_usage_data
-    INNER JOIN fct_usage_ping_payload
-      ON fct_monthly_usage_data.dim_usage_ping_id = fct_usage_ping_payload.dim_usage_ping_id
-    WHERE ((is_paid_gmau = TRUE
-              AND usage_ping_delivery_type = 'Self-Managed'
-    ) OR (is_paid_gmau = TRUE and is_gmau = FALSE)) -- if a specific paid_gmau metric has beeen creeated we don't need to exclude SaaS
-      AND product_tier <> 'Core'
+    select
+        ping_created_month,
+        clean_metrics_name,
+        edition,
+        product_tier,
+        group_name,
+        stage_name,
+        section_name,
+        is_smau,
+        is_gmau,
+        is_paid_gmau,
+        is_umau,
+        usage_ping_delivery_type,
+        sum(monthly_metric_value) as monthly_metric_value_sum
+    from instance_gmau
+    where is_paid_gmau = true {{ dbt_utils.group_by(n=12) }}
 
-    {{ dbt_utils.group_by(n=14) }}
+),
+gmau_joined as (
 
+    select
+        gmau.*,
+        usage_ping_delivery_type as delivery,
+        'GMAU' as xmau_level,
+        product_tier not in ('Core', 'CE')
+        and usage_ping_delivery_type = 'Self-Managed' as is_paid,
+        coalesce(
+            max(estimated_value.pct_subscriptions_with_counters), 1
+        ) as pct_subscriptions_with_counters
+    from gmau
+    left join
+        estimated_value
+        on estimated_value.is_paid_gmau
+        and gmau.usage_ping_delivery_type = 'Self-Managed'
+        and gmau.ping_created_month = estimated_value.reporting_month
+        and gmau.stage_name = estimated_value.stage_name
+        and gmau.group_name = estimated_value.group_name
+        and gmau.section_name = estimated_value.section_name
+        and gmau.edition = estimated_value.edition
+        {{ dbt_utils.group_by(n=15) }}
 
+),
+saas_gmau as (
 
-), gmau AS (
+    select
+        first_day_of_month as reporting_month,
+        'SaaS' as delivery,
+        null as section_name,
+        stage_name,
+        group_name,
+        'GMAU' as xmau_level,
+        'SaaS' as product_tier,
+        'SaaS' as edition,
+        count(distinct dim_user_id) as recorded_monthly_metric_value_sum,
+        recorded_monthly_metric_value_sum as estimated_monthly_metric_value_sum
 
-    SELECT 
-      ping_created_month,
-      clean_metrics_name,
-      edition,
-      product_tier,
-      group_name,
-      stage_name,
-      section_name, 
-      is_smau,
-      is_gmau,
-      is_paid_gmau,
-      is_umau,
-      usage_ping_delivery_type,
-      SUM(monthly_metric_value) AS monthly_metric_value_sum
-    FROM instance_gmau
-    WHERE is_paid_gmau = TRUE
-    {{ dbt_utils.group_by(n=12) }}
+    from fct_daily_event_400
+    inner join
+        map_saas_event_to_gmau
+        on fct_daily_event_400.event_name = map_saas_event_to_gmau.event_name
+    inner join
+        dim_date
+        on fct_daily_event_400.event_created_date = dim_date.date_day
+        and datediff('day', event_created_date, last_day_of_month) < 28
+    where
+        fct_daily_event_400.dim_plan_id_at_event_date <> 34
+        {{ dbt_utils.group_by(n=8) }}
 
-), gmau_joined AS (
+),
+xmau as (
 
-    SELECT 
-      gmau.*,
-      usage_ping_delivery_type                                                         AS delivery,
-      'GMAU'                                                                           AS xmau_level,
-      product_tier NOT IN ('Core', 'CE') AND usage_ping_delivery_type = 'Self-Managed' AS is_paid,
-      COALESCE(MAX(estimated_value.pct_subscriptions_with_counters), 1)                AS pct_subscriptions_with_counters
-    FROM gmau
-    LEFT JOIN estimated_value 
-      ON estimated_value.is_paid_gmau
-        AND gmau.usage_ping_delivery_type = 'Self-Managed'
-        AND gmau.ping_created_month  = estimated_value.reporting_month
-        AND gmau.stage_name = estimated_value.stage_name 
-        AND gmau.group_name = estimated_value.group_name 
-        AND gmau.section_name = estimated_value.section_name
-        AND gmau.edition = estimated_value.edition
-    {{ dbt_utils.group_by(n=15) }}
-  
-), saas_gmau AS (
-  
-    SELECT 
-      first_day_of_month                AS reporting_month,
-      'SaaS'                            AS delivery,
-      NULL                              AS section_name,
-      stage_name,
-      group_name,
-      'GMAU'                            AS xmau_level,
-      'SaaS'                            AS product_tier,
-      'SaaS'                            AS edition,
-      COUNT(DISTINCT dim_user_id)       AS recorded_monthly_metric_value_sum,
-      recorded_monthly_metric_value_sum AS estimated_monthly_metric_value_sum
+    select *
+    from gmau_joined
 
-    FROM fct_daily_event_400
-    INNER JOIN map_saas_event_to_gmau
-      ON fct_daily_event_400.event_name = map_saas_event_to_gmau.event_name
-    INNER JOIN dim_date
-      ON fct_daily_event_400.event_created_date = dim_date.date_day
-      AND DATEDIFF('day', event_created_date, last_day_of_month) < 28
-    WHERE fct_daily_event_400.dim_plan_id_at_event_date <> 34
-    {{ dbt_utils.group_by(n=8) }}
+    union
 
-), xmau AS (
+    select *
+    from smau_joined
 
-    SELECT *
-    FROM gmau_joined
+    union
 
-    UNION 
+    select *
+    from umau_joined
 
-    SELECT *
-    FROM smau_joined
+),
+estimated_monthly_metric_value_sum as (
 
-    UNION 
+    select
+        ping_created_month::date as reporting_month,
+        delivery,
+        xmau_level,
+        is_smau,
+        section_name,
+        stage_name,
+        group_name,
+        iff(delivery = 'SaaS', delivery, product_tier) as product_tier,
+        iff(delivery = 'SaaS', delivery, edition) as edition,
+        'version' as data_source,
+        sum(monthly_metric_value_sum) as recorded_monthly_metric_value_sum,
+        sum(monthly_metric_value_sum)
+        / max(pct_subscriptions_with_counters) as estimated_monthly_metric_value_sum
+    from xmau {{ dbt_utils.group_by(n=10) }}
 
-    SELECT *
-    FROM umau_joined
-    
-), estimated_monthly_metric_value_sum AS (
+),
+combined as (
 
-    SELECT 
-      ping_created_month::DATE                                             AS reporting_month,
-      delivery,
-      xmau_level,
-      is_smau,
-      section_name,
-      stage_name,
-      group_name,
-      IFF(delivery='SaaS', delivery, product_tier)                         AS product_tier,
-      IFF(delivery='SaaS', delivery, edition)                              AS edition,
-      'version'       AS data_source,
-      SUM(monthly_metric_value_sum)                                        AS recorded_monthly_metric_value_sum,
-      SUM(monthly_metric_value_sum) / MAX(pct_subscriptions_with_counters) AS estimated_monthly_metric_value_sum
-    FROM xmau
-    {{ dbt_utils.group_by(n=10) }}
+    select
+        reporting_month,
+        section_name,
+        stage_name,
+        group_name,
+        product_tier,
+        xmau_level,
+        iff(delivery = 'Self-Managed', 'Recorded Self-Managed', delivery) as breakdown,
+        delivery,
+        edition,
+        sum(recorded_monthly_metric_value_sum) as recorded_monthly_metric_value_sum,
+        -- this is expected as the breakdown is for Recorded Self-Managed and Saas
+        -- Estimated Uplift being calculated in the next unioned table
+        sum(recorded_monthly_metric_value_sum) as estimated_monthly_metric_value_sum
+    from estimated_monthly_metric_value_sum {{ dbt_utils.group_by(n=9) }}
 
-), combined AS (
+    union
 
-    SELECT
-      reporting_month,
-      section_name,
-      stage_name,
-      group_name,
-      product_tier,
-      xmau_level,
-      IFF(delivery = 'Self-Managed', 'Recorded Self-Managed', delivery) AS breakdown,
-      delivery,
-      edition,
-      SUM(recorded_monthly_metric_value_sum)                            AS recorded_monthly_metric_value_sum,
-      -- this is expected as the breakdown is for Recorded Self-Managed and Saas
-      -- Estimated Uplift being calculated in the next unioned table
-      SUM(recorded_monthly_metric_value_sum)                            AS estimated_monthly_metric_value_sum
-    FROM estimated_monthly_metric_value_sum
-    {{ dbt_utils.group_by(n=9) }}
+    select
+        reporting_month,
+        section_name,
+        stage_name,
+        group_name,
+        product_tier,
+        xmau_level,
+        'Estimated Self-Managed Uplift' as breakdown,
+        delivery,
+        edition,
+        0 as recorded_monthly_metric_value_sum,
+        -- calculating Estimated Uplift here
+        sum(
+            estimated_monthly_metric_value_sum - recorded_monthly_metric_value_sum
+        ) as estimated_monthly_metric_value_sum
+    from estimated_monthly_metric_value_sum
+    where delivery = 'Self-Managed' {{ dbt_utils.group_by(n=9) }}
 
-    UNION 
+    union
 
-    SELECT
-      reporting_month,
-      section_name,
-      stage_name,
-      group_name,
-      product_tier,
-      xmau_level,
-      'Estimated Self-Managed Uplift' AS breakdown,
-      delivery,
-      edition,
-      0                                                                           AS recorded_monthly_metric_value_sum,
-      -- calculating Estimated Uplift here
-      SUM(estimated_monthly_metric_value_sum - recorded_monthly_metric_value_sum) AS estimated_monthly_metric_value_sum
-    FROM estimated_monthly_metric_value_sum
-    WHERE delivery = 'Self-Managed'
-    {{ dbt_utils.group_by(n=9) }}
-  
-    UNION 
+    select
+        reporting_month,
+        section_name,
+        stage_name,
+        group_name,
+        product_tier,
+        xmau_level,
+        'SaaS' as breakdown,
+        delivery,
+        edition,
+        recorded_monthly_metric_value_sum,
+        estimated_monthly_metric_value_sum
+    from saas_gmau
 
-    SELECT
-      reporting_month,
-      section_name,
-      stage_name,
-      group_name,
-      product_tier,
-      xmau_level,
-      'SaaS' AS breakdown,
-      delivery,
-      edition,
-      recorded_monthly_metric_value_sum,
-      estimated_monthly_metric_value_sum
-    FROM saas_gmau
-  
-    UNION 
+    union
 
-    SELECT
-      reporting_month,
-      section_name,
-      stage_name,
-      group_name,
-      product_tier,
-      xmau_level,
-      'SaaS' AS breakdown,
-      delivery,
-      edition,
-      recorded_monthly_metric_value_sum,
-      estimated_monthly_metric_value_sum
-    FROM saas_smau
+    select
+        reporting_month,
+        section_name,
+        stage_name,
+        group_name,
+        product_tier,
+        xmau_level,
+        'SaaS' as breakdown,
+        delivery,
+        edition,
+        recorded_monthly_metric_value_sum,
+        estimated_monthly_metric_value_sum
+    from saas_smau
 
 )
 
-SELECT * 
-FROM combined
+select *
+from combined

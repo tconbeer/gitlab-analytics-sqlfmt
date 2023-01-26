@@ -1,41 +1,38 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_position_hist") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('xactly', 'xc_position_hist') }}
+        select
 
-), renamed AS (
+            business_group_id::float as business_group_id,
+            created_by_id::float as created_by_id,
+            created_by_name::varchar as created_by_name,
+            created_date::varchar as created_date,
+            credit_end_date::varchar as credit_end_date,
+            credit_start_date::varchar as credit_start_date,
+            descr::varchar as descr,
+            effective_end_date::varchar as effective_end_date,
+            effective_start_date::varchar as effective_start_date,
+            incent_end_date::varchar as incent_end_date,
+            incent_st_date::varchar as incent_st_date,
+            is_active::varchar as is_active,
+            is_master::varchar as is_master,
+            master_position_id::float as master_position_id,
+            modified_by_id::float as modified_by_id,
+            modified_by_name::varchar as modified_by_name,
+            modified_date::varchar as modified_date,
+            name::varchar as name,
+            object_id::float as object_id,
+            parent_position_id::float as parent_position_id,
+            parent_record_id::float as parent_record_id,
+            participant_id::float as participant_id,
+            pos_group_id::float as pos_group_id,
+            position_id::float as position_id,
+            title_id::float as title_id
 
-    SELECT
+        from source
 
-      business_group_id::FLOAT                  AS business_group_id,
-      created_by_id::FLOAT                      AS created_by_id,
-      created_by_name::VARCHAR                  AS created_by_name,
-      created_date::VARCHAR                     AS created_date,
-      credit_end_date::VARCHAR                  AS credit_end_date,
-      credit_start_date::VARCHAR                AS credit_start_date,
-      descr::VARCHAR                            AS descr,
-      effective_end_date::VARCHAR               AS effective_end_date,
-      effective_start_date::VARCHAR             AS effective_start_date,
-      incent_end_date::VARCHAR                  AS incent_end_date,
-      incent_st_date::VARCHAR                   AS incent_st_date,
-      is_active::VARCHAR                        AS is_active,
-      is_master::VARCHAR                        AS is_master,
-      master_position_id::FLOAT                 AS master_position_id,
-      modified_by_id::FLOAT                     AS modified_by_id,
-      modified_by_name::VARCHAR                 AS modified_by_name,
-      modified_date::VARCHAR                    AS modified_date,
-      name::VARCHAR                             AS name,
-      object_id::FLOAT                          AS object_id,
-      parent_position_id::FLOAT                 AS parent_position_id,
-      parent_record_id::FLOAT                   AS parent_record_id,
-      participant_id::FLOAT                     AS participant_id,
-      pos_group_id::FLOAT                       AS pos_group_id,
-      position_id::FLOAT                        AS position_id,
-      title_id::FLOAT                           AS title_id
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,55 +1,62 @@
-{% set year_value = var('year', run_started_at.strftime('%Y')) %}
-{% set month_value = var('month', run_started_at.strftime('%m')) %}
+{% set year_value = var("year", run_started_at.strftime("%Y")) %}
+{% set month_value = var("month", run_started_at.strftime("%m")) %}
 
-WITH base AS (
+with
+    base as (
 
-  SELECT DISTINCT
-    event_id,
-    contexts
-  {% if target.name not in ("prod") -%}
+        select distinct event_id, contexts
+        {% if target.name not in ("prod") -%}
 
-  FROM {{ ref('snowplow_gitlab_good_events_sample_source') }}
+        from {{ ref("snowplow_gitlab_good_events_sample_source") }}
 
-  {%- else %}
+        {%- else %} from {{ ref("snowplow_gitlab_good_events_source") }}
 
-  FROM {{ ref('snowplow_gitlab_good_events_source') }}
+        {%- endif %}
 
-  {%- endif %}
+        where
+            app_id is not null
+            and date_part(month, try_to_timestamp(derived_tstamp)) = '{{ month_value }}'
+            and date_part(year, try_to_timestamp(derived_tstamp)) = '{{ year_value }}'
+            and (
+                (v_tracker like 'js%')  -- js frontend tracker
+                or (v_tracker like 'rb%')  -- ruby backend tracker
+            )
+            and try_to_timestamp(derived_tstamp) is not null
 
-  WHERE app_id IS NOT NULL
-    AND DATE_PART(MONTH, TRY_TO_TIMESTAMP(derived_tstamp)) = '{{ month_value }}'
-    AND DATE_PART(YEAR, TRY_TO_TIMESTAMP(derived_tstamp)) = '{{ year_value }}'
-    AND (
-      (v_tracker LIKE 'js%' ) -- js frontend tracker
-      OR (v_tracker LIKE 'rb%') -- ruby backend tracker
+    ),
+
+    events_with_context_flattened as (
+
+        select
+            base.*,
+            flat_contexts.value['schema']::varchar as context_data_schema,
+            try_parse_json(flat_contexts.value['data']) as context_data
+        from base
+        inner join
+            lateral flatten(
+                input => try_parse_json(contexts), path => 'data'
+            ) as flat_contexts
+
+    ),
+
+    experiment_contexts as (
+
+        -- Some event_id are not unique dispite haveing the same experiment context as
+        -- discussed in MR 6288
+        select distinct
+            event_id,
+            context_data['experiment']::varchar as experiment_name,
+            context_data['key']::varchar as context_key,
+            context_data['variant']::varchar as experiment_variant,
+            array_to_string(
+                context_data['migration_keys']::variant, ', '
+            ) as experiment_migration_keys
+        from events_with_context_flattened
+        where
+            lower(context_data_schema)
+            like 'iglu:com.gitlab/gitlab_experiment/jsonschema/%'
+
     )
-    AND TRY_TO_TIMESTAMP(derived_tstamp) IS NOT NULL
 
-),
-
-events_with_context_flattened AS (
-
-  SELECT
-    base.*,
-    flat_contexts.value['schema']::VARCHAR AS context_data_schema,
-    TRY_PARSE_JSON(flat_contexts.value['data']) AS context_data
-  FROM base
-  INNER JOIN LATERAL FLATTEN(input => TRY_PARSE_JSON(contexts), path => 'data') AS flat_contexts
-
-),
-
-experiment_contexts AS (
-
-  SELECT DISTINCT -- Some event_id are not unique dispite haveing the same experiment context as discussed in MR 6288
-    event_id,
-    context_data['experiment']::VARCHAR AS experiment_name,
-    context_data['key']::VARCHAR AS context_key,
-    context_data['variant']::VARCHAR AS experiment_variant,
-    ARRAY_TO_STRING(context_data['migration_keys']::VARIANT, ', ') AS experiment_migration_keys
-  FROM events_with_context_flattened
-  WHERE LOWER(context_data_schema) LIKE 'iglu:com.gitlab/gitlab_experiment/jsonschema/%'
-
-)
-
-SELECT *
-FROM experiment_contexts
+select *
+from experiment_contexts
