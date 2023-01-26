@@ -1,26 +1,31 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('customers', 'customers_db_license_seat_links') }}
+        select * from {{ source("customers", "customers_db_license_seat_links") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      zuora_subscription_id::VARCHAR     AS zuora_subscription_id,
-      zuora_subscription_name::VARCHAR   AS zuora_subscription_name,
-      order_id::NUMBER                   AS order_id,
-      report_timestamp::TIMESTAMP        AS report_timestamp,
-      report_timestamp::DATE             AS report_date,
-      license_starts_on::DATE            AS license_starts_on,
-      created_at::TIMESTAMP              AS created_at,
-      updated_at::TIMESTAMP              AS updated_at,
-      active_user_count::NUMBER          AS active_user_count,
-      license_user_count::NUMBER         AS license_user_count,
-      max_historical_user_count::NUMBER  AS max_historical_user_count
-    FROM source  
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY zuora_subscription_id, report_date ORDER BY updated_at DESC) = 1
+        select
+            zuora_subscription_id::varchar as zuora_subscription_id,
+            zuora_subscription_name::varchar as zuora_subscription_name,
+            order_id::number as order_id,
+            report_timestamp::timestamp as report_timestamp,
+            report_timestamp::date as report_date,
+            license_starts_on::date as license_starts_on,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            active_user_count::number as active_user_count,
+            license_user_count::number as license_user_count,
+            max_historical_user_count::number as max_historical_user_count
+        from source
+        qualify
+            row_number() over (
+                partition by zuora_subscription_id, report_date order by updated_at desc
+            )
+            = 1
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

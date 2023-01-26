@@ -1,24 +1,14 @@
-{{ config(
-    materialized = "incremental",
-    cluster_by = ['noteable_type']
-) }}
+{{ config(materialized="incremental", cluster_by=["noteable_type"]) }}
 
-SELECT
-  note_author_id,
-  project_id,
-  note_id,
-  created_at,
-  noteable_type
-FROM {{ ref('gitlab_dotcom_notes') }}
-WHERE created_at IS NOT NULL
-  AND created_at >= DATEADD(MONTH, -25, CURRENT_DATE)
-  AND noteable_type IN (
-    'Issue',
-    'MergeRequest'
-  )
+select note_author_id, project_id, note_id, created_at, noteable_type
+from {{ ref("gitlab_dotcom_notes") }}
+where
+    created_at is not null
+    and created_at >= dateadd(month, -25, current_date)
+    and noteable_type in ('Issue', 'MergeRequest')
 
-  {% if is_incremental() %}
+    {% if is_incremental() %}
 
-    AND created_at > (SELECT MAX(created_at) FROM {{ this }})
+    and created_at > (select max(created_at) from {{ this }})
 
-  {% endif %}
+    {% endif %}

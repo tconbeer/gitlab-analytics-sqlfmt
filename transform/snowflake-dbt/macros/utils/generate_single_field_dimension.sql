@@ -1,25 +1,33 @@
-{% macro generate_single_field_dimension(model_name, id_column, id_column_name, dimension_column, dimension_column_name, where_clause=None) %}
+{% macro generate_single_field_dimension(
+    model_name,
+    id_column,
+    id_column_name,
+    dimension_column,
+    dimension_column_name,
+    where_clause=None
+) %}
 
-WITH source_data AS (
+with
+    source_data as (
 
-    SELECT *
-    FROM {{ ref(model_name) }}
-    WHERE {{ dimension_column }} IS NOT NULL
-    {% if where_clause != None %}
-      AND {{ where_clause }}
-    {% endif %}
+        select *
+        from {{ ref(model_name) }}
+        where
+            {{ dimension_column }} is not null
+            {% if where_clause != None %} and {{ where_clause }} {% endif %}
 
-), unioned AS (
+    ),
+    unioned as (
 
-    SELECT DISTINCT
-      {{ dbt_utils.surrogate_key([id_column]) }}  AS {{ id_column_name }},
-      {{  dimension_column }}                     AS {{ dimension_column_name }}
-    FROM source_data
-    UNION ALL
-    SELECT
-      MD5('-1')                                   AS {{ id_column_name }},
-      'Missing {{dimension_column_name}}'       AS {{ dimension_column_name }}
+        select distinct
+            {{ dbt_utils.surrogate_key([id_column]) }} as {{ id_column_name }},
+            {{ dimension_column }} as {{ dimension_column_name }}
+        from source_data
+        union all
+        select
+            md5('-1') as {{ id_column_name }},
+            'Missing {{dimension_column_name}}' as {{ dimension_column_name }}
 
-)
+    )
 
 {%- endmacro -%}

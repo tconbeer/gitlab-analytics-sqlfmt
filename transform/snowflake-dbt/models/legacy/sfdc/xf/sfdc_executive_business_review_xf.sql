@@ -1,28 +1,25 @@
-{{config({
-    "schema": "legacy"
-  })
-}}
+{{ config({"schema": "legacy"}) }}
 
-with sfdc_executive_business_review AS (
+with
+    sfdc_executive_business_review as (
 
-    SELECT * FROM {{ref('sfdc_executive_business_review')}}
+        select * from {{ ref("sfdc_executive_business_review") }}
 
-), sfdc_users AS (
+    ),
+    sfdc_users as (select * from {{ ref("sfdc_users_xf") }}),
+    joined as (
 
-    SELECT * FROM {{ref('sfdc_users_xf')}}
+        select
+            sfdc_executive_business_review.*,
+            sfdc_users.name as ebr_owner,
+            sfdc_users.manager_name as ebr_owner_manager,
+            sfdc_users.department as ebr_owner_department,
+            sfdc_users.title as ebr_owner_title
+        from sfdc_executive_business_review
+        left join
+            sfdc_users on sfdc_users.user_id = sfdc_executive_business_review.owner_id
 
-), joined AS (
+    )
 
-SELECT sfdc_executive_business_review.*,
-        sfdc_users.name         AS ebr_owner,
-        sfdc_users.manager_name AS ebr_owner_manager,
-        sfdc_users.department   AS ebr_owner_department,
-        sfdc_users.title        AS ebr_owner_title
-FROM sfdc_executive_business_review
-LEFT JOIN sfdc_users
-ON sfdc_users.user_id = sfdc_executive_business_review.owner_id
-
-)
-
-SELECT * 
-FROM joined
+select *
+from joined

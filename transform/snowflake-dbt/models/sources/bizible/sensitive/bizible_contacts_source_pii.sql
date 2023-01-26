@@ -1,9 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT {{ nohash_sensitive_columns('bizible_contacts_source', 'contact_id') }}
-    FROM {{ ref('bizible_contacts_source') }}
+        select {{ nohash_sensitive_columns("bizible_contacts_source", "contact_id") }}
+        from {{ ref("bizible_contacts_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

@@ -1,28 +1,24 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_ci_job_artifacts_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_job_artifacts_dedupe_source') }}
+        select
+            id::number as ci_job_artifact_id,
+            project_id::number as project_id,
+            job_id::number as ci_job_id,
+            file_type as file_type,
+            size as size,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            expire_at::timestamp as expire_at,
+            file as file,
+            file_store as file_store,
+            file_format as file_format,
+            file_location as file_location,
+            locked as locked
+        from source
 
-), renamed AS (
+    )
 
-  SELECT
-    id::NUMBER           AS ci_job_artifact_id,
-    project_id::NUMBER   AS project_id,
-    job_id::NUMBER       AS ci_job_id,
-    file_type             AS file_type,
-    size                  AS size,
-    created_at::TIMESTAMP AS created_at,
-    updated_at::TIMESTAMP AS updated_at,
-    expire_at::TIMESTAMP  AS expire_at,
-    file                  AS file,
-    file_store            AS file_store,
-    file_format           AS file_format,
-    file_location         AS file_location,
-    locked                AS locked
-  FROM source
-
-)
-
-
-SELECT *
-FROM renamed
+select *
+from renamed

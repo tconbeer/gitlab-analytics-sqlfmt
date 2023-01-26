@@ -1,9 +1,9 @@
-WITH base AS (
+with
+    base as (
 
-    SELECT *
-    FROM {{ ref('version_conversational_development_indices_source') }}
+        select * from {{ ref("version_conversational_development_indices_source") }}
 
-)
+    )
 
-SELECT *
-FROM base
+select *
+from base

@@ -1,23 +1,23 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_project_mirror_data_dedupe_source') }}
-  
+        select * from {{ ref("gitlab_dotcom_project_mirror_data_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
+        select
 
-      id::NUMBER                                     AS project_mirror_data_id,
-      project_id::NUMBER                             AS project_id,
-      retry_count::NUMBER                            AS retry_count,
-      last_update_started_at::TIMESTAMP               AS last_update_started_at,
-      last_update_scheduled_at::TIMESTAMP             AS last_update_scheduled_at,
-      next_execution_timestamp::TIMESTAMP             AS next_execution_timestamp
+            id::number as project_mirror_data_id,
+            project_id::number as project_id,
+            retry_count::number as retry_count,
+            last_update_started_at::timestamp as last_update_started_at,
+            last_update_scheduled_at::timestamp as last_update_scheduled_at,
+            next_execution_timestamp::timestamp as next_execution_timestamp
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed
