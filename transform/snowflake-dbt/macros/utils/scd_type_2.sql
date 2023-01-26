@@ -1,44 +1,57 @@
-{%- macro scd_type_2(primary_key_renamed, primary_key_raw, source_cte='distinct_source', casted_cte='renamed') -%}
+{%- macro scd_type_2(
+    primary_key_renamed,
+    primary_key_raw,
+    source_cte="distinct_source",
+    casted_cte="renamed"
+) -%}
 
-, max_by_primary_key AS (
-  
-    SELECT
-      {{ primary_key_raw }} AS primary_key,
-      MAX(
-        IFF(max_task_instance IN ( 
-              SELECT MAX(max_task_instance) 
-              FROM {{ source_cte }} 
-            ), 1, 0)
-      )                     AS is_in_most_recent_task,
-      MAX(max_uploaded_at)  AS max_timestamp
-    FROM {{ source_cte }}
-    GROUP BY 1
+,
+max_by_primary_key as (
+
+    select
+        {{ primary_key_raw }} as primary_key,
+        max(
+            iff(
+                max_task_instance
+                in (select max(max_task_instance) from {{ source_cte }}),
+                1,
+                0
+            )
+        ) as is_in_most_recent_task,
+        max(max_uploaded_at) as max_timestamp
+    from {{ source_cte }}
+    group by 1
+
+),
+windowed as (
+
+    select
+        {{ casted_cte }}.*,
+
+        coalesce(  -- First, look for the row immediately following by PK and subtract one millisecond from its timestamp.
+            dateadd(
+                'millisecond',
+                -1,
+                lead(valid_from) over (
+                    partition by {{ casted_cte }}.{{ primary_key_renamed }}
+                    order by valid_from
+                )
+            ),
+            -- If row has no following rows, check when it's valid until (NULL if it
+            -- appeared in latest task instance.)
+            iff(is_in_most_recent_task = false, max_by_primary_key.max_timestamp, null)
+        ) as valid_to,
+        iff(valid_to is null, true, false) as is_currently_valid
+
+    from {{ casted_cte }}
+    left join
+        max_by_primary_key
+        on {{ casted_cte }}.{{ primary_key_renamed }} = max_by_primary_key.primary_key
+    order by valid_from, valid_to
 
 )
 
-, windowed AS (
-  
-    SELECT
-      {{casted_cte}}.*,
-
-      COALESCE( -- First, look for the row immediately following by PK and subtract one millisecond from its timestamp.
-        DATEADD('millisecond', -1, LEAD(valid_from) OVER (
-          PARTITION BY {{casted_cte}}.{{primary_key_renamed}}
-          ORDER BY valid_from)
-        ),
-        -- If row has no following rows, check when it's valid until (NULL if it appeared in latest task instance.)
-          IFF(is_in_most_recent_task = FALSE, max_by_primary_key.max_timestamp, NULL)
-      )                                  AS valid_to,
-      IFF(valid_to IS NULL, True, False) AS is_currently_valid
-
-    FROM {{casted_cte}}
-    LEFT JOIN max_by_primary_key
-      ON {{casted_cte}}.{{primary_key_renamed}} = max_by_primary_key.primary_key
-    ORDER BY valid_from, valid_to
-
-)
-
-SELECT *
-FROM windowed
+select *
+from windowed
 
 {%- endmacro -%}

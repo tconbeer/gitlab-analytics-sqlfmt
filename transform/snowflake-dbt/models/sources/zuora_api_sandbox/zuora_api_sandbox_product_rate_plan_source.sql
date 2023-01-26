@@ -1,29 +1,26 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_api_sandbox", "product_rate_plan") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_api_sandbox', 'product_rate_plan') }}
+        select
+            -- Primary Keys
+            id::varchar as product_rate_plan_id,
 
-), renamed AS (
+            -- Info
+            productid::varchar as product_id,
+            description::varchar as product_rate_plan_description,
+            effectiveenddate::timestamp_tz as effective_end_date,
+            effectivestartdate::timestamp_tz as effective_start_date,
+            name::varchar as product_rate_plan_name,
+            createdbyid::varchar as created_by_id,
+            createddate::timestamp_tz as created_date,
+            updatedbyid::varchar as updated_by_id,
+            updateddate::timestamp_tz as updated_date,
+            deleted as is_deleted
 
-    SELECT
-      --Primary Keys
-      id::VARCHAR                       AS product_rate_plan_id,
+        from source
 
-      --Info
-      productid::VARCHAR                AS product_id,
-      description::VARCHAR              AS product_rate_plan_description,
-      effectiveenddate::TIMESTAMP_TZ    AS effective_end_date,
-      effectivestartdate::TIMESTAMP_TZ  AS effective_start_date,
-      name::VARCHAR                     AS product_rate_plan_name,
-      createdbyid::VARCHAR              AS created_by_id,
-      createddate::TIMESTAMP_TZ         AS created_date,
-      updatedbyid::VARCHAR              AS updated_by_id,
-      updateddate::TIMESTAMP_TZ         AS updated_date,
-      deleted                           AS is_deleted
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,33 +1,33 @@
-{% set column_name = 'email_handle' %}
+{% set column_name = "email_handle" %}
 
 
-WITH gitlab_ops_users_xf AS (
+with
+    gitlab_ops_users_xf as (select * from {{ ref("gitlab_ops_users_xf") }}),
+    intermediate as (
 
-    SELECT *
-    FROM {{ref('gitlab_ops_users_xf')}} 
+        select
+            *,
+            split_part(notification_email, '@', 0) as email_handle,
+            {{ include_gitlab_email(column_name) }} as include_email_flg
+        from gitlab_ops_users_xf
+        where
+            length(email_handle) > 1  -- removes records with just one number  
+            and notification_email ilike '%gitlab.com'
+            and include_email_flg = 'Include'
 
-), intermediate AS (
+    ),
+    final as (
 
-    SELECT *,
-       SPLIT_PART(notification_email,'@', 0)                    AS email_handle, 
-      {{include_gitlab_email(column_name)}}                     AS include_email_flg
-    FROM gitlab_ops_users_xf
-    WHERE LENGTH(email_handle) > 1 -- removes records with just one number  
-      AND notification_email ILIKE '%gitlab.com'
-      AND include_email_flg = 'Include'
+        select
+            user_id,
+            user_name as gitlab_ops_user_name,
+            notification_email,
+            email_handle,
+            count(notification_email) over (partition by user_id) as number_of_emails
+        from intermediate
+        group by 1, 2, 3, 4
 
-), final AS (
+    )
 
-    SELECT 
-      user_id, 
-      user_name                                                AS gitlab_ops_user_name,
-      notification_email, 
-      email_handle, 
-      COUNT(notification_email) OVER (PARTITION BY user_id)    AS number_of_emails 
-    FROM intermediate
-    GROUP BY 1,2,3,4
-
-)
-
-SELECT * 
-FROM final 
+select *
+from final

@@ -1,10 +1,11 @@
-WITH dbt_source AS (
+with
+    dbt_source as (
 
-    SELECT *
-    FROM {{ ref('dbt_source_freshness_results_source') }}
-    WHERE latest_load_at IS NOT NULL
+        select *
+        from {{ ref("dbt_source_freshness_results_source") }}
+        where latest_load_at is not null
 
-)
+    )
 
-SELECT * 
-FROM dbt_source
+select *
+from dbt_source

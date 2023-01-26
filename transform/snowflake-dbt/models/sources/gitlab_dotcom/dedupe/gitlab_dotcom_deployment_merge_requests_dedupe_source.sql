@@ -1,14 +1,18 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "deployment_merge_request_id"
-    })
+{{
+    config(
+        {"materialized": "incremental", "unique_key": "deployment_merge_request_id"}
+    )
 }}
 
-SELECT *
-FROM {{ source('gitlab_dotcom', 'deployment_merge_requests') }}
+select *
+from {{ source("gitlab_dotcom", "deployment_merge_requests") }}
 {% if is_incremental() %}
 
-WHERE _uploaded_at >= (SELECT MAX(_uploaded_at) FROM {{this}})
+where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
 
 {% endif %}
-QUALIFY ROW_NUMBER() OVER (PARTITION BY deployment_merge_request_id ORDER BY _uploaded_at DESC) = 1
+qualify
+    row_number() over (
+        partition by deployment_merge_request_id order by _uploaded_at desc
+    )
+    = 1

@@ -1,21 +1,24 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('license', 'granted_add_ons') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at::TIMESTAMP DESC) = 1
+        select *
+        from {{ source("license", "granted_add_ons") }}
+        qualify
+            row_number() over (partition by id order by updated_at::timestamp desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER            AS granted_add_on_id,
-      license_id::NUMBER    AS license_id,
-      add_on_id::NUMBER     AS add_on_id,
-      quantity::NUMBER      AS quantity,
-      created_at::TIMESTAMP AS created_at,
-      updated_at::TIMESTAMP AS updated_at
-    FROM source
+        select
+            id::number as granted_add_on_id,
+            license_id::number as license_id,
+            add_on_id::number as add_on_id,
+            quantity::number as quantity,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

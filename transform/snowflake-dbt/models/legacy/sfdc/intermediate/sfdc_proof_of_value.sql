@@ -1,11 +1,9 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('sfdc_proof_of_concept_source') }}
-    WHERE is_deleted = FALSE
+        select * from {{ ref("sfdc_proof_of_concept_source") }} where is_deleted = false
 
-)
+    )
 
-SELECT *
-FROM source
-
+select *
+from source

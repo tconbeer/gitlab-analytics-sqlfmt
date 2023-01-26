@@ -1,21 +1,22 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('version', 'versions') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+        select *
+        from {{ source("version", "versions") }}
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
+    ),
+    renamed as (
 
-), renamed AS (
+        select
+            id::number as id,
+            version::varchar as version,
+            vulnerable::boolean as is_vulnerable,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
+        from source
 
-    SELECT
-      id::NUMBER            AS id,
-      version::VARCHAR      AS version,
-      vulnerable::BOOLEAN   AS is_vulnerable,
-      created_at::TIMESTAMP AS created_at,
-      updated_at::TIMESTAMP AS updated_at
-    FROM source  
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

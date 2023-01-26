@@ -1,9 +1,15 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT {{ nohash_sensitive_columns('bizible_campaign_members_source', 'campaign_member_id') }}
-    FROM {{ ref('bizible_campaign_members_source') }}
+        select
+            {{
+                nohash_sensitive_columns(
+                    "bizible_campaign_members_source", "campaign_member_id"
+                )
+            }}
+        from {{ ref("bizible_campaign_members_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

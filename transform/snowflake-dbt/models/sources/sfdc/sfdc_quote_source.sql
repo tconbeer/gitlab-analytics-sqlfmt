@@ -1,33 +1,30 @@
-WITH source AS (
+with
+    source as (select * from {{ source("salesforce", "quote") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('salesforce', 'quote') }}
+        select
+            -- keys
+            id as quote_id,
+            account_id__c as account_id,
+            opportunity_id__c as opportunity_id,
+            ownerid as owner_id,
+            zqu__zuoraaccountid__c as zuora_account_id,
+            zqu__zuorasubscriptionid__c as zuora_subscription_id,
 
-), renamed AS (
+            -- info
+            zqu__startdate__c as contract_effective_date,
+            createddate as created_date,
+            zqu__primary__c as is_primary_quote,
+            lastmodifieddate as last_modified_date,
+            name as name,
+            quote_tcv__c as quote_tcv,
+            zqu__status__c as status,
+            zqu__subscriptiontermstartdate__c as term_start_date,
+            zqu__subscriptiontermenddate__c as term_end_date,
+            systemmodstamp,
+            isdeleted as is_deleted
+        from source
+    )
 
-    SELECT
-      -- keys
-      id                                AS quote_id,
-      account_id__c                     AS account_id,
-      opportunity_id__c                 AS opportunity_id,
-      ownerid                           AS owner_id,
-      zqu__zuoraaccountid__c            AS zuora_account_id,
-      zqu__zuorasubscriptionid__c       AS zuora_subscription_id,
-
-      -- info
-      zqu__startdate__c                 AS contract_effective_date,
-      createddate                       AS created_date,
-      zqu__primary__c                   AS is_primary_quote,
-      lastmodifieddate                  AS last_modified_date,
-      name                              AS name,
-      quote_tcv__c                      AS quote_tcv,    
-      zqu__status__c                    AS status,
-      zqu__subscriptiontermstartdate__c AS term_start_date,
-      zqu__subscriptiontermenddate__c   AS term_end_date,
-      systemmodstamp,
-      isdeleted                         AS is_deleted
-    FROM source
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed
