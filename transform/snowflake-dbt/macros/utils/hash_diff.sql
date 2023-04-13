@@ -1,42 +1,38 @@
 {% macro hash_diff(cte_ref, return_cte, columns) %}
 
-  , hashing AS (
+    ,
+    hashing as (
 
-    SELECT *,
+        select *, {{ dbt_utils.surrogate_key(columns) }} as prev_hash from {{ cte_ref }}
 
-      {{ dbt_utils.surrogate_key( columns ) }} as prev_hash
+    ),
+    {{ return_cte }} as (
 
-    FROM {{ cte_ref }}
+        {%- set columns = adapter.get_columns_in_relation(this) -%}
 
-  ), {{ return_cte }} as (
+        {%- set column_names = [] -%}
 
-    {%- set columns = adapter.get_columns_in_relation(this) -%}
+        {%- for column in columns -%}
 
-    {%- set column_names = [] -%}
+            {%- set _ = column_names.append(column.name) -%}
 
-    {%- for column in columns -%}
+        {% endfor %}
 
-      {%- set _ = column_names.append(column.name) -%}
+        {% if "LAST_CHANGED" in column_names %}
 
-    {% endfor %}
+            select
+                hashing.*,
+                case
+                    when hashing.prev_hash = t.prev_hash
+                    then last_changed
+                    else current_timestamp()
+                end as last_changed
+            from hashing
+            left join {{ this }} as t on t.prev_hash = hashing.prev_hash
 
-      {% if 'LAST_CHANGED' in column_names %}
+        {% else %}select *, current_timestamp() as last_changed from hashing
 
-        SELECT hashing.*,
-          CASE
-            WHEN hashing.prev_hash = t.prev_hash THEN last_changed
-            ELSE CURRENT_TIMESTAMP()
-          END AS last_changed
-        FROM hashing
-        LEFT JOIN {{ this }} as t on t.prev_hash = hashing.prev_hash
+        {% endif %}
 
-      {% else %}
-
-        SELECT *,
-        CURRENT_TIMESTAMP() AS last_changed
-        FROM hashing
-
-      {% endif %}
-
-  )
+    )
 {% endmacro %}

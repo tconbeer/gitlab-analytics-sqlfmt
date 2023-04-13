@@ -1,19 +1,19 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_project_repositories_dedupe_source') }}
-  
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_project_repositories_dedupe_source") }}
 
-  SELECT
-    id::NUMBER                        AS project_repository_id,
-    shard_id::NUMBER                  AS shard_id,
-    disk_path::VARCHAR                AS disk_path,
-    project_id::NUMBER                AS project_id
-  FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as project_repository_id,
+            shard_id::number as shard_id,
+            disk_path::varchar as disk_path,
+            project_id::number as project_id
+        from source
 
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,15 +1,25 @@
 {%- macro distinct_source(source) -%}
 
-distinct_source AS (
+    distinct_source as (
 
-    SELECT
-      {{ dbt_utils.star(from=source, except=['_UPLOADED_AT', '_TASK_INSTANCE']) }},
-      MIN(DATEADD('sec', _uploaded_at, '1970-01-01'))::TIMESTAMP  AS valid_from,
-      MAX(DATEADD('sec', _uploaded_at, '1970-01-01'))::TIMESTAMP  AS max_uploaded_at,
-      MAX(_task_instance)::VARCHAR                                AS max_task_instance
-    FROM {{ source }}
-    GROUP BY {{ dbt_utils.star(from=source, except=['_UPLOADED_AT', '_TASK_INSTANCE']) }}
+        select
+            {{
+                dbt_utils.star(
+                    from=source, except=["_UPLOADED_AT", "_TASK_INSTANCE"]
+                )
+            }},
+            min(dateadd('sec', _uploaded_at, '1970-01-01'))::timestamp as valid_from,
+            max(dateadd('sec', _uploaded_at, '1970-01-01'))::timestamp
+            as max_uploaded_at,
+            max(_task_instance)::varchar as max_task_instance
+        from {{ source }}
+        group by
+            {{
+                dbt_utils.star(
+                    from=source, except=["_UPLOADED_AT", "_TASK_INSTANCE"]
+                )
+            }}
 
-)
+    )
 
 {%- endmacro -%}

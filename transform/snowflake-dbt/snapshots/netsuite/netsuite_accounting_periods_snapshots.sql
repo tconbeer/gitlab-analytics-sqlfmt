@@ -2,14 +2,13 @@
 
     {{
         config(
-          strategy='timestamp',
-          unique_key='id',
-          updated_at='date_last_modified',
+            strategy="timestamp",
+            unique_key="id",
+            updated_at="date_last_modified",
         )
     }}
 
-    SELECT concat(fiscal_calendar_id , accounting_period_id ) as id,
-           *
-    FROM {{ source('netsuite', 'accounting_periods') }}
+    select concat(fiscal_calendar_id, accounting_period_id) as id, *
+    from {{ source("netsuite", "accounting_periods") }}
 
 {% endsnapshot %}

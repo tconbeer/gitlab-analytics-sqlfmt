@@ -1,30 +1,30 @@
 {%- macro days_buckets(day_field) -%}
 
-CASE 
-  WHEN {{ day_field }} BETWEEN 0 AND 6
-    THEN '[01] 0-6 Days'
-  WHEN {{ day_field }} BETWEEN 7 AND 14
-    THEN '[02] 7-14 Days'
-  WHEN {{ day_field }} BETWEEN 15 AND 21
-    THEN '[03] 15-21 Days'
-  WHEN {{ day_field }} BETWEEN 22 AND 30
-    THEN '[04] 22-30 Days'
-  WHEN {{ day_field }} BETWEEN 31 AND 60
-    THEN '[05] 31-60 Days'
-  WHEN {{ day_field }} BETWEEN 61 AND 90
-    THEN '[06] 61-90 Days'
-  WHEN {{ day_field }} BETWEEN 91 AND 120
-    THEN '[07] 91-120 Days'
-  WHEN {{ day_field }} BETWEEN 121 AND 180
-    THEN '[08] 121-180 Days'
-  WHEN {{ day_field }} BETWEEN 181 AND 365
-    THEN '[09] 181-365 Days'
-  WHEN {{ day_field }} BETWEEN 366 AND 730
-    THEN '[10] 1-2 Years'
-  WHEN {{ day_field }} BETWEEN 731 AND 1095
-    THEN '[11] 2-3 Years'
-  WHEN {{ day_field }} > 1095
-    THEN '[12] 3+ Years'
-END
+    case
+        when {{ day_field }} between 0 and 6
+        then '[01] 0-6 Days'
+        when {{ day_field }} between 7 and 14
+        then '[02] 7-14 Days'
+        when {{ day_field }} between 15 and 21
+        then '[03] 15-21 Days'
+        when {{ day_field }} between 22 and 30
+        then '[04] 22-30 Days'
+        when {{ day_field }} between 31 and 60
+        then '[05] 31-60 Days'
+        when {{ day_field }} between 61 and 90
+        then '[06] 61-90 Days'
+        when {{ day_field }} between 91 and 120
+        then '[07] 91-120 Days'
+        when {{ day_field }} between 121 and 180
+        then '[08] 121-180 Days'
+        when {{ day_field }} between 181 and 365
+        then '[09] 181-365 Days'
+        when {{ day_field }} between 366 and 730
+        then '[10] 1-2 Years'
+        when {{ day_field }} between 731 and 1095
+        then '[11] 2-3 Years'
+        when {{ day_field }} > 1095
+        then '[12] 3+ Years'
+    end
 
 {%- endmacro -%}

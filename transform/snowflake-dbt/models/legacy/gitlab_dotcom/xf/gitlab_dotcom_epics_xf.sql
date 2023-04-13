@@ -1,94 +1,86 @@
-{% set fields_to_mask = ['epic_title', 'epic_description'] %}
+{% set fields_to_mask = ["epic_title", "epic_description"] %}
 
 /* Code is sourced from gitlab_dotcom_issues_xf */
-WITH epics AS (
+with
+    epics as (select * from {{ ref("gitlab_dotcom_epics") }}),
+    label_links as (
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_epics')}}
+        select *
+        from {{ ref("gitlab_dotcom_label_links") }}
+        where is_currently_valid = true and target_type = 'Epic'
 
-), label_links AS (
+    ),
+    all_labels as (select * from {{ ref("gitlab_dotcom_labels_xf") }}),
+    agg_labels as (
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_label_links')}}
-    WHERE is_currently_valid = True
-      AND target_type = 'Epic'
+        select
+            epics.epic_id,
+            array_agg(lower(masked_label_title)) within group (
+                order by masked_label_title asc
+            ) as labels
+        from epics
+        left join label_links on epics.epic_id = label_links.target_id
+        left join all_labels on label_links.label_id = all_labels.label_id
+        group by epics.epic_id
 
-), all_labels AS (
+    ),
+    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces") }}),
+    namespace_lineage as (select * from {{ ref("gitlab_dotcom_namespace_lineage") }}),
+    gitlab_subscriptions as (
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_labels_xf')}}
+        select *
+        from {{ ref("gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base") }}
+    ),
 
-), agg_labels AS (
+    joined as (
 
-    SELECT
-      epics.epic_id,
-      ARRAY_AGG(LOWER(masked_label_title)) WITHIN GROUP (ORDER BY masked_label_title ASC) AS labels
-    FROM epics
-    LEFT JOIN label_links
-      ON epics.epic_id = label_links.target_id
-    LEFT JOIN all_labels
-      ON label_links.label_id = all_labels.label_id
-    GROUP BY epics.epic_id
+        select
+            {{
+                dbt_utils.star(
+                    from=ref("gitlab_dotcom_epics"),
+                    except=fields_to_mask | upper,
+                    relation_alias="epics",
+                )
+            }},
 
-), namespaces AS (
+            {% for field in fields_to_mask %}
+                case
+                    when {{ field }} = null
+                    then null
+                    when namespaces.visibility_level = 'public'
+                    then {{ field }}
+                    when namespace_lineage.namespace_is_internal = true
+                    then {{ field }}
+                    else 'private/internal - masked'
+                end as {{ field }},
+            {% endfor %}
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_namespaces')}}
+            agg_labels.labels,
 
-), namespace_lineage AS (
+            namespaces.visibility_level as namespace_visibility_level,
+            namespace_lineage.namespace_is_internal as is_internal_epic,
+            namespace_lineage.ultimate_parent_id,
+            namespace_lineage.ultimate_parent_plan_id,
+            namespace_lineage.ultimate_parent_plan_title,
+            namespace_lineage.ultimate_parent_plan_is_paid,
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_namespace_lineage')}}
+            case
+                when gitlab_subscriptions.is_trial
+                then 'trial'
+                else coalesce(gitlab_subscriptions.plan_id, 34)::varchar
+            end as plan_id_at_epic_creation
 
-) , gitlab_subscriptions AS (
+        from epics
+        left join agg_labels on epics.epic_id = agg_labels.epic_id
+        left join namespaces on epics.group_id = namespaces.namespace_id
+        left join namespace_lineage on epics.group_id = namespace_lineage.namespace_id
+        left join
+            gitlab_subscriptions
+            on namespace_lineage.ultimate_parent_id = gitlab_subscriptions.namespace_id
+            and epics.created_at
+            between gitlab_subscriptions.valid_from
+            and {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
+    )
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_gitlab_subscriptions_snapshots_namespace_id_base')}}
-),
-
-joined AS (
-
-  SELECT
-    {{ dbt_utils.star(from=ref('gitlab_dotcom_epics'), except=fields_to_mask|upper, relation_alias='epics')}},
-    
-    {% for field in fields_to_mask %}
-    CASE
-      WHEN {{field}} = NULL
-        THEN NULL
-      WHEN namespaces.visibility_level = 'public'
-        THEN {{field}}
-      WHEN namespace_lineage.namespace_is_internal = True
-        THEN {{field}}
-      ELSE 'private/internal - masked'
-    END                                          AS {{field}},
-    {% endfor %}
-
-    agg_labels.labels,
-
-    namespaces.visibility_level                  AS namespace_visibility_level,
-    namespace_lineage.namespace_is_internal      AS is_internal_epic,
-    namespace_lineage.ultimate_parent_id,
-    namespace_lineage.ultimate_parent_plan_id,
-    namespace_lineage.ultimate_parent_plan_title,
-    namespace_lineage.ultimate_parent_plan_is_paid,
-
-    CASE
-      WHEN gitlab_subscriptions.is_trial
-        THEN 'trial'
-      ELSE COALESCE(gitlab_subscriptions.plan_id, 34)::VARCHAR
-    END AS plan_id_at_epic_creation
-
-  FROM epics
-  LEFT JOIN agg_labels
-    ON epics.epic_id = agg_labels.epic_id
-  LEFT JOIN namespaces
-    ON epics.group_id = namespaces.namespace_id
-  LEFT JOIN namespace_lineage
-    ON epics.group_id = namespace_lineage.namespace_id
-  LEFT JOIN gitlab_subscriptions
-    ON namespace_lineage.ultimate_parent_id = gitlab_subscriptions.namespace_id
-    AND epics.created_at BETWEEN gitlab_subscriptions.valid_from AND {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
-)
-
-SELECT *
-FROM joined
+select *
+from joined

@@ -1,67 +1,65 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key" : "source_primary_key"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "source_primary_key"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gcp_billing_export_source') }}
-    {% if is_incremental() %}
+        select *
+        from {{ ref("gcp_billing_export_source") }}
+        {% if is_incremental() %}
 
-    WHERE uploaded_at >= (SELECT MAX(uploaded_at) FROM {{this}})
+            where uploaded_at >= (select max(uploaded_at) from {{ this }})
 
-    {% endif %}
+        {% endif %}
 
-), credits AS (
+    ),
+    credits as (
 
-    SELECT
-        source_primary_key                               AS source_primary_key,
-        SUM(IFNULL(credit_amount,0))                     AS total_credits
-    FROM {{ ref('gcp_billing_export_credits') }}
-    GROUP BY 1
+        select
+            source_primary_key as source_primary_key,
+            sum(ifnull(credit_amount, 0)) as total_credits
+        from {{ ref("gcp_billing_export_credits") }}
+        group by 1
 
-), renamed as (
+    ),
+    renamed as (
 
-    SELECT
-        source.primary_key                                   AS source_primary_key,
-        source.billing_account_id                            AS billing_account_id,
-        source.service_id                                    AS service_id,
-        source.service_description                           AS service_description,
-        source.sku_id                                        AS sku_id,
-        source.sku_description                               AS sku_description,
-        source.invoice_month                                 AS invoice_month,
-        source.usage_start_time                              AS usage_start_time,
-        source.usage_end_time                                AS usage_end_time,
-        source.project_id                                    AS project_id,
-        source.project_name                                  AS project_name,
-        source.project_labels                                AS project_labels,
-        source.folder_id                                     AS folder_id,
-        source.resource_location                             AS resource_location,
-        source.resource_zone                                 AS resource_zone,
-        source.resource_region                               AS resource_region,
-        source.resource_country                              AS resource_country,
-        source.labels                                        AS resource_labels,
-        source.system_labels                                 AS system_labels,
-        source.cost                                          AS cost_before_credits,
-        credits.total_credits                                AS total_credits,
-        source.cost + IFNULL(credits.total_credits, 0)       AS total_cost,
-        source.usage_amount                                  AS usage_amount,
-        source.usage_unit                                    AS usage_unit,
-        source.usage_amount_in_pricing_units                 AS usage_amount_in_pricing_units,
-        source.pricing_unit                                  AS pricing_unit,
-        source.currency                                      AS currency,
-        source.currency_conversion_rate                      AS currency_conversion_rate,
-        source.cost_type                                     AS cost_type,
-        source.credits                                       AS credits,
-        source.export_time                                   AS export_time,
-        source.uploaded_at                                   AS uploaded_at
-    FROM source
-    LEFT JOIN credits
-    ON source.primary_key = credits.source_primary_key
+        select
+            source.primary_key as source_primary_key,
+            source.billing_account_id as billing_account_id,
+            source.service_id as service_id,
+            source.service_description as service_description,
+            source.sku_id as sku_id,
+            source.sku_description as sku_description,
+            source.invoice_month as invoice_month,
+            source.usage_start_time as usage_start_time,
+            source.usage_end_time as usage_end_time,
+            source.project_id as project_id,
+            source.project_name as project_name,
+            source.project_labels as project_labels,
+            source.folder_id as folder_id,
+            source.resource_location as resource_location,
+            source.resource_zone as resource_zone,
+            source.resource_region as resource_region,
+            source.resource_country as resource_country,
+            source.labels as resource_labels,
+            source.system_labels as system_labels,
+            source.cost as cost_before_credits,
+            credits.total_credits as total_credits,
+            source.cost + ifnull(credits.total_credits, 0) as total_cost,
+            source.usage_amount as usage_amount,
+            source.usage_unit as usage_unit,
+            source.usage_amount_in_pricing_units as usage_amount_in_pricing_units,
+            source.pricing_unit as pricing_unit,
+            source.currency as currency,
+            source.currency_conversion_rate as currency_conversion_rate,
+            source.cost_type as cost_type,
+            source.credits as credits,
+            source.export_time as export_time,
+            source.uploaded_at as uploaded_at
+        from source
+        left join credits on source.primary_key = credits.source_primary_key
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

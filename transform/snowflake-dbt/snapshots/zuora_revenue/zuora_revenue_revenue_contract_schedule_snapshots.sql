@@ -1,17 +1,30 @@
 {% snapshot zuora_revenue_revenue_contract_schedule_snapshots %}
 
-     {{
+    {{
         config(
-          strategy='timestamp',
-          unique_key='revenue_snapshot_id',
-          updated_at='incr_updt_dt',
+            strategy="timestamp",
+            unique_key="revenue_snapshot_id",
+            updated_at="incr_updt_dt",
         )
     }}
 
-    SELECT
-      rc_id || '-' || crtd_prd_id || '-' || root_line_id || '-' || ref_bill_id || '-' || schd_id || '-' || line_id || '-' || acctg_seg AS revenue_snapshot_id,
+    select
+        rc_id
+        || '-'
+        || crtd_prd_id
+        || '-'
+        || root_line_id
+        || '-'
+        || ref_bill_id
+        || '-'
+        || schd_id
+        || '-'
+        || line_id
+        || '-'
+        || acctg_seg as revenue_snapshot_id,
         *
-    FROM {{ source('zuora_revenue','zuora_revenue_revenue_contract_schedule') }}
-    QUALIFY RANK() OVER (PARTITION BY schd_id, acctg_type ORDER BY incr_updt_dt DESC) = 1
+    from {{ source("zuora_revenue", "zuora_revenue_revenue_contract_schedule") }}
+    qualify
+        rank() over (partition by schd_id, acctg_type order by incr_updt_dt desc) = 1
 
 {% endsnapshot %}

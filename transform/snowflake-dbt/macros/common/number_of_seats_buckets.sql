@@ -1,17 +1,28 @@
 {%- macro number_of_seats_buckets(number_of_seats) -%}
 
-    CASE
-      WHEN {{ number_of_seats }} <= 0 THEN '[00] <= 0'
-      WHEN {{ number_of_seats }} BETWEEN 1 AND 5 THEN '[01] 1-5'
-      WHEN {{ number_of_seats }} BETWEEN 6 AND 7 THEN '[02] 6-7'
-      WHEN {{ number_of_seats }} BETWEEN 8 AND 10 THEN '[03] 8-10'
-      WHEN {{ number_of_seats }} BETWEEN 11 AND 15 THEN '[04] 11-15'
-      WHEN {{ number_of_seats }} BETWEEN 16 AND 50 THEN '[05] 16-50'
-      WHEN {{ number_of_seats }} BETWEEN 51 AND 100 THEN '[06] 51-100'
-      WHEN {{ number_of_seats }} BETWEEN 101 AND 200 THEN '[07] 101-200'
-      WHEN {{ number_of_seats }} BETWEEN 201 AND 500 THEN '[08] 201-500'
-      WHEN {{ number_of_seats }} BETWEEN 501 AND 1000 THEN '[09] 501-1,000'
-      WHEN {{ number_of_seats }} >= 1001 THEN '[10] 1,001+'
-    END
+    case
+        when {{ number_of_seats }} <= 0
+        then '[00] <= 0'
+        when {{ number_of_seats }} between 1 and 5
+        then '[01] 1-5'
+        when {{ number_of_seats }} between 6 and 7
+        then '[02] 6-7'
+        when {{ number_of_seats }} between 8 and 10
+        then '[03] 8-10'
+        when {{ number_of_seats }} between 11 and 15
+        then '[04] 11-15'
+        when {{ number_of_seats }} between 16 and 50
+        then '[05] 16-50'
+        when {{ number_of_seats }} between 51 and 100
+        then '[06] 51-100'
+        when {{ number_of_seats }} between 101 and 200
+        then '[07] 101-200'
+        when {{ number_of_seats }} between 201 and 500
+        then '[08] 201-500'
+        when {{ number_of_seats }} between 501 and 1000
+        then '[09] 501-1,000'
+        when {{ number_of_seats }} >= 1001
+        then '[10] 1,001+'
+    end
 
 {%- endmacro -%}

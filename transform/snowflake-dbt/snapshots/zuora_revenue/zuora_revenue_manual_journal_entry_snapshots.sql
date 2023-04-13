@@ -2,14 +2,14 @@
 
     {{
         config(
-          strategy='timestamp',
-          unique_key='je_line_id',
-          updated_at='incr_updt_dt',
+            strategy="timestamp",
+            unique_key="je_line_id",
+            updated_at="incr_updt_dt",
         )
     }}
-    
-    SELECT * 
-    FROM {{ source('zuora_revenue','zuora_revenue_manual_journal_entry') }}
-    QUALIFY RANK() OVER (PARTITION BY je_line_id ORDER BY incr_updt_dt DESC) = 1
+
+    select *
+    from {{ source("zuora_revenue", "zuora_revenue_manual_journal_entry") }}
+    qualify rank() over (partition by je_line_id order by incr_updt_dt desc) = 1
 
 {% endsnapshot %}

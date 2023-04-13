@@ -8,12 +8,10 @@
 
             {{ hash_of_column_in_view(column) }}
 
-        {%- else -%}
-    
-            {{ hash_of_column(column) }}
+        {%- else -%} {{ hash_of_column(column) }}
 
         {% endif %}
-    
+
     {% endfor %}
 
     {{ dbt_utils.star(from=ref(source_table), except=meta_columns) }}

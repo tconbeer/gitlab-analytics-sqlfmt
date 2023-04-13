@@ -1,42 +1,35 @@
-WITH labels AS (
+with
+    labels as (select * from {{ ref("gitlab_ops_labels") }}),
+    projects as (
 
-  SELECT *
-  FROM {{ ref('gitlab_ops_labels') }}
+        select project_id, visibility_level, namespace_id
+        from {{ ref("gitlab_ops_projects") }}
 
-), projects AS (
+    ),
+    joined as (
 
-  SELECT 
-    project_id,
-    visibility_level,
-    namespace_id
-  FROM {{ ref('gitlab_ops_projects') }}
+        select
+            label_id,
 
-), joined AS (
+            case
+                when projects.visibility_level != 'public'  -- AND namespace_id NOT IN (SELECT * FROM internal_namespaces) 
+                then 'content masked'
+                else label_title
+            end as masked_label_title,
 
-    SELECT
-      label_id,
+            length(label_title) as title_length,
+            color,
+            labels.project_id,
+            group_id,
+            template,
+            label_type,
+            created_at as label_created_at,
+            updated_at as label_updated_at
 
-    CASE
-      WHEN projects.visibility_level != 'public' --AND namespace_id NOT IN (SELECT * FROM internal_namespaces) 
-        THEN 'content masked'
-      ELSE label_title
-    END                                          AS masked_label_title,
+        from labels
+        left join projects on labels.project_id = projects.project_id
 
-    LENGTH(label_title)                          AS title_length,
-    color,
-    labels.project_id,
-    group_id,
-    template,
-    label_type,
-    created_at                                   AS label_created_at,
-    updated_at                                   AS label_updated_at
+    )
 
-    FROM labels
-      LEFT JOIN projects
-        ON labels.project_id = projects.project_id
-
-)
-
-SELECT *
-FROM joined
-
+select *
+from joined

@@ -1,23 +1,28 @@
 {% macro sfdc_id_15_to_18() %}
 
-{%- set production_targets = production_targets() -%}
-{%- set db_prep = env_var("SNOWFLAKE_PREP_DATABASE") -%}
-{%- set db_prod = env_var("SNOWFLAKE_PROD_DATABASE") -%}
-{%- set production_databases = [db_prep, db_prod] -%}
+    {%- set production_targets = production_targets() -%}
+    {%- set db_prep = env_var("SNOWFLAKE_PREP_DATABASE") -%}
+    {%- set db_prod = env_var("SNOWFLAKE_PROD_DATABASE") -%}
+    {%- set production_databases = [db_prep, db_prod] -%}
 
-{% for db in production_databases %}
-    {%- if target.name in production_targets -%}
+    {% for db in production_databases %}
+        {%- if target.name in production_targets -%}
 
-    CREATE OR REPLACE FUNCTION "{{ db | trim }}".{{target.schema}}.id15to18("input_id" string)
+            create or replace function
+                "{{ db | trim }}".{{ target.schema }}.id15to18("input_id" string)
 
-    {%- else -%}
+        {%- else -%}
 
-    CREATE OR REPLACE FUNCTION "{{ target.database | trim }}_{{ db | trim }}".{{target.schema}}.id15to18("input_id" string)
+            create or replace function
+                "{{ target.database | trim }}_{{ db | trim }}".{{ target.schema }}.id15to18(
+                    "input_id" string
+                )
 
-    {% endif %}
-    RETURNS string
-    LANGUAGE JAVASCRIPT
-    AS '
+        {% endif %}
+        returns string
+        language javascript
+        as
+            '
     let suffix = "";
 
     if (input_id.length != 15) {
@@ -45,7 +50,8 @@
 
     return final_id
 
-    ';
+    '
+        ;
 
     {% endfor %}
 {% endmacro %}

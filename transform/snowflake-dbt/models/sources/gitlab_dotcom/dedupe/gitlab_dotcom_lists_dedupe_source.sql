@@ -1,46 +1,40 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "id"}) }}
 
-WITH source AS (
+with
+    source as (select * from {{ source("gitlab_dotcom", "lists") }}),
+    partitioned as (
 
-    SELECT *
-    FROM {{ source('gitlab_dotcom', 'lists') }}
+        select *
+        from source
 
-), partitioned AS (
+        {% if is_incremental() %}
 
-    SELECT *
-    FROM source
+            where updated_at >= (select max(updated_at) from {{ this }})
 
-    {% if is_incremental() %}
+        {% endif %}
 
-    WHERE updated_at >= (SELECT MAX(updated_at) FROM {{this}})
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-    {% endif %}
+    ),
+    renamed as (
 
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+        select
+            id as id,
+            board_id as board_id,
+            label_id as label_id,
+            list_type as list_type,
+            position as position,
+            created_at as created_at,
+            updated_at as updated_at,
+            user_id::number as user_id,
+            milestone_id as milestone_id,
+            max_issue_count as max_issue_count,
+            max_issue_weight as max_issue_weight,
+            limit_metric as limit_metric,
+            _uploaded_at as _uploaded_at
+        from partitioned
 
-), renamed AS (
+    )
 
-    SELECT
-      id               AS id,
-      board_id         AS board_id,
-      label_id         AS label_id,
-      list_type        AS list_type,
-      position         AS position,
-      created_at       AS created_at,
-      updated_at       AS updated_at,
-      user_id::NUMBER  AS user_id,
-      milestone_id     AS milestone_id,
-      max_issue_count  AS max_issue_count,
-      max_issue_weight AS max_issue_weight,
-      limit_metric     AS limit_metric,
-      _uploaded_at     AS _uploaded_at
-    FROM partitioned
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

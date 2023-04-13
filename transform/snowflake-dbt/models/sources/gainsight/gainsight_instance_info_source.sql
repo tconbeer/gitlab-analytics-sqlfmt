@@ -1,28 +1,28 @@
-{{ config({
-    "schema": "sensitive",
-    "database": env_var('SNOWFLAKE_PREP_DATABASE'),
-    })
+{{
+    config(
+        {
+            "schema": "sensitive",
+            "database": env_var("SNOWFLAKE_PREP_DATABASE"),
+        }
+    )
 }}
 
 
-WITH source AS (
+with
+    source as (select * from {{ source("gainsight", "gainsight_instance_info") }}),
+    final as (
 
-    SELECT *
-    FROM {{ source('gainsight', 'gainsight_instance_info') }}
+        select
+            crm_acct_id::varchar as crm_account_id,
+            gainsight_unique_row_id::varchar as gainsight_unique_row_id,
+            instance_uuid::varchar as instance_uuid,
+            hostname::varchar as instance_hostname,
+            instancetype::varchar as instance_type,
+            "Namespace_ID"::varchar as namespace_id,
+            to_timestamp(_updated_at::number) as uploaded_at
+        from source
 
-), final AS (
+    )
 
-    SELECT 
-      crm_acct_id::VARCHAR                                 AS crm_account_id,
-      gainsight_unique_row_id::VARCHAR                     AS gainsight_unique_row_id,
-      instance_uuid::VARCHAR                               AS instance_uuid,
-      hostname::VARCHAR                                    AS instance_hostname,
-      instancetype::VARCHAR                                AS instance_type,
-      "Namespace_ID"::VARCHAR                              AS namespace_id, 
-      to_timestamp(_updated_at::NUMBER)                    AS uploaded_at
-    FROM source
-
-)
-
-SELECT * 
-FROM final
+select *
+from final

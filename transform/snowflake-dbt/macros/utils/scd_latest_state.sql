@@ -1,23 +1,19 @@
-{%- macro scd_latest_state(source='base', max_column='_task_instance') -%}
+{%- macro scd_latest_state(source="base", max_column="_task_instance") -%}
 
-, max_task_instance AS (
-    SELECT MAX({{ max_column }}) AS max_column_value
-    FROM {{ source }}
+    ,
+    max_task_instance as (
+        select max({{ max_column }}) as max_column_value from {{ source }}
 
-), filtered AS (
+    ),
+    filtered as (
 
-    SELECT *
-    FROM {{ source }}
-    WHERE {{ max_column }} = (
+        select *
+        from {{ source }}
+        where {{ max_column }} = (select max_column_value from max_task_instance)
 
-                            SELECT max_column_value
-                            FROM max_task_instance
+    )
 
-                            )
-
-)
-
-SELECT *
-FROM filtered
+    select *
+    from filtered
 
 {%- endmacro -%}

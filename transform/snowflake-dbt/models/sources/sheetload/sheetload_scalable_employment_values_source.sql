@@ -1,14 +1,9 @@
-WITH source AS (
+with source as (select * from {{ source("sheetload", "scalable_employment_values") }})
 
-    SELECT *
-    FROM {{ source('sheetload','scalable_employment_values') }}
-
-)
-
-SELECT
-  "Month"::DATE                                AS nbr_month,
-  NULLIF(TOTAL_WORKFORCE, '')::NUMBER          AS total_workforce,
-  NULLIF(NBR_IN_SCALABLE_SOLUTION, '')::NUMBER AS nbr_in_scalable_solution,
-  NULLIF(NBR_IN_PROCESS, ''):: INT             AS nbr_in_process,
-  NULLIF(NBR_TO_BE_CONVERTED, '')::NUMBER      AS nbr_to_be_converted
-FROM source
+select
+    "Month"::date as nbr_month,
+    nullif(total_workforce, '')::number as total_workforce,
+    nullif(nbr_in_scalable_solution, '')::number as nbr_in_scalable_solution,
+    nullif(nbr_in_process, '')::int as nbr_in_process,
+    nullif(nbr_to_be_converted, '')::number as nbr_to_be_converted
+from source

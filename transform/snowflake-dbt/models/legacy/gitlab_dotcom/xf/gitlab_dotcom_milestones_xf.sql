@@ -1,53 +1,47 @@
-{% set fields_to_mask = ['milestone_description', 'milestone_title'] %}
+{% set fields_to_mask = ["milestone_description", "milestone_title"] %}
 
-WITH milestones AS (
+with
+    milestones as (select * from {{ ref("gitlab_dotcom_milestones") }}),
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_milestones')}}
+    -- A milestone joins to a namespace through EITHER a project or group
+    projects as (select * from {{ ref("gitlab_dotcom_projects") }}),
 
-),
+    internal_namespaces as (
 
--- A milestone joins to a namespace through EITHER a project or group
-projects AS (
+        select namespace_id
+        from {{ ref("gitlab_dotcom_namespace_lineage") }}
+        where namespace_is_internal = true
+    ),
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_projects')}}
-),
+    final as (
 
-internal_namespaces AS (
+        select
+            milestones.milestone_id,
 
-    SELECT
-      namespace_id
-    FROM {{ref('gitlab_dotcom_namespace_lineage')}}
-    WHERE namespace_is_internal = True
-),
+            {% for field in fields_to_mask %}
+                iff(
+                    internal_namespaces.namespace_id is null,
+                    'private - masked',
+                    {{ field }}
+                ) as {{ field }},
+            {% endfor %}
 
-final AS (
+            milestones.due_date,
+            milestones.group_id,
+            milestones.created_at as milestone_created_at,
+            milestones.updated_at as milestone_updated_at,
+            milestones.milestone_status,
+            coalesce(milestones.group_id, projects.namespace_id) as namespace_id,
+            milestones.project_id,
+            milestones.start_date
 
-    SELECT
-      milestones.milestone_id,
+        from milestones
+        left join projects on milestones.project_id = projects.project_id
+        left join
+            internal_namespaces
+            on projects.namespace_id = internal_namespaces.namespace_id
+            or milestones.group_id = internal_namespaces.namespace_id
+    )
 
-      {% for field in fields_to_mask %}
-      IFF(internal_namespaces.namespace_id IS NULL,
-          'private - masked', {{field}})                     AS {{field}},
-      {% endfor %}
-      
-      milestones.due_date,
-      milestones.group_id,
-      milestones.created_at                                  AS milestone_created_at,
-      milestones.updated_at                                  AS milestone_updated_at,
-      milestones.milestone_status,
-      COALESCE(milestones.group_id, projects.namespace_id)   AS namespace_id,
-      milestones.project_id,
-      milestones.start_date
-
-    FROM milestones
-      LEFT JOIN projects
-        ON milestones.project_id = projects.project_id
-      LEFT JOIN internal_namespaces
-        ON projects.namespace_id = internal_namespaces.namespace_id
-        OR milestones.group_id = internal_namespaces.namespace_id
-)
-
-SELECT *
-FROM final
+select *
+from final

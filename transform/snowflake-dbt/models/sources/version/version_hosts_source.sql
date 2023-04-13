@@ -1,30 +1,28 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "host_id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "host_id"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('version', 'hosts') }}
-    {% if is_incremental() %}
-    WHERE updated_at >= (SELECT MAX(updated_at) FROM {{this}})
-    {% endif %}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+        select *
+        from {{ source("version", "hosts") }}
+        {% if is_incremental() %}
+            where updated_at >= (select max(updated_at) from {{ this }})
+        {% endif %}
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER                AS host_id,
-      url::VARCHAR              AS host_url,
-      created_at::TIMESTAMP     AS created_at,
-      updated_at::TIMESTAMP     AS updated_at,
-      star::BOOLEAN             AS has_star,
-      fortune_rank::NUMBER      AS fortune_rank
-    FROM source
+        select
+            id::number as host_id,
+            url::varchar as host_url,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            star::boolean as has_star,
+            fortune_rank::number as fortune_rank
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

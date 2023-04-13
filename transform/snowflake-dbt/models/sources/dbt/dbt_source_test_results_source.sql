@@ -1,68 +1,77 @@
-{{ config({
-    "unique_key": "test_unique_key"
-    })
-}}
+{{ config({"unique_key": "test_unique_key"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('dbt', 'source_tests') }}
-    {% if is_incremental() %}
-    WHERE uploaded_at >= (SELECT MAX(uploaded_at) FROM {{this}})
-    {% endif %}
+        select *
+        from {{ source("dbt", "source_tests") }}
+        {% if is_incremental() %}
+            where uploaded_at >= (select max(uploaded_at) from {{ this }})
+        {% endif %}
 
-), flattened AS (
+    ),
+    flattened as (
 
-    SELECT 
-      d.value AS data_by_row,
-      jsontext['metadata']['dbt_version']::VARCHAR                                             AS dbt_version,
-      jsontext['metadata']['dbt_schema_version']::VARCHAR                                      AS schema_version,
-      COALESCE(jsontext['metadata']['generated_at'], jsontext['generated_at'])::TIMESTAMP_NTZ  AS generated_at,
-      uploaded_at
-    FROM source
-    INNER JOIN LATERAL FLATTEN(INPUT => PARSE_JSON(jsontext['results']), outer => true) d
+        select
+            d.value as data_by_row,
+            jsontext['metadata']['dbt_version']::varchar as dbt_version,
+            jsontext['metadata']['dbt_schema_version']::varchar as schema_version,
+            coalesce(
+                jsontext['metadata']['generated_at'], jsontext['generated_at']
+            )::timestamp_ntz as generated_at,
+            uploaded_at
+        from source
+        inner join
+            lateral flatten(input => parse_json(jsontext['results']), outer => true) d
 
-), v1model_parsed_out AS (
+    ),
+    v1model_parsed_out as (
 
-    SELECT
-      data_by_row['execution_time']::FLOAT                                 AS test_execution_time_elapsed,
-      data_by_row['unique_id']::VARCHAR                                    AS test_unique_id,
-      data_by_row['status']::VARCHAR                                       AS status,
-      data_by_row['message']::VARCHAR                                      AS message,
-      dbt_version,
-      schema_version,
-      generated_at,
-      {{ dbt_utils.surrogate_key(['test_unique_id', 'generated_at']) }}    AS test_unique_key,
-      uploaded_at
-    FROM flattened
-    WHERE dbt_version IS NOT NULL
-  
-), v0model_parsed_out AS (
+        select
+            data_by_row['execution_time']::float as test_execution_time_elapsed,
+            data_by_row['unique_id']::varchar as test_unique_id,
+            data_by_row['status']::varchar as status,
+            data_by_row['message']::varchar as message,
+            dbt_version,
+            schema_version,
+            generated_at,
+            {{ dbt_utils.surrogate_key(["test_unique_id", "generated_at"]) }}
+            as test_unique_key,
+            uploaded_at
+        from flattened
+        where dbt_version is not null
 
-    SELECT
-      data_by_row['execution_time']::FLOAT                                 AS test_execution_time_elapsed,
-      data_by_row['node']['unique_id']::VARCHAR                            AS test_unique_id,
-      CASE
-        WHEN data_by_row['fail'] = 'true' THEN 'fail'
-        WHEN data_by_row['warn'] = 'true' THEN 'warn'
-        WHEN data_by_row['error']::VARCHAR IS NOT NULL THEN 'error'
-        ELSE 'pass'
-      END                                                                  AS status,
-      data_by_row['error']::VARCHAR                                        AS message,
-      'PRE 0.19.0'                                                         AS dbt_version,
-      'https://schemas.getdbt.com/dbt/run-results/v0.json'                 AS schema_version,
-      generated_at,
-      {{ dbt_utils.surrogate_key(['test_unique_id', 'generated_at']) }}    AS test_unique_key,
-      uploaded_at
-    FROM flattened
-    WHERE dbt_version IS NULL
+    ),
+    v0model_parsed_out as (
 
-)
+        select
+            data_by_row['execution_time']::float as test_execution_time_elapsed,
+            data_by_row['node']['unique_id']::varchar as test_unique_id,
+            case
+                when data_by_row['fail'] = 'true'
+                then 'fail'
+                when data_by_row['warn'] = 'true'
+                then 'warn'
+                when data_by_row['error']::varchar is not null
+                then 'error'
+                else 'pass'
+            end as status,
+            data_by_row['error']::varchar as message,
+            'PRE 0.19.0' as dbt_version,
+            'https://schemas.getdbt.com/dbt/run-results/v0.json' as schema_version,
+            generated_at,
+            {{ dbt_utils.surrogate_key(["test_unique_id", "generated_at"]) }}
+            as test_unique_key,
+            uploaded_at
+        from flattened
+        where dbt_version is null
 
-SELECT *
-FROM v0model_parsed_out
+    )
 
-UNION 
+select *
+from v0model_parsed_out
 
-SELECT *
-FROM v1model_parsed_out
+union
+
+select *
+from v1model_parsed_out

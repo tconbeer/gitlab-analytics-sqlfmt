@@ -1,7 +1,7 @@
 {% macro zuora_excluded_accounts() %}
 
-    SELECT DISTINCT account_id
-    FROM {{ref('zuora_excluded_accounts')}}
-    WHERE account_id IS NOT NULL
+    select distinct account_id
+    from {{ ref("zuora_excluded_accounts") }}
+    where account_id is not null
 
- {% endmacro %}
+{% endmacro %}

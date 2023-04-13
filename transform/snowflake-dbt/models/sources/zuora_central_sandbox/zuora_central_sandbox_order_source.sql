@@ -1,39 +1,35 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_central_sandbox", "order") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_central_sandbox', 'order') }}
+        select
 
-), renamed AS (
+            id as order_id,
 
-    SELECT
+            description as description,
+            order_date as order_date,
+            order_number as order_number,
+            state as state,
+            status as status,
 
-      id                                    AS order_id,
+            sold_to_contact_id as sold_to_contact_id,
 
-      description                           AS description,
-      order_date                            AS order_date,
-      order_number                          AS order_number,
-      state                                 AS state,
-      status                                AS status,
+            account_id as account_id,
+            bill_to_contact_id as bill_to_contact_id,
+            default_payment_method_id as default_payment_method_id,
 
-      sold_to_contact_id                    AS sold_to_contact_id,
+            -- metadata
+            updated_by_id as updated_by_id,
+            updated_date as updated_date,
+            created_by_id as created_by_id,
+            created_date as created_date,
+            created_by_migration as created_by_migration,
 
+            _fivetran_deleted as is_deleted
 
-      account_id                            AS account_id,
-      bill_to_contact_id                    AS bill_to_contact_id,
-      default_payment_method_id             AS default_payment_method_id,
+        from source
 
-      -- metadata
-      updated_by_id                         AS updated_by_id,
-      updated_date                          AS updated_date,
-      created_by_id                         AS created_by_id,
-      created_date                          AS created_date,
-      created_by_migration                  AS created_by_migration,
+    )
 
-      _FIVETRAN_DELETED                     AS is_deleted
-
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

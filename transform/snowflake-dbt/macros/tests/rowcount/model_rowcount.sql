@@ -1,22 +1,17 @@
 {% macro model_rowcount(model_name, count, where_clause=None) %}
 
-WITH source AS (
+    with
+        source as (select * from {{ ref(model_name) }}),
+        counts as (
 
-    SELECT *
-    FROM {{ ref(model_name) }}
+            select count(*) as row_count
+            from source
+            {% if where_clause != None %} where {{ where_clause }} {% endif %}
 
-), counts AS (
+        )
 
-    SELECT count(*) AS row_count
-    FROM source
-    {% if where_clause != None %}
-    WHERE {{ where_clause }}
-    {% endif %}
-
-)
-
-SELECT row_count
-FROM counts
-WHERE row_count < {{ count }}
+    select row_count
+    from counts
+    where row_count < {{ count }}
 
 {% endmacro %}

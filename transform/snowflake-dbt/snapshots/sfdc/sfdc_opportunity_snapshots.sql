@@ -2,13 +2,13 @@
 
     {{
         config(
-          unique_key='id',
-          strategy='timestamp',
-          updated_at='systemmodstamp',
+            unique_key="id",
+            strategy="timestamp",
+            updated_at="systemmodstamp",
         )
     }}
-    
-    SELECT * 
-    FROM {{ source('salesforce', 'opportunity') }}
-    
+
+    select *
+    from {{ source("salesforce", "opportunity") }}
+
 {% endsnapshot %}

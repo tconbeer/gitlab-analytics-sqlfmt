@@ -2,13 +2,13 @@
 
     {{
         config(
-          strategy='timestamp',
-          unique_key='entity_id',
-          updated_at='last_modified_date',
+            strategy="timestamp",
+            unique_key="entity_id",
+            updated_at="last_modified_date",
         )
     }}
 
-    SELECT *
-    FROM {{ source('netsuite', 'entity') }}
+    select *
+    from {{ source("netsuite", "entity") }}
 
 {% endsnapshot %}

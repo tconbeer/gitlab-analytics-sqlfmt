@@ -1,22 +1,19 @@
-{% macro source_column_sum_min(source_name, table, column, min_value, where_clause=None) %}
+{% macro source_column_sum_min(
+    source_name, table, column, min_value, where_clause=None
+) %}
 
-WITH source AS (
+    with
+        source as (select * from {{ source(source_name, table) }}),
+        counts as (
 
-    SELECT *
-    FROM {{ source(source_name, table) }}
+            select sum({{ column }}) as sum_value
+            from source
+            {% if where_clause != None %} where {{ where_clause }} {% endif %}
 
-), counts AS (
+        )
 
-    SELECT SUM({{column}}) AS sum_value
-    FROM source
-    {% if where_clause != None %}
-    WHERE {{ where_clause }}
-    {% endif %}
-
-)
-
-SELECT sum_value
-FROM counts
-WHERE sum_value < {{ min_value }}
+    select sum_value
+    from counts
+    where sum_value < {{ min_value }}
 
 {% endmacro %}

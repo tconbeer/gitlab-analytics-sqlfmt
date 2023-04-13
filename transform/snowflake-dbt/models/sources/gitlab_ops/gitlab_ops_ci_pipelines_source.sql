@@ -1,52 +1,51 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "ci_pipeline_id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "ci_pipeline_id"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('gitlab_ops', 'ci_pipelines') }}
-    WHERE created_at IS NOT NULL
-  
-    {% if is_incremental() %}
+        select *
+        from {{ source("gitlab_ops", "ci_pipelines") }}
+        where
+            created_at is not null
 
-      AND updated_at >= (SELECT MAX(updated_at) FROM {{this}})
+            {% if is_incremental() %}
 
-    {% endif %}
-    
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+                and updated_at >= (select max(updated_at) from {{ this }})
 
-), renamed AS (
-  
-    SELECT
-      id::NUMBER                    AS ci_pipeline_id, 
-      created_at::TIMESTAMP         AS created_at, 
-      updated_at::TIMESTAMP         AS updated_at,
-      ref::VARCHAR                  AS ref,
-      tag::BOOLEAN                  AS has_tag, 
-      yaml_errors::VARCHAR          AS yaml_errors, 
-      committed_at::TIMESTAMP       AS committed_at, 
-      project_id::NUMBER            AS project_id, 
-      status::VARCHAR               AS status, 
-      started_at::TIMESTAMP         AS started_at, 
-      finished_at::TIMESTAMP        AS finished_at, 
-      duration::NUMBER              AS ci_pipeline_duration, 
-      user_id::NUMBER               AS user_id, 
-      lock_version::NUMBER          AS lock_version, 
-      auto_canceled_by_id::NUMBER   AS auto_canceled_by_id, 
-      pipeline_schedule_id::NUMBER  AS pipeline_schedule_id, 
-      source::NUMBER                AS ci_pipeline_source, 
-      config_source::NUMBER         AS config_source, 
-      protected::BOOLEAN            AS is_protected, 
-      failure_reason::VARCHAR       AS failure_reason, 
-      iid::NUMBER                   AS ci_pipeline_iid, 
-      merge_request_id::NUMBER      AS merge_request_id 
-    FROM source
+            {% endif %}
 
-)
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-SELECT *
-FROM renamed
-ORDER BY updated_at
+    ),
+    renamed as (
+
+        select
+            id::number as ci_pipeline_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            ref::varchar as ref,
+            tag::boolean as has_tag,
+            yaml_errors::varchar as yaml_errors,
+            committed_at::timestamp as committed_at,
+            project_id::number as project_id,
+            status::varchar as status,
+            started_at::timestamp as started_at,
+            finished_at::timestamp as finished_at,
+            duration::number as ci_pipeline_duration,
+            user_id::number as user_id,
+            lock_version::number as lock_version,
+            auto_canceled_by_id::number as auto_canceled_by_id,
+            pipeline_schedule_id::number as pipeline_schedule_id,
+            source::number as ci_pipeline_source,
+            config_source::number as config_source,
+            protected::boolean as is_protected,
+            failure_reason::varchar as failure_reason,
+            iid::number as ci_pipeline_iid,
+            merge_request_id::number as merge_request_id
+        from source
+
+    )
+
+select *
+from renamed
+order by updated_at

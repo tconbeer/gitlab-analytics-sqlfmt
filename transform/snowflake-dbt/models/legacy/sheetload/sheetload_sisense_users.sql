@@ -1,17 +1,4 @@
+with source as (select * from {{ ref("sheetload_sisense_users_source") }})
 
-WITH source AS (
-
-    SELECT *
-    FROM {{ ref('sheetload_sisense_users_source') }}
-
-)
-
-SELECT *
-FROM source
-
-
-
-
-
-
-
+select *
+from source

@@ -1,5 +1,4 @@
 -- Will write to custom databases not on prod
-
 {% macro generate_database_name(custom_database_name, node) -%}
 
     {%- set production_targets = production_targets() -%}
@@ -27,29 +26,23 @@
 
     #}
     {%- if target.name in production_targets -%}
-        
-        {%- if custom_database_name is none -%}
 
-            {{ target.database | trim }}
+        {%- if custom_database_name is none -%} {{ target.database | trim }}
 
-        {%- else -%}
-            
-            {{ custom_database_name | trim }}
+        {%- else -%} {{ custom_database_name | trim }}
 
         {%- endif -%}
 
     {%- else -%}
-    
+
         {%- if custom_database_name is none -%}
             {# Should probably never happen.. #}
             {{ target.database | trim }}
 
-        {%- else -%}
-            
-            {{ target.database }}_{{ custom_database_name | trim }}
+        {%- else -%} {{ target.database }}_{{ custom_database_name | trim }}
 
         {%- endif -%}
-    
+
     {%- endif -%}
 
 {%- endmacro %}
