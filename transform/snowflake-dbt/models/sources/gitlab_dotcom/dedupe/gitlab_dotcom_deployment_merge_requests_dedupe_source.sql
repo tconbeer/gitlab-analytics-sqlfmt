@@ -8,7 +8,7 @@ select *
 from {{ source("gitlab_dotcom", "deployment_merge_requests") }}
 {% if is_incremental() %}
 
-where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
+    where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
 
 {% endif %}
 qualify

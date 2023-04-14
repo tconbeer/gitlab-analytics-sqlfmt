@@ -7,7 +7,7 @@ with
         from {{ ref("poc_prep_usage_data_7_days_flattened") }}
         {% if is_incremental() %}
 
-        where created_at >= (select max(created_week) from {{ this }})
+            where created_at >= (select max(created_week) from {{ this }})
 
         {% endif %}
 

@@ -95,15 +95,15 @@ with
             visibility_level,
             is_confidential as issue_is_confidential,
             {% for field in fields_to_mask %}
-            case
-                when is_confidential = true
-                then 'confidential - masked'
-                when
-                    visibility_level != 'public'
-                    and namespace_lineage.namespace_is_internal = false
-                then 'private/internal - masked'
-                else {{ field }}
-            end as {{ field }},
+                case
+                    when is_confidential = true
+                    then 'confidential - masked'
+                    when
+                        visibility_level != 'public'
+                        and namespace_lineage.namespace_is_internal = false
+                    then 'private/internal - masked'
+                    else {{ field }}
+                end as {{ field }},
             {% endfor %}
 
             case

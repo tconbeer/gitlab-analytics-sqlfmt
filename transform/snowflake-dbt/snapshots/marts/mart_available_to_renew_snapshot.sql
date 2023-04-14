@@ -1,20 +1,20 @@
 {% snapshot mart_available_to_renew_snapshot %}
--- Using dbt updated at field as we want a new set of data everyday.
-{{
-    config(
-        unique_key="primary_key",
-        strategy="timestamp",
-        updated_at="dbt_created_at",
-        invalidate_hard_deletes=True,
-    )
-}}
-
-select
+    -- Using dbt updated at field as we want a new set of data everyday.
     {{
-        dbt_utils.star(
-            from=ref("mart_available_to_renew"), except=["DBT_UPDATED_AT"]
+        config(
+            unique_key="primary_key",
+            strategy="timestamp",
+            updated_at="dbt_created_at",
+            invalidate_hard_deletes=True,
         )
     }}
-from {{ ref("mart_available_to_renew") }}
+
+    select
+        {{
+            dbt_utils.star(
+                from=ref("mart_available_to_renew"), except=["DBT_UPDATED_AT"]
+            )
+        }}
+    from {{ ref("mart_available_to_renew") }}
 
 {% endsnapshot %}

@@ -8,7 +8,7 @@ with
         select *
         from {{ source("version", "usage_data") }}
         {% if is_incremental() %}
-        where created_at >= (select max(created_at) from {{ this }})
+            where created_at >= (select max(created_at) from {{ this }})
         {% endif %}
         qualify row_number() over (partition by id order by updated_at desc) = 1
 
@@ -19,12 +19,12 @@ with
             *,
             object_construct(
                 {% for column in columns %}
-                '{{ column.name | lower }}',
-                coalesce(
-                    try_parse_json({{ column.name | lower }}),
-                    {{ column.name | lower }}::variant
-                )
-                {% if not loop.last %}, {% endif %}
+                    '{{ column.name | lower }}',
+                    coalesce(
+                        try_parse_json({{ column.name | lower }}),
+                        {{ column.name | lower }}::variant
+                    )
+                    {% if not loop.last %}, {% endif %}
                 {% endfor %}
             ) as raw_usage_data_payload_reconstructed
         from source

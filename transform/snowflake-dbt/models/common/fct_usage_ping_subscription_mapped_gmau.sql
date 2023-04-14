@@ -63,8 +63,8 @@ joined as (
         gmau_monthly.dim_location_country_id,
 
         {%- for metric in gmau_metrics.NAME %}
-        {{ metric }} as {{ gmau_metrics.NAME[loop.index0] }}
-        {%- if not loop.last %},{% endif -%}
+            {{ metric }} as {{ gmau_metrics.NAME[loop.index0] }}
+            {%- if not loop.last %},{% endif -%}
         {% endfor %},
 
         iff(

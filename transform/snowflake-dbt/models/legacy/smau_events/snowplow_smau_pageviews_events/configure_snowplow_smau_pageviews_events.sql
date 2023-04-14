@@ -43,32 +43,32 @@ with
         where
             true
             {% if is_incremental() %}
-            and page_view_start >= (select max(event_date) from {{ this }})
+                and page_view_start >= (select max(event_date) from {{ this }})
             {% endif %}
 
     )
 
     {% for event_cte in event_ctes %}
 
-    ,
-    {{
-        smau_events_ctes(
-            event_name=event_cte.event_name,
-            regexp_where_statements=event_cte.regexp_where_statements,
-        )
-    }}
+        ,
+        {{
+            smau_events_ctes(
+                event_name=event_cte.event_name,
+                regexp_where_statements=event_cte.regexp_where_statements,
+            )
+        }}
 
     {% endfor -%},
     unioned as (
 
         {% for event_cte in event_ctes %}
 
-        select *
-        from {{ event_cte.event_name }}
+            select *
+            from {{ event_cte.event_name }}
 
-        {%- if not loop.last %}
-        union
-        {%- endif %}
+            {%- if not loop.last %}
+                union
+            {%- endif %}
 
         {% endfor -%}
 

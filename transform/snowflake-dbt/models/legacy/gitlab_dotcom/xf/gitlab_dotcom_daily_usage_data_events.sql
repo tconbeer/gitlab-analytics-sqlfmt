@@ -9,9 +9,9 @@ with
         from {{ ref("gitlab_dotcom_usage_data_events") }}
         {% if is_incremental() %}
 
-        where
-            event_created_at
-            >= (select max(dateadd(day, -8, event_date)) from {{ this }})
+            where
+                event_created_at
+                >= (select max(dateadd(day, -8, event_date)) from {{ this }})
 
         {% endif %}
 

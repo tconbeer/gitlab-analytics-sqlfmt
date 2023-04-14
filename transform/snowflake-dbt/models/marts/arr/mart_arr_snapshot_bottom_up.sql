@@ -47,13 +47,13 @@ with
 
         {% if is_incremental() %}
 
-        -- this filter will only be applied on an incremental run
-        where
-            snapshot_id > (
-                select max(dim_date.date_id)
-                from {{ this }}
-                inner join dim_date on dim_date.date_actual = snapshot_date
-            )
+            -- this filter will only be applied on an incremental run
+            where
+                snapshot_id > (
+                    select max(dim_date.date_id)
+                    from {{ this }}
+                    inner join dim_date on dim_date.date_actual = snapshot_date
+                )
 
         {% endif %} {{ dbt_utils.group_by(n=8) }}
 

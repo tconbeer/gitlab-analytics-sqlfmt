@@ -21,7 +21,7 @@ with
             parse_ip(source_ip, 'inet')['ip_fields'][0]::number as source_ip_numeric
         from all_hashed_ips_version_usage
         {% if is_incremental() %}
-        where source_ip_hash not in (select ip_address_hash from {{ this }})
+            where source_ip_hash not in (select ip_address_hash from {{ this }})
         {% endif %}
 
     ),

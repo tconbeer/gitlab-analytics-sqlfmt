@@ -20,8 +20,8 @@ with
 
             {% if is_incremental() %}
 
-            -- this filter will only be applied on an incremental run
-            and date_id > (select max(snapshot_id) from {{ this }})
+                -- this filter will only be applied on an incremental run
+                and date_id > (select max(snapshot_id) from {{ this }})
 
             {% endif %}
 

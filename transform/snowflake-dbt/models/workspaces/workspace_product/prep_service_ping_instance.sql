@@ -19,7 +19,7 @@ source as (
     from {{ ref("version_usage_data_source") }} as usage
 
     {% if is_incremental() %}
-    where ping_created_at >= (select max(ping_created_at) from {{ this }})
+        where ping_created_at >= (select max(ping_created_at) from {{ this }})
     {% endif %}
 
 ),

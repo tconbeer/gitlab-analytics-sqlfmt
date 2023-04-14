@@ -129,13 +129,13 @@ joined as (
         ifnull(prep_namespace.namespace_is_internal, false) as namespace_is_internal,
 
         {% for field in sensitive_fields %}
-        case
-            when
-                projects_source.visibility_level != 'public'
-                and not namespace_lineage.namespace_is_internal
-            then 'project is private/internal'
-            else {{ field }}
-        end as {{ field }},
+            case
+                when
+                    projects_source.visibility_level != 'public'
+                    and not namespace_lineage.namespace_is_internal
+                then 'project is private/internal'
+                else {{ field }}
+            end as {{ field }},
         {% endfor %}
         iff(
             projects_source.import_type = 'gitlab_project'

@@ -44,7 +44,7 @@ fct_service_ping as (
     where
         is_real(to_variant(metric_value))
         {% if is_incremental() %}
-        and ping_created_at >= (select max(ping_created_at) from {{ this }})
+            and ping_created_at >= (select max(ping_created_at) from {{ this }})
         {% endif %}
 
 ),

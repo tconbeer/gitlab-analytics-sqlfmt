@@ -21,7 +21,7 @@ with
             monthly_metric_value > 0 and metrics_path ilike 'counts.%'
             {% if is_incremental() %}
 
-            and created_month >= (select max(reporting_month) from {{ this }})
+                and created_month >= (select max(reporting_month) from {{ this }})
 
             {% endif %}
     ),

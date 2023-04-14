@@ -20,15 +20,15 @@ with
                 )
             }},
             {% for field in fields_to_mask %}
-            case
-                when
-                    true
-                    and projects.visibility_level != 'public'
-                    and not internal_namespaces.namespace_is_internal
-                then 'confidential - masked'
-                else {{ field }}
-            end as {{ field }}
-            {% if not loop.last %}, {% endif %}
+                case
+                    when
+                        true
+                        and projects.visibility_level != 'public'
+                        and not internal_namespaces.namespace_is_internal
+                    then 'confidential - masked'
+                    else {{ field }}
+                end as {{ field }}
+                {% if not loop.last %}, {% endif %}
             {% endfor %}
         from base
         left join projects on base.project_id = projects.project_id

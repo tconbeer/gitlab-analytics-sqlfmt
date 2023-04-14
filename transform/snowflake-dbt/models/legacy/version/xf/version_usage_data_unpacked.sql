@@ -14,7 +14,7 @@ with
         from {{ ref("version_usage_data_unpacked_intermediate") }}
         {% if is_incremental() %}
 
-        where created_at >= (select max(created_at) from {{ this }})
+            where created_at >= (select max(created_at) from {{ this }})
 
         {% endif %}
 
@@ -32,8 +32,8 @@ with
             gitpod_enabled,
             {% for stat_name in version_usage_stats_list %}
 
-            iff({{ stat_name }} = -1, null, {{ stat_name }}) as {{ stat_name }}
-            {{ "," if not loop.last }}
+                iff({{ stat_name }} = -1, null, {{ stat_name }}) as {{ stat_name }}
+                {{ "," if not loop.last }}
             {% endfor %}
         from usage_data_unpacked_intermediate
 

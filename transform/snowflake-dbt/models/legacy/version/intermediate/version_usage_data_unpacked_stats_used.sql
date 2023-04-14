@@ -29,5 +29,5 @@ where
     and full_ping_name
     in (select full_ping_name from {{ ref("version_usage_stats_list") }})
     {% if is_incremental() %}
-    and created_at >= (select max(created_at) from {{ this }})
+        and created_at >= (select max(created_at) from {{ this }})
     {% endif %}

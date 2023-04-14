@@ -10,7 +10,7 @@ with
         from {{ ref("prep_usage_ping_payload") }}
         {% if is_incremental() %}
 
-        where dim_date_id >= (select max(dim_date_id) from {{ this }})
+            where dim_date_id >= (select max(dim_date_id) from {{ this }})
 
         {% endif %}
 

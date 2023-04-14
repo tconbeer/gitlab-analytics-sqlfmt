@@ -19,7 +19,7 @@ data as (
 
         {% if is_incremental() %}
 
-        and dim_date_id >= (select max(month_date_id) from {{ this }})
+            and dim_date_id >= (select max(month_date_id) from {{ this }})
 
         {% endif %}
 

@@ -42,7 +42,7 @@ source as (
     select prep_service_ping_instance.*
     from prep_service_ping_instance
     {% if is_incremental() %}
-    where ping_created_at >= (select max(ping_created_at) from {{ this }})
+        where ping_created_at >= (select max(ping_created_at) from {{ this }})
     {% endif %}
 
 ),

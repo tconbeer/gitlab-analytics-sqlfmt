@@ -10,7 +10,7 @@ with
         from {{ ref("gitlab_dotcom_notes") }}
         {% if is_incremental() %}
 
-        where updated_at >= (select max(updated_at) from {{ this }})
+            where updated_at >= (select max(updated_at) from {{ this }})
 
         {% endif %}
     ),
@@ -48,14 +48,14 @@ with
                 )
             }},
             {% for field in fields_to_mask %}
-            case
-                when
-                    true
-                    and projects.visibility_level != 'public'
-                    and not internal_namespaces.namespace_is_internal
-                then 'confidential - masked'
-                else {{ field }}
-            end as {{ field }},
+                case
+                    when
+                        true
+                        and projects.visibility_level != 'public'
+                        and not internal_namespaces.namespace_is_internal
+                    then 'confidential - masked'
+                    else {{ field }}
+                end as {{ field }},
             {% endfor %}
             projects.ultimate_parent_id,
             action_type_array

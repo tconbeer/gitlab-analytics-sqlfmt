@@ -31,8 +31,8 @@ with
             dim_location_country_id,
 
             {%- for metric in gmau_metrics.PATH %}
-            {{ metric }} as {{ gmau_metrics.NAME[loop.index0] }}
-            {%- if not loop.last %},{% endif -%}
+                {{ metric }} as {{ gmau_metrics.NAME[loop.index0] }}
+                {%- if not loop.last %},{% endif -%}
             {% endfor %}
 
         from prep_usage_ping

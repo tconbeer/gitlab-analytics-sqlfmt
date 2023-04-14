@@ -75,11 +75,11 @@ with
             projects.mirror_overwrites_diverged_branches,
 
             {% for field in sensitive_fields %}
-            case
-                when projects.visibility_level != 'public'  -- AND NOT namespace_lineage.namespace_is_internal -- missing table 
-                then 'project is private/internal'
-                else {{ field }}
-            end as {{ field }},
+                case
+                    when projects.visibility_level != 'public'  -- AND NOT namespace_lineage.namespace_is_internal -- missing table 
+                    then 'project is private/internal'
+                    else {{ field }}
+                end as {{ field }},
             {% endfor %}
             coalesce(count(distinct members.member_id), 0) as member_count
         from projects

@@ -10,7 +10,7 @@ with
         where
             is_object(f.value) = true
             {% if is_incremental() %}
-            and created_at > (select max(created_at) from {{ this }})
+                and created_at > (select max(created_at) from {{ this }})
             {% endif %}
 
     ),
@@ -41,7 +41,7 @@ with
         where
             is_real(f.value) = true
             {% if is_incremental() %}
-            and created_at >= (select max(created_at) from {{ this }})
+                and created_at >= (select max(created_at) from {{ this }})
             {% endif %}
 
         union
@@ -77,7 +77,7 @@ with
         where
             is_real(f.value) = true
             {% if is_incremental() %}
-            and created_at >= (select max(created_at) from {{ this }})
+                and created_at >= (select max(created_at) from {{ this }})
             {% endif %}
 
     ),

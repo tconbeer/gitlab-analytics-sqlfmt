@@ -13,7 +13,7 @@ with
         select *
         from {{ ref("prep_service_ping_instance") }} as usage
         {% if is_incremental() %}
-        where ping_created_at >= (select max(ping_created_at) from {{ this }})
+            where ping_created_at >= (select max(ping_created_at) from {{ this }})
         {% endif %}
 
     ),

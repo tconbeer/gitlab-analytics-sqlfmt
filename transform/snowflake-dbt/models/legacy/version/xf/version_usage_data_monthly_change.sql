@@ -20,11 +20,11 @@ with
             ldap_enabled,
             gitpod_enabled,
             {% for ping_name in version_usage_stats_list %}
-            {{ ping_name }},
-            {{ monthly_change(ping_name) }},
-            {{ case_when_boolean_int(ping_name) }} as {{ ping_name }}_active
+                {{ ping_name }},
+                {{ monthly_change(ping_name) }},
+                {{ case_when_boolean_int(ping_name) }} as {{ ping_name }}_active
 
-            {{ "," if not loop.last }}
+                {{ "," if not loop.last }}
             {% endfor %}
 
         from {{ ref("version_usage_data_month") }}

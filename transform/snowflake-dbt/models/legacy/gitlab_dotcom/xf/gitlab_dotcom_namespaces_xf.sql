@@ -39,14 +39,14 @@ with
             namespaces.namespace_id,
 
             {% for field in fields_to_mask %}
-            case
-                when namespaces.visibility_level = 'public' or namespace_is_internal
-                then {{ field }}
-                when namespaces.visibility_level = 'internal'
-                then 'internal - masked'
-                when namespaces.visibility_level = 'private'
-                then 'private - masked'
-            end as {{ field }},
+                case
+                    when namespaces.visibility_level = 'public' or namespace_is_internal
+                    then {{ field }}
+                    when namespaces.visibility_level = 'internal'
+                    then 'internal - masked'
+                    when namespaces.visibility_level = 'private'
+                    then 'private - masked'
+                end as {{ field }},
             {% endfor %}
 
             namespaces.owner_id,

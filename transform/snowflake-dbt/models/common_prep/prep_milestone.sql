@@ -19,7 +19,7 @@ milestones as (
     from {{ ref("gitlab_dotcom_milestones_source") }}
     {% if is_incremental() %}
 
-    where updated_at >= (select max(updated_at) from {{ this }})
+        where updated_at >= (select max(updated_at) from {{ this }})
 
     {% endif %}
 

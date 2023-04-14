@@ -13,9 +13,9 @@ usage_data as (
     from {{ ref("fct_event_400") }}
     {% if is_incremental() %}
 
-    where
-        event_created_at
-        >= (select max(dateadd(day, -8, event_created_date)) from {{ this }})
+        where
+            event_created_at
+            >= (select max(dateadd(day, -8, event_created_date)) from {{ this }})
 
     {% endif %}
 

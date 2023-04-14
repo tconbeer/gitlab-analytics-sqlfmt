@@ -56,7 +56,7 @@ with
         from {{ ref("monthly_usage_data") }}
         {% if is_incremental() %}
 
-        where created_month >= (select max(reporting_month) from {{ this }})
+            where created_month >= (select max(reporting_month) from {{ this }})
 
         {% endif %}
 

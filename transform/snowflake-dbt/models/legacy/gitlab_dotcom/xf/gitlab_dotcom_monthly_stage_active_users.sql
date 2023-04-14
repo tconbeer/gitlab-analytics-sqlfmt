@@ -9,9 +9,9 @@ with
         from {{ ref("gitlab_dotcom_usage_data_events") }}
         {% if is_incremental() %}
 
-        where
-            date_trunc('month', event_created_at)
-            >= (select dateadd('days', -1, max(smau_month)) from {{ this }})
+            where
+                date_trunc('month', event_created_at)
+                >= (select dateadd('days', -1, max(smau_month)) from {{ this }})
 
         {% endif %}
 

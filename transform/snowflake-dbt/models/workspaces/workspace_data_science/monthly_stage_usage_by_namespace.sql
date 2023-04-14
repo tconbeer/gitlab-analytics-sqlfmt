@@ -6,7 +6,7 @@ with
         select *
         from {{ ref("prep_saas_flattened_metrics") }}
         {% if is_incremental() %}
-        where snapshot_month > (select max(snapshot_month) from {{ this }})
+            where snapshot_month > (select max(snapshot_month) from {{ this }})
         {% endif %}
 
     ),

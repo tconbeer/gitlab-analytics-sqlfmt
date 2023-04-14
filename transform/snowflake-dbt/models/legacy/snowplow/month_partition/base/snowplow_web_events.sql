@@ -8,12 +8,12 @@ with
         select *
         from all_events
         {% if is_incremental() %}
-        where
-            collector_tstamp > dateadd(
-                'days',
-                -1 * {{ var("snowplow:page_view_lookback_days") }},
-                (select max(collector_tstamp) from {{ this }})
-            )
+            where
+                collector_tstamp > dateadd(
+                    'days',
+                    -1 * {{ var("snowplow:page_view_lookback_days") }},
+                    (select max(collector_tstamp) from {{ this }})
+                )
         {% endif %}
 
     ),
@@ -100,7 +100,7 @@ with
             ev.dvce_created_tstamp  -- included to sort on
 
             {%- for column in var("snowplow:pass_through_columns") %}
-            , ev.{{ column }}
+                , ev.{{ column }}
             {% endfor %}
 
         from events as ev

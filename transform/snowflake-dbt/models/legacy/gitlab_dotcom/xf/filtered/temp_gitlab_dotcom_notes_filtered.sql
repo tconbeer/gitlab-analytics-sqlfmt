@@ -9,6 +9,6 @@ where
 
     {% if is_incremental() %}
 
-    and created_at > (select max(created_at) from {{ this }})
+        and created_at > (select max(created_at) from {{ this }})
 
     {% endif %}

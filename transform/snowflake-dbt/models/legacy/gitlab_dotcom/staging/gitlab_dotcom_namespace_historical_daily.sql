@@ -8,7 +8,7 @@ with
         where
             date_actual <= current_date
             {% if is_incremental() %}
-            and date_actual >= (select max(snapshot_day) from {{ this }})
+                and date_actual >= (select max(snapshot_day) from {{ this }})
             {% endif %}
 
     ),
@@ -17,8 +17,9 @@ with
         select *, ifnull(valid_to, current_timestamp) as valid_to_
         from {{ ref("gitlab_dotcom_namespaces_snapshots_base") }}
         {% if is_incremental() %}
-        where
-            (select max(snapshot_day) from {{ this }}) between valid_from and valid_to_
+            where
+                (select max(snapshot_day) from {{ this }})
+                between valid_from and valid_to_
         {% endif %}
 
     ),

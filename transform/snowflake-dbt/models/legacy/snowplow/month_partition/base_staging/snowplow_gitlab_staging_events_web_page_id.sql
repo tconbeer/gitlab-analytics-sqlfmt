@@ -36,7 +36,7 @@ with
         select distinct event_id, contexts
         {% if target.name not in ("prod") -%}
 
-        from {{ ref("snowplow_gitlab_good_events_sample_source") }}
+            from {{ ref("snowplow_gitlab_good_events_sample_source") }}
 
         {%- else %} from {{ ref("snowplow_gitlab_good_events_source") }}
 

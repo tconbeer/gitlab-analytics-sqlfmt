@@ -11,7 +11,7 @@ with
 
             {% if is_incremental() %}
 
-            and updated_at >= (select max(updated_at) from {{ this }})
+                and updated_at >= (select max(updated_at) from {{ this }})
 
             {% endif %}
 

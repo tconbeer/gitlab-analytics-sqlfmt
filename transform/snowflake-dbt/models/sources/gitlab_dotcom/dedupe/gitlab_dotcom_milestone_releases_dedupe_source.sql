@@ -7,7 +7,7 @@ with
         from {{ source("gitlab_dotcom", "milestone_releases") }}
         {% if is_incremental() %}
 
-        where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
+            where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
 
         {% endif %}
         qualify

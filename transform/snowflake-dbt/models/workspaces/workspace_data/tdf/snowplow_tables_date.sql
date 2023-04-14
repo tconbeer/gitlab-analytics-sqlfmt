@@ -4,12 +4,12 @@ with
         {% set tables = ["events", "events_sample", "bad_events"] %}
 
         {% for table in tables %}
-        select '{{table}}' as table_name, max(uploaded_at) as max_date
-        from {{ source("gitlab_snowplow", table) }}
+            select '{{table}}' as table_name, max(uploaded_at) as max_date
+            from {{ source("gitlab_snowplow", table) }}
 
-        {% if not loop.last %}
-        union all
-        {% endif %}
+            {% if not loop.last %}
+                union all
+            {% endif %}
 
         {% endfor %}
 

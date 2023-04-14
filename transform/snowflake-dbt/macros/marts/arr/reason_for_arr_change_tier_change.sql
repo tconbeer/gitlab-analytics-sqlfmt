@@ -7,16 +7,16 @@
     previous_arr
 ) -%}
 
-case
-    when {{ previous_product_ranking }} != {{ product_ranking }}
-    then
-        zeroifnull(
-            {{ quantity }} * (
-                {{ arr }}/ nullif({{ quantity }}, 0)
-                - {{ previous_arr }}/ nullif({{ previous_quantity }}, 0)
+    case
+        when {{ previous_product_ranking }} != {{ product_ranking }}
+        then
+            zeroifnull(
+                {{ quantity }} * (
+                    {{ arr }}/ nullif({{ quantity }}, 0)
+                    - {{ previous_arr }}/ nullif({{ previous_quantity }}, 0)
+                )
             )
-        )
-    else 0
-end as tier_change_arr
+        else 0
+    end as tier_change_arr
 
 {%- endmacro -%}

@@ -5,7 +5,7 @@ select *
 from {{ source("gitlab_dotcom", "project_error_tracking_settings") }}
 {% if is_incremental() %}
 
-where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
+    where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
 
 {% endif %}
 qualify row_number() over (partition by project_id order by _uploaded_at desc) = 1

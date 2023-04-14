@@ -534,133 +534,138 @@ data as (
 
     {% for event_cte in event_ctes %}
 
-    select
-        md5(
-            {{ event_cte.source_cte_name }}.{{ event_cte.primary_key }}
-            || '-'
-            || '{{ event_cte.event_name }}'
-        ) as event_id,
-        '{{ event_cte.event_name }}' as event_name,
-        '{{ event_cte.stage_name }}' as stage_name,
-        {{ event_cte.source_cte_name }}.created_at as event_created_at,
-        {{ event_cte.source_cte_name }}.created_date_id as created_date_id,
+        select
+            md5(
+                {{ event_cte.source_cte_name }}.{{ event_cte.primary_key }}
+                || '-'
+                || '{{ event_cte.event_name }}'
+            ) as event_id,
+            '{{ event_cte.event_name }}' as event_name,
+            '{{ event_cte.stage_name }}' as stage_name,
+            {{ event_cte.source_cte_name }}.created_at as event_created_at,
+            {{ event_cte.source_cte_name }}.created_date_id as created_date_id,
+            {%- if event_cte.project_column_name != "NULL" %}
+                {{ event_cte.source_cte_name }}.{{ event_cte.project_column_name }}
+                as dim_project_id,
+                'project' as parent_type,
+                {{ event_cte.source_cte_name }}.{{ event_cte.project_column_name }}
+                as parent_id,
+                {{ event_cte.source_cte_name }}.ultimate_parent_namespace_id
+                as ultimate_parent_namespace_id,
+            {%- elif event_cte.ultimate_parent_namespace_column_name != "NULL" %}
+                null as dim_project_id,
+                'group' as parent_type,
+                {{ event_cte.source_cte_name }}.{{ event_cte.ultimate_parent_namespace_column_name }}
+                as parent_id,
+                {{ event_cte.source_cte_name }}.ultimate_parent_namespace_id
+                as ultimate_parent_namespace_id,
+            {%- else %}
+                null as dim_project_id,
+                null as parent_type,
+                null as parent_id,
+                null as ultimate_parent_namespace_id,
+            {%- endif %}
+            {%- if event_cte.project_column_name != "NULL" or event_cte.ultimate_parent_namespace_column_name != "NULL" %}
+                coalesce(
+                    {{ event_cte.source_cte_name }}.dim_plan_id, 34
+                ) as plan_id_at_event_date,
+                coalesce(prep_plan.plan_name, 'free') as plan_name_at_event_date,
+                coalesce(prep_plan.plan_is_paid, false) as plan_was_paid_at_event_date,
+            {%- else %}
+                34 as plan_id_at_event_date,
+                'free' as plan_name_at_event_date,
+                false as plan_was_paid_at_event_date,
+            {%- endif %}
+            {%- if event_cte.user_column_name != "NULL" %}
+                {{ event_cte.source_cte_name }}.{{ event_cte.user_column_name }}
+                as dim_user_id,
+                prep_user.created_at as user_created_at,
+                to_date(prep_user.created_at) as user_created_date,
+                floor(
+                    datediff(
+                        'day',
+                        prep_user.created_at::date,
+                        {{ event_cte.source_cte_name }}.created_at::date
+                    )
+                ) as days_since_user_creation_at_event_date,
+            {%- else %}
+                null as dim_user_id,
+                null as user_created_at,
+                null as user_created_date,
+                null as days_since_user_creation_at_event_date,
+            {%- endif %}
+            {%- if event_cte.ultimate_parent_namespace_column_name != "NULL" %}
+                prep_namespace.created_at as namespace_created_at,
+                to_date(prep_namespace.created_at) as namespace_created_date,
+                ifnull(
+                    blocked_user.is_blocked_user, false
+                ) as is_blocked_namespace_creator,
+                prep_namespace.namespace_is_internal as namespace_is_internal,
+                floor(
+                    datediff(
+                        'day',
+                        prep_namespace.created_at::date,
+                        {{ event_cte.source_cte_name }}.created_at::date
+                    )
+                ) as days_since_namespace_creation_at_event_date,
+            {%- else %}
+                null as namespace_created_at,
+                null as namespace_created_date,
+                null as is_blocked_namespace_creator,
+                null as namespace_is_internal,
+                null as days_since_namespace_creation_at_event_date,
+            {%- endif %}
+            {%- if event_cte.project_column_name != "NULL" %}
+                floor(
+                    datediff(
+                        'day',
+                        dim_project.created_at::date,
+                        {{ event_cte.source_cte_name }}.created_at::date
+                    )
+                ) as days_since_project_creation_at_event_date,
+                ifnull(dim_project.is_imported, false) as project_is_imported,
+                dim_project.is_learn_gitlab as project_is_learn_gitlab
+            {%- else %}
+                null as days_since_project_creation_at_event_date,
+                null as project_is_imported,
+                null as project_is_learn_gitlab
+            {%- endif %}
+        from {{ event_cte.source_cte_name }}
         {%- if event_cte.project_column_name != "NULL" %}
-        {{ event_cte.source_cte_name }}.{{ event_cte.project_column_name }}
-        as dim_project_id,
-        'project' as parent_type,
-        {{ event_cte.source_cte_name }}.{{ event_cte.project_column_name }}
-        as parent_id,
-        {{ event_cte.source_cte_name }}.ultimate_parent_namespace_id
-        as ultimate_parent_namespace_id,
-        {%- elif event_cte.ultimate_parent_namespace_column_name != "NULL" %}
-        null as dim_project_id,
-        'group' as parent_type,
-        {{ event_cte.source_cte_name }}.{{ event_cte.ultimate_parent_namespace_column_name }}
-        as parent_id,
-        {{ event_cte.source_cte_name }}.ultimate_parent_namespace_id
-        as ultimate_parent_namespace_id,
-        {%- else %}
-        null as dim_project_id,
-        null as parent_type,
-        null as parent_id,
-        null as ultimate_parent_namespace_id,
-        {%- endif %}
-        {%- if event_cte.project_column_name != "NULL" or event_cte.ultimate_parent_namespace_column_name != "NULL" %}
-        coalesce(
-            {{ event_cte.source_cte_name }}.dim_plan_id, 34
-        ) as plan_id_at_event_date,
-        coalesce(prep_plan.plan_name, 'free') as plan_name_at_event_date,
-        coalesce(prep_plan.plan_is_paid, false) as plan_was_paid_at_event_date,
-        {%- else %}
-        34 as plan_id_at_event_date,
-        'free' as plan_name_at_event_date,
-        false as plan_was_paid_at_event_date,
-        {%- endif %}
-        {%- if event_cte.user_column_name != "NULL" %}
-        {{ event_cte.source_cte_name }}.{{ event_cte.user_column_name }} as dim_user_id,
-        prep_user.created_at as user_created_at,
-        to_date(prep_user.created_at) as user_created_date,
-        floor(
-            datediff(
-                'day',
-                prep_user.created_at::date,
-                {{ event_cte.source_cte_name }}.created_at::date
-            )
-        ) as days_since_user_creation_at_event_date,
-        {%- else %}
-        null as dim_user_id,
-        null as user_created_at,
-        null as user_created_date,
-        null as days_since_user_creation_at_event_date,
+            left join
+                dim_project
+                on {{ event_cte.source_cte_name }}.{{ event_cte.project_column_name }}
+                = dim_project.dim_project_id
         {%- endif %}
         {%- if event_cte.ultimate_parent_namespace_column_name != "NULL" %}
-        prep_namespace.created_at as namespace_created_at,
-        to_date(prep_namespace.created_at) as namespace_created_date,
-        ifnull(blocked_user.is_blocked_user, false) as is_blocked_namespace_creator,
-        prep_namespace.namespace_is_internal as namespace_is_internal,
-        floor(
-            datediff(
-                'day',
-                prep_namespace.created_at::date,
-                {{ event_cte.source_cte_name }}.created_at::date
-            )
-        ) as days_since_namespace_creation_at_event_date,
-        {%- else %}
-        null as namespace_created_at,
-        null as namespace_created_date,
-        null as is_blocked_namespace_creator,
-        null as namespace_is_internal,
-        null as days_since_namespace_creation_at_event_date,
+            left join
+                prep_namespace
+                on {{ event_cte.source_cte_name }}.{{ event_cte.ultimate_parent_namespace_column_name }}
+                = prep_namespace.dim_namespace_id
+                and prep_namespace.is_currently_valid = true
+            left join
+                prep_user as blocked_user
+                on prep_namespace.creator_id = blocked_user.dim_user_id
         {%- endif %}
-        {%- if event_cte.project_column_name != "NULL" %}
-        floor(
-            datediff(
-                'day',
-                dim_project.created_at::date,
-                {{ event_cte.source_cte_name }}.created_at::date
-            )
-        ) as days_since_project_creation_at_event_date,
-        ifnull(dim_project.is_imported, false) as project_is_imported,
-        dim_project.is_learn_gitlab as project_is_learn_gitlab
-        {%- else %}
-        null as days_since_project_creation_at_event_date,
-        null as project_is_imported,
-        null as project_is_learn_gitlab
+        {%- if event_cte.user_column_name != "NULL" %}
+            left join
+                prep_user
+                on {{ event_cte.source_cte_name }}.{{ event_cte.user_column_name }}
+                = prep_user.dim_user_id
         {%- endif %}
-    from {{ event_cte.source_cte_name }}
-    {%- if event_cte.project_column_name != "NULL" %}
-    left join
-        dim_project
-        on {{ event_cte.source_cte_name }}.{{ event_cte.project_column_name }}
-        = dim_project.dim_project_id
-    {%- endif %}
-    {%- if event_cte.ultimate_parent_namespace_column_name != "NULL" %}
-    left join
-        prep_namespace
-        on {{ event_cte.source_cte_name }}.{{ event_cte.ultimate_parent_namespace_column_name }}
-        = prep_namespace.dim_namespace_id
-        and prep_namespace.is_currently_valid = true
-    left join
-        prep_user as blocked_user
-        on prep_namespace.creator_id = blocked_user.dim_user_id
-    {%- endif %}
-    {%- if event_cte.user_column_name != "NULL" %}
-    left join
-        prep_user
-        on {{ event_cte.source_cte_name }}.{{ event_cte.user_column_name }}
-        = prep_user.dim_user_id
-    {%- endif %}
-    {%- if event_cte.project_column_name != "NULL" or event_cte.ultimate_parent_namespace_column_name != "NULL" %}
-    left join
-        prep_plan on {{ event_cte.source_cte_name }}.dim_plan_id = prep_plan.dim_plan_id
-    {%- endif %}
-    where
-        date_part('year', {{ event_cte.source_cte_name }}.created_at) = {{ year_value }}
-        and date_part('month', {{ event_cte.source_cte_name }}.created_at)
-        = {{ month_value }}
-    {% if not loop.last %}
-    union all
-    {% endif %}
+        {%- if event_cte.project_column_name != "NULL" or event_cte.ultimate_parent_namespace_column_name != "NULL" %}
+            left join
+                prep_plan
+                on {{ event_cte.source_cte_name }}.dim_plan_id = prep_plan.dim_plan_id
+        {%- endif %}
+        where
+            date_part('year', {{ event_cte.source_cte_name }}.created_at)
+            = {{ year_value }}
+            and date_part('month', {{ event_cte.source_cte_name }}.created_at)
+            = {{ month_value }}
+        {% if not loop.last %}
+            union all
+        {% endif %}
     {%- endfor %}
 
 )

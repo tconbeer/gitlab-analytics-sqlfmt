@@ -37,8 +37,8 @@ with
             max(gitpod_enabled) as gitpod_enabled,
 
             {% for ping_name in version_usage_stats_list %}
-            max({{ ping_name }}) as {{ ping_name }}
-            {%- if not loop.last %}, {% endif -%}
+                max({{ ping_name }}) as {{ ping_name }}
+                {%- if not loop.last %}, {% endif -%}
             {%- endfor %}
 
         from usage_data {{ dbt_utils.group_by(n=5) }}

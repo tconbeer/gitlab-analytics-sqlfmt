@@ -10,8 +10,8 @@ with
 
             {% if is_incremental() %}
 
-            and created_at
-            >= (select dateadd('month', -1, max(created_month)) from {{ this }})
+                and created_at
+                >= (select dateadd('month', -1, max(created_month)) from {{ this }})
 
             {% endif %}
 
@@ -69,6 +69,6 @@ select
 from monthly
 {% if is_incremental() %}
 
-where created_month >= (select max(created_month) from {{ this }})
+    where created_month >= (select max(created_month) from {{ this }})
 
 {% endif %}

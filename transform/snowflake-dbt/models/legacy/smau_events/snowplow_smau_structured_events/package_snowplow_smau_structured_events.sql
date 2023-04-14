@@ -15,7 +15,8 @@ with
         where
             derived_tstamp >= '2019-01-01'
             {% if is_incremental() %}
-            and derived_tstamp >= (select max({{ this }}.event_date) from {{ this }})
+                and derived_tstamp
+                >= (select max({{ this }}.event_date) from {{ this }})
             {% endif %}
             and (
                 event_action in (

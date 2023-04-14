@@ -35,7 +35,7 @@ fct_monthly_usage_data as (
     from {{ ref("fct_monthly_usage_data") }}
     {% if is_incremental() %}
 
-    where ping_created_month >= (select max(reporting_month) from {{ this }})
+        where ping_created_month >= (select max(reporting_month) from {{ this }})
 
     {% endif %}
 

@@ -19,7 +19,7 @@ dates as (
     where
         date_actual <= current_date()
         {% if is_incremental() -%}
-        and date_actual >= (select max(snapshot_day) from {{ this }})
+            and date_actual >= (select max(snapshot_day) from {{ this }})
         {%- endif %}
 ),
 namespace_lineage_daily as (

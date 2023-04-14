@@ -19,11 +19,11 @@ with
             milestones.milestone_id,
 
             {% for field in fields_to_mask %}
-            iff(
-                internal_namespaces.namespace_id is null,
-                'private - masked',
-                {{ field }}
-            ) as {{ field }},
+                iff(
+                    internal_namespaces.namespace_id is null,
+                    'private - masked',
+                    {{ field }}
+                ) as {{ field }},
             {% endfor %}
 
             milestones.due_date,

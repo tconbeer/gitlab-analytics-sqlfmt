@@ -25,9 +25,9 @@ usage_ping as (
         as ip_address_hash,
         object_construct(
             {% for column in columns %}
-            '{{ column.name | lower }}',
-            {{ column.name | lower }}
-            {% if not loop.last %}, {% endif %}
+                '{{ column.name | lower }}',
+                {{ column.name | lower }}
+                {% if not loop.last %}, {% endif %}
             {% endfor %}
         ) as raw_usage_data_payload_reconstructed
     from {{ ref("version_usage_data_source") }}
@@ -38,14 +38,14 @@ settings_data as (
     select
         dim_usage_ping_id,
         {% for column in settings_columns %}
-        max(
-            iff(
-                prep_usage_data_flattened.metrics_path = '{{column}}',
-                metric_value,
-                null
-            )
-        ) as {{ column | replace(".", "_") }}
-        {{ "," if not loop.last }}
+            max(
+                iff(
+                    prep_usage_data_flattened.metrics_path = '{{column}}',
+                    metric_value,
+                    null
+                )
+            ) as {{ column | replace(".", "_") }}
+            {{ "," if not loop.last }}
         {% endfor %}
     from prep_usage_data_flattened
     inner join

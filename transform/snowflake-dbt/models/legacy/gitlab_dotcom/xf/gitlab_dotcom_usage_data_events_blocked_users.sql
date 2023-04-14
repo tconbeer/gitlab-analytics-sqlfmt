@@ -613,109 +613,110 @@ with
     /* End of Source CTEs */
     {% for event_cte in event_ctes %}
 
-    ,
-    {{ event_cte.event_name }} as (
+        ,
+        {{ event_cte.event_name }} as (
 
-        select *
-        /* Check for source_table_name, else use source_cte_name. */
-        {% if event_cte.source_table_name is defined %}
-        from {{ ref(event_cte.source_table_name) }}
-        {% else %} from {{ event_cte.source_cte_name }}
-        {% endif %}
-        where
-            created_at is not null
-            {% if is_incremental() %}
-            and created_at >= (
-                select max(event_created_at)
-                from {{ this }}
-                where event_name = '{{ event_cte.event_name }}'
-            )
+            select *
+            /* Check for source_table_name, else use source_cte_name. */
+            {% if event_cte.source_table_name is defined %}
+                from {{ ref(event_cte.source_table_name) }}
+            {% else %} from {{ event_cte.source_cte_name }}
             {% endif %}
+            where
+                created_at is not null
+                {% if is_incremental() %}
+                    and created_at >= (
+                        select max(event_created_at)
+                        from {{ this }}
+                        where event_name = '{{ event_cte.event_name }}'
+                    )
+                {% endif %}
 
-    )
+        )
 
     {% endfor -%},
     data as (
 
         {% for event_cte in event_ctes %}
 
-        select
-            ultimate_namespace.namespace_id,
-            ultimate_namespace.namespace_created_at,
-            {% if "NULL" in event_cte.user_column_name %} null
-            {% else %} {{ event_cte.event_name }}.{{ event_cte.user_column_name }}
-            {% endif %} as user_id,
+            select
+                ultimate_namespace.namespace_id,
+                ultimate_namespace.namespace_created_at,
+                {% if "NULL" in event_cte.user_column_name %} null
+                {% else %} {{ event_cte.event_name }}.{{ event_cte.user_column_name }}
+                {% endif %} as user_id,
+                {% if event_cte.key_to_parent_project is defined %}
+                    'project' as parent_type,
+                    projects.project_id as parent_id,
+                    projects.project_created_at as parent_created_at,
+                {% elif event_cte.key_to_parent_group is defined %}
+                    'group' as parent_type,
+                    namespaces.namespace_id as parent_id,
+                    namespaces.namespace_created_at as parent_created_at,
+                {% else %}
+                    null as parent_type, null as parent_id, null as parent_created_at,
+                {% endif %}
+                ultimate_namespace.namespace_is_internal as namespace_is_internal,
+                {{ event_cte.event_name }}.created_at as event_created_at,
+                {{ event_cte.is_representative_of_stage }}::boolean
+                as is_representative_of_stage,
+                '{{ event_cte.event_name }}' as event_name,
+                '{{ event_cte.stage_name }}' as stage_name,
+                case
+                    when gitlab_subscriptions.is_trial
+                    then 'trial'
+                    else coalesce(gitlab_subscriptions.plan_id, 34)::varchar
+                end as plan_id_at_event_date,
+                case
+                    when gitlab_subscriptions.is_trial
+                    then 'trial'
+                    else coalesce(plans.plan_name, 'free')
+                end as plan_name_at_event_date
+            from {{ event_cte.event_name }}
+            /* Join with parent project. */
             {% if event_cte.key_to_parent_project is defined %}
-            'project' as parent_type,
-            projects.project_id as parent_id,
-            projects.project_created_at as parent_created_at,
+                left join
+                    projects
+                    on {{ event_cte.event_name }}.{{ event_cte.key_to_parent_project }}
+                    = projects.project_id
+            /* Join with parent group. */
             {% elif event_cte.key_to_parent_group is defined %}
-            'group' as parent_type,
-            namespaces.namespace_id as parent_id,
-            namespaces.namespace_created_at as parent_created_at,
-            {% else %}
-            null as parent_type, null as parent_id, null as parent_created_at,
-            {% endif %}
-            ultimate_namespace.namespace_is_internal as namespace_is_internal,
-            {{ event_cte.event_name }}.created_at as event_created_at,
-            {{ event_cte.is_representative_of_stage }}::boolean
-            as is_representative_of_stage,
-            '{{ event_cte.event_name }}' as event_name,
-            '{{ event_cte.stage_name }}' as stage_name,
-            case
-                when gitlab_subscriptions.is_trial
-                then 'trial'
-                else coalesce(gitlab_subscriptions.plan_id, 34)::varchar
-            end as plan_id_at_event_date,
-            case
-                when gitlab_subscriptions.is_trial
-                then 'trial'
-                else coalesce(plans.plan_name, 'free')
-            end as plan_name_at_event_date
-        from {{ event_cte.event_name }}
-        /* Join with parent project. */
-        {% if event_cte.key_to_parent_project is defined %}
-        left join
-            projects
-            on {{ event_cte.event_name }}.{{ event_cte.key_to_parent_project }}
-            = projects.project_id
-        /* Join with parent group. */
-        {% elif event_cte.key_to_parent_group is defined %}
-        left join
-            namespaces
-            on {{ event_cte.event_name }}.{{ event_cte.key_to_parent_group }}
-            = namespaces.namespace_id
-        {% endif %}
-
-        -- Join on either the project's or the group's ultimate namespace.
-        left join
-            namespaces as ultimate_namespace
-            {% if event_cte.key_to_parent_project is defined %}
-            on ultimate_namespace.namespace_id = projects.ultimate_parent_id
-            {% elif event_cte.key_to_parent_group is defined %}
-            on ultimate_namespace.namespace_id = namespaces.namespace_ultimate_parent_id
-            {% else %} on false  -- Don't join any rows.
+                left join
+                    namespaces
+                    on {{ event_cte.event_name }}.{{ event_cte.key_to_parent_group }}
+                    = namespaces.namespace_id
             {% endif %}
 
-        left join
-            gitlab_subscriptions
-            on ultimate_namespace.namespace_id = gitlab_subscriptions.namespace_id
-            and {{ event_cte.event_name }}.created_at
-            between gitlab_subscriptions.valid_from
-            and {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
-        left join plans on gitlab_subscriptions.plan_id = plans.plan_id
-        {% if "NULL" not in event_cte.user_column_name %}
-        where
-            {{
-                filter_out_active_users(
-                    event_cte.event_name, event_cte.user_column_name
-                )
-            }}
-        {% endif %}
+            -- Join on either the project's or the group's ultimate namespace.
+            left join
+                namespaces as ultimate_namespace
+                {% if event_cte.key_to_parent_project is defined %}
+                    on ultimate_namespace.namespace_id = projects.ultimate_parent_id
+                {% elif event_cte.key_to_parent_group is defined %}
+                    on ultimate_namespace.namespace_id
+                    = namespaces.namespace_ultimate_parent_id
+                {% else %} on false  -- Don't join any rows.
+                {% endif %}
 
-        {% if not loop.last %}
-        union
-        {% endif %}
+            left join
+                gitlab_subscriptions
+                on ultimate_namespace.namespace_id = gitlab_subscriptions.namespace_id
+                and {{ event_cte.event_name }}.created_at
+                between gitlab_subscriptions.valid_from
+                and {{ coalesce_to_infinity("gitlab_subscriptions.valid_to") }}
+            left join plans on gitlab_subscriptions.plan_id = plans.plan_id
+            {% if "NULL" not in event_cte.user_column_name %}
+                where
+                    {{
+                        filter_out_active_users(
+                            event_cte.event_name, event_cte.user_column_name
+                        )
+                    }}
+            {% endif %}
+
+            {% if not loop.last %}
+                union
+            {% endif %}
         {% endfor -%}
 
     ),

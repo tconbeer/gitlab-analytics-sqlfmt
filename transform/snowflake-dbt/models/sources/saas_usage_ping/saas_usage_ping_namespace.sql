@@ -14,9 +14,9 @@ with
         from {{ source("saas_usage_ping", "namespace") }}
         {% if is_incremental() %}
 
-        where
-            dateadd('s', _uploaded_at, '1970-01-01')
-            >= (select max(_uploaded_at) from {{ this }})
+            where
+                dateadd('s', _uploaded_at, '1970-01-01')
+                >= (select max(_uploaded_at) from {{ this }})
 
         {% endif %}
         qualify

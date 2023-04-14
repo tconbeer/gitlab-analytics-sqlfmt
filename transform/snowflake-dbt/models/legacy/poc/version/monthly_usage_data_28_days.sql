@@ -10,7 +10,7 @@ with
 
             {% if is_incremental() %}
 
-            and created_at >= (select max(created_month) from {{ this }})
+                and created_at >= (select max(created_month) from {{ this }})
 
             {% endif %}
 

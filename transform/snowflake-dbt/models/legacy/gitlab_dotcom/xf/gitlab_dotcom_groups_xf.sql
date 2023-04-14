@@ -21,14 +21,18 @@ with
             groups.group_id,
 
             {% for field in fields_to_mask %}
-            case
-                when groups.visibility_level = 'public' or namespace_is_internal
-                then groups.{{ field }}
-                when groups.visibility_level = 'internal' and not namespace_is_internal
-                then 'internal - masked'
-                when groups.visibility_level = 'private' and not namespace_is_internal
-                then 'private - masked'
-            end as {{ field }},
+                case
+                    when groups.visibility_level = 'public' or namespace_is_internal
+                    then groups.{{ field }}
+                    when
+                        groups.visibility_level = 'internal'
+                        and not namespace_is_internal
+                    then 'internal - masked'
+                    when
+                        groups.visibility_level = 'private'
+                        and not namespace_is_internal
+                    then 'private - masked'
+                end as {{ field }},
             {% endfor %}
 
             groups.owner_id,

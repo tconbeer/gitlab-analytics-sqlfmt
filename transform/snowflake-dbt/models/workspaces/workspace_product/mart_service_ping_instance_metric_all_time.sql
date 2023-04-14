@@ -31,7 +31,7 @@ final as (
     where
         time_frame = 'all'
         {% if is_incremental() %}
-        and ping_created_at >= (select max(ping_created_at) from {{ this }})
+            and ping_created_at >= (select max(ping_created_at) from {{ this }})
         {% endif %}
 
 )

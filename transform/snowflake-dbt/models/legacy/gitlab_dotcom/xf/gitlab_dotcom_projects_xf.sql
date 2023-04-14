@@ -98,13 +98,13 @@ with
             ) as is_learn_gitlab,
 
             {% for field in sensitive_fields %}
-            case
-                when
-                    projects.visibility_level != 'public'
-                    and not namespace_lineage.namespace_is_internal
-                then 'project is private/internal'
-                else {{ field }}
-            end as {{ field }},
+                case
+                    when
+                        projects.visibility_level != 'public'
+                        and not namespace_lineage.namespace_is_internal
+                    then 'project is private/internal'
+                    else {{ field }}
+                end as {{ field }},
             {% endfor %}
 
             namespaces.namespace_name,

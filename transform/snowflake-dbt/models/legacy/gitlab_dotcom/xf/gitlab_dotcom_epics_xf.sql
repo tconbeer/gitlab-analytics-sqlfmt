@@ -44,15 +44,15 @@ with
             }},
 
             {% for field in fields_to_mask %}
-            case
-                when {{ field }} = null
-                then null
-                when namespaces.visibility_level = 'public'
-                then {{ field }}
-                when namespace_lineage.namespace_is_internal = true
-                then {{ field }}
-                else 'private/internal - masked'
-            end as {{ field }},
+                case
+                    when {{ field }} = null
+                    then null
+                    when namespaces.visibility_level = 'public'
+                    then {{ field }}
+                    when namespace_lineage.namespace_is_internal = true
+                    then {{ field }}
+                    else 'private/internal - masked'
+                end as {{ field }},
             {% endfor %}
 
             agg_labels.labels,

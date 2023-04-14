@@ -6,7 +6,7 @@ with
         select *
         from {{ ref("gitlab_dotcom_audit_events_source") }}
         {% if is_incremental() %}
-        where created_at >= (select max(created_at) from {{ this }})
+            where created_at >= (select max(created_at) from {{ this }})
         {% endif %}
 
     ),

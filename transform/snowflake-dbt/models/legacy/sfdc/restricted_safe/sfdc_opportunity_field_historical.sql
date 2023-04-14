@@ -47,7 +47,7 @@ with
             id as opportunity_id,
             valid_to,
             {% for field in fields_to_use %}
-            {{ field }}::varchar as {{ field }},
+                {{ field }}::varchar as {{ field }},
             {% endfor %}
             createddate as created_at,
             valid_from
@@ -90,11 +90,11 @@ with
         select
             opportunity_id,
             {% for field in fields_to_use %}
-            first_value({{ field }}) ignore nulls over (
-                partition by opportunity_id
-                order by valid_to
-                rows between current row and unbounded following
-            ) as {{ field }},
+                first_value({{ field }}) ignore nulls over (
+                    partition by opportunity_id
+                    order by valid_to
+                    rows between current row and unbounded following
+                ) as {{ field }},
             {% endfor %}
             first_value(created_at) ignore nulls over (
                 partition by opportunity_id order by valid_to
@@ -112,7 +112,7 @@ with
         select
             opportunity_id,
             {% for field in fields_to_use %}
-            iff({{ field }} = 'true null', null, {{ field }}) as {{ field }},
+                iff({{ field }} = 'true null', null, {{ field }}) as {{ field }},
             {% endfor %}
             created_date,
             valid_from,

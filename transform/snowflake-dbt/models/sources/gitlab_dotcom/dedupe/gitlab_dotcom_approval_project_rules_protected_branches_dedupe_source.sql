@@ -5,7 +5,7 @@ select *
 from {{ source("gitlab_dotcom", "approval_project_rules_protected_branches") }}
 {% if is_incremental() %}
 
-where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
+    where _uploaded_at >= (select max(_uploaded_at) from {{ this }})
 
 {% endif %}
 qualify

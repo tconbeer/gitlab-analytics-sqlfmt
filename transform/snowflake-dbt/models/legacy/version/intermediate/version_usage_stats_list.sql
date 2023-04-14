@@ -8,7 +8,7 @@ inner join
 where
     is_object(stats.value) = false
     {% if is_incremental() %}
-    -- This prevents new metrics, and therefore columns, from being added to
-    -- downstream tables.
-    and full_ping_name in (select full_ping_name from {{ this }})
+        -- This prevents new metrics, and therefore columns, from being added to
+        -- downstream tables.
+        and full_ping_name in (select full_ping_name from {{ this }})
     {% endif %}

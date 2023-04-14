@@ -7,7 +7,7 @@ with
         from {{ source("gcp_billing", "gcp_billing_export_combined") }}
         {% if is_incremental() %}
 
-        where uploaded_at >= (select max(uploaded_at) from {{ this }})
+            where uploaded_at >= (select max(uploaded_at) from {{ this }})
 
         {% endif %}
 

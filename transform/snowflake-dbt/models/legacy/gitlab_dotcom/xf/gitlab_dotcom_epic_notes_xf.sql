@@ -12,7 +12,7 @@ with
             noteable_type = 'Epic'
             {% if is_incremental() %}
 
-            and updated_at >= (select max(updated_at) from {{ this }})
+                and updated_at >= (select max(updated_at) from {{ this }})
 
             {% endif %}
     ),
@@ -40,14 +40,14 @@ with
                 )
             }},
             {% for field in fields_to_mask %}
-            case
-                when
-                    true
-                    and namespaces.visibility_level != 'public'
-                    and not internal_namespaces.namespace_is_internal
-                then 'confidential - masked'
-                else {{ field }}
-            end as {{ field }},
+                case
+                    when
+                        true
+                        and namespaces.visibility_level != 'public'
+                        and not internal_namespaces.namespace_is_internal
+                    then 'confidential - masked'
+                    else {{ field }}
+                end as {{ field }},
             {% endfor %}
             epics.ultimate_parent_id
         from base

@@ -40,146 +40,146 @@ with
     sub_group as (
 
         {% set tables = [
-    "label_priorities",
-    "labels",
-    "ldap_group_links",
-    "namespaces",
-    "packages_packages",
-    "ci_runner_projects",
-    "push_rules",
-    "requirements",
-    "todos",
-    "project_auto_devops",
-    "application_settings",
-    "ci_triggers",
-    "clusters_applications_elastic_stacks",
-    "users",
-    "zoom_meetings",
-    "alert_management_http_integrations",
-    "approval_project_rules",
-    "clusters",
-    "issue_metrics",
-    "jira_tracker_data",
-    "lists",
-    "sprints",
-    "users_ops_dashboard_projects",
-    "bulk_imports",
-    "cluster_agent_tokens",
-    "experiment_users",
-    "protected_branches",
-    "timelogs",
-    "project_features",
-    "milestones",
-    "alert_management_alerts",
-    "ci_group_variables",
-    "cluster_agents",
-    "emails",
-    "user_custom_attributes",
-    "grafana_integrations",
-    "security_scans",
-    "lfs_objects_projects",
-    "merge_request_metrics",
-    "merge_requests_closing_issues",
-    "path_locks",
-    "approval_merge_request_rules",
-    "csv_issue_imports",
-    "cluster_projects",
-    "vulnerabilities",
-    "releases",
-    "subscriptions",
-    "terraform_states",
-    "project_tracing_settings",
-    "notification_settings",
-    "environments",
-    "epics",
-    "in_product_marketing_emails",
-    "jira_imports",
-    "services",
-    "onboarding_progresses",
-    "project_custom_attributes",
-    "analytics_cycle_analytics_group_stages",
-    "approvals",
-    "ci_pipeline_schedule_variables",
-    "ci_runners",
-    "ci_trigger_requests",
-    "boards",
-    "projects",
-    "identities",
-    "lfs_objects",
-    "prometheus_alerts",
-    "snippets",
-    "system_note_metadata",
-    "merge_request_blocks",
-    "merge_request_diffs",
-    "experiment_subjects",
-    "deployments",
-    "merge_requests",
-    "remote_mirrors",
-    "integrations",
-    "events",
-    "ci_stages",
-    "ci_pipelines",
-    "ci_job_artifacts",
-    "ci_pipeline_schedules",
-    "approver_groups",
-    "boards_epic_boards",
-    "web_hooks",
-    "routes",
-    "notes",
-    "issues",
-    "status_page_published_incidents",
-    "epic_metrics",
-    "dast_profiles",
-    "notes",
-    "ci_builds",
-] %}
+            "label_priorities",
+            "labels",
+            "ldap_group_links",
+            "namespaces",
+            "packages_packages",
+            "ci_runner_projects",
+            "push_rules",
+            "requirements",
+            "todos",
+            "project_auto_devops",
+            "application_settings",
+            "ci_triggers",
+            "clusters_applications_elastic_stacks",
+            "users",
+            "zoom_meetings",
+            "alert_management_http_integrations",
+            "approval_project_rules",
+            "clusters",
+            "issue_metrics",
+            "jira_tracker_data",
+            "lists",
+            "sprints",
+            "users_ops_dashboard_projects",
+            "bulk_imports",
+            "cluster_agent_tokens",
+            "experiment_users",
+            "protected_branches",
+            "timelogs",
+            "project_features",
+            "milestones",
+            "alert_management_alerts",
+            "ci_group_variables",
+            "cluster_agents",
+            "emails",
+            "user_custom_attributes",
+            "grafana_integrations",
+            "security_scans",
+            "lfs_objects_projects",
+            "merge_request_metrics",
+            "merge_requests_closing_issues",
+            "path_locks",
+            "approval_merge_request_rules",
+            "csv_issue_imports",
+            "cluster_projects",
+            "vulnerabilities",
+            "releases",
+            "subscriptions",
+            "terraform_states",
+            "project_tracing_settings",
+            "notification_settings",
+            "environments",
+            "epics",
+            "in_product_marketing_emails",
+            "jira_imports",
+            "services",
+            "onboarding_progresses",
+            "project_custom_attributes",
+            "analytics_cycle_analytics_group_stages",
+            "approvals",
+            "ci_pipeline_schedule_variables",
+            "ci_runners",
+            "ci_trigger_requests",
+            "boards",
+            "projects",
+            "identities",
+            "lfs_objects",
+            "prometheus_alerts",
+            "snippets",
+            "system_note_metadata",
+            "merge_request_blocks",
+            "merge_request_diffs",
+            "experiment_subjects",
+            "deployments",
+            "merge_requests",
+            "remote_mirrors",
+            "integrations",
+            "events",
+            "ci_stages",
+            "ci_pipelines",
+            "ci_job_artifacts",
+            "ci_pipeline_schedules",
+            "approver_groups",
+            "boards_epic_boards",
+            "web_hooks",
+            "routes",
+            "notes",
+            "issues",
+            "status_page_published_incidents",
+            "epic_metrics",
+            "dast_profiles",
+            "notes",
+            "ci_builds",
+        ] %}
 
         {% for table in tables %}
-        select
-            snowflake.id,
-            'gitlab_db_{{table}}' as table_name,
-            date(snowflake.created_at) as created_date,
-            date(snowflake.updated_at) as updated_date
-        from {{ source("gitlab_dotcom", table) }} as snowflake
-        inner join
-            date_check
-            on date(snowflake.updated_at) >= date_check.updated_date
-            and date_check.table_name = 'gitlab_db_{{table}}'
-        qualify row_number() over (partition by id order by updated_date desc) = 1
+            select
+                snowflake.id,
+                'gitlab_db_{{table}}' as table_name,
+                date(snowflake.created_at) as created_date,
+                date(snowflake.updated_at) as updated_date
+            from {{ source("gitlab_dotcom", table) }} as snowflake
+            inner join
+                date_check
+                on date(snowflake.updated_at) >= date_check.updated_date
+                and date_check.table_name = 'gitlab_db_{{table}}'
+            qualify row_number() over (partition by id order by updated_date desc) = 1
 
-        {% if not loop.last %}
-        union all
-        {% endif %}
+            {% if not loop.last %}
+                union all
+            {% endif %}
 
         {% endfor %}
 
         union all
 
         {% set tables = [
-    "labels",
-    "merge_request_metrics",
-    "projects",
-    "merge_requests",
-    "users",
-    "ci_pipelines",
-] %}
+            "labels",
+            "merge_request_metrics",
+            "projects",
+            "merge_requests",
+            "users",
+            "ci_pipelines",
+        ] %}
 
         {% for table in tables %}
-        select
-            snowflake.id,
-            'gitlab_ops_db_{{table}}' as table_name,
-            date(snowflake.created_at) as created_date,
-            date(snowflake.updated_at) as updated_date
-        from {{ source("gitlab_ops", table) }} as snowflake
-        inner join
-            date_check
-            on date(snowflake.updated_at) >= date_check.updated_date
-            and date_check.table_name = 'gitlab_db_{{table}}'
-        qualify row_number() over (partition by id order by updated_date desc) = 1
+            select
+                snowflake.id,
+                'gitlab_ops_db_{{table}}' as table_name,
+                date(snowflake.created_at) as created_date,
+                date(snowflake.updated_at) as updated_date
+            from {{ source("gitlab_ops", table) }} as snowflake
+            inner join
+                date_check
+                on date(snowflake.updated_at) >= date_check.updated_date
+                and date_check.table_name = 'gitlab_db_{{table}}'
+            qualify row_number() over (partition by id order by updated_date desc) = 1
 
-        {% if not loop.last %}
-        union all
-        {% endif %}
+            {% if not loop.last %}
+                union all
+            {% endif %}
 
         {% endfor %}
 
