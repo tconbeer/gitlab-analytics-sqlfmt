@@ -1,25 +1,20 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "opening_custom_fields") }}),
+    renamed as (
 
-	SELECT *
-  	FROM {{ source('greenhouse', 'opening_custom_fields') }}
+        select
 
+            -- key
+            opening_id::varchar as opening_id,
 
-), renamed as (
+            -- info
+            key::varchar as opening_custom_field,
+            display_value::varchar as opening_custom_field_display_value,
+            created_at::timestamp as opening_custom_field_created_at,
+            updated_at::timestamp as opening_custom_field_updated_at
+        from source
 
-	SELECT
+    )
 
-	  --key
-   	  opening_id::varchar				  AS opening_id,
-
-   	  --info
-   	  key::varchar			                  AS opening_custom_field,
-   	  display_value::varchar			  AS opening_custom_field_display_value,
-   	  created_at::timestamp 			  AS opening_custom_field_created_at,
-   	  updated_at::timestamp 			  AS opening_custom_field_updated_at
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
-
+select *
+from renamed

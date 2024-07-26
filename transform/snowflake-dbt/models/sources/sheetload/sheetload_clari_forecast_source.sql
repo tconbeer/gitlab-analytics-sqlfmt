@@ -1,26 +1,27 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'clari_export_forecast_net_iacv') }}
+        select * from {{ source("sheetload", "clari_export_forecast_net_iacv") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-         "User"::VARCHAR            AS user,
-         "Email"::VARCHAR           AS email,
-         "CRM_User_ID"::VARCHAR     AS crm_user_id,
-         "Role"::VARCHAR            AS sales_team_role,
-         "Parent_Role"::VARCHAR     AS parent_role,
-         "Timeframe"::VARCHAR       AS timeframe,
-         "Field"::VARCHAR           AS field,
-         "Week"::NUMBER             AS week,
-         "Start_Day"::DATE          AS start_date,
-         "End_Day"::DATE            AS end_date,
-         "Data_Type"::VARCHAR       AS data_type,
-         "Data_Value"::VARCHAR      AS data_value
-    FROM source
+        select
+            "User"::varchar as user,
+            "Email"::varchar as email,
+            "CRM_User_ID"::varchar as crm_user_id,
+            "Role"::varchar as sales_team_role,
+            "Parent_Role"::varchar as parent_role,
+            "Timeframe"::varchar as timeframe,
+            "Field"::varchar as field,
+            "Week"::number as week,
+            "Start_Day"::date as start_date,
+            "End_Day"::date as end_date,
+            "Data_Type"::varchar as data_type,
+            "Data_Value"::varchar as data_value
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

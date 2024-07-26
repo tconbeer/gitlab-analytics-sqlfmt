@@ -1,56 +1,52 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_central_sandbox", "invoice") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_central_sandbox', 'invoice') }}
+        select
+            id as invoice_id,
+            -- keys
+            account_id as account_id,
 
-), renamed AS(
+            -- invoice metadata
+            due_date as due_date,
+            invoice_number as invoice_number,
+            invoice_date as invoice_date,
+            status as status,
 
-    SELECT 
-      id                                    AS invoice_id,
-      -- keys
-      account_id                            AS account_id,
+            last_email_sent_date as last_email_sent_date,
+            posted_date as posted_date,
+            target_date as target_date,
 
-      -- invoice metadata
-      due_date                              AS due_date,
-      invoice_number                        AS invoice_number,
-      invoice_date                          AS invoice_date,
-      status                                AS status,
+            includes_one_time as includes_one_time,
+            includes_recurring as includes_recurring,
+            includes_usage as includes_usage,
+            transferred_to_accounting as transferred_to_accounting,
 
-      last_email_sent_date                  AS last_email_sent_date,
-      posted_date                           AS posted_date,
-      target_date                           AS target_date,
+            -- financial info
+            adjustment_amount as adjustment_amount,
+            amount as amount,
+            amount_without_tax as amount_without_tax,
+            balance as balance,
+            credit_balance_adjustment_amount as credit_balance_adjustment_amount,
+            payment_amount as payment_amount,
+            refund_amount as refund_amount,
+            tax_amount as tax_amount,
+            tax_exempt_amount as tax_exempt_amount,
+            comments as comments,
 
+            -- metadata
+            created_by_id as created_by_id,
+            created_date as created_date,
+            posted_by as posted_by,
+            source as source,
+            source as source_id,
+            updated_by_id as updated_by_id,
+            updated_date as updated_date,
+            _fivetran_deleted as is_deleted
 
-      includes_one_time                     AS includes_one_time,
-      includes_recurring                    AS includes_recurring,
-      includes_usage                        AS includes_usage,
-      transferred_to_accounting             AS transferred_to_accounting,
+        from source
 
-      -- financial info
-      adjustment_amount                     AS adjustment_amount,
-      amount                                AS amount,
-      amount_without_tax                    AS amount_without_tax,
-      balance                               AS balance,
-      credit_balance_adjustment_amount      AS credit_balance_adjustment_amount,
-      payment_amount                        AS payment_amount,
-      refund_amount                         AS refund_amount,
-      tax_amount                            AS tax_amount,
-      tax_exempt_amount                     AS tax_exempt_amount,
-      comments                              AS comments,
+    )
 
-      -- metadata
-      created_by_id                         AS created_by_id,
-      created_date                          AS created_date,
-      posted_by                             AS posted_by,
-      source                                AS source,
-      source                                AS source_id,
-      updated_by_id                         AS updated_by_id,
-      updated_date                          AS updated_date,
-      _FIVETRAN_DELETED                     AS is_deleted
-
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

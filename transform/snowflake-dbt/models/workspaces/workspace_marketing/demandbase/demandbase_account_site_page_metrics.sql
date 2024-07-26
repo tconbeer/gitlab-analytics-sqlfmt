@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("demandbase_account_site_page_metrics_source") }})
 
-    SELECT *
-    FROM {{ ref('demandbase_account_site_page_metrics_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

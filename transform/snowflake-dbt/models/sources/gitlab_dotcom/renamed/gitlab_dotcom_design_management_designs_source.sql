@@ -1,18 +1,19 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_design_management_designs_dedupe_source') }}
-    
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_design_management_designs_dedupe_source") }}
 
-    SELECT
-      id::NUMBER                                 AS design_id,
-      project_id::NUMBER                         AS project_id,
-      issue_id::NUMBER                           AS issue_id,
-      filename::VARCHAR                           AS design_filename
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as design_id,
+            project_id::number as project_id,
+            issue_id::number as issue_id,
+            filename::varchar as design_filename
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

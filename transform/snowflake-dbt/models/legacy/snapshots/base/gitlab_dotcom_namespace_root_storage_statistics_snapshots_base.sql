@@ -1,30 +1,35 @@
-{{ config({
-    "alias": "gitlab_dotcom_namespace_root_storage_statistics_snapshots"
-    })
-}}
+{{ config({"alias": "gitlab_dotcom_namespace_root_storage_statistics_snapshots"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('snapshots', 'gitlab_dotcom_namespace_root_storage_statistics_snapshots') }}
-    
-), renamed as (
+        select *
+        from
+            {{
+                source(
+                    "snapshots",
+                    "gitlab_dotcom_namespace_root_storage_statistics_snapshots",
+                )
+            }}
 
-    SELECT
-        dbt_scd_id::VARCHAR                                           AS namespace_storage_statistics_snapshot_id,
-        namespace_id::NUMBER                                         AS namespace_id,
-        repository_size::NUMBER                                      AS repository_size,
-        lfs_objects_size::NUMBER                                     AS lfs_objects_size,
-        wiki_size::NUMBER                                            AS wiki_size,
-        build_artifacts_size::NUMBER                                 AS build_artifacts_size,
-        storage_size::NUMBER                                         AS storage_size,
-        packages_size::NUMBER                                        AS packages_size,
-        dbt_valid_from::TIMESTAMP                                     AS valid_from,
-        dbt_valid_to::TIMESTAMP                                       AS valid_to
+    ),
+    renamed as (
 
-    FROM source
-    
-)
+        select
+            dbt_scd_id::varchar as namespace_storage_statistics_snapshot_id,
+            namespace_id::number as namespace_id,
+            repository_size::number as repository_size,
+            lfs_objects_size::number as lfs_objects_size,
+            wiki_size::number as wiki_size,
+            build_artifacts_size::number as build_artifacts_size,
+            storage_size::number as storage_size,
+            packages_size::number as packages_size,
+            dbt_valid_from::timestamp as valid_from,
+            dbt_valid_to::timestamp as valid_to
 
-SELECT *
-FROM renamed
+        from source
+
+    )
+
+select *
+from renamed

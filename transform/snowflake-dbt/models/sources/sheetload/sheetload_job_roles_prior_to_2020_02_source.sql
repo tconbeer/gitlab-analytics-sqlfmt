@@ -1,16 +1,6 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "job_roles_prior_to_2020_02") }}),
+    final as (select job_title, job_role from source)
 
-    SELECT * 
-    FROM {{ source('sheetload','job_roles_prior_to_2020_02') }}
-    
-), final AS (
-
-    SELECT 
-      job_title,
-      job_role
-    FROM source
-      
-) 
-
-SELECT * 
-FROM final
+select *
+from final

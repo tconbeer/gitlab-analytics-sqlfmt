@@ -1,20 +1,17 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_approvals_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_approvals_dedupe_source') }}
-  
-), renamed AS (
+        select
+            id::number as approval_id,
+            merge_request_id::number as merge_request_id,
+            user_id::number as user_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-  SELECT
-    id::NUMBER                     AS approval_id,
-    merge_request_id::NUMBER       AS merge_request_id,
-    user_id::NUMBER                AS user_id,
-    created_at::TIMESTAMP           AS created_at,
-    updated_at::TIMESTAMP           AS updated_at
+        from source
 
-  FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

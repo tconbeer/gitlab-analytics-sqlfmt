@@ -1,67 +1,60 @@
 -- depends_on: {{ ref('zuora_excluded_accounts') }}
+with
+    source as (select * from {{ source("snapshots", "zuora_invoice_snapshots") }}),
+    renamed as (
 
-WITH source AS (
+        select
+            id as invoice_id,
+            -- keys
+            accountid as account_id,
 
-    SELECT *
-    FROM {{ source('snapshots', 'zuora_invoice_snapshots') }}
+            -- invoice metadata
+            duedate as due_date,
+            invoicenumber as invoice_number,
+            invoicedate as invoice_date,
+            status,
 
-), renamed AS(
+            lastemailsentdate as last_email_sent_date,
+            posteddate as posted_date,
+            targetdate as target_date,
 
-    SELECT 
-      id                          AS invoice_id,
-      -- keys
-      accountid                   AS account_id,
+            includesonetime as includes_one_time,
+            includesrecurring as includesrecurring,
+            includesusage as includes_usage,
+            transferredtoaccounting as transferred_to_accounting,
 
-      -- invoice metadata
-      duedate                     AS due_date,
-      invoicenumber               AS invoice_number,
-      invoicedate                 AS invoice_date,
-      status,
+            -- financial info
+            adjustmentamount as adjustment_amount,
+            amount,
+            amountwithouttax as amount_without_tax,
+            balance,
+            creditbalanceadjustmentamount as credit_balance_adjustment_amount,
+            paymentamount as payment_amount,
+            refundamount as refund_amount,
+            taxamount as tax_amount,
+            taxexemptamount as tax_exempt_amount,
+            comments,
 
-      lastemailsentdate           AS last_email_sent_date,
-      posteddate                  AS posted_date,
-      targetdate                  AS target_date,
+            -- ext1, ext2, ext3, ... ext9
+            -- metadata
+            createdbyid as created_by_id,
+            createddate as created_date,
+            postedby as posted_by,
+            source as source,
+            source as source_id,
+            updatedbyid as updated_by_id,
+            updateddate as updated_date,
+            deleted as is_deleted,
 
+            -- snapshot metadata
+            dbt_scd_id,
+            dbt_updated_at,
+            dbt_valid_from,
+            dbt_valid_to
 
-      includesonetime             AS includes_one_time,
-      includesrecurring           AS includesrecurring,
-      includesusage               AS includes_usage,
-      transferredtoaccounting     AS transferred_to_accounting,
+        from source
 
-      -- financial info
-      adjustmentamount            AS adjustment_amount,
-      amount,
-      amountwithouttax            AS amount_without_tax, 
-      balance,
-      creditbalanceadjustmentamount   AS credit_balance_adjustment_amount,
-      paymentamount                   AS payment_amount,
-      refundamount                    AS refund_amount,
-      taxamount                       AS tax_amount,
-      taxexemptamount                 AS tax_exempt_amount,
-      comments,
+    )
 
-      -- ext1, ext2, ext3, ... ext9
-
-      -- metadata
-      createdbyid                     AS created_by_id,
-      createddate                     AS created_date,
-      postedby                        AS posted_by,
-      source                          AS source,
-      source                          AS source_id,
-      updatedbyid                     AS updated_by_id,
-      updateddate                     AS updated_date,
-      deleted                         AS is_deleted,
-
-      -- snapshot metadata
-      dbt_scd_id,
-      dbt_updated_at,
-      dbt_valid_from,
-      dbt_valid_to
-
-
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

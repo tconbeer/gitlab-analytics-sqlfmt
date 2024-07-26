@@ -1,5 +1,4 @@
 -- Will write to custom schemas not on prod
-
 {% macro generate_schema_name(custom_schema_name, node) -%}
 
     {%- set production_targets = production_targets() -%}
@@ -25,15 +24,10 @@
         (zuora, dev, preparation) = zuora
 
     #}
+    {%- if custom_schema_name is none -%} {{ target.schema.lower() | trim }}
 
-    {%- if custom_schema_name is none -%}
-
-        {{ target.schema.lower() | trim }}
-
-    {%- else -%}
-
-        {{ custom_schema_name.lower() | trim }}
+    {%- else -%} {{ custom_schema_name.lower() | trim }}
 
     {%- endif -%}
-    
+
 {%- endmacro %}

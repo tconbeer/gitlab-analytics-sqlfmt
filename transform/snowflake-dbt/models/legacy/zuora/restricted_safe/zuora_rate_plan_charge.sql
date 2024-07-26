@@ -1,11 +1,5 @@
-WITH source AS (
+with source as (select * from {{ ref("zuora_rate_plan_charge_source") }})
 
-    SELECT *
-    FROM {{ ref('zuora_rate_plan_charge_source') }}
-
-)
-
-SELECT *
-FROM source
-WHERE is_deleted = FALSE
-  AND account_id NOT IN ({{ zuora_excluded_accounts() }})
+select *
+from source
+where is_deleted = false and account_id not in ({{ zuora_excluded_accounts() }})

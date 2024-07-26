@@ -1,55 +1,58 @@
-{{ config({
-    "materialized": "ephemeral"
-    })
-}}
+{{ config({"materialized": "ephemeral"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('snapshots', 'sheetload_comp_band_snapshots') }}
+        select * from {{ source("snapshots", "sheetload_comp_band_snapshots") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      employee_number,
-      percent_over_top_end_of_band,
-      CASE 
-        WHEN NULLIF(LOWER(percent_over_top_end_of_band), '') ='exec'    
-          THEN 0.00
-        WHEN NULLIF(percent_over_top_end_of_band, '') ='#DIV/0!' 
-          THEN NULL
-        WHEN percent_over_top_end_of_band LIKE '%'               
-          THEN NULLIF(REPLACE(percent_over_top_end_of_band,'%',''),'') 
-        ELSE NULLIF(percent_over_top_end_of_band, '') END                       AS percent_over_top_end_of_band_cleaned,
-      dbt_valid_from::date                                                      AS valid_from,
-      dbt_valid_to::DATE                               AS valid_to
-    FROM source
-    WHERE percent_over_top_end_of_band IS NOT NULL
+        select
+            employee_number,
+            percent_over_top_end_of_band,
+            case
+                when nullif(lower(percent_over_top_end_of_band), '') = 'exec'
+                then 0.00
+                when nullif(percent_over_top_end_of_band, '') = '#DIV/0!'
+                then null
+                when percent_over_top_end_of_band like '%'
+                then nullif(replace(percent_over_top_end_of_band, '%', ''), '')
+                else nullif(percent_over_top_end_of_band, '')
+            end as percent_over_top_end_of_band_cleaned,
+            dbt_valid_from::date as valid_from,
+            dbt_valid_to::date as valid_to
+        from source
+        where percent_over_top_end_of_band is not null
 
-), deduplicated AS (
+    ),
+    deduplicated as (
 
-    SELECT DISTINCT   
-      employee_number,
-      percent_over_top_end_of_band                                                  AS original_value,
-      IFF(CONTAINS(percent_over_top_end_of_band,'%') = True,
-          ROUND(percent_over_top_end_of_band_cleaned/100::FLOAT, 4),
-          ROUND(percent_over_top_end_of_band_cleaned::FLOAT, 4))                    AS deviation_from_comp_calc,
-    valid_from,
-    valid_to
-    FROM renamed
+        select distinct
+            employee_number,
+            percent_over_top_end_of_band as original_value,
+            iff(
+                contains(percent_over_top_end_of_band, '%') = true,
+                round(percent_over_top_end_of_band_cleaned / 100::float, 4),
+                round(percent_over_top_end_of_band_cleaned::float, 4)
+            ) as deviation_from_comp_calc,
+            valid_from,
+            valid_to
+        from renamed
 
-), final AS (
+    ),
+    final as (
 
-  SELECT
-    employee_number,
-    original_value,
-    deviation_from_comp_calc,
-    MIN(valid_from)                     AS valid_from,
-    NULLIF(MAX(valid_to), CURRENT_DATE) AS valid_to
-  FROM deduplicated
-  GROUP BY 1, 2, 3
+        select
+            employee_number,
+            original_value,
+            deviation_from_comp_calc,
+            min(valid_from) as valid_from,
+            nullif(max(valid_to), current_date) as valid_to
+        from deduplicated
+        group by 1, 2, 3
 
-)
+    )
 
-SELECT *
-FROM final
+select *
+from final

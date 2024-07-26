@@ -1,19 +1,16 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_licenses_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_licenses_dedupe_source') }}
-  
-), renamed AS (
+        select
 
-    SELECT
+            id::number as license_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-      id::NUMBER                                 AS license_id,
-      created_at::TIMESTAMP                       AS created_at,
-      updated_at::TIMESTAMP                       AS updated_at
+        from source
 
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

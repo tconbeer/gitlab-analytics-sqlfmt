@@ -1,9 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('marketo_activity_fill_out_linkedin_lead_gen_form_source') }}
+        select *
+        from {{ ref("marketo_activity_fill_out_linkedin_lead_gen_form_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

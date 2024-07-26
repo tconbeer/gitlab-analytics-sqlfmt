@@ -1,18 +1,19 @@
-WITH source AS (
-    
-    SELECT * 
-    FROM {{ source('sheetload','infrastructure_missing_employees') }}
+with
+    source as (
 
-), final AS (
-    
-    SELECT 
-      NULLIF(employee_id, '')::INTEGER                                    AS employee_id,
-      NULLIF(gitlab_dotcom_user_id, '')::VARCHAR                          AS gitlab_dotcom_user_id,
-      NULLIF(full_name, '')::VARCHAR                                      AS full_name,
-      NULLIF(work_email, '')::VARCHAR                                     AS work_email
-    FROM source
+        select * from {{ source("sheetload", "infrastructure_missing_employees") }}
 
-) 
+    ),
+    final as (
 
-SELECT * 
-FROM final
+        select
+            nullif(employee_id, '')::integer as employee_id,
+            nullif(gitlab_dotcom_user_id, '')::varchar as gitlab_dotcom_user_id,
+            nullif(full_name, '')::varchar as full_name,
+            nullif(work_email, '')::varchar as work_email
+        from source
+
+    )
+
+select *
+from final

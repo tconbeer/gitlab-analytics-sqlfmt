@@ -1,34 +1,35 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('marketo', 'activity_change_status_in_progression') }}
+        select * from {{ source("marketo", "activity_change_status_in_progression") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
+        select
 
-      id::NUMBER                                AS marketo_activity_change_status_in_progression_id,
-      lead_id::NUMBER                           AS lead_id,
-      activity_date::TIMESTAMP_TZ               AS activity_date,
-      activity_type_id::NUMBER                  AS activity_type_id,
-      campaign_id::NUMBER                       AS campaign_id,
-      primary_attribute_value_id::NUMBER        AS primary_attribute_value_id,
-      primary_attribute_value::TEXT             AS primary_attribute_value,
-      old_status_id::NUMBER                     AS old_status_id,
-      new_status_id::NUMBER                     AS new_status_id,
-      acquired_by::BOOLEAN                      AS acquired_by,
-      old_status::TEXT                          AS old_status,
-      new_status::TEXT                          AS new_status,
-      program_member_id::NUMBER                 AS program_member_id,
-      success::BOOLEAN                          AS success,
-      registration_code::TEXT                   AS registration_code,
-      webinar_url::TEXT                         AS webinar_url,
-      reason::TEXT                              AS reason,
-      reached_success_date::TIMESTAMP_NTZ       AS reached_success_date
+            id::number as marketo_activity_change_status_in_progression_id,
+            lead_id::number as lead_id,
+            activity_date::timestamp_tz as activity_date,
+            activity_type_id::number as activity_type_id,
+            campaign_id::number as campaign_id,
+            primary_attribute_value_id::number as primary_attribute_value_id,
+            primary_attribute_value::text as primary_attribute_value,
+            old_status_id::number as old_status_id,
+            new_status_id::number as new_status_id,
+            acquired_by::boolean as acquired_by,
+            old_status::text as old_status,
+            new_status::text as new_status,
+            program_member_id::number as program_member_id,
+            success::boolean as success,
+            registration_code::text as registration_code,
+            webinar_url::text as webinar_url,
+            reason::text as reason,
+            reached_success_date::timestamp_ntz as reached_success_date
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

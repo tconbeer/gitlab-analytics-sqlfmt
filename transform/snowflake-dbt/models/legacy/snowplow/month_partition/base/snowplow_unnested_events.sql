@@ -1,20 +1,9 @@
-{{config({
-    "unique_key":"event_id"
-  })
-}}
+{{ config({"unique_key": "event_id"}) }}
 
-WITH gitlab as (
+with
+    gitlab as (select * from {{ ref("snowplow_gitlab_events") }}),
+    events_to_ignore as (select event_id from {{ ref("snowplow_duplicate_events") }})
 
-    SELECT *
-    FROM {{ ref('snowplow_gitlab_events') }}
-
-), events_to_ignore as (
-
-    SELECT event_id
-    FROM {{ ref('snowplow_duplicate_events') }}
-
-)
-
-SELECT *
-FROM gitlab
-WHERE event_id NOT IN (SELECT event_id FROM events_to_ignore)
+select *
+from gitlab
+where event_id not in (select event_id from events_to_ignore)

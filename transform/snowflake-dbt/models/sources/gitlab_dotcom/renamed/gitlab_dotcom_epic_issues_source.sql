@@ -1,20 +1,16 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_epic_issues_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_epic_issues_dedupe_source') }}
-  
-), renamed AS (
+        select
+            id::number as epic_issues_relation_id,
+            epic_id::number as epic_id,
+            issue_id::number as issue_id,
+            relative_position::number as epic_issue_relative_position
 
-    SELECT
-      id::NUMBER                       AS epic_issues_relation_id,
-      epic_id::NUMBER                  AS epic_id,
-      issue_id::NUMBER                 AS issue_id,
-      relative_position::NUMBER        AS epic_issue_relative_position
+        from source
 
-    FROM source
+    )
 
-)
-
-
-SELECT *
-FROM renamed
+select *
+from renamed

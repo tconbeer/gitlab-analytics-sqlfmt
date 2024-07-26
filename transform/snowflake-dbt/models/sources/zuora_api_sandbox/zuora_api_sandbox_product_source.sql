@@ -1,28 +1,25 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_api_sandbox", "product") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_api_sandbox', 'product') }}
+        select
+            -- Primary Keys
+            id::varchar as product_id,
 
-), renamed AS (
+            -- Info
+            name::varchar as product_name,
+            sku::varchar as sku,
+            description::varchar as product_description,
+            category::varchar as category,
+            updatedbyid::varchar as updated_by_id,
+            updateddate::timestamp_tz as updated_date,
+            deleted as is_deleted,
+            effectivestartdate as effective_start_date,
+            effectiveenddate as effective_end_date
 
-    SELECT
-      --Primary Keys
-      id::VARCHAR                       AS product_id,
+        from source
 
-      --Info
-      name::VARCHAR                     AS product_name,
-      sku::VARCHAR                      AS sku,
-      description::VARCHAR              AS product_description,
-      category::VARCHAR                 AS category,
-      updatedbyid::VARCHAR              AS updated_by_id,
-      updateddate::TIMESTAMP_TZ         AS updated_date,
-      deleted                           AS is_deleted,
-      effectivestartdate                AS effective_start_date,
-      effectiveenddate                  AS effective_end_date
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

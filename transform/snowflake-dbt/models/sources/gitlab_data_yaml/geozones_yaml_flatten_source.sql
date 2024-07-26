@@ -1,57 +1,65 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      jsontext,
-      uploaded_at,
-      LEAD(uploaded_at,1) OVER (ORDER BY uploaded_at) AS lead_uploaded_at,
-      MAX(uploaded_at) OVER ()                        AS max_uploaded_at
-    FROM {{ source('gitlab_data_yaml', 'geo_zones') }}
+        select
+            jsontext,
+            uploaded_at,
+            lead(uploaded_at, 1) over (order by uploaded_at) as lead_uploaded_at,
+            max(uploaded_at) over () as max_uploaded_at
+        from {{ source("gitlab_data_yaml", "geo_zones") }}
 
-), grouped AS (
+    ),
+    grouped as (
         /*
         Reducing to only the changed values to reduce processing load
         and create a contiguious range of data.
         */
-        
-      SELECT DISTINCT
-        jsontext,
-        MIN(uploaded_at) OVER (PARTITION BY jsontext)      AS valid_from,
-        MAX(lead_uploaded_at) OVER (PARTITION BY jsontext) AS valid_to,
-        IFF(valid_to = max_uploaded_at, TRUE, FALSE)       AS is_current
-      FROM source
+        select distinct
+            jsontext,
+            min(uploaded_at) over (partition by jsontext) as valid_from,
+            max(lead_uploaded_at) over (partition by jsontext) as valid_to,
+            iff(valid_to = max_uploaded_at, true, false) as is_current
+        from source
 
-), geozones AS (
+    ),
+    geozones as (
 
-      SELECT
-        valid_from,
-        valid_to,
-        is_current,
-        geozones.value['title']::VARCHAR               AS geozone_title,
-        geozones.value['factor']::NUMBER(6, 3)         AS geozone_factor,
-        geozones.value['countries']::VARIANT           AS geozone_countries,
-        geozones.value['states_or_provinces']::VARIANT AS geozone_states_or_provinces
-      FROM grouped
-      INNER JOIN LATERAL FLATTEN(INPUT => PARSE_JSON(jsontext), OUTER => TRUE) AS geozones
+        select
+            valid_from,
+            valid_to,
+            is_current,
+            geozones.value['title']::varchar as geozone_title,
+            geozones.value['factor']::number(6, 3) as geozone_factor,
+            geozones.value['countries']::variant as geozone_countries,
+            geozones.value['states_or_provinces']::variant
+            as geozone_states_or_provinces
+        from grouped
+        inner join
+            lateral flatten(input => parse_json(jsontext), outer => true) as geozones
 
-), countries AS (
+    ),
+    countries as (
 
-      SELECT
-        *,
-        countries.value::VARCHAR AS country
-      FROM geozones
-      INNER JOIN LATERAL FLATTEN(INPUT => PARSE_JSON(geozone_countries), OUTER => TRUE) AS countries
+        select *, countries.value::varchar as country
+        from geozones
+        inner join
+            lateral flatten(
+                input => parse_json(geozone_countries), outer => true
+            ) as countries
 
-), states_or_provinces AS (
+    ),
+    states_or_provinces as (
 
-      SELECT
-        *,
-        states_or_provinces.value::VARCHAR AS state_or_province
-      FROM countries
-      INNER JOIN LATERAL FLATTEN(INPUT => PARSE_JSON(geozone_states_or_provinces), OUTER => TRUE) AS states_or_provinces
+        select *, states_or_provinces.value::varchar as state_or_province
+        from countries
+        inner join
+            lateral flatten(
+                input => parse_json(geozone_states_or_provinces), outer => true
+            ) as states_or_provinces
 
-)
+    )
 
-  SELECT
+select
     valid_from,
     valid_to,
     is_current,
@@ -59,4 +67,4 @@ WITH source AS (
     geozone_factor,
     country,
     state_or_province
-  FROM states_or_provinces
+from states_or_provinces

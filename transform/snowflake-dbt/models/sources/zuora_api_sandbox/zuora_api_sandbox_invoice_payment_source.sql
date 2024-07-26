@@ -1,41 +1,38 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_api_sandbox", "invoice_payment") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_api_sandbox', 'invoice_payment') }}
+        select
+            -- keys
+            id::varchar as invoice_payment_id,
+            invoiceid::varchar as invoice_id,
+            accountid::varchar as account_id,
+            accountingperiodid::varchar as accounting_period_id,
 
-), renamed AS (
+            -- info
+            billtocontactid::varchar as bill_to_contact_id,
+            cashaccountingcodeid::varchar as cash_accounting_code_id,
+            defaultpaymentmethodid::varchar as default_payment_method_id,
+            journalentryid::varchar as journal_entry_id,
+            journalrunid::varchar as journal_run_id,
+            parentaccountid::varchar as parent_account_id,
+            paymentid::varchar as payment_id,
+            paymentmethodid::varchar as payment_method_id,
+            paymentmethodsnapshotid::varchar as payment_method_snapshot_id,
+            soldtocontactid::varchar as sold_to_contact_id,
 
-    SELECT
-      --keys
-      id::VARCHAR                       AS invoice_payment_id,
-      invoiceid::VARCHAR                AS invoice_id,
-      accountid::VARCHAR                AS account_id,
-      accountingperiodid::VARCHAR       AS accounting_period_id,
+            -- financial info
+            amount::float as payment_amount,
+            refundamount::float as refund_amount,
 
-      --info
-      billtocontactid::VARCHAR          AS bill_to_contact_id,
-      cashaccountingcodeid::VARCHAR     AS cash_accounting_code_id,
-      defaultpaymentmethodid::VARCHAR   AS default_payment_method_id,
-      journalentryid::VARCHAR           AS journal_entry_id,
-      journalrunid::VARCHAR             AS journal_run_id,
-      parentaccountid::VARCHAR          AS parent_account_id,
-      paymentid::VARCHAR                AS payment_id,
-      paymentmethodid::VARCHAR          AS payment_method_id,
-      paymentmethodsnapshotid::VARCHAR  AS payment_method_snapshot_id,
-      soldtocontactid::VARCHAR          AS sold_to_contact_id,
+            -- metadata
+            updatedbyid::varchar as updated_by_id,
+            updateddate::timestamp_tz as updated_date,
+            deleted::boolean as is_deleted
 
-      --financial info
-      amount::FLOAT                     AS payment_amount,
-      refundamount::FLOAT               AS refund_amount,
+        from source
 
-      --metadata
-      updatedbyid::VARCHAR              AS updated_by_id,
-      updateddate::TIMESTAMP_TZ         AS updated_date,
-      deleted::BOOLEAN                  AS is_deleted
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

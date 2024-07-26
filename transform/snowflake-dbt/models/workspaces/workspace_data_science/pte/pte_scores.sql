@@ -1,9 +1,1 @@
-WITH source AS (
-
-    SELECT *
-    FROM {{ ref('pte_scores_source') }}
-
-)
-
-SELECT *
-FROM source
+with source as (select * from {{ ref("pte_scores_source") }}) select * from source

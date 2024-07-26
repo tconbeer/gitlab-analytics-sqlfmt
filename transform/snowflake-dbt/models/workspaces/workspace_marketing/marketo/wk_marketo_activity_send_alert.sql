@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("marketo_activity_send_alert_source") }})
 
-    SELECT *
-    FROM {{ ref('marketo_activity_send_alert_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

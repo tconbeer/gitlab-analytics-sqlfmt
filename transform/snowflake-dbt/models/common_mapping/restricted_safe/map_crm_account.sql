@@ -1,67 +1,86 @@
-WITH account_prep AS (
+with
+    account_prep as (select * from {{ ref("prep_sfdc_account") }}),
+    sales_segment as (select * from {{ ref("prep_sales_segment") }}),
+    sales_territory as (select * from {{ ref("prep_sales_territory") }}),
+    industry as (select * from {{ ref("prep_industry") }}),
+    location_country as (select * from {{ ref("prep_location_country") }}),
+    final as (
 
-    SELECT *
-    FROM {{ ref('prep_sfdc_account') }}
+        select
+            {{ get_keyed_nulls("account_prep.dim_parent_crm_account_id") }}
+            as dim_parent_crm_account_id,
+            {{ get_keyed_nulls("account_prep.dim_crm_account_id") }}
+            as dim_crm_account_id,
+            {{ get_keyed_nulls("sales_segment_ultimate_parent.dim_sales_segment_id") }}
+            as dim_parent_sales_segment_id,
+            {{
+                get_keyed_nulls(
+                    "sales_territory_ultimate_parent.dim_sales_territory_id"
+                )
+            }} as dim_parent_sales_territory_id,
+            {{ get_keyed_nulls("industry_ultimate_parent.dim_industry_id") }}
+            as dim_parent_industry_id,
+            {{
+                get_keyed_nulls(
+                    "location_country_ultimate_parent.dim_location_country_id::varchar"
+                )
+            }} as dim_parent_location_country_id,
+            {{
+                get_keyed_nulls(
+                    "location_country_ultimate_parent.dim_location_region_id"
+                )
+            }} as dim_parent_location_region_id,
+            {{ get_keyed_nulls("sales_segment.dim_sales_segment_id") }}
+            as dim_account_sales_segment_id,
+            {{ get_keyed_nulls("sales_territory.dim_sales_territory_id") }}
+            as dim_account_sales_territory_id,
+            {{ get_keyed_nulls("industry.dim_industry_id") }}
+            as dim_account_industry_id,
+            {{ get_keyed_nulls("location_country.dim_location_country_id::varchar") }}
+            as dim_account_location_country_id,
+            {{ get_keyed_nulls("location_country.dim_location_region_id") }}
+            as dim_account_location_region_id
+        from account_prep
+        left join
+            sales_segment as sales_segment_ultimate_parent
+            on account_prep.dim_parent_sales_segment_name_source
+            = sales_segment_ultimate_parent.sales_segment_name
+        left join
+            sales_territory as sales_territory_ultimate_parent
+            on account_prep.dim_parent_sales_territory_name_source
+            = sales_territory_ultimate_parent.sales_territory_name
+        left join
+            industry as industry_ultimate_parent
+            on account_prep.dim_parent_industry_name_source
+            = industry_ultimate_parent.industry_name
+        left join
+            location_country as location_country_ultimate_parent
+            on account_prep.dim_parent_location_country_name_source
+            = location_country_ultimate_parent.country_name
+        left join
+            sales_segment
+            on account_prep.dim_account_sales_segment_name_source
+            = sales_segment.sales_segment_name
+        left join
+            sales_territory
+            on account_prep.dim_account_sales_territory_name_source
+            = sales_territory.sales_territory_name
+        left join
+            industry
+            on account_prep.dim_account_industry_name_source = industry.industry_name
+        left join
+            location_country
+            on account_prep.dim_account_location_country_name_source
+            = location_country.country_name
 
-), sales_segment AS (
+    )
 
-    SELECT *
-    FROM {{ ref('prep_sales_segment') }}
-
-), sales_territory AS (
-
-    SELECT *
-    FROM {{ ref('prep_sales_territory') }}
-
-), industry AS (
-
-    SELECT *
-    FROM {{ ref('prep_industry') }}
-
-), location_country AS (
-
-    SELECT *
-    FROM {{ ref('prep_location_country') }}
-
-), final AS (
-
-    SELECT
-      {{ get_keyed_nulls ('account_prep.dim_parent_crm_account_id') }}                              AS dim_parent_crm_account_id,
-      {{ get_keyed_nulls ('account_prep.dim_crm_account_id') }}                                     AS dim_crm_account_id,
-      {{ get_keyed_nulls ('sales_segment_ultimate_parent.dim_sales_segment_id') }}                  AS dim_parent_sales_segment_id,
-      {{ get_keyed_nulls ('sales_territory_ultimate_parent.dim_sales_territory_id') }}              AS dim_parent_sales_territory_id,
-      {{ get_keyed_nulls ('industry_ultimate_parent.dim_industry_id') }}                            AS dim_parent_industry_id,
-      {{ get_keyed_nulls ('location_country_ultimate_parent.dim_location_country_id::varchar') }}   AS dim_parent_location_country_id,
-      {{ get_keyed_nulls ('location_country_ultimate_parent.dim_location_region_id') }}             AS dim_parent_location_region_id,
-      {{ get_keyed_nulls ('sales_segment.dim_sales_segment_id') }}                                  AS dim_account_sales_segment_id,
-      {{ get_keyed_nulls ('sales_territory.dim_sales_territory_id') }}                              AS dim_account_sales_territory_id,
-      {{ get_keyed_nulls ('industry.dim_industry_id') }}                                            AS dim_account_industry_id,
-      {{ get_keyed_nulls ('location_country.dim_location_country_id::varchar') }}                   AS dim_account_location_country_id,
-      {{ get_keyed_nulls ('location_country.dim_location_region_id') }}                             AS dim_account_location_region_id
-    FROM account_prep
-    LEFT JOIN sales_segment AS sales_segment_ultimate_parent
-      ON account_prep.dim_parent_sales_segment_name_source = sales_segment_ultimate_parent.sales_segment_name
-    LEFT JOIN sales_territory AS sales_territory_ultimate_parent
-      ON account_prep.dim_parent_sales_territory_name_source = sales_territory_ultimate_parent.sales_territory_name
-    LEFT JOIN industry AS industry_ultimate_parent
-      ON account_prep.dim_parent_industry_name_source = industry_ultimate_parent.industry_name
-    LEFT JOIN location_country AS location_country_ultimate_parent
-      ON account_prep.dim_parent_location_country_name_source = location_country_ultimate_parent.country_name
-    LEFT JOIN sales_segment
-      ON account_prep.dim_account_sales_segment_name_source = sales_segment.sales_segment_name
-    LEFT JOIN sales_territory
-      ON account_prep.dim_account_sales_territory_name_source = sales_territory.sales_territory_name
-    LEFT JOIN industry
-      ON account_prep.dim_account_industry_name_source = industry.industry_name
-    LEFT JOIN location_country
-      ON account_prep.dim_account_location_country_name_source = location_country.country_name
-
-)
-
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@snalamaru",
-    updated_by="@pmcooperDD",
-    created_date="2020-11-23",
-    updated_date="2021-03-04"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@snalamaru",
+            updated_by="@pmcooperDD",
+            created_date="2020-11-23",
+            updated_date="2021-03-04",
+        )
+    }}

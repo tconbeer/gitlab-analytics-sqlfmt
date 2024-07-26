@@ -1,35 +1,32 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_quota_assignment_hist") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('xactly', 'xc_quota_assignment_hist') }}
+        select
 
-), renamed AS (
+            amount::float as amount,
+            amount_unit_type_id::float as amount_unit_type_id,
+            assignment_id::float as assignment_id,
+            assignment_name::varchar as assignment_name,
+            assignment_type::float as assignment_type,
+            created_by_id::float as created_by_id,
+            created_by_name::varchar as created_by_name,
+            created_date::varchar as created_date,
+            description::varchar as description,
+            effective_end_period_id::float as effective_end_period_id,
+            effective_start_period_id::float as effective_start_period_id,
+            is_active::varchar as is_active,
+            modified_by_id::float as modified_by_id,
+            modified_by_name::varchar as modified_by_name,
+            modified_date::varchar as modified_date,
+            object_id::float as object_id,
+            period_id::float as period_id,
+            quota_assignment_id::float as quota_assignment_id,
+            quota_id::float as quota_id
 
-    SELECT
+        from source
 
-      amount::FLOAT                         AS amount,
-      amount_unit_type_id::FLOAT            AS amount_unit_type_id,
-      assignment_id::FLOAT                  AS assignment_id,
-      assignment_name::VARCHAR              AS assignment_name,
-      assignment_type::FLOAT                AS assignment_type,
-      created_by_id::FLOAT                  AS created_by_id,
-      created_by_name::VARCHAR              AS created_by_name,
-      created_date::VARCHAR                 AS created_date,
-      description::VARCHAR                  AS description,
-      effective_end_period_id::FLOAT        AS effective_end_period_id,
-      effective_start_period_id::FLOAT      AS effective_start_period_id,
-      is_active::VARCHAR                    AS is_active,
-      modified_by_id::FLOAT                 AS modified_by_id,
-      modified_by_name::VARCHAR             AS modified_by_name,
-      modified_date::VARCHAR                AS modified_date,
-      object_id::FLOAT                      AS object_id,
-      period_id::FLOAT                      AS period_id,
-      quota_assignment_id::FLOAT            AS quota_assignment_id,
-      quota_id::FLOAT                       AS quota_id
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

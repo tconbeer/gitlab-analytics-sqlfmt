@@ -1,22 +1,20 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "referrers") }}),
+    renamed as (
 
-	SELECT *
-  	FROM {{ source('greenhouse', 'referrers') }}
+        select
+            id as referrer_id,
+            name as referrer_name,
+            -- keys
+            organization_id,
+            user_id,
 
-), renamed as (
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-	SELECT  id 											AS referrer_id,
-          name          					AS referrer_name,
-    			--keys
-          organization_id,
-          user_id,
+        from source
 
-          created_at::timestamp 	AS created_at,
-          updated_at::timestamp 	AS updated_at
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,19 +1,19 @@
-    
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_prometheus_alerts_dedupe_source') }}
-  
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_prometheus_alerts_dedupe_source") }}
 
-    SELECT
-      id::NUMBER                                     AS prometheus_alert_id,
-      created_at::TIMESTAMP                           AS created_at,
-      updated_at::TIMESTAMP                           AS updated_at,
-      project_id::NUMBER                             AS project_id
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as prometheus_alert_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            project_id::number as project_id
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

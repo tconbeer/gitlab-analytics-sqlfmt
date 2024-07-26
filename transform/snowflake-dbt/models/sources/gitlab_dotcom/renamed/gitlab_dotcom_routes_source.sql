@@ -1,13 +1,13 @@
-WITH gitlab_dotcom_routes AS (
+with
+    gitlab_dotcom_routes as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_routes_dedupe_source') }}
+        select * from {{ ref("gitlab_dotcom_routes_dedupe_source") }}
 
-)
+    )
 
-SELECT
-  id::NUMBER                    AS route_id,
-  source_id::NUMBER             AS source_id,
-  source_type::VARCHAR          AS source_type,
-  path::VARCHAR                 AS path
-FROM gitlab_dotcom_routes
+select
+    id::number as route_id,
+    source_id::number as source_id,
+    source_type::varchar as source_type,
+    path::varchar as path
+from gitlab_dotcom_routes

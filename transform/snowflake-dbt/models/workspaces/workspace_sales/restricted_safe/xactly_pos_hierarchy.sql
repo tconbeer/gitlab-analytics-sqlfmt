@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("xactly_pos_hierarchy_source") }})
 
-    SELECT *
-    FROM {{ref('xactly_pos_hierarchy_source')}}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

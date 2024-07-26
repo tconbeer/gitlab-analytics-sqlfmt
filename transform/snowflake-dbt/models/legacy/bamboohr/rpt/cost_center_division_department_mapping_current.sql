@@ -1,23 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("employee_directory_intermediate") }}),
+    intermediate as (
 
-    SELECT *
-    FROM {{ ref ('employee_directory_intermediate') }}
+        select distinct
+            cost_center, division, department, count(employee_id) as total_employees
+        from source
+        where date_actual = current_date() and is_termination_date = false
+        group by 1, 2, 3
 
-), intermediate AS (
+    )
 
-
-    SELECT DISTINCT
-    cost_center,
-    division,
-    department,
-    COUNT(employee_id) AS total_employees
-    FROM source
-    WHERE date_actual = CURRENT_DATE()
-      AND is_termination_date = False 
-    GROUP BY 1,2,3
-
-)
-
-SELECT *
-FROM intermediate
-QUALIFY ROW_NUMBER() OVER (PARTITION BY department ORDER BY total_employees DESC) =1
+select *
+from intermediate
+qualify row_number() over (partition by department order by total_employees desc) = 1

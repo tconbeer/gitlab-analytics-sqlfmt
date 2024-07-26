@@ -1,13 +1,11 @@
-{{ config(
-    tags=["mnpi"]
-) }}
+{{ config(tags=["mnpi"]) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('sheetload_manual_arr_true_up_allocation_source') }}
+        select * from {{ ref("sheetload_manual_arr_true_up_allocation_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

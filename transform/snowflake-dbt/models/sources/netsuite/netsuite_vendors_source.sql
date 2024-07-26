@@ -1,34 +1,33 @@
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "vendors") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'vendors') }}
+        select
+            -- Primary Key
+            vendor_id::float as vendor_id,
 
-), renamed AS (
+            -- Foreign Key
+            represents_subsidiary_id::float as subsidiary_id,
+            currency_id::float as currency_id,
 
-    SELECT
-      --Primary Key
-      vendor_id::FLOAT                   AS vendor_id,
+            -- Info
+            companyname::varchar as vendor_name,
+            openbalance::float as vendor_balance,
+            comments::varchar as vendor_comments,
 
-      --Foreign Key
-      represents_subsidiary_id::FLOAT    AS subsidiary_id,
-      currency_id::FLOAT                 AS currency_id,
+            -- Meta
+            is1099eligible::boolean as is_1099_eligible,
+            isinactive::boolean as is_inactive,
+            is_person::boolean as is_person
 
-      --Info
-      companyname::VARCHAR               AS vendor_name,
-      openbalance::FLOAT                 AS vendor_balance,
-      comments::VARCHAR                  AS vendor_comments,
+        from source
+        where lower(_fivetran_deleted) = 'false'
 
-      --Meta
-      is1099eligible::BOOLEAN            AS is_1099_eligible,
-      isinactive::BOOLEAN                AS is_inactive,
-      is_person::BOOLEAN                 AS is_person
+    )
 
-    FROM source
-    WHERE LOWER(_fivetran_deleted) = 'false'
+select *
+from
+    renamed
 
-)
-
-SELECT *
-FROM renamed
-
---We no longer have first and last names for folks who are paid by contracts.
+    -- We no longer have first and last names for folks who are paid by contracts.
+    

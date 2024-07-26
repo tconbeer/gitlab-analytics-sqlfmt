@@ -1,14 +1,6 @@
-{{ config({
-    "materialized": "view"
-    })
-}}
+{{ config({"materialized": "view"}) }}
 
-WITH source AS (
+with source as (select * from {{ ref("license_db_licenses_source") }})
 
-  SELECT *
-  FROM {{ ref('license_db_licenses_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

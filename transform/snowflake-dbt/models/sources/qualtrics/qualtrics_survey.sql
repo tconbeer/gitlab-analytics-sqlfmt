@@ -1,25 +1,26 @@
+with
+    source as (
 
-WITH source AS (
+        select *
+        from {{ source("qualtrics", "survey") }}
+        order by uploaded_at desc
+        limit 1
 
-    SELECT *
-    FROM {{ source('qualtrics', 'survey') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
+    ),
+    intermediate as (
 
-), intermediate AS (
+        select d.value as data_by_row
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-    SELECT d.value as data_by_row
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), outer => true) d
+    ),
+    parsed as (
 
-), parsed AS (
+        select
+            data_by_row['id']::varchar as survey_id,
+            data_by_row['name']::varchar as survey_name
+        from intermediate
+        where data_by_row is not null
 
-    SELECT 
-      data_by_row['id']::VARCHAR    AS survey_id,
-      data_by_row['name']::VARCHAR  AS survey_name
-    FROM intermediate
-    WHERE data_by_row IS NOT NULL
-
-)
-SELECT *
-FROM parsed
+    )
+select *
+from parsed

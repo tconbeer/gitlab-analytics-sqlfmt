@@ -1,26 +1,27 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_project_statistics_dedupe_source') }}
-  
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_project_statistics_dedupe_source") }}
 
-  SELECT
-    id::NUMBER                                     AS project_statistics_id,
-    project_id::NUMBER                             AS project_id,
-    namespace_id::NUMBER                           AS namespace_id,
-    commit_count::NUMBER                           AS commit_count,
-    storage_size::NUMBER                           AS storage_size,
-    repository_size::NUMBER                        AS repository_size,
-    lfs_objects_size::NUMBER                       AS lfs_objects_size,
-    build_artifacts_size::NUMBER                   AS build_artifacts_size,
-    packages_size::NUMBER                          AS packages_size,
-    wiki_size::NUMBER                              AS wiki_size,
-    shared_runners_seconds::NUMBER                 AS shared_runners_seconds,
-    shared_runners_seconds_last_reset::TIMESTAMP    AS last_update_started_at
-  FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as project_statistics_id,
+            project_id::number as project_id,
+            namespace_id::number as namespace_id,
+            commit_count::number as commit_count,
+            storage_size::number as storage_size,
+            repository_size::number as repository_size,
+            lfs_objects_size::number as lfs_objects_size,
+            build_artifacts_size::number as build_artifacts_size,
+            packages_size::number as packages_size,
+            wiki_size::number as wiki_size,
+            shared_runners_seconds::number as shared_runners_seconds,
+            shared_runners_seconds_last_reset::timestamp as last_update_started_at
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

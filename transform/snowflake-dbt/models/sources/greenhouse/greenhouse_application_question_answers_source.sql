@@ -1,26 +1,27 @@
-WITH source as (
+with
+    source as (
 
-    SELECT *
-        FROM {{ source('greenhouse', 'application_question_answers') }}
+        select * from {{ source("greenhouse", "application_question_answers") }}
 
-), renamed as (
+    ),
+    renamed as (
 
-    SELECT
+        select
 
-            --keys
-            job_post_id::NUMBER          AS job_post_id,
-            application_id::NUMBER       AS application_id,
+            -- keys
+            job_post_id::number as job_post_id,
+            application_id::number as application_id,
 
-            --info
-            question::varchar            AS application_question,
-            answer::varchar              AS application_answer,
+            -- info
+            question::varchar as application_question,
+            answer::varchar as application_answer,
 
-            created_at::timestamp        AS application_question_answer_created_at,
-            updated_at::timestamp        AS application_question_answer_updated_at
+            created_at::timestamp as application_question_answer_created_at,
+            updated_at::timestamp as application_question_answer_updated_at
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

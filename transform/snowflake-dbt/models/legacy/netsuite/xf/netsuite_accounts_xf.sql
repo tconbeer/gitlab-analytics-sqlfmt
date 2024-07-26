@@ -1,38 +1,44 @@
-WITH base_accounts AS (
+with
+    base_accounts as (
 
-    SELECT *
-    FROM {{ ref('netsuite_accounts_source') }}
-    WHERE account_number IS NOT NULL
+        select *
+        from {{ ref("netsuite_accounts_source") }}
+        where account_number is not null
 
-), ultimate_account AS (
+    ),
+    ultimate_account as (
 
-    SELECT
-      a.account_id,
-      a.account_number,
-      CASE WHEN a.parent_account_id IS NOT NULL THEN a.parent_account_id
-           ELSE a.account_id
-      END                                           AS parent_account_id,
-      CASE WHEN b.account_number IS NOT NULL THEN b.account_number
-           ELSE a.account_number
-      END                                           AS parent_account_number,
-      CASE WHEN b.account_number IS NOT NULL
-           THEN b.account_number || ' - ' || a.account_number
-           ELSE a.account_number
-      END                                           AS unique_account_number,
-      a.currency_id,
-      a.account_name,
-      a.account_full_name,
-      a.account_full_description,
-      a.account_type,
-      a.general_rate_type,
-      a.is_account_inactive,
-      a.is_balancesheet_account,
-      a.is_leftside_account
-    FROM base_accounts a
-    LEFT JOIN base_accounts b
-      ON a.parent_account_id = b.account_id
+        select
+            a.account_id,
+            a.account_number,
+            case
+                when a.parent_account_id is not null
+                then a.parent_account_id
+                else a.account_id
+            end as parent_account_id,
+            case
+                when b.account_number is not null
+                then b.account_number
+                else a.account_number
+            end as parent_account_number,
+            case
+                when b.account_number is not null
+                then b.account_number || ' - ' || a.account_number
+                else a.account_number
+            end as unique_account_number,
+            a.currency_id,
+            a.account_name,
+            a.account_full_name,
+            a.account_full_description,
+            a.account_type,
+            a.general_rate_type,
+            a.is_account_inactive,
+            a.is_balancesheet_account,
+            a.is_leftside_account
+        from base_accounts a
+        left join base_accounts b on a.parent_account_id = b.account_id
 
-)
+    )
 
-SELECT *
-FROM ultimate_account
+select *
+from ultimate_account

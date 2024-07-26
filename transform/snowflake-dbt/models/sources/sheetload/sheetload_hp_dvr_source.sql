@@ -1,8 +1,1 @@
-WITH source AS (
-    
-    SELECT * 
-    FROM {{ source('sheetload','hp_dvr') }}
-)
-
-SELECT *
-FROM source
+with source as (select * from {{ source("sheetload", "hp_dvr") }}) select * from source

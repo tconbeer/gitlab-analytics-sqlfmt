@@ -1,9 +1,1 @@
-WITH source AS (
-
-    SELECT *
-    FROM {{ ref('sfdc_record_type_source') }}
-
-)
-
-SELECT *
-FROM source
+with source as (select * from {{ ref("sfdc_record_type_source") }}) select * from source

@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("dbt_source_test_results_source") }})
 
-    SELECT *
-    FROM {{ ref('dbt_source_test_results_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

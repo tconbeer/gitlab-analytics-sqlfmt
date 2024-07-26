@@ -1,38 +1,36 @@
-{{ config({
-    "alias": "gitlab_dotcom_members_snapshots"
-    })
-}}
+{{ config({"alias": "gitlab_dotcom_members_snapshots"}) }}
 
-WITH source AS (
+with
+    source as (
 
-	SELECT *
-  FROM {{ source('snapshots', 'gitlab_dotcom_members_snapshots') }}
+        select * from {{ source("snapshots", "gitlab_dotcom_members_snapshots") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-  SELECT
-  
-    dbt_scd_id::VARCHAR                            AS member_snapshot_id,
-    id::NUMBER                                    AS member_id,
-    access_level::NUMBER                          AS access_level,
-    source_id::NUMBER                             AS source_id,
-    source_type                                    AS member_source_type,
-    user_id::NUMBER                               AS user_id,
-    notification_level::NUMBER                    AS notification_level,
-    type                                           AS member_type,
-    created_at::TIMESTAMP                          AS invite_created_at,
-    created_by_id::NUMBER                         AS created_by_id,
-    invite_accepted_at::TIMESTAMP                  AS invite_accepted_at,
-    requested_at::TIMESTAMP                        AS requested_at,
-    expires_at::TIMESTAMP                          AS expires_at,
-    ldap::BOOLEAN                                  AS has_ldap,
-    override::BOOLEAN                              AS has_override,
-    "DBT_VALID_FROM"::TIMESTAMP                    AS valid_from,
-    "DBT_VALID_TO"::TIMESTAMP                      AS valid_to
+        select
 
-  FROM source
+            dbt_scd_id::varchar as member_snapshot_id,
+            id::number as member_id,
+            access_level::number as access_level,
+            source_id::number as source_id,
+            source_type as member_source_type,
+            user_id::number as user_id,
+            notification_level::number as notification_level,
+            type as member_type,
+            created_at::timestamp as invite_created_at,
+            created_by_id::number as created_by_id,
+            invite_accepted_at::timestamp as invite_accepted_at,
+            requested_at::timestamp as requested_at,
+            expires_at::timestamp as expires_at,
+            ldap::boolean as has_ldap,
+            override::boolean as has_override,
+            "DBT_VALID_FROM"::timestamp as valid_from,
+            "DBT_VALID_TO"::timestamp as valid_to
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

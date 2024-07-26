@@ -1,45 +1,42 @@
-{%- macro schema_union_all(schema_part, table_name, exclude_part='scratch', database_name=none) -%}
+{%- macro schema_union_all(
+    schema_part, table_name, exclude_part="scratch", database_name=none
+) -%}
 
- {% if database_name is not none %}
+    {% if database_name is not none %} {% set database = database_name %}
 
-    {% set database = database_name %}
+    {% else %} {% set database = target.database %}
 
- {% else %}
+    {% endif %}
 
-    {% set database = target.database %}
+    {% call statement("get_schemata", fetch_result=True) %}
 
- {% endif %}
+        select distinct '"' || table_schema || '"."' || table_name || '"'
+        from "{{ database }}".information_schema.tables
+        where
+            table_schema ilike '%{{ schema_part }}%'
+            and table_schema not ilike '%{{ exclude_part }}%'
+            and table_name ilike '{{ table_name }}'
+        order by 1
 
- {% call statement('get_schemata', fetch_result=True) %}
+    {%- endcall -%}
 
-    SELECT DISTINCT '"' || table_schema || '"."' || table_name || '"'
-    FROM "{{ database }}".information_schema.tables
-    WHERE table_schema ILIKE '%{{ schema_part }}%'
-      AND table_schema NOT ILIKE '%{{ exclude_part }}%'
-      AND table_name ILIKE '{{ table_name }}'
-    ORDER BY 1
+    {%- set value_list = load_result("get_schemata") -%}
 
-  {%- endcall -%}
+    {%- if value_list and value_list["data"] -%}
 
-    {%- set value_list = load_result('get_schemata') -%}
+        {%- set values = value_list["data"] | map(attribute=0) | list %}
 
-    {%- if value_list and value_list['data'] -%}
-
-        {%- set values = value_list['data'] | map(attribute=0) | list %}
-
-            {% for schematable in values %}
-                SELECT *
-                FROM "{{ database }}".{{ schematable }}
+        {% for schematable in values %}
+            select *
+            from "{{ database }}".{{ schematable }}
 
             {%- if not loop.last %}
-                UNION ALL
+                union all
             {% endif -%}
 
-            {% endfor -%}
+        {% endfor -%}
 
-    {%- else -%}
-
-        {{ return(1) }}
+    {%- else -%} {{ return(1) }}
 
     {%- endif %}
 

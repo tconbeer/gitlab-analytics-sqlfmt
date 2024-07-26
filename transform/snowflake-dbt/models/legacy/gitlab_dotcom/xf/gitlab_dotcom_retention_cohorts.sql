@@ -1,41 +1,41 @@
-{{ config({
-    "schema": "legacy"
-    })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH users AS (
+with
+    users as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_users') }} users
-  WHERE {{ filter_out_blocked_users('users', 'user_id') }}
+        select *
+        from {{ ref("gitlab_dotcom_users") }} users
+        where {{ filter_out_blocked_users("users", "user_id") }}
 
-), cohorting AS (
+    ),
+    cohorting as (
 
-  SELECT user_id,
-         created_at::DATE                                               AS cohort_date,
-         TIMESTAMPDIFF(MONTHS, created_at,last_activity_on)         AS period
-  FROM users
+        select
+            user_id,
+            created_at::date as cohort_date,
+            timestampdiff(months, created_at, last_activity_on) as period
+        from users
 
-), joined AS (
+    ),
+    joined as (
 
-  SELECT DATE_TRUNC('month', cohorting.cohort_date)                     AS cohort_date,
-         cohorting.period,
-         COUNT(DISTINCT cohorting.user_id)                              AS active_in_period_distinct_count,
-         COUNT(DISTINCT base_cohort.user_id)                            AS base_cohort_count,
-         active_in_period_distinct_count/base_cohort_count :: FLOAT     AS retention
+        select
+            date_trunc('month', cohorting.cohort_date) as cohort_date,
+            cohorting.period,
+            count(distinct cohorting.user_id) as active_in_period_distinct_count,
+            count(distinct base_cohort.user_id) as base_cohort_count,
+            active_in_period_distinct_count / base_cohort_count::float as retention
 
-  FROM cohorting
-  JOIN cohorting AS base_cohort
-    ON cohorting.cohort_date = base_cohort.cohort_date
-  AND base_cohort.period = 0
-  WHERE cohorting.period IS NOT NULL
-    AND cohorting.period >= 0
-  GROUP BY 1, 2
-  ORDER BY cohort_date DESC
+        from cohorting
+        join
+            cohorting as base_cohort
+            on cohorting.cohort_date = base_cohort.cohort_date
+            and base_cohort.period = 0
+        where cohorting.period is not null and cohorting.period >= 0
+        group by 1, 2
+        order by cohort_date desc
 
-)
+    )
 
-SELECT
-  md5(cohort_date || period)                                       AS cohort_key,
-  *
-FROM joined
+select md5(cohort_date || period) as cohort_key, *
+from joined

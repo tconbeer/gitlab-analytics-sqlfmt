@@ -1,19 +1,16 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "hire_forecast") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ source('sheetload', 'hire_forecast') }}
+        select
+            function::varchar as function,
+            department::varchar as department,
+            month_year::date as month_year,
+            try_to_number(forecast) as forecast
+        from source
 
-), renamed AS (
+    )
 
-  SELECT 
-    function::VARCHAR       AS function,
-    department::VARCHAR     AS department,
-    month_year::DATE        AS month_year,
-    TRY_TO_NUMBER(forecast) AS forecast
-  FROM source
-
-)
-
-SELECT *
-FROM renamed
-WHERE forecast IS NOT NULL
+select *
+from renamed
+where forecast is not null

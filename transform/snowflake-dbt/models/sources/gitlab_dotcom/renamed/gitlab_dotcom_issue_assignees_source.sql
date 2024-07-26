@@ -1,20 +1,19 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT DISTINCT
-    user_id,
-    issue_id
-  FROM {{ source('gitlab_dotcom', 'issue_assignees') }}
+        select distinct user_id, issue_id
+        from {{ source("gitlab_dotcom", "issue_assignees") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      md5(user_id || issue_id)::VARCHAR AS user_issue_relation_id,
-      user_id::NUMBER                  AS user_id,
-      issue_id::NUMBER                 AS issue_id
-    FROM source
+        select
+            md5(user_id || issue_id)::varchar as user_issue_relation_id,
+            user_id::number as user_id,
+            issue_id::number as issue_id
+        from source
 
+    )
 
-)
-
-SELECT DISTINCT *
-FROM renamed
+select distinct *
+from renamed

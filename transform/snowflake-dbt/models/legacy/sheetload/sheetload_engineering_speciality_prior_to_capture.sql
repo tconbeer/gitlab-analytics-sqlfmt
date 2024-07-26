@@ -1,13 +1,14 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('sheetload_engineering_speciality_prior_to_capture_source') }}
+        select *
+        from {{ ref("sheetload_engineering_speciality_prior_to_capture_source") }}
 
-)
+    )
 
-SELECT 
-  employee_id, 
-  speciality, 
-  start_date                 AS speciality_start_date,
-  DATEADD('day',-1,end_date) AS speciality_end_date
-FROM source
+select
+    employee_id,
+    speciality,
+    start_date as speciality_start_date,
+    dateadd('day', -1, end_date) as speciality_end_date
+from source

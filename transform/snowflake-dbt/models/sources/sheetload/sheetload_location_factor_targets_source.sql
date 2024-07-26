@@ -1,16 +1,12 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "location_factor_targets") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'location_factor_targets') }}
+        select
+            department::varchar as department, target::float as location_factor_target
+        from source
 
-), renamed AS (
+    )
 
-    SELECT 
-      department::VARCHAR AS department,
-      target::FLOAT       AS location_factor_target
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

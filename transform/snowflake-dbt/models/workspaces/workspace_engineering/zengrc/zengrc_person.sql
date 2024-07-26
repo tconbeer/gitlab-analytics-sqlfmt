@@ -1,66 +1,73 @@
-{{ simple_cte([
-    ('audits','zengrc_audit_source'),
-    ('assessments','zengrc_assessment_source'),
-    ('requests','zengrc_request_source')
-])}}
+{{
+    simple_cte(
+        [
+            ("audits", "zengrc_audit_source"),
+            ("assessments", "zengrc_assessment_source"),
+            ("requests", "zengrc_request_source"),
+        ]
+    )
+}},
+audit_managers as (
 
-, audit_managers AS (
+    select distinct
+        audut_manager.value['id']::number as person_id,
+        audut_manager.value['name']::varchar as person_name,
+        audut_manager.value['type']::varchar as zengrc_type
+    from audits
+    inner join
+        lateral flatten(input => try_parse_json(audits.audit_managers)) audut_manager
 
-    SELECT DISTINCT
-      audut_manager.value['id']::NUMBER    AS person_id,
-      audut_manager.value['name']::VARCHAR AS person_name,
-      audut_manager.value['type']::VARCHAR AS zengrc_type
-    FROM audits
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(audits.audit_managers)) audut_manager
+),
+assessors as (
 
-), assessors AS (
+    select distinct
+        assessors.value['id']::number as person_id,
+        assessors.value['name']::varchar as person_name,
+        assessors.value['type']::varchar as zengrc_type
+    from assessments
+    inner join lateral flatten(input => try_parse_json(assessments.assessors)) assessors
 
-    SELECT DISTINCT
-      assessors.value['id']::NUMBER    AS person_id,
-      assessors.value['name']::VARCHAR AS person_name,
-      assessors.value['type']::VARCHAR AS zengrc_type
-    FROM assessments
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(assessments.assessors)) assessors
+),
+assignees as (
 
-), assignees AS (
+    select distinct
+        assignees.value['id']::number as person_id,
+        assignees.value['name']::varchar as person_name,
+        assignees.value['type']::varchar as zengrc_type
+    from requests
+    inner join lateral flatten(input => try_parse_json(requests.assignees)) assignees
 
-    SELECT DISTINCT
-      assignees.value['id']::NUMBER    AS person_id,
-      assignees.value['name']::VARCHAR AS person_name,
-      assignees.value['type']::VARCHAR AS zengrc_type
-    FROM requests
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(requests.assignees)) assignees
+),
+requestors as (
 
-), requestors AS (
+    select distinct
+        requestors.value['id']::number as person_id,
+        requestors.value['name']::varchar as person_name,
+        requestors.value['type']::varchar as zengrc_type
+    from requests
+    inner join lateral flatten(input => try_parse_json(requests.requestors)) requestors
 
-    SELECT DISTINCT
-      requestors.value['id']::NUMBER    AS person_id,
-      requestors.value['name']::VARCHAR AS person_name,
-      requestors.value['type']::VARCHAR AS zengrc_type
-    FROM requests
-    INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(requests.requestors)) requestors
+),
+unioned as (
 
-), unioned AS (
+    select *
+    from audit_managers
 
-    SELECT *
-    FROM audit_managers
+    union
 
-    UNION
+    select *
+    from assessors
 
-    SELECT *
-    FROM assessors
+    union
 
-    UNION
+    select *
+    from assignees
 
-    SELECT *
-    FROM assignees
+    union
 
-    UNION
-
-    SELECT *
-    FROM requestors
+    select *
+    from requestors
 )
 
-SELECT
-  *
-FROM unioned
+select *
+from unioned

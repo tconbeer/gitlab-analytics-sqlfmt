@@ -1,20 +1,19 @@
-{{ config({
-    "materialized": "view"
-    })
-}}
+{{ config({"materialized": "view"}) }}
 
-WITH handbook_categories AS (
+with
+    handbook_categories as (
 
-    SELECT *
-    FROM {{ ref('category_handbook_merge_requests') }}
+        select * from {{ ref("category_handbook_merge_requests") }}
 
-), filtered_to_engineering AS (
+    ),
+    filtered_to_engineering as (
 
-    SELECT *
-    FROM handbook_categories
-    WHERE ARRAY_CONTAINS('engineering'::VARIANT, merge_request_department_list) 
-      OR ARRAY_CONTAINS('support'::VARIANT, merge_request_department_list)
+        select *
+        from handbook_categories
+        where
+            array_contains('engineering'::variant, merge_request_department_list)
+            or array_contains('support'::variant, merge_request_department_list)
 
-)
-SELECT *
-FROM filtered_to_engineering
+    )
+select *
+from filtered_to_engineering

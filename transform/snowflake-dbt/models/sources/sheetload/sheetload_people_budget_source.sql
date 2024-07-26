@@ -1,21 +1,17 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "people_budget") }}),
+    renamed as (
 
-    SELECT * 
-    FROM {{ source('sheetload','people_budget') }}
-    
-), renamed AS (
+        select
+            "DIVISION"::varchar as division,
+            "FISCAL_YEAR"::number as fiscal_year,
+            "QUARTER"::number as fiscal_quarter,
+            "BUDGET"::number as budget,
+            "EXCESS_FROM_PREVIOUS_QUARTER"::number as excess_from_previous_quarter,
+            "ANNUAL_COMP_REVIEW"::number as annual_comp_review
+        from source
 
-    SELECT
-      "DIVISION"::VARCHAR                                  AS division,
-      "FISCAL_YEAR"::NUMBER                                AS fiscal_year,
-      "QUARTER"::NUMBER                                    AS fiscal_quarter,
-      "BUDGET"::NUMBER                                     AS budget,
-      "EXCESS_FROM_PREVIOUS_QUARTER"::NUMBER               AS excess_from_previous_quarter,
-      "ANNUAL_COMP_REVIEW"::NUMBER                         AS annual_comp_review
-    FROM source
- 
-)
+    )
 
-SELECT *
-FROM renamed
-
+select *
+from renamed

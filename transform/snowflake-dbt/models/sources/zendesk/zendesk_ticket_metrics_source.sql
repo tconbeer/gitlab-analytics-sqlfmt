@@ -1,48 +1,56 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zendesk", "ticket_metrics") }}),
 
-    SELECT *
-    FROM {{ source('zendesk', 'ticket_metrics') }}
+    renamed as (
 
-),
+        select
 
-renamed AS (
+            -- ids
+            id as ticket_metrics_id,
+            ticket_id,
 
-    SELECT
+            -- fields
+            agent_wait_time_in_minutes__business::float
+            as agent_wait_time_in_minutes_business_hours,
+            agent_wait_time_in_minutes__calendar::float
+            as agent_wait_time_in_minutes_calendar_hours,
+            first_resolution_time_in_minutes__business::float
+            as first_resolution_time_in_minutes_during_business_hours,
+            first_resolution_time_in_minutes__calendar::float
+            as first_resolution_time_in_minutes_during_calendar_hours,
+            full_resolution_time_in_minutes__business::float
+            as full_resolution_time_in_minutes_during_business_hours,
+            full_resolution_time_in_minutes__calendar::float
+            as full_resolution_time_in_minutes_during_calendar_hours,
+            on_hold_time_in_minutes__business::float
+            as on_hold_time_in_minutes_during_business_hours,
+            on_hold_time_in_minutes__calendar::float
+            as on_hold_time_in_minutes_during_calendar_hours,
+            reopens,
+            replies as total_replies,
+            reply_time_in_minutes__business::float
+            as reply_time_in_minutes_during_business_hours,
+            reply_time_in_minutes__calendar::float
+            as reply_time_in_minutes_during_calendar_hours,
+            requester_wait_time_in_minutes__business::float
+            as requester_wait_time_in_minutes_during_business_hours,
+            requester_wait_time_in_minutes__calendar::float
+            as requester_wait_time_in_minutes_during_calendar_hours,
+            assignee_stations as assignee_station_number,
+            group_stations as group_station_number,
 
-        --ids
-        id                                                  AS ticket_metrics_id,
-        ticket_id,
+            -- dates
+            created_at,
+            assigned_at,
+            initially_assigned_at,
+            latest_comment_added_at,
+            solved_at,
+            updated_at,
+            assignee_updated_at
 
-        --fields
-        agent_wait_time_in_minutes__business::FLOAT       AS agent_wait_time_in_minutes_business_hours,
-        agent_wait_time_in_minutes__calendar::FLOAT       AS agent_wait_time_in_minutes_calendar_hours,
-        first_resolution_time_in_minutes__business::FLOAT AS first_resolution_time_in_minutes_during_business_hours,
-        first_resolution_time_in_minutes__calendar::FLOAT AS first_resolution_time_in_minutes_during_calendar_hours,
-        full_resolution_time_in_minutes__business::FLOAT  AS full_resolution_time_in_minutes_during_business_hours,
-        full_resolution_time_in_minutes__calendar::FLOAT  AS full_resolution_time_in_minutes_during_calendar_hours,
-        on_hold_time_in_minutes__business::FLOAT          AS on_hold_time_in_minutes_during_business_hours,
-        on_hold_time_in_minutes__calendar::FLOAT          AS on_hold_time_in_minutes_during_calendar_hours,
-        reopens,
-        replies                                             AS total_replies,
-        reply_time_in_minutes__business::FLOAT            AS reply_time_in_minutes_during_business_hours,
-        reply_time_in_minutes__calendar::FLOAT            AS reply_time_in_minutes_during_calendar_hours,
-        requester_wait_time_in_minutes__business::FLOAT   AS requester_wait_time_in_minutes_during_business_hours,
-        requester_wait_time_in_minutes__calendar::FLOAT   AS requester_wait_time_in_minutes_during_calendar_hours,
-        assignee_stations                                   AS assignee_station_number,
-        group_stations                                      AS group_station_number,
+        from source
 
-        --dates
-        created_at,
-        assigned_at,
-        initially_assigned_at,
-        latest_comment_added_at,
-        solved_at,
-        updated_at,
-        assignee_updated_at
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

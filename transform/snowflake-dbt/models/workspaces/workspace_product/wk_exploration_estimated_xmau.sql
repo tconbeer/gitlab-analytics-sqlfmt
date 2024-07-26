@@ -1,69 +1,91 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-{{ simple_cte([
-    ('mart_monthly_product_usage','mart_monthly_product_usage'),
-    ('mart_usage_ping_counters_statistics','mart_usage_ping_counters_statistics'),
-    ('dim_gitlab_releases','dim_gitlab_releases'),
-    ('mart_paid_subscriptions_monthly_usage_ping_optin','mart_paid_subscriptions_monthly_usage_ping_optin'),
-    ('wk_usage_ping_monthly_events_distribution_by_version','wk_usage_ping_monthly_events_distribution_by_version')
-]) }}
+{{
+    simple_cte(
+        [
+            ("mart_monthly_product_usage", "mart_monthly_product_usage"),
+            (
+                "mart_usage_ping_counters_statistics",
+                "mart_usage_ping_counters_statistics",
+            ),
+            ("dim_gitlab_releases", "dim_gitlab_releases"),
+            (
+                "mart_paid_subscriptions_monthly_usage_ping_optin",
+                "mart_paid_subscriptions_monthly_usage_ping_optin",
+            ),
+            (
+                "wk_usage_ping_monthly_events_distribution_by_version",
+                "wk_usage_ping_monthly_events_distribution_by_version",
+            ),
+        ]
+    )
+}},
+cte_joined as (
 
-, cte_joined AS (
+    select
+        reporting_month,
+        stage_name,
+        iff(
+            main_edition = 'CE',
+            main_edition,
+            iff(ping_product_tier = 'Core', 'EE - Core', 'EE - Paid')
+        ) as reworked_main_edition,
+        datediff(
+            'month', date_trunc('month', release_date), reporting_month
+        ) as months_since_release,
+        sum(monthly_metric_value) as month_metric_value_sum
+    from mart_monthly_product_usage
+    left join
+        mart_usage_ping_counters_statistics
+        on mart_monthly_product_usage.main_edition
+        = mart_usage_ping_counters_statistics.edition
+        and mart_monthly_product_usage.metrics_path
+        = mart_usage_ping_counters_statistics.metrics_path
+    left join
+        dim_gitlab_releases
+        on dim_gitlab_releases.major_minor_version
+        = mart_usage_ping_counters_statistics.first_version_with_counter
+    where is_smau = true and delivery = 'Self-Managed'
+    group by 1, 2, 3, 4
 
-    SELECT 
-      reporting_month, 
-      stage_name,
-      IFF(main_edition='CE', main_edition, IFF(ping_product_tier = 'Core', 'EE - Core', 'EE - Paid')) AS reworked_main_edition,
-      DATEDIFF('month', DATE_TRUNC('month', release_date), reporting_month) AS months_since_release, 
-      SUM(monthly_metric_value) AS month_metric_value_sum
-    FROM mart_monthly_product_usage
-    LEFT JOIN mart_usage_ping_counters_statistics
-      ON mart_monthly_product_usage.main_edition = mart_usage_ping_counters_statistics.edition
-      AND mart_monthly_product_usage.metrics_path = mart_usage_ping_counters_statistics.metrics_path
-    LEFT JOIN dim_gitlab_releases
-      ON dim_gitlab_releases.major_minor_version = mart_usage_ping_counters_statistics.first_version_with_counter
-    WHERE is_smau = TRUE
-      AND delivery = 'Self-Managed'
-    GROUP BY 1,2,3,4
-  
-), pct_of_instances AS (
+),
+pct_of_instances as (
 
-    SELECT 
-      cte_joined.reporting_month, 
-      month_metric_value_sum, 
-      stage_name,
-      cte_joined.reworked_main_edition,
-      SUM(CASE WHEN distrib.months_since_release <= cte_joined.months_since_release THEN total_counts END) / SUM(total_counts) AS pct_of_instances
-    FROM cte_joined
-    LEFT JOIN wk_usage_ping_monthly_events_distribution_by_version  AS distrib 
-      ON cte_joined.reporting_month = distrib.reporting_month
-        AND distrib.reworked_main_edition = cte_joined.reworked_main_edition
-    GROUP BY 1,2,3,4
-      
-), averaged AS (
-  
-    SELECT *
-    FROM pct_of_instances
+    select
+        cte_joined.reporting_month,
+        month_metric_value_sum,
+        stage_name,
+        cte_joined.reworked_main_edition,
+        sum(
+            case
+                when distrib.months_since_release <= cte_joined.months_since_release
+                then total_counts
+            end
+        )
+        / sum(total_counts) as pct_of_instances
+    from cte_joined
+    left join
+        wk_usage_ping_monthly_events_distribution_by_version as distrib
+        on cte_joined.reporting_month = distrib.reporting_month
+        and distrib.reworked_main_edition = cte_joined.reworked_main_edition
+    group by 1, 2, 3, 4
 
-), opt_in_rate AS (
-  
-  SELECT 
-    reporting_month,
-    AVG(has_sent_payloads::INTEGER) AS opt_in_rate
-  FROM mart_paid_subscriptions_monthly_usage_ping_optin
-  GROUP BY 1 
+),
+averaged as (select * from pct_of_instances),
+opt_in_rate as (
+
+    select reporting_month, avg(has_sent_payloads::integer) as opt_in_rate
+    from mart_paid_subscriptions_monthly_usage_ping_optin
+    group by 1
 )
 
-SELECT 
-  pct_of_instances.reporting_month::DATE AS reporting_month,
-  stage_name,
-  reworked_main_edition,
-  IFF(reworked_main_edition = 'CE', 'CE', 'EE') AS main_edition,
-  pct_of_instances,
-  month_metric_value_sum,
-  month_metric_value_sum / pct_of_instances / opt_in_rate AS estimated_xmau
-FROM pct_of_instances
-LEFT JOIN opt_in_rate
-  ON pct_of_instances.reporting_month = opt_in_rate.reporting_month
+select
+    pct_of_instances.reporting_month::date as reporting_month,
+    stage_name,
+    reworked_main_edition,
+    iff(reworked_main_edition = 'CE', 'CE', 'EE') as main_edition,
+    pct_of_instances,
+    month_metric_value_sum,
+    month_metric_value_sum / pct_of_instances / opt_in_rate as estimated_xmau
+from pct_of_instances
+left join opt_in_rate on pct_of_instances.reporting_month = opt_in_rate.reporting_month

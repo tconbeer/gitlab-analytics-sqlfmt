@@ -1,15 +1,6 @@
-{{config({
-    "materialized": "view",
-    "unique_key":"event_id"
-  })
-}}
+{{ config({"materialized": "view", "unique_key": "event_id"}) }}
 
-WITH source AS (
-    
-    SELECT *
-    FROM {{ ref("snowplow_duplicate_events_source") }}
+with source as (select * from {{ ref("snowplow_duplicate_events_source") }})
 
-)
-
-SELECT *
-FROM source
+select *
+from source

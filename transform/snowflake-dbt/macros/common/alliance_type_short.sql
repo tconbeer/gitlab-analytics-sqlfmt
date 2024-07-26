@@ -1,14 +1,14 @@
 {%- macro alliance_type_short(fulfillment_partner_name, fulfillment_partner) -%}
 
-CASE
-  WHEN LOWER({{ fulfillment_partner_name }}) LIKE '%google%'
-    THEN 'GCP'
-  WHEN LOWER({{ fulfillment_partner_name }}) LIKE ANY ('%aws%', '%amazon%')
-    THEN 'AWS'
-  WHEN LOWER({{ fulfillment_partner_name }}) LIKE '%ibm (oem)%'
-    THEN 'IBM'
-  WHEN {{ fulfillment_partner }} IS NOT NULL
-    THEN 'Non-Alliance'
-END  AS alliance_type_short
+    case
+        when lower({{ fulfillment_partner_name }}) like '%google%'
+        then 'GCP'
+        when lower({{ fulfillment_partner_name }}) like any ('%aws%', '%amazon%')
+        then 'AWS'
+        when lower({{ fulfillment_partner_name }}) like '%ibm (oem)%'
+        then 'IBM'
+        when {{ fulfillment_partner }} is not null
+        then 'Non-Alliance'
+    end as alliance_type_short
 
 {%- endmacro -%}

@@ -1,35 +1,31 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "candidate_surveys") }}),
+    renamed as (
 
-    SELECT *
+        select
 
-      FROM {{ source('greenhouse', 'candidate_surveys') }}
+            -- keys
+            id::number as candidate_survey_id,
+            organization_id::number as organization_id,
+            department_id::number as department_id,
+            office_id::number as office_id,
 
-), renamed as (
+            -- info
+            department_name::varchar as department_name,
+            office_name::varchar as office_name,
+            question_1::varchar as candidate_survey_question_1,
+            question_2::varchar as candidate_survey_question_2,
+            question_3::varchar as candidate_survey_question_3,
+            question_4::varchar as candidate_survey_question_4,
+            question_5::varchar as candidate_survey_question_5,
+            question_6::varchar as candidate_survey_question_6,
+            question_7::varchar as candidate_survey_question_7,
+            question_8::varchar as candidate_survey_question_8,
+            submitted_at::timestamp as candidate_survey_submitted_at
 
-    SELECT
+        from source
 
-    		--keys
-    		id::NUMBER 					      AS candidate_survey_id,
-    		organization_id::NUMBER	  AS organization_id,
-    		department_id::NUMBER     AS department_id,
-    		office_id::NUMBER			    AS office_id,
+    )
 
-   			--info
-    		department_name::varchar	AS department_name,
-    		office_name::varchar		  AS office_name,
-    		question_1::varchar			  AS candidate_survey_question_1,
-    		question_2::varchar			  AS candidate_survey_question_2,
-    		question_3::varchar			  AS candidate_survey_question_3,
-    		question_4::varchar			  AS candidate_survey_question_4,
-    		question_5::varchar			  AS candidate_survey_question_5,
-    		question_6::varchar			  AS candidate_survey_question_6,
-    		question_7::varchar			  AS candidate_survey_question_7,
-    		question_8::varchar			  AS candidate_survey_question_8,
-     		submitted_at::timestamp 	AS candidate_survey_submitted_at
-
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

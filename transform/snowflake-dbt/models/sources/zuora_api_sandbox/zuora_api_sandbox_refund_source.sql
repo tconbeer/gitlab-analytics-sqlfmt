@@ -1,55 +1,52 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_api_sandbox", "refund") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_api_sandbox', 'refund') }}
+        select
+            -- Primary Keys
+            refundnumber::varchar as refund_number,
+            id::varchar as refund_id,
 
-), renamed AS (
+            -- Foreign Keys
+            accountid::varchar as account_id,
+            parentaccountid::varchar as parent_account_id,
 
-    SELECT
-      --Primary Keys
-      refundnumber::VARCHAR                  AS refund_number,
-      id::VARCHAR                            AS refund_id,
+            -- Info
+            accountingcode::varchar as accounting_code,
+            amount::float as refund_amount,
+            billtocontactid::varchar as bill_to_contact_id,
+            -- cancelledon::TIMESTAMP_TZ              AS cancelled_on,
+            comment::varchar as comment,
+            createdbyid::varchar as created_by_id,
+            createddate::timestamp_tz as created_date,
+            defaultpaymentmethodid::varchar as default_payment_method_id,
+            gateway::varchar as gateway,
+            gatewayresponse::varchar as gateway_response,
+            gatewayresponsecode::varchar as gateway_response_code,
+            gatewaystate::varchar as gateway_state,
+            methodtype::varchar as method_type,
+            paymentmethodid::varchar as payment_method_id,
+            paymentmethodsnapshotid::varchar as payment_method_snapshot_id,
+            reasoncode::varchar as reason_code,
+            referenceid::varchar as reference_id,
+            refunddate::timestamp_tz as refund_date,
+            refundtransactiontime::timestamp_tz as refund_transaction_time,
+            secondrefundreferenceid::varchar as second_refund_reference_id,
+            softdescriptor::varchar as soft_descriptor,
+            softdescriptorphone::varchar as soft_descriptor_phone,
+            soldtocontactid::varchar as sold_to_contact_id,
+            sourcetype::varchar as source_type,
+            status::varchar as refund_status,
+            submittedon::timestamp_tz as submitted_on,
+            transferredtoaccounting::varchar as transferred_to_accounting,
+            type::varchar as refund_type,
+            updatedbyid::varchar as updated_by_id,
+            updateddate::timestamp_tz as updated_date,
+            deleted::boolean as is_deleted
 
-      --Foreign Keys
-      accountid::VARCHAR                     AS account_id,
-      parentaccountid::VARCHAR               AS parent_account_id,
+        from source
 
-      --Info
-      accountingcode::VARCHAR                AS accounting_code,
-      amount::FLOAT                          AS refund_amount,
-      billtocontactid::VARCHAR               AS bill_to_contact_id,
-      -- cancelledon::TIMESTAMP_TZ              AS cancelled_on,
-      comment::VARCHAR                       AS comment,
-      createdbyid::VARCHAR                   AS created_by_id,
-      createddate::TIMESTAMP_TZ              AS created_date,
-      defaultpaymentmethodid::VARCHAR        AS default_payment_method_id,
-      gateway::VARCHAR                       AS gateway,
-      gatewayresponse::VARCHAR               AS gateway_response,
-      gatewayresponsecode::VARCHAR           AS gateway_response_code,
-      gatewaystate::VARCHAR                  AS gateway_state,
-      methodtype::VARCHAR                    AS method_type,
-      paymentmethodid::VARCHAR               AS payment_method_id,
-      paymentmethodsnapshotid::VARCHAR       AS payment_method_snapshot_id,
-      reasoncode::VARCHAR                    AS reason_code,
-      referenceid::VARCHAR                   AS reference_id,
-      refunddate::TIMESTAMP_TZ               AS refund_date,
-      refundtransactiontime::TIMESTAMP_TZ    AS refund_transaction_time,
-      secondrefundreferenceid::VARCHAR       AS second_refund_reference_id,
-      softdescriptor::VARCHAR                AS soft_descriptor,
-      softdescriptorphone::VARCHAR           AS soft_descriptor_phone,
-      soldtocontactid::VARCHAR               AS sold_to_contact_id,
-      sourcetype::VARCHAR                    AS source_type,
-      status::VARCHAR                        AS refund_status,
-      submittedon::TIMESTAMP_TZ              AS submitted_on,
-      transferredtoaccounting::VARCHAR       AS transferred_to_accounting,
-      type::VARCHAR                          AS refund_type,
-      updatedbyid::VARCHAR                   AS updated_by_id,
-      updateddate::TIMESTAMP_TZ              AS updated_date,
-      deleted::BOOLEAN                       AS is_deleted
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

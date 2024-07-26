@@ -1,10 +1,5 @@
-WITH source AS (
+with source as (select * from {{ ref("sfdc_campaign_source") }})
 
-    SELECT *
-    FROM {{ ref('sfdc_campaign_source') }}
-
-)
-
-SELECT *
-FROM source
-WHERE is_deleted = FALSE
+select *
+from source
+where is_deleted = false

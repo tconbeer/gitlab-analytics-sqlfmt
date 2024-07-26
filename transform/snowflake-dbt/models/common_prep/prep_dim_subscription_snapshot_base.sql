@@ -1,9 +1,4 @@
-WITH base AS (
+with base as (select * from {{ source("snapshots", "dim_subscription_snapshot") }})
 
-    SELECT *
-    FROM {{ source('snapshots', 'dim_subscription_snapshot') }}
-    
-)
-
-SELECT *
-FROM base
+select *
+from base

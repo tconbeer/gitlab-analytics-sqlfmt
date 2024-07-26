@@ -2,13 +2,13 @@
 
     {{
         config(
-          strategy='timestamp',
-          unique_key='id',
-          updated_at='updateddate',
+            strategy="timestamp",
+            unique_key="id",
+            updated_at="updateddate",
         )
     }}
-    
-    SELECT * 
-    FROM {{ source('zuora', 'invoice') }}
-    
+
+    select *
+    from {{ source("zuora", "invoice") }}
+
 {% endsnapshot %}

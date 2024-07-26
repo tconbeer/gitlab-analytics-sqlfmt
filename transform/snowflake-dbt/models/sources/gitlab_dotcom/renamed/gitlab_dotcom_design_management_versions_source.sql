@@ -1,18 +1,20 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_design_management_versions_dedupe_source') }}
-    
-), renamed AS (
+        select *
+        from {{ ref("gitlab_dotcom_design_management_versions_dedupe_source") }}
 
-    SELECT
-      id::NUMBER                                 AS version_id,
-      issue_id::NUMBER                           AS issue_id,
-      created_at::TIMESTAMP                       AS created_at,
-      author_id::NUMBER                          AS author_id
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as version_id,
+            issue_id::number as issue_id,
+            created_at::timestamp as created_at,
+            author_id::number as author_id
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

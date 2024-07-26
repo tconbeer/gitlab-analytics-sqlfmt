@@ -1,9 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT {{ hash_sensitive_columns('bizible_touchpoints_source') }}
-    FROM {{ ref('bizible_touchpoints_source') }}
+        select {{ hash_sensitive_columns("bizible_touchpoints_source") }}
+        from {{ ref("bizible_touchpoints_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

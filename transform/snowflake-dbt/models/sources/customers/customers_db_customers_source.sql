@@ -1,39 +1,41 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('customers', 'customers_db_customers') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY UPDATED_AT DESC) = 1
+        select *
+        from {{ source("customers", "customers_db_customers") }}
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT DISTINCT
-      id::NUMBER                      AS customer_id,
-      first_name::VARCHAR              AS customer_first_name,
-      last_name::VARCHAR               AS customer_last_name,
-      email::VARCHAR                   AS customer_email,
-      created_at::TIMESTAMP            AS customer_created_at,
-      updated_at::TIMESTAMP            AS customer_updated_at,
-      sign_in_count::NUMBER           AS sign_in_count,
-      current_sign_in_at::TIMESTAMP    AS current_sign_in_at,
-      last_sign_in_at::TIMESTAMP       AS last_sign_in_at,
-      --current_sign_in_ip,
-      --last_sign_in_ip,
-      provider::VARCHAR                AS customer_provider,
-      NULLIF(uid, '')::VARCHAR         AS customer_provider_user_id,
-      zuora_account_id::VARCHAR        AS zuora_account_id,
-      country::VARCHAR                 AS country,
-      state::VARCHAR                   AS state,
-      city::VARCHAR                    AS city,
-      vat_code::VARCHAR                AS vat_code,
-      company::VARCHAR                 AS company,
-      company_size::VARCHAR            AS company_size,
-      salesforce_account_id::VARCHAR   AS sfdc_account_id,
-      billable::BOOLEAN                AS customer_is_billable,
-      confirmed_at::TIMESTAMP          AS confirmed_at,
-      confirmation_sent_at::TIMESTAMP  AS confirmation_sent_at
-    FROM source
+        select distinct
+            id::number as customer_id,
+            first_name::varchar as customer_first_name,
+            last_name::varchar as customer_last_name,
+            email::varchar as customer_email,
+            created_at::timestamp as customer_created_at,
+            updated_at::timestamp as customer_updated_at,
+            sign_in_count::number as sign_in_count,
+            current_sign_in_at::timestamp as current_sign_in_at,
+            last_sign_in_at::timestamp as last_sign_in_at,
+            -- current_sign_in_ip,
+            -- last_sign_in_ip,
+            provider::varchar as customer_provider,
+            nullif(uid, '')::varchar as customer_provider_user_id,
+            zuora_account_id::varchar as zuora_account_id,
+            country::varchar as country,
+            state::varchar as state,
+            city::varchar as city,
+            vat_code::varchar as vat_code,
+            company::varchar as company,
+            company_size::varchar as company_size,
+            salesforce_account_id::varchar as sfdc_account_id,
+            billable::boolean as customer_is_billable,
+            confirmed_at::timestamp as confirmed_at,
+            confirmation_sent_at::timestamp as confirmation_sent_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

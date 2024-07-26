@@ -1,25 +1,21 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_timelogs_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_timelogs_dedupe_source') }}
-  
+        select
+            id::number as timelog_id,
+            created_at::timestamp as created_at,
+            spent_at::timestamp as spent_at,
+            updated_at::timestamp as updated_at,
 
-), renamed AS (
-  
-    SELECT 
-      id::NUMBER               AS timelog_id,
-      created_at::TIMESTAMP     AS created_at,
-      spent_at::TIMESTAMP       AS spent_at,
-      updated_at::TIMESTAMP     AS updated_at,
-      
-      time_spent::NUMBER       AS seconds_spent,
-      
-      issue_id::NUMBER         AS issue_id,
-      merge_request_id::NUMBER AS merge_request_id,
-      user_id::NUMBER          AS user_id  
-    FROM source
-    
-)
+            time_spent::number as seconds_spent,
 
-SELECT * 
-FROM renamed
+            issue_id::number as issue_id,
+            merge_request_id::number as merge_request_id,
+            user_id::number as user_id
+        from source
+
+    )
+
+select *
+from renamed

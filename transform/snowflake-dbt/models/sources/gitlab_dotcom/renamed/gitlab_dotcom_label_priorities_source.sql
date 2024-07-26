@@ -1,22 +1,19 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_label_priorities_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_label_priorities_dedupe_source') }}
-  
-), renamed AS (
+        select
 
-    SELECT
+            id::number as label_priority_id,
+            project_id::number as project_id,
+            label_id::number as label_id,
+            priority::number as priority,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-      id::NUMBER                           AS label_priority_id,
-      project_id::NUMBER                   AS project_id,
-      label_id::NUMBER                     AS label_id,
-      priority::NUMBER                     AS priority,
-      created_at::TIMESTAMP                 AS created_at,
-      updated_at::TIMESTAMP                 AS updated_at
+        from source
 
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

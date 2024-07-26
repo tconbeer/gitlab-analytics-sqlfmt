@@ -1,46 +1,43 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-WITH manage_snowplow_smau_pageviews_events AS (
+with
+    manage_snowplow_smau_pageviews_events as (
 
-  SELECT
-    user_snowplow_domain_id,
-    user_custom_id::NUMBER     AS gitlab_user_id,
-    event_date,
-    event_type,
-    event_surrogate_key,
-    'snowplow_pageviews'       AS source_type
+        select
+            user_snowplow_domain_id,
+            user_custom_id::number as gitlab_user_id,
+            event_date,
+            event_type,
+            event_surrogate_key,
+            'snowplow_pageviews' as source_type
 
-  FROM {{ ref('manage_snowplow_smau_pageviews_events')}}
+        from {{ ref("manage_snowplow_smau_pageviews_events") }}
 
-)
+    ),
+    manage_gitlab_dotcom_smau_events as (
 
-, manage_gitlab_dotcom_smau_events AS (
+        select
+            null as user_snowplow_domain_id,
+            user_id::number as gitlab_user_id,
+            event_date,
+            event_type,
+            event_surrogate_key,
+            'gitlab_backend' as source_type
 
-  SELECT
-    NULL               AS user_snowplow_domain_id,
-    user_id::NUMBER    AS gitlab_user_id,
-    event_date,
-    event_type,
-    event_surrogate_key,
-    'gitlab_backend'   AS source_type
+        from {{ ref("manage_gitlab_dotcom_smau_events") }}
 
-  FROM {{ ref('manage_gitlab_dotcom_smau_events')}}
+    ),
+    unioned as (
 
-)
+        select *
+        from manage_snowplow_smau_pageviews_events
 
-, unioned AS (
+        union
 
-    SELECT *
-    FROM manage_snowplow_smau_pageviews_events
+        select *
+        from manage_gitlab_dotcom_smau_events
 
-    UNION
+    )
 
-    SELECT *
-    FROM manage_gitlab_dotcom_smau_events
-
-)
-
-SELECT *
-FROM unioned
+select *
+from unioned

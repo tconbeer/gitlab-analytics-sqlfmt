@@ -1,146 +1,159 @@
-WITH map_merged_crm_account AS (
+with
+    map_merged_crm_account as (select * from {{ ref("map_merged_crm_account") }}),
+    zuora_account as (
 
-    SELECT *
-    FROM {{ ref('map_merged_crm_account') }}
+        select *
+        from {{ ref("zuora_account_source") }}
+        where lower(batch) != 'batch20' and is_deleted = false
 
-), zuora_account AS (
+    ),
+    zuora_invoice as (
 
-    SELECT *
-    FROM {{ ref('zuora_account_source') }}
-    WHERE LOWER(batch) != 'batch20'
-      AND is_deleted = FALSE
+        select * from {{ ref("zuora_invoice_source") }} where is_deleted = false
 
-), zuora_invoice AS (
+    ),
+    zuora_invoice_item as (
 
-    SELECT *
-    FROM {{ ref('zuora_invoice_source') }}
-    WHERE is_deleted = FALSE
+        select * from {{ ref("zuora_invoice_item_source") }} where is_deleted = false
 
-), zuora_invoice_item AS (
+    ),
+    zuora_rate_plan as (
 
-    SELECT *
-    FROM  {{ ref('zuora_invoice_item_source') }}
-    WHERE is_deleted = FALSE
+        select * from {{ ref("zuora_rate_plan_source") }} where is_deleted = false
 
-), zuora_rate_plan AS (
+    ),
+    zuora_rate_plan_charge as (
 
-    SELECT *
-    FROM {{ ref('zuora_rate_plan_source') }}
-    WHERE is_deleted = FALSE
+        select *
+        from {{ ref("zuora_rate_plan_charge_source") }}
+        where is_deleted = false
 
-), zuora_rate_plan_charge AS (
+    ),
+    zuora_subscription as (
 
-    SELECT *
-    FROM {{ ref('zuora_rate_plan_charge_source') }}
-    WHERE is_deleted = FALSE
+        select *
+        from {{ ref("zuora_subscription_source") }}
+        where is_deleted = false and exclude_from_analysis in ('False', '')
 
-), zuora_subscription AS (
+    ),
+    zuora_revenue_bill as (
 
-    SELECT *
-    FROM {{ ref('zuora_subscription_source') }}
-    WHERE is_deleted = FALSE
-      AND exclude_from_analysis IN ('False', '')
+        select * from {{ ref("zuora_revenue_revenue_contract_bill_source") }}
 
-), zuora_revenue_bill AS (
+    ),
+    base_charges as (
 
-    SELECT *
-    FROM {{ ref('zuora_revenue_revenue_contract_bill_source') }}
+        select
+            zuora_account.account_id as billing_account_id_subscription,
+            map_merged_crm_account.dim_crm_account_id as crm_account_id_subscription,
+            zuora_subscription.subscription_id,
+            zuora_rate_plan_charge.rate_plan_charge_id as charge_id,
+            zuora_rate_plan_charge.rate_plan_charge_number,
+            zuora_rate_plan_charge.segment as rate_plan_charge_segment,
+            zuora_rate_plan_charge.version as rate_plan_charge_version,
+            zuora_rate_plan_charge.mrr,
+            zuora_rate_plan_charge.mrr * 12 as arr,
+            zuora_rate_plan_charge.quantity,
+            date_trunc(
+                'month', zuora_rate_plan_charge.effective_start_date::date
+            ) as effective_start_month,
+            date_trunc(
+                'month', zuora_rate_plan_charge.effective_end_date::date
+            ) as effective_end_month
+        from zuora_account
+        inner join
+            zuora_subscription
+            on zuora_account.account_id = zuora_subscription.account_id
+        inner join
+            zuora_rate_plan
+            on zuora_subscription.subscription_id = zuora_rate_plan.subscription_id
+        inner join
+            zuora_rate_plan_charge
+            on zuora_rate_plan.rate_plan_id = zuora_rate_plan_charge.rate_plan_id
+        left join
+            map_merged_crm_account
+            on zuora_account.crm_id = map_merged_crm_account.sfdc_account_id
 
-), base_charges AS (
+    ),
+    invoice_charges as (
 
-    SELECT
-      zuora_account.account_id                                                  AS billing_account_id_subscription,
-      map_merged_crm_account.dim_crm_account_id                                 AS crm_account_id_subscription,
-      zuora_subscription.subscription_id,
-      zuora_rate_plan_charge.rate_plan_charge_id                                AS charge_id,
-      zuora_rate_plan_charge.rate_plan_charge_number,
-      zuora_rate_plan_charge.segment                                            AS rate_plan_charge_segment,
-      zuora_rate_plan_charge.version                                            AS rate_plan_charge_version,
-      zuora_rate_plan_charge.mrr,
-      zuora_rate_plan_charge.mrr*12                                             AS arr,
-      zuora_rate_plan_charge.quantity,
-      DATE_TRUNC('month',zuora_rate_plan_charge.effective_start_date::DATE)     AS effective_start_month,
-      DATE_TRUNC('month',zuora_rate_plan_charge.effective_end_date::DATE)       AS effective_end_month
-    FROM zuora_account
-    INNER JOIN zuora_subscription
-      ON zuora_account.account_id = zuora_subscription.account_id
-    INNER JOIN zuora_rate_plan
-      ON zuora_subscription.subscription_id = zuora_rate_plan.subscription_id
-    INNER JOIN zuora_rate_plan_charge
-      ON zuora_rate_plan.rate_plan_id = zuora_rate_plan_charge.rate_plan_id
-    LEFT JOIN map_merged_crm_account
-      ON zuora_account.crm_id = map_merged_crm_account.sfdc_account_id
+        select
+            zuora_invoice_item.invoice_item_id as invoice_item_id,
+            zuora_invoice.invoice_id as invoice_id,
+            zuora_invoice.invoice_number,
+            zuora_invoice.invoice_date::date as invoice_date,
+            zuora_invoice_item.service_start_date::date as service_start_date,
+            zuora_invoice_item.service_end_date::date as service_end_date,
+            zuora_invoice.account_id as billing_account_id_invoice,
+            map_merged_crm_account.dim_crm_account_id as crm_account_id_invoice,
+            zuora_invoice_item.rate_plan_charge_id as charge_id,
+            zuora_invoice_item.product_rate_plan_charge_id as product_details_id,
+            zuora_invoice_item.sku as sku,
+            zuora_invoice_item.tax_amount as tax_amount_sum,
+            zuora_invoice.amount_without_tax as invoice_amount_without_tax,
+            zuora_invoice_item.charge_amount as invoice_item_charge_amount,
+            zuora_invoice_item.unit_price as invoice_item_unit_price
+        from zuora_invoice_item
+        inner join
+            zuora_invoice on zuora_invoice_item.invoice_id = zuora_invoice.invoice_id
+        inner join zuora_account on zuora_invoice.account_id = zuora_account.account_id
+        left join
+            map_merged_crm_account
+            on zuora_account.crm_id = map_merged_crm_account.sfdc_account_id
+        where zuora_invoice.status = 'Posted'
 
-), invoice_charges AS (
+    ),
+    final as (
 
-    SELECT
-      zuora_invoice_item.invoice_item_id                AS invoice_item_id,
-      zuora_invoice.invoice_id                          AS invoice_id,
-      zuora_invoice.invoice_number,
-      zuora_invoice.invoice_date::DATE                  AS invoice_date,
-      zuora_invoice_item.service_start_date::DATE       AS service_start_date,
-      zuora_invoice_item.service_end_date::DATE         AS service_end_date,
-      zuora_invoice.account_id                          AS billing_account_id_invoice,
-      map_merged_crm_account.dim_crm_account_id         AS crm_account_id_invoice,
-      zuora_invoice_item.rate_plan_charge_id            AS charge_id,
-      zuora_invoice_item.product_rate_plan_charge_id    AS product_details_id,
-      zuora_invoice_item.sku                            AS sku,
-      zuora_invoice_item.tax_amount                     AS tax_amount_sum,
-      zuora_invoice.amount_without_tax                  AS invoice_amount_without_tax,
-      zuora_invoice_item.charge_amount                  AS invoice_item_charge_amount,
-      zuora_invoice_item.unit_price                     AS invoice_item_unit_price
-    FROM zuora_invoice_item
-    INNER JOIN zuora_invoice
-      ON zuora_invoice_item.invoice_id = zuora_invoice.invoice_id
-    INNER JOIN zuora_account
-      ON zuora_invoice.account_id = zuora_account.account_id
-    LEFT JOIN map_merged_crm_account
-      ON zuora_account.crm_id = map_merged_crm_account.sfdc_account_id
-    WHERE zuora_invoice.status='Posted'
+        select
+            invoice_charges.invoice_item_id,
+            invoice_charges.invoice_id as dim_invoice_id,
+            base_charges.billing_account_id_subscription
+            as dim_billing_account_id_subscription,
+            base_charges.crm_account_id_subscription as dim_crm_account_id_subscription,
+            invoice_charges.billing_account_id_invoice
+            as dim_billing_account_id_invoice,
+            invoice_charges.crm_account_id_invoice as dim_crm_account_id_invoice,
+            base_charges.subscription_id as dim_subscription_id,
+            zuora_revenue_bill.revenue_contract_line_id as dim_revenue_contract_line_id,
+            invoice_charges.charge_id,
+            invoice_charges.product_details_id as dim_product_detail_id,
+            invoice_charges.invoice_number,
+            invoice_charges.invoice_date,
+            invoice_charges.service_start_date,
+            invoice_charges.service_end_date,
+            base_charges.effective_start_month,
+            base_charges.effective_end_month,
+            base_charges.quantity,
+            base_charges.mrr,
+            base_charges.arr,
+            invoice_charges.invoice_item_charge_amount,
+            invoice_charges.invoice_item_unit_price,
+            invoice_charges.invoice_amount_without_tax,
+            invoice_charges.tax_amount_sum,
+            iff(
+                row_number() over (
+                    partition by rate_plan_charge_number, rate_plan_charge_segment
+                    order by rate_plan_charge_version desc, service_start_date desc
+                )
+                = 1,
+                true,
+                false
+            ) as is_last_segment_version
+        from base_charges
+        inner join invoice_charges on base_charges.charge_id = invoice_charges.charge_id
+        left join
+            zuora_revenue_bill
+            on invoice_charges.invoice_item_id = zuora_revenue_bill.invoice_item_id
 
-), final AS (
+    )
 
-    SELECT
-      invoice_charges.invoice_item_id,
-      invoice_charges.invoice_id                    AS dim_invoice_id,
-      base_charges.billing_account_id_subscription  AS dim_billing_account_id_subscription,
-      base_charges.crm_account_id_subscription      AS dim_crm_account_id_subscription,
-      invoice_charges.billing_account_id_invoice    AS dim_billing_account_id_invoice,
-      invoice_charges.crm_account_id_invoice        AS dim_crm_account_id_invoice,
-      base_charges.subscription_id                  AS dim_subscription_id,
-      zuora_revenue_bill.revenue_contract_line_id   AS dim_revenue_contract_line_id,
-      invoice_charges.charge_id,
-      invoice_charges.product_details_id            AS dim_product_detail_id,
-      invoice_charges.invoice_number,
-      invoice_charges.invoice_date,
-      invoice_charges.service_start_date,
-      invoice_charges.service_end_date,
-      base_charges.effective_start_month,
-      base_charges.effective_end_month,
-      base_charges.quantity,
-      base_charges.mrr,
-      base_charges.arr,
-      invoice_charges.invoice_item_charge_amount,
-      invoice_charges.invoice_item_unit_price,
-      invoice_charges.invoice_amount_without_tax,
-      invoice_charges.tax_amount_sum,
-      IFF(ROW_NUMBER() OVER (
-          PARTITION BY rate_plan_charge_number, rate_plan_charge_segment
-          ORDER BY rate_plan_charge_version DESC, service_start_date DESC) = 1,
-          TRUE, FALSE
-      )                                 AS is_last_segment_version
-    FROM base_charges
-    INNER JOIN invoice_charges
-      ON base_charges.charge_id = invoice_charges.charge_id
-    LEFT JOIN zuora_revenue_bill
-      ON invoice_charges.invoice_item_id = zuora_revenue_bill.invoice_item_id
-
-)
-
-{{ dbt_audit(
-    cte_ref="final",
-    created_by="@mcooperDD",
-    updated_by="@michellecooper",
-    created_date="2021-01-15",
-    updated_date="2021-06-21"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="final",
+            created_by="@mcooperDD",
+            updated_by="@michellecooper",
+            created_date="2021-01-15",
+            updated_date="2021-06-21",
+        )
+    }}

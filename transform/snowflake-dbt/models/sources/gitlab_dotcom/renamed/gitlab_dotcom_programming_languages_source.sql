@@ -1,16 +1,17 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_programming_languages_dedupe_source') }}
-    
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_programming_languages_dedupe_source") }}
 
-    SELECT
-      id::NUMBER                       AS programming_language_id,
-      name::VARCHAR                     AS programming_language_name
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as programming_language_id,
+            name::varchar as programming_language_name
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

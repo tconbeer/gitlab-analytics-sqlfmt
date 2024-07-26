@@ -1,12 +1,10 @@
-WITH audit_results AS (
+with
+    audit_results as (
 
-    SELECT
-      sensor_name,
-      time_detected::DATE AS time_detected_date,
-      database_name
-    FROM {{ ref('datasiren_audit_results') }}
+        select sensor_name, time_detected::date as time_detected_date, database_name
+        from {{ ref("datasiren_audit_results") }}
 
-)
+    )
 
-SELECT *
-FROM audit_results
+select *
+from audit_results

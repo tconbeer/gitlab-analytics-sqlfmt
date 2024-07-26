@@ -1,65 +1,60 @@
-WITH events AS (
+with
+    events as (select * from {{ ref("snowplow_unnested_events") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ref('snowplow_unnested_events')}}
+        select
 
-)
+            event_id::varchar as event_id,
+            v_tracker::varchar as v_tracker,
+            se_action::varchar as event_action,
+            se_category::varchar as event_category,
+            se_label::varchar as event_label,
+            se_property::varchar as event_property,
+            se_value::varchar as event_value,
+            try_parse_json(contexts)::variant as contexts,
+            dvce_created_tstamp::timestamp as dvce_created_tstamp,
+            derived_tstamp::timestamp as derived_tstamp,
+            collector_tstamp::timestamp as collector_tstamp,
+            user_id::varchar as user_custom_id,
+            domain_userid::varchar as user_snowplow_domain_id,
+            network_userid::varchar as user_snowplow_crossdomain_id,
+            domain_sessionid::varchar as session_id,
+            domain_sessionidx::int as session_index,
+            (page_urlhost || page_urlpath)::varchar as page_url,
+            page_urlscheme::varchar as page_url_scheme,
+            page_urlhost::varchar as page_url_host,
+            page_urlpath::varchar as page_url_path,
+            page_urlfragment::varchar as page_url_fragment,
+            mkt_medium::varchar as marketing_medium,
+            mkt_source::varchar as marketing_source,
+            mkt_term::varchar as marketing_term,
+            mkt_content::varchar as marketing_content,
+            mkt_campaign::varchar as marketing_campaign,
+            app_id::varchar as app_id,
+            br_family::varchar as browser_name,
+            br_name::varchar as browser_major_version,
+            br_version::varchar as browser_minor_version,
+            os_family::varchar as os,
+            os_name::varchar as os_name,
+            br_lang::varchar as browser_language,
+            os_manufacturer::varchar as os_manufacturer,
+            os_timezone::varchar as os_timezone,
+            br_renderengine::varchar as browser_engine,
+            dvce_type::varchar as device_type,
+            dvce_ismobile::boolean as device_is_mobile,
+            gsc_environment as gsc_environment,
+            gsc_extra as gsc_extra,
+            gsc_namespace_id as gsc_namespace_id,
+            gsc_plan as gsc_plan,
+            gsc_google_analytics_client_id as gsc_google_analytics_client_id,
+            gsc_project_id as gsc_project_id,
+            gsc_pseudonymized_user_id as gsc_pseudonymized_user_id,
+            gsc_source as gsc_source
 
-, renamed AS (
-  
-    SELECT
-    
-      event_id::VARCHAR                         AS event_id,
-      v_tracker::VARCHAR                        AS v_tracker,
-      se_action::VARCHAR                        AS event_action,
-      se_category::VARCHAR                      AS event_category,
-      se_label::VARCHAR                         AS event_label,
-      se_property::VARCHAR                      AS event_property,
-      se_value::VARCHAR                          AS event_value,
-      TRY_PARSE_JSON(contexts)::VARIANT         AS contexts,
-      dvce_created_tstamp::TIMESTAMP            AS dvce_created_tstamp,
-      derived_tstamp::TIMESTAMP                 AS derived_tstamp,
-      collector_tstamp::TIMESTAMP               AS collector_tstamp,
-      user_id::VARCHAR                          AS user_custom_id,
-      domain_userid::VARCHAR                    AS user_snowplow_domain_id,
-      network_userid::VARCHAR                   AS user_snowplow_crossdomain_id,
-      domain_sessionid::VARCHAR                 AS session_id,
-      domain_sessionidx::INT                    AS session_index,
-      (page_urlhost || page_urlpath)::VARCHAR   AS page_url,
-      page_urlscheme::VARCHAR                   AS page_url_scheme,
-      page_urlhost::VARCHAR                     AS page_url_host,
-      page_urlpath::VARCHAR                     AS page_url_path,
-      page_urlfragment::VARCHAR                 AS page_url_fragment,
-      mkt_medium::VARCHAR                       AS marketing_medium,
-      mkt_source::VARCHAR                       AS marketing_source,
-      mkt_term::VARCHAR                         AS marketing_term,
-      mkt_content::VARCHAR                      AS marketing_content,
-      mkt_campaign::VARCHAR                     AS marketing_campaign,
-      app_id::VARCHAR                           AS app_id,
-      br_family::VARCHAR                        AS browser_name,
-      br_name::VARCHAR                          AS browser_major_version,
-      br_version::VARCHAR                       AS browser_minor_version,
-      os_family::VARCHAR                        AS os,
-      os_name::VARCHAR                          AS os_name,
-      br_lang::VARCHAR                          AS browser_language,
-      os_manufacturer::VARCHAR                  AS os_manufacturer,
-      os_timezone::VARCHAR                      AS os_timezone,
-      br_renderengine::VARCHAR                  AS browser_engine,
-      dvce_type::VARCHAR                        AS device_type,
-      dvce_ismobile::BOOLEAN                    AS device_is_mobile,
-      gsc_environment                           AS gsc_environment,
-      gsc_extra                                 AS gsc_extra,
-      gsc_namespace_id                          AS gsc_namespace_id,
-      gsc_plan                                  AS gsc_plan,
-      gsc_google_analytics_client_id            AS gsc_google_analytics_client_id,
-      gsc_project_id                            AS gsc_project_id,
-      gsc_pseudonymized_user_id                 AS gsc_pseudonymized_user_id,
-      gsc_source                                AS gsc_source
+        from events
+        where event = 'struct'
 
-    FROM events
-    WHERE event = 'struct'
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

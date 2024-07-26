@@ -1,32 +1,28 @@
-WITH source AS (
+with
+    source as (select * from {{ source("salesforce", "campaign_member") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('salesforce', 'campaign_member') }}
+        select
+            id::varchar as campaign_member_id,
 
+            -- keys
+            campaignid::varchar as campaign_id,
+            leadorcontactid::varchar as lead_or_contact_id,
 
-), renamed AS(
+            -- info
+            type as campaign_member_type,
+            hasresponded::boolean as campaign_member_has_responded,
+            firstrespondeddate::date as campaign_member_response_date,
+            mql_after_campaign__c::boolean as is_mql_after_campaign,
 
-    SELECT
-      id::varchar                      AS campaign_member_id,
+            -- metadata
+            createddate::date as campaign_member_created_date,
+            systemmodstamp,
 
-        --keys
-      campaignid::varchar              AS campaign_id,
-      leadorcontactid::varchar         AS lead_or_contact_id,
+            isdeleted as is_deleted
 
-        --info
-      type                             AS campaign_member_type,
-      hasresponded::boolean            AS campaign_member_has_responded,
-      firstrespondeddate::date         AS campaign_member_response_date,
-      mql_after_campaign__c::boolean   AS is_mql_after_campaign,
+        from source
+    )
 
-        --metadata
-      createddate::date                AS campaign_member_created_date,
-      systemmodstamp,
-
-      isdeleted                        AS is_deleted
-
-    FROM source
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

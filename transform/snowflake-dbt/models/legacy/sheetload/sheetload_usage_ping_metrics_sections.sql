@@ -1,9 +1,9 @@
-WITH source_model AS (
+with
+    source_model as (
 
-    SELECT *
-    FROM {{ ref('sheetload_usage_ping_metrics_sections_source') }}
+        select * from {{ ref("sheetload_usage_ping_metrics_sections_source") }}
 
-)
+    )
 
-SELECT *
-FROM source_model
+select *
+from source_model

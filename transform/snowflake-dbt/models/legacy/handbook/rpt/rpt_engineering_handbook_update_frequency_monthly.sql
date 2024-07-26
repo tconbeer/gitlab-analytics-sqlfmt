@@ -1,31 +1,28 @@
-{{ config({
-    "materialized": "view"
-    })
-}}
+{{ config({"materialized": "view"}) }}
 
-WITH category_handbook_engineering_merge_requests_count AS (
+with
+    category_handbook_engineering_merge_requests_count as (
 
-    SELECT *
-    FROM {{ ref('category_handbook_engineering_merge_requests_count') }}
+        select * from {{ ref("category_handbook_engineering_merge_requests_count") }}
 
-), handbook_engineering_total_count_department AS (
+    ),
+    handbook_engineering_total_count_department as (
 
-    SELECT
-      DATE_TRUNC('MONTH', merge_request_merged_at)    AS month_merged_at,
-      SUM(mr_count_engineering)                       AS mr_count_engineering,
-      SUM(mr_count_ux)                                AS mr_count_ux,
-      SUM(mr_count_security)                          AS mr_count_security,
-      SUM(mr_count_infrastructure)                    AS mr_count_infrastructure,
-      SUM(mr_count_development)                       AS mr_count_development,
-      SUM(mr_count_quality)                           AS mr_count_quality,
-      SUM(mr_count_support)                           AS mr_count_support,
-      SUM(mr_count_incubation)                        AS mr_count_incubation
-    FROM category_handbook_engineering_merge_requests_count
-    WHERE merge_request_state = 'merged'
-      AND merge_request_merged_at IS NOT NULL
-    GROUP BY 1
+        select
+            date_trunc('MONTH', merge_request_merged_at) as month_merged_at,
+            sum(mr_count_engineering) as mr_count_engineering,
+            sum(mr_count_ux) as mr_count_ux,
+            sum(mr_count_security) as mr_count_security,
+            sum(mr_count_infrastructure) as mr_count_infrastructure,
+            sum(mr_count_development) as mr_count_development,
+            sum(mr_count_quality) as mr_count_quality,
+            sum(mr_count_support) as mr_count_support,
+            sum(mr_count_incubation) as mr_count_incubation
+        from category_handbook_engineering_merge_requests_count
+        where merge_request_state = 'merged' and merge_request_merged_at is not null
+        group by 1
 
-)
+    )
 
-SELECT *
-FROM handbook_engineering_total_count_department
+select *
+from handbook_engineering_total_count_department

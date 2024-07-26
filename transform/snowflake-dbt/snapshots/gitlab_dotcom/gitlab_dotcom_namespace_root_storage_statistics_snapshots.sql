@@ -2,21 +2,21 @@
 
     {{
         config(
-          unique_key='namespace_id',
-          strategy='check',
-          check_cols=[
-              'repository_size', 
-              'lfs_objects_size',
-              'wiki_size',
-              'build_artifacts_size',
-              'storage_size',
-              'packages_size'
-          ],
+            unique_key="namespace_id",
+            strategy="check",
+            check_cols=[
+                "repository_size",
+                "lfs_objects_size",
+                "wiki_size",
+                "build_artifacts_size",
+                "storage_size",
+                "packages_size",
+            ],
         )
     }}
-    
-    SELECT *       
-    FROM {{ source('gitlab_dotcom', 'namespace_root_storage_statistics') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY namespace_id ORDER BY _uploaded_at DESC) = 1
-    
+
+    select *
+    from {{ source("gitlab_dotcom", "namespace_root_storage_statistics") }}
+    qualify row_number() over (partition by namespace_id order by _uploaded_at desc) = 1
+
 {% endsnapshot %}

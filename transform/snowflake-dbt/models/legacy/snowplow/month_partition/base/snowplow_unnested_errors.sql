@@ -1,14 +1,6 @@
-{{config({
-    "unique_key":"bad_event_surrogate"
-  })
-}}
+{{ config({"unique_key": "bad_event_surrogate"}) }}
 
-WITH gitlab as (
+with gitlab as (select * from {{ ref("snowplow_gitlab_bad_events") }})
 
-    SELECT *
-    FROM {{ ref('snowplow_gitlab_bad_events') }}
-
-)
-
-SELECT *
-FROM gitlab
+select *
+from gitlab

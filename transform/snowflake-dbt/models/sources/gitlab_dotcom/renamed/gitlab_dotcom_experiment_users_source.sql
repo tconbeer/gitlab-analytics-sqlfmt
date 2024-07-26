@@ -1,22 +1,19 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_experiment_users_dedupe_source") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_experiment_users_dedupe_source') }}
+        select
+            context::variant as context,
+            converted_at::timestamp as converted_at,
+            created_at::timestamp as created_at,
+            experiment_id::number as experiment_id,
+            id::number as experiment_user_id,
+            group_type::number as group_type,
+            updated_at::timestamp as updated_at,
+            user_id::number as user_id
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      context::VARIANT        AS context,
-      converted_at::TIMESTAMP AS converted_at,
-      created_at::TIMESTAMP   AS created_at,
-      experiment_id::NUMBER   AS experiment_id,
-      id::NUMBER              AS experiment_user_id,
-      group_type::NUMBER      AS group_type,
-      updated_at::TIMESTAMP   AS updated_at,
-      user_id::NUMBER         AS user_id
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

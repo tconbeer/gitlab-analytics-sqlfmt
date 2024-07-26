@@ -1,24 +1,26 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('engineering', 'red_master_stats') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
+        select *
+        from {{ source("engineering", "red_master_stats") }}
+        order by uploaded_at desc
+        limit 1
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-    SELECT d.value as data_by_row
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), outer => true) d
+        select d.value as data_by_row
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      data_by_row['date']::date       AS commit_date,
-      data_by_row['id']::varchar      AS commit_id
-    FROM intermediate
+        select
+            data_by_row['date']::date as commit_date,
+            data_by_row['id']::varchar as commit_id
+        from intermediate
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,47 +1,53 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *,
-      RANK() OVER (PARTITION BY DATE_TRUNC('day', uploaded_at) ORDER BY uploaded_at DESC) AS rank
-    FROM {{ source('gitlab_data_yaml', 'categories') }}
-    ORDER BY uploaded_at DESC
+        select
+            *,
+            rank() over (
+                partition by date_trunc('day', uploaded_at) order by uploaded_at desc
+            ) as rank
+        from {{ source("gitlab_data_yaml", "categories") }}
+        order by uploaded_at desc
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-    SELECT d.value                            AS data_by_row,
-      DATE_TRUNC('day', uploaded_at)::DATE    AS snapshot_date,
-      rank
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), OUTER => TRUE) d
+        select
+            d.value as data_by_row,
+            date_trunc('day', uploaded_at)::date as snapshot_date,
+            rank
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      data_by_row['acquisition_appetite']::VARCHAR          AS acquisition_appetite,
-      data_by_row['alt_link']::VARCHAR                      AS alt_link,
-      TRY_TO_TIMESTAMP(data_by_row['available']::VARCHAR)   AS available,
-      data_by_row['body']::VARCHAR                          AS body,
-      TRY_TO_TIMESTAMP(data_by_row['complete']::VARCHAR)    AS complete,
-      data_by_row['description']::VARCHAR                   AS description,
-      data_by_row['direction']::VARCHAR                     AS direction,
-      data_by_row['documentation']::VARCHAR                 AS documentation,
-      data_by_row['feature_labels']::VARCHAR                AS feature_labels,
-      TRY_TO_TIMESTAMP(data_by_row['lovable']::VARCHAR)     AS lovable,
-      data_by_row['label']::VARCHAR                         AS label,
-      TRY_TO_BOOLEAN(data_by_row['marketing']::VARCHAR)     AS marketing,
-      data_by_row['marketing_page']::VARCHAR                AS marketing_page,
-      data_by_row['maturity']::VARCHAR                      AS maturity,
-      data_by_row['name']::VARCHAR                          AS name,
-      TRY_TO_BOOLEAN(data_by_row['new_maturity']::VARCHAR)  AS new_maturity,
-      data_by_row['partnership_appetite']::VARCHAR          AS partnership_appetite,
-      data_by_row['priority_level']::VARCHAR                AS priority_level,
-      data_by_row['roi']::VARCHAR                           AS roi,
-      data_by_row['stage']::VARCHAR                         AS stage,
-      TRY_TO_TIMESTAMP(data_by_row['viable']::VARCHAR)      AS viable,
-      snapshot_date,
-      rank
-    FROM intermediate
+        select
+            data_by_row['acquisition_appetite']::varchar as acquisition_appetite,
+            data_by_row['alt_link']::varchar as alt_link,
+            try_to_timestamp(data_by_row['available']::varchar) as available,
+            data_by_row['body']::varchar as body,
+            try_to_timestamp(data_by_row['complete']::varchar) as complete,
+            data_by_row['description']::varchar as description,
+            data_by_row['direction']::varchar as direction,
+            data_by_row['documentation']::varchar as documentation,
+            data_by_row['feature_labels']::varchar as feature_labels,
+            try_to_timestamp(data_by_row['lovable']::varchar) as lovable,
+            data_by_row['label']::varchar as label,
+            try_to_boolean(data_by_row['marketing']::varchar) as marketing,
+            data_by_row['marketing_page']::varchar as marketing_page,
+            data_by_row['maturity']::varchar as maturity,
+            data_by_row['name']::varchar as name,
+            try_to_boolean(data_by_row['new_maturity']::varchar) as new_maturity,
+            data_by_row['partnership_appetite']::varchar as partnership_appetite,
+            data_by_row['priority_level']::varchar as priority_level,
+            data_by_row['roi']::varchar as roi,
+            data_by_row['stage']::varchar as stage,
+            try_to_timestamp(data_by_row['viable']::varchar) as viable,
+            snapshot_date,
+            rank
+        from intermediate
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,41 +1,40 @@
-WITH base AS (
+with
+    base as (select * from {{ source("saas_usage_ping", "instance_redis_metrics") }}),
+    partitioned as (
 
-    SELECT *
-    FROM {{ source('saas_usage_ping', 'instance_redis_metrics') }}
+        select
+            jsontext as jsontext,
+            ping_date as ping_date,
+            run_id as run_id,
+            recorded_at as recorded_at,
+            version as version,
+            edition as edition,
+            recording_ce_finished_at as recording_ce_finished_at,
+            recording_ee_finished_at as recording_ee_finished_at,
+            uuid as uuid,
+            _uploaded_at as _uploaded_at
+        from base
+        qualify row_number() over (partition by ping_date order by ping_date desc) = 1
 
-), partitioned AS (
+    ),
+    renamed as (
 
-    SELECT jsontext                 AS jsontext,
-           ping_date                AS ping_date,
-           run_id                   AS run_id,
-           recorded_at              AS recorded_at,
-           version                  AS version,
-           edition                  AS edition,
-           recording_ce_finished_at AS recording_ce_finished_at,
-           recording_ee_finished_at AS recording_ee_finished_at,
-           uuid                     AS uuid,
-           _uploaded_at             AS _uploaded_at
-      FROM base
-      QUALIFY ROW_NUMBER() OVER (PARTITION BY ping_date ORDER BY ping_date DESC) = 1
+        select
+            {{ dbt_utils.surrogate_key(["ping_date", "run_id"]) }}
+            as saas_usage_ping_redis_id,
+            try_parse_json(jsontext) as response,
+            ping_date::timestamp as ping_date,
+            run_id as run_id,
+            recorded_at::timestamp as recorded_at,
+            version as version,
+            edition as edition,
+            recording_ce_finished_at::timestamp as recording_ce_finished_at,
+            recording_ee_finished_at::timestamp as recording_ee_finished_at,
+            uuid as uuid,
+            dateadd('s', _uploaded_at, '1970-01-01')::timestamp as _uploaded_at
+        from partitioned
 
-), renamed AS (
+    )
 
-    SELECT
-      {{ dbt_utils.surrogate_key(['ping_date', 'run_id'])}} AS saas_usage_ping_redis_id,
-      TRY_PARSE_JSON(jsontext)                              AS response,
-      ping_date::TIMESTAMP                                  AS ping_date,
-      run_id                                                AS run_id,
-      recorded_at::TIMESTAMP                                AS recorded_at,
-      version                                               AS version,
-      edition                                               AS edition,
-      recording_ce_finished_at::TIMESTAMP                   AS recording_ce_finished_at,
-      recording_ee_finished_at::TIMESTAMP                   AS recording_ee_finished_at,
-      uuid                                                  AS uuid,
-      DATEADD('s', _uploaded_at, '1970-01-01')::TIMESTAMP   AS _uploaded_at
-    FROM partitioned
-
-)
-
-SELECT *
-FROM renamed
-
+select *
+from renamed

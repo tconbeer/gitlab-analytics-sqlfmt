@@ -1,32 +1,37 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *,
-      RANK() OVER (PARTITION BY DATE_TRUNC('day', uploaded_at) ORDER BY uploaded_at DESC) AS rank
-    FROM {{ source('gitlab_data_yaml', 'release_managers') }}
+        select
+            *,
+            rank() over (
+                partition by date_trunc('day', uploaded_at) order by uploaded_at desc
+            ) as rank
+        from {{ source("gitlab_data_yaml", "release_managers") }}
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-    SELECT
-      d.value                                 AS data_by_row,
-      date_trunc('day', uploaded_at)::date    AS snapshot_date,
-      rank
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), OUTER => TRUE) d
+        select
+            d.value as data_by_row,
+            date_trunc('day', uploaded_at)::date as snapshot_date,
+            rank
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), intermediate_stage AS (
+    ),
+    intermediate_stage as (
 
-    SELECT
-      data_by_row['version']::VARCHAR                           AS major_minor_version,
-      SPLIT_PART(major_minor_version, '.', 1)                   AS major_version,
-      SPLIT_PART(major_minor_version, '.', 2)                   AS minor_version,
-      TRY_TO_DATE(data_by_row['date']::TEXT, 'MMMM DDnd, YYYY') AS release_date,
-      data_by_row['manager_americas'][0]::VARCHAR               AS release_manager_americas,
-      data_by_row['manager_apac_emea'][0]::VARCHAR              AS release_manager_emea,
-      rank,
-      snapshot_date
-    FROM intermediate
-      
-)
+        select
+            data_by_row['version']::varchar as major_minor_version,
+            split_part(major_minor_version, '.', 1) as major_version,
+            split_part(major_minor_version, '.', 2) as minor_version,
+            try_to_date(data_by_row['date']::text, 'MMMM DDnd, YYYY') as release_date,
+            data_by_row['manager_americas'][0]::varchar as release_manager_americas,
+            data_by_row['manager_apac_emea'][0]::varchar as release_manager_emea,
+            rank,
+            snapshot_date
+        from intermediate
 
-SELECT *
-FROM intermediate_stage
+    )
+
+select *
+from intermediate_stage

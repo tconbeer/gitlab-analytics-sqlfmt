@@ -1,33 +1,30 @@
-WITH source AS (
+with
+    source as (select * from {{ source("salesforce", "event") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('salesforce', 'event') }}
+        select
+            id as event_id,
 
-), renamed AS (
+            -- keys
+            accountid::varchar as account_id,
+            ownerid::varchar as owner_id,
+            whoid::varchar as lead_or_contact_id,
+            whatid::varchar as what_id,
 
-    SELECT
-      id                                    AS event_id,
-        
-        --keys
-      accountid::VARCHAR                    AS account_id,
-      ownerid::VARCHAR                      AS owner_id,
-      whoid::VARCHAR                        AS lead_or_contact_id,
-      whatid::VARCHAR                       AS what_id,
-        
-        --info      
-      subject::VARCHAR                      AS event_subject,
-      activitydate::DATE                    AS event_date,
-      activity_source__c::VARCHAR           AS event_source,
-      outreach_meeting_type__c::VARCHAR     AS outreach_meeting_type,
-      type::VARCHAR                         AS event_type,
-      eventsubtype::VARCHAR                 AS event_sub_type,
-      event_disposition__c::VARCHAR         AS event_disposition,
-      createddate::TIMESTAMP                AS created_at,
+            -- info      
+            subject::varchar as event_subject,
+            activitydate::date as event_date,
+            activity_source__c::varchar as event_source,
+            outreach_meeting_type__c::varchar as outreach_meeting_type,
+            type::varchar as event_type,
+            eventsubtype::varchar as event_sub_type,
+            event_disposition__c::varchar as event_disposition,
+            createddate::timestamp as created_at,
 
-      isdeleted::BOOLEAN                    AS is_deleted
+            isdeleted::boolean as is_deleted
 
-    FROM source
-)
+        from source
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

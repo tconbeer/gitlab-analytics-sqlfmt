@@ -1,14 +1,21 @@
--- SET THE FOLLOWING VARIABLES BEFORE THE SCRIPT (with correct values) using the SECURITYADMIN role
+-- SET THE FOLLOWING VARIABLES BEFORE THE SCRIPT (with correct values) using the
+-- SECURITYADMIN role
 -- ====================
 -- set (email, firstname, lastname) = ('email@gitlab.com', 'Vovchik', 'Ulyanov');
 -- ====================
-use role securityadmin;
+use role securityadmin
+;
 
-use warehouse ADMIN;
+use warehouse admin
+;
 
-set username = (select upper(LEFT($email, CHARINDEX('@', $email) - 1)));
+set username
+= (select upper(left($email, charindex('@', $email) - 1)))
+;
 
-set loginname = (select lower($email));
+set loginname
+= (select lower($email))
+;
 
 CREATE USER identifier($username) 
 LOGIN_NAME = $loginname
@@ -18,23 +25,44 @@ LAST_NAME = $lastname
 EMAIL = $email;
 
 CREATE ROLE identifier($username) ;
-GRANT ROLE identifier($username) TO ROLE "SYSADMIN";
+grant role identifier($username)
+to role "SYSADMIN"
+;
 
-GRANT ROLE identifier($username) to user identifier($username);
+grant role identifier($username)
+to user identifier($username)
+;
 
 -- IF GOING TO BE A DBT USER, run this to create the development databases
+set prod_db
+= (select $username || '_PROD')
+;
+set prep_db
+= (select $username || '_PREP')
+;
 
-set prod_db = (select $username || '_PROD');
-set prep_db = (select $username || '_PREP');
-
-use role sysadmin;
+use role sysadmin
+;
 
 CREATE DATABASE identifier($prod_db);
-GRANT OWNERSHIP ON DATABASE identifier($prod_db) to role identifier($username);
-GRANT ALL PRIVILEGES ON DATABASE identifier($prod_db) to role identifier($username);
+grant ownership
+on database identifier($prod_db)
+to role identifier($username)
+;
+grant all privileges
+on database identifier($prod_db)
+to role identifier($username)
+;
 
 CREATE DATABASE identifier($prep_db);
-GRANT OWNERSHIP ON DATABASE identifier($prep_db) to role identifier($username);
-GRANT ALL PRIVILEGES ON DATABASE identifier($prep_db) to role identifier($username);
+grant ownership
+on database identifier($prep_db)
+to role identifier($username)
+;
+grant all privileges
+on database identifier($prep_db)
+to role identifier($username)
+;
 
-use role securityadmin;
+use role securityadmin
+;

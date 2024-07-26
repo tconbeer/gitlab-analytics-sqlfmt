@@ -1,24 +1,26 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_namespace_root_storage_statistics_dedupe_source') }}
-  
-), renamed AS (
+        select *
+        from {{ ref("gitlab_dotcom_namespace_root_storage_statistics_dedupe_source") }}
 
-    SELECT
+    ),
+    renamed as (
 
-      namespace_id::NUMBER         AS namespace_id,
-      repository_size::NUMBER      AS repository_size,
-      lfs_objects_size::NUMBER     AS lfs_objects_size,
-      wiki_size::NUMBER            AS wiki_size,
-      build_artifacts_size::NUMBER AS build_artifacts_size,
-      storage_size::NUMBER         AS storage_size,
-      packages_size::NUMBER        AS packages_size,
-      updated_at::TIMESTAMP         AS namespace_updated_at
+        select
 
-    FROM source
+            namespace_id::number as namespace_id,
+            repository_size::number as repository_size,
+            lfs_objects_size::number as lfs_objects_size,
+            wiki_size::number as wiki_size,
+            build_artifacts_size::number as build_artifacts_size,
+            storage_size::number as storage_size,
+            packages_size::number as packages_size,
+            updated_at::timestamp as namespace_updated_at
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

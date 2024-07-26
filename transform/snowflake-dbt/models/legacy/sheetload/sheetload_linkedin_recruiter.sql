@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("sheetload_linkedin_recruiter_source") }})
 
-    SELECT *
-    FROM {{ ref('sheetload_linkedin_recruiter_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

@@ -1,41 +1,36 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "application_stages") }}),
+    stage_dim as (select * from {{ ref("greenhouse_stages_source") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'application_stages') }}
+        select
+            -- keys
+            application_id::number as application_id,
+            stage_id::number as stage_id,
 
-), stage_dim AS (
+            -- info
+            entered_on::timestamp as stage_entered_on,
+            exited_on::timestamp as stage_exited_on,
+            stage_name::varchar as application_stage_name
 
-    SELECT *
-    FROM  {{ ref ('greenhouse_stages_source') }}
+        from source
 
-), renamed as (
+    ),
+    intermediate as (
 
-	SELECT
-    		--keys
-    		application_id::NUMBER		    AS application_id,
-    		stage_id::NUMBER			    AS stage_id,
+        select
+            renamed.*,
+            is_milestone_stage,
+            stage_name_modified,
+            iff(
+                stage_name_modified = 'Team Interview - Face to Face',
+                'team_interview',
+                lower(replace(stage_name_modified, ' ', '_'))
+            ) as stage_name_modified_with_underscores
+        from renamed
+        left join stage_dim on renamed.stage_id = stage_dim.stage_id
 
-    		--info
-    		entered_on::timestamp 		    AS stage_entered_on,
-    		exited_on::timestamp 		    AS stage_exited_on,
-    		stage_name::varchar 		    AS application_stage_name
+    )
 
-	FROM source
-
-), intermediate AS (
-
-    SELECT 
-      renamed.*,
-      is_milestone_stage,
-      stage_name_modified,
-      IFF(stage_name_modified = 'Team Interview - Face to Face',
-            'team_interview',
-            LOWER(REPLACE(stage_name_modified, ' ', '_'))) AS stage_name_modified_with_underscores
-    FROM renamed
-    LEFT JOIN stage_dim 
-      ON renamed.stage_id = stage_dim.stage_id
-
-)
-
-SELECT *
-FROM intermediate
+select *
+from intermediate

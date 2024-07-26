@@ -1,42 +1,39 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zendesk", "tickets") }}),
 
-    SELECT *
-    FROM {{ source('zendesk', 'tickets') }}
-),
+    renamed as (
 
-renamed AS (
+        select
+            -- ids
+            id as ticket_id,
+            organization_id,
+            assignee_id,
+            brand_id,
+            group_id,
+            requester_id,
+            submitter_id,
+            ticket_form_id::number as ticket_form_id,
 
-    SELECT
-      --ids
-      id                                      AS ticket_id,
-      organization_id,
-      assignee_id,
-      brand_id,
-      group_id,
-      requester_id,
-      submitter_id,
-      ticket_form_id::NUMBER                  AS ticket_form_id,
+            -- fields
+            status as ticket_status,
+            lower(priority) as ticket_priority,
+            md5(subject) as ticket_subject,
+            md5(recipient) as ticket_recipient,
+            url as ticket_url,
+            tags as ticket_tags,
+            -- added ':score'
+            satisfaction_rating__id::varchar as satisfaction_rating_id,
+            satisfaction_rating__score::varchar as satisfaction_rating_score,
+            via__channel::varchar as submission_channel,
+            custom_fields::array as ticket_custom_field_values,
 
-      --fields
-      status                                  AS ticket_status,
-      lower(priority)                         AS ticket_priority,
-      md5(subject)                            AS ticket_subject,
-      md5(recipient)                          AS ticket_recipient,
-      url                                     AS ticket_url,
-      tags                                    AS ticket_tags,
-      -- added ':score'
-      satisfaction_rating__id::VARCHAR        AS satisfaction_rating_id,
-      satisfaction_rating__score::VARCHAR     AS satisfaction_rating_score,
-      via__channel::VARCHAR                   AS submission_channel,
-      custom_fields::ARRAY                    AS ticket_custom_field_values,
+            -- dates
+            updated_at::date as date_updated,
+            created_at as ticket_created_at
 
-      --dates
-      updated_at::DATE                        AS date_updated,
-      created_at                              AS ticket_created_at
+        from source
 
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

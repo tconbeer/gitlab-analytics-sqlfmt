@@ -1,42 +1,42 @@
-{{ config({
-    "materialized": "view"
-    })
-}}
+{{ config({"materialized": "view"}) }}
 
-WITH category_handbook_engineering_merge_requests_path_count AS (
+with
+    category_handbook_engineering_merge_requests_path_count as (
 
-    SELECT *
-    FROM {{ ref('category_handbook_engineering_merge_requests_path_count') }}
+        select *
+        from {{ ref("category_handbook_engineering_merge_requests_path_count") }}
 
-), handbook_engineering_merge_request_count_department AS (
+    ),
+    handbook_engineering_merge_request_count_department as (
 
-    SELECT
-      -- Foreign Keys
-      merge_request_iid,
-    
-      -- Metadata
-      merge_request_created_at,
-      merge_request_last_edited_at,
-      merge_request_merged_at,
-      merge_request_updated_at,
+        select
+            -- Foreign Keys
+            merge_request_iid,
 
-      -- Logical Information
-      merge_request_state,
-      MAX(path_count_engineering)         AS mr_count_engineering,
-    
-      -- Engineering departments
-      MAX(path_count_development)         AS mr_count_development,
-      MAX(path_count_infrastructure)      AS mr_count_infrastructure,
-      MAX(path_count_quality)             AS mr_count_quality,
-      MAX(path_count_security)            AS mr_count_security,
-      MAX(path_count_support)             AS mr_count_support,
-      MAX(path_count_ux)                  AS mr_count_ux,
-      MAX(path_count_incubation)          AS mr_count_incubation
-        
-    FROM category_handbook_engineering_merge_requests_path_count
-    {{ dbt_utils.group_by(n=6) }}
+            -- Metadata
+            merge_request_created_at,
+            merge_request_last_edited_at,
+            merge_request_merged_at,
+            merge_request_updated_at,
 
-)
+            -- Logical Information
+            merge_request_state,
+            max(path_count_engineering) as mr_count_engineering,
 
-SELECT *
-FROM handbook_engineering_merge_request_count_department
+            -- Engineering departments
+            max(path_count_development) as mr_count_development,
+            max(path_count_infrastructure) as mr_count_infrastructure,
+            max(path_count_quality) as mr_count_quality,
+            max(path_count_security) as mr_count_security,
+            max(path_count_support) as mr_count_support,
+            max(path_count_ux) as mr_count_ux,
+            max(path_count_incubation) as mr_count_incubation
+
+        from
+            category_handbook_engineering_merge_requests_path_count
+            {{ dbt_utils.group_by(n=6) }}
+
+    )
+
+select *
+from handbook_engineering_merge_request_count_department

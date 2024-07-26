@@ -1,27 +1,23 @@
-    
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_project_features_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_project_features_dedupe_source') }}
-  
-), renamed AS (
+        select
 
-    SELECT
+            id::number as project_feature_id,
+            project_id::number as project_id,
+            merge_requests_access_level::number as merge_requests_access_level,
+            issues_access_level::number as issues_access_level,
+            wiki_access_level::number as wiki_access_level,
+            snippets_access_level::number as snippets_access_level,
+            builds_access_level::number as builds_access_level,
+            repository_access_level::number as repository_access_level,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-      id::NUMBER                                     AS project_feature_id,
-      project_id::NUMBER                             AS project_id,
-      merge_requests_access_level::NUMBER            AS merge_requests_access_level,
-      issues_access_level::NUMBER                    AS issues_access_level,
-      wiki_access_level::NUMBER                      AS wiki_access_level,
-      snippets_access_level::NUMBER                  AS snippets_access_level,
-      builds_access_level::NUMBER                    AS builds_access_level,
-      repository_access_level::NUMBER                AS repository_access_level,
-      created_at::TIMESTAMP                           AS created_at,
-      updated_at::TIMESTAMP                           AS updated_at
+        from source
 
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

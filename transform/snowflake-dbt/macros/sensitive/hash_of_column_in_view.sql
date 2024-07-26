@@ -11,11 +11,7 @@
     {% set results = run_query(salt_query) %}
 
     sha2(
-        TRIM(
-            LOWER(
-                {{column|lower}} ||  '{{results.columns[0].values()[0]}}'
-            )
-        )
-    ) AS {{column|lower}}_hash,
+        trim(lower({{ column | lower }} || '{{results.columns[0].values()[0]}}'))
+    ) as {{ column | lower }}_hash,
 
 {% endmacro %}

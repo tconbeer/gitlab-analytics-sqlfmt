@@ -1,23 +1,25 @@
-WITH source AS (
+with
+    source as (
 
-	SELECT *
-	FROM {{ source('google_analytics_360', 'ga_session_custom_dimension') }}
+        select *
+        from {{ source("google_analytics_360", "ga_session_custom_dimension") }}
 
-), renamed AS(
+    ),
+    renamed as (
 
-	SELECT
-	--Keys
-	  index::FLOAT                      AS dimension_index,
-	  visit_id::FLOAT                   AS visit_id,
-	  visitor_id::VARCHAR               AS visitor_id,
-	  
-	  --Info
-	  value::VARCHAR                    AS dimension_value,
-	  visit_start_time::TIMESTAMP_TZ    AS visit_start_time
+        select
+            -- Keys
+            index::float as dimension_index,
+            visit_id::float as visit_id,
+            visitor_id::varchar as visitor_id,
 
-	FROM source
+            -- Info
+            value::varchar as dimension_value,
+            visit_start_time::timestamp_tz as visit_start_time
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

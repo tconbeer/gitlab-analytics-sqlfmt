@@ -1,22 +1,24 @@
-WITH source AS (
-    
-    SELECT * 
-    FROM {{ source('sheetload','engineering_speciality_prior_to_capture') }}
+with
+    source as (
 
-), renamed AS (
+        select *
+        from {{ source("sheetload", "engineering_speciality_prior_to_capture") }}
 
-    SELECT
-      "EMPLOYEE_ID"                         AS employee_id,
-      "FULL_NAME"                           AS full_name,
-      "REPORTS_TO"                          AS reports_to,
-      "DIVISION"                            AS division,
-      "DEPARTMENT"                          AS department,
-      "JOBTITLE_SPECIALITY"                 AS speciality,
-      "EFFECTIVE_DATE"::TIMESTAMP::DATE     AS start_date,
-      "END_DATE"::TIMESTAMP::DATE           AS end_date
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            "EMPLOYEE_ID" as employee_id,
+            "FULL_NAME" as full_name,
+            "REPORTS_TO" as reports_to,
+            "DIVISION" as division,
+            "DEPARTMENT" as department,
+            "JOBTITLE_SPECIALITY" as speciality,
+            "EFFECTIVE_DATE"::timestamp::date as start_date,
+            "END_DATE"::timestamp::date as end_date
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

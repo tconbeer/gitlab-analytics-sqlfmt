@@ -1,10 +1,10 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('sfdc_account_source') }}
-    WHERE account_id IS NOT NULL
-    AND is_deleted = FALSE
+        select *
+        from {{ ref("sfdc_account_source") }}
+        where account_id is not null and is_deleted = false
 
-)
-SELECT *
-FROM source
+    )
+select *
+from source

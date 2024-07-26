@@ -1,20 +1,20 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      id                AS email_to_visitor_id,
-      email             AS email,
-      visitor_id        AS visitor_id,
-      modified_date     AS modified_date,
-      created_date      AS created_date,
-      is_ignore         AS is_ignore,
-      is_deleted        AS is_deleted,
-      _created_date     AS _created_date,
-      _modified_date    AS _modified_date,
-      _deleted_date     AS _deleted_date
-    FROM {{ source('bizible', 'biz_email_to_visitor_ids') }}
- 
-)
+        select
+            id as email_to_visitor_id,
+            email as email,
+            visitor_id as visitor_id,
+            modified_date as modified_date,
+            created_date as created_date,
+            is_ignore as is_ignore,
+            is_deleted as is_deleted,
+            _created_date as _created_date,
+            _modified_date as _modified_date,
+            _deleted_date as _deleted_date
+        from {{ source("bizible", "biz_email_to_visitor_ids") }}
 
-SELECT *
-FROM source
+    )
 
+select *
+from source

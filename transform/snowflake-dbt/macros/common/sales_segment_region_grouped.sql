@@ -1,19 +1,30 @@
 {%- macro sales_segment_region_grouped(segment, sales_geo, sales_region) -%}
 
-CASE 
-  WHEN {{ segment }} IN ('Large', 'PubSec') AND {{ sales_geo }} = 'AMER' AND LOWER({{ sales_region }}) = 'west'
-    THEN 'US West'
-  WHEN {{ segment }} IN ('Large', 'PubSec') AND {{ sales_geo }} IN ('AMER', 'LATAM') AND LOWER({{ sales_region }}) IN ('east', 'latam')
-    THEN 'US East'
-  WHEN {{ segment }} IN ('Large', 'PubSec') AND {{ sales_geo }} IN ('APAC', 'PubSec','EMEA', 'Global')
-    THEN {{ sales_geo }}
-  WHEN {{ segment }} IN ('Large', 'PubSec') AND {{ sales_region }} = 'PubSec'
-    THEN 'PubSec'
-  WHEN {{ segment }} IN ('Large', 'PubSec') AND {{ sales_geo }} NOT IN ('West', 'East', 'APAC', 'PubSec','EMEA', 'Global')
-    THEN 'Large Other'
-  WHEN {{ segment }} NOT IN ('Large', 'PubSec')
-    THEN {{ segment }}
-  ELSE 'Missing segment_region_grouped'
-END
+    case
+        when
+            {{ segment }} in ('Large', 'PubSec')
+            and {{ sales_geo }} = 'AMER'
+            and lower({{ sales_region }}) = 'west'
+        then 'US West'
+        when
+            {{ segment }} in ('Large', 'PubSec')
+            and {{ sales_geo }} in ('AMER', 'LATAM')
+            and lower({{ sales_region }}) in ('east', 'latam')
+        then 'US East'
+        when
+            {{ segment }} in ('Large', 'PubSec')
+            and {{ sales_geo }} in ('APAC', 'PubSec', 'EMEA', 'Global')
+        then {{ sales_geo }}
+        when {{ segment }} in ('Large', 'PubSec') and {{ sales_region }} = 'PubSec'
+        then 'PubSec'
+        when
+            {{ segment }} in ('Large', 'PubSec')
+            and {{ sales_geo }}
+            not in ('West', 'East', 'APAC', 'PubSec', 'EMEA', 'Global')
+        then 'Large Other'
+        when {{ segment }} not in ('Large', 'PubSec')
+        then {{ segment }}
+        else 'Missing segment_region_grouped'
+    end
 
 {%- endmacro -%}

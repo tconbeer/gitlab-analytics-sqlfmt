@@ -1,33 +1,28 @@
-{{ config(
-    tags=["mnpi"]
-) }}
+{{ config(tags=["mnpi"]) }}
 
-WITH source AS ( 
+with
+    source as (select * from {{ source("salesforce", "opportunity_history") }}),
+    renamed as (
+        select
+            opportunityid as opportunity_id,
+            id as opportunity_history_id,
 
-    SELECT *
-    FROM {{ source('salesforce', 'opportunity_history') }}
+            createddate as field_modified_at,
+            createdbyid as created_by_id,
+            createddate as created_date,
+            closedate as close_date,
+            forecastcategory as forecast_category,
+            probability as probability,
 
-), renamed AS (
-    SELECT
-      opportunityid         AS opportunity_id,
-      id                    AS opportunity_history_id,
+            isdeleted as is_deleted,
+            amount as amount,
 
-      createddate           AS field_modified_at,
-      createdbyid           AS created_by_id,
-      createddate           AS created_date,
-      closedate             AS close_date,
-      forecastcategory      AS forecast_category,
-      probability           AS probability,
+            expectedrevenue as expected_revenue,
+            stagename as stage_name,
+            systemmodstamp as systemmodstamp
+        from source
 
-      isdeleted             AS is_deleted,
-      amount                AS amount,
+    )
 
-      expectedrevenue       AS expected_revenue,
-      stagename             AS stage_name,
-      systemmodstamp        AS systemmodstamp
-    FROM source
-
-)    
-
-SELECT *
-FROM renamed
+select *
+from renamed

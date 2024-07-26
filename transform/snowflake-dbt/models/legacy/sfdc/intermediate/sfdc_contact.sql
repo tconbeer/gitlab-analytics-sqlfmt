@@ -1,12 +1,11 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-    {{ hash_sensitive_columns('sfdc_contact_source') }}
-    FROM {{ ref('sfdc_contact_source') }}
-    WHERE is_deleted = FALSE
+        select {{ hash_sensitive_columns("sfdc_contact_source") }}
+        from {{ ref("sfdc_contact_source") }}
+        where is_deleted = false
 
-)
+    )
 
-SELECT *
-FROM source
-
+select *
+from source

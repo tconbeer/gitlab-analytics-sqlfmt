@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("netsuite_accounting_books_source") }})
 
-    SELECT *
-    FROM {{ ref('netsuite_accounting_books_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

@@ -1,2 +1,1 @@
-SELECT *
-FROM {{ ref('subscription_product_usage_data') }}
+select * from {{ ref("subscription_product_usage_data") }}

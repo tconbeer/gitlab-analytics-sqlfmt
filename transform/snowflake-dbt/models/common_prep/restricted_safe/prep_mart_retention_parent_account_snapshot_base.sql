@@ -1,9 +1,10 @@
-WITH base AS (
+with
+    base as (
 
-    SELECT *
-    FROM {{ source('snapshots', 'mart_retention_parent_account_snapshot') }}
-    
-)
+        select *
+        from {{ source("snapshots", "mart_retention_parent_account_snapshot") }}
 
-SELECT *
-FROM base
+    )
+
+select *
+from base

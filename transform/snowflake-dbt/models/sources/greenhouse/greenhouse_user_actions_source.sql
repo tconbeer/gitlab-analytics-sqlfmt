@@ -1,24 +1,20 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "user_actions") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'user_actions') }}
+        select
 
-), renamed as (
+            -- keys
+            id::number as user_action_id,
+            job_id::number as job_id,
+            user_id::number as user_id,
 
-	SELECT
+            -- info
+            type::varchar as user_action_type
 
-                --keys
-                id::NUMBER          AS user_action_id,
-                job_id::NUMBER      AS job_id,
-                user_id::NUMBER     AS user_id,
+        from source
 
-                --info
-                type::varchar       AS user_action_type
+    )
 
-
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

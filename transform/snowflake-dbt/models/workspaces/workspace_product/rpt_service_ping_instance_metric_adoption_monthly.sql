@@ -1,144 +1,155 @@
-{{ config(
-    tags=["product", "mnpi_exception"],
-    materialized = "table"
-) }}
+{{ config(tags=["product", "mnpi_exception"], materialized="table") }}
 
-{{ simple_cte([
-    ('dim_date', 'dim_date'),
-    ('mart_arr', 'mart_arr'),
-    ('mart_service_ping_instance_metric_28_day', 'mart_service_ping_instance_metric_28_day'),
-    ('dim_service_ping_metric', 'dim_service_ping_metric')
-    ])
+{{
+    simple_cte(
+        [
+            ("dim_date", "dim_date"),
+            ("mart_arr", "mart_arr"),
+            (
+                "mart_service_ping_instance_metric_28_day",
+                "mart_service_ping_instance_metric_28_day",
+            ),
+            ("dim_service_ping_metric", "dim_service_ping_metric"),
+        ]
+    )
+}},
+subscription_info as (
 
-}}
+    select
+        arr_month,
+        sum(arr) as arr,
+        sum(quantity) as total_licensed_users,
+        count(distinct dim_subscription_id) as total_subscriptions_count,
+        1 as key
+    from mart_arr
+    where
+        arr_month = '2022-01-01'
+        and product_tier_name != 'Storage'
+        and product_delivery_type = 'Self-Managed'
+    group by 1
+    order by 1 desc
 
-, subscription_info AS (
+),
+metrics as (select *, 1 as key from dim_service_ping_metric),
+sub_combo as (
 
-    SELECT
-    arr_month,
-    SUM(arr)                                AS arr,
-    SUM(quantity)                           AS total_licensed_users,
-    COUNT(DISTINCT dim_subscription_id)     AS total_subscriptions_count,
-    1                                       AS key
-  FROM mart_arr
-  WHERE arr_month = '2022-01-01'
-    AND product_tier_name != 'Storage'
-    AND product_delivery_type = 'Self-Managed'
-  GROUP BY 1
-  ORDER BY 1 DESC
+    select subscription_info.*, metrics_path
+    from subscription_info
+    inner join metrics on subscription_info.key = metrics.key
 
-), metrics AS (
+),
+count_tbl as (
 
-    SELECT *,
-        1 AS key
-    FROM dim_service_ping_metric
+    select
+        dim_date.first_day_of_month as arr_month,
+        metrics_path as metrics_path,
+        stage_name as stage_name,
+        section_name as section_name,
+        group_name as group_name,
+        is_smau as is_smau,
+        is_gmau as is_gmau,
+        is_paid_gmau as is_paid_gmau,
+        is_umau as is_umau,
+        count(latest_active_subscription_id) as subscription_count,
+        sum(instance_user_count) as seat_count
+    from mart_service_ping_instance_metric_28_day
+    inner join
+        dim_date
+        on mart_service_ping_instance_metric_28_day.dim_service_ping_date_id
+        = dim_date.date_id
+    where
+        latest_active_subscription_id is not null
+        and is_last_ping_of_month = true
+        and service_ping_delivery_type = 'Self-Managed'
+        and has_timed_out = false
+        and metric_value is not null
+        {{ dbt_utils.group_by(n=9) }}
 
-), sub_combo AS (
+),
+joined_counts as (
 
-    SELECT subscription_info.*,
-            metrics_path
-    FROM subscription_info
-        INNER JOIN metrics
-    ON subscription_info.key = metrics.key
+    select
+        count_tbl.arr_month as reporting_month,
+        count_tbl.metrics_path as metrics_path,
+        count_tbl.stage_name as stage_name,
+        count_tbl.section_name as section_name,
+        count_tbl.group_name as group_name,
+        count_tbl.is_smau as is_smau,
+        count_tbl.is_gmau as is_gmau,
+        count_tbl.is_paid_gmau as is_paid_gmau,
+        count_tbl.is_umau as is_umau,
+        count_tbl.subscription_count as reported_subscription_count,
+        count_tbl.seat_count as reported_seat_count,
+        sub_combo.total_licensed_users as total_licensed_users,
+        sub_combo.total_subscriptions_count as total_subscriptions_count,
+        total_subscriptions_count
+        - reported_subscription_count as no_reporting_subscription_count,
+        total_licensed_users - reported_seat_count as no_reporting_seat_count
+    from count_tbl
+    left join
+        sub_combo
+        on count_tbl.arr_month = sub_combo.arr_month
+        and count_tbl.metrics_path = sub_combo.metrics_path
 
-), count_tbl AS (
+),
+unioned_counts as (
 
-    SELECT
-        dim_date.first_day_of_month           AS arr_month,
-        metrics_path                          AS metrics_path,
-        stage_name                            AS stage_name,
-        section_name                          AS section_name,
-        group_name                            AS group_name,
-        is_smau                               AS is_smau,
-        is_gmau                               AS is_gmau,
-        is_paid_gmau                          AS is_paid_gmau,
-        is_umau                               AS is_umau,
-        COUNT(latest_active_subscription_id)  AS subscription_count,
-        SUM(instance_user_count)              AS seat_count
-    FROM mart_service_ping_instance_metric_28_day
-        INNER JOIN dim_date
-            ON mart_service_ping_instance_metric_28_day.dim_service_ping_date_id = dim_date.date_id
-            WHERE latest_active_subscription_id IS NOT NULL
-                AND is_last_ping_of_month = TRUE
-                AND service_ping_delivery_type = 'Self-Managed'
-                AND has_timed_out = FALSE
-                AND metric_value is not null
-    {{ dbt_utils.group_by(n=9)}}
+    select
+        reporting_month as reporting_month,
+        metrics_path as metrics_path,
+        stage_name as stage_name,
+        section_name as section_name,
+        group_name as group_name,
+        is_smau as is_smau,
+        is_gmau as is_gmau,
+        is_paid_gmau as is_paid_gmau,
+        is_umau as is_umau,
+        reported_subscription_count as reporting_count,
+        no_reporting_subscription_count as no_reporting_count,
+        total_subscriptions_count as total_count,
+        'subscription based estimation' as estimation_grain
+    from joined_counts
 
+    union all
 
-), joined_counts AS (
+    select
+        reporting_month as reporting_month,
+        metrics_path as metrics_path,
+        stage_name as stage_name,
+        section_name as section_name,
+        group_name as group_name,
+        is_smau as is_smau,
+        is_gmau as is_gmau,
+        is_paid_gmau as is_paid_gmau,
+        is_umau as is_umau,
+        reported_seat_count as reporting_count,
+        no_reporting_seat_count as no_reporting_count,
+        total_licensed_users as total_count,
+        'seat based estimation' as estimation_grain
+    from joined_counts
 
-    SELECT
-        count_tbl.arr_month                                     AS reporting_month,
-        count_tbl.metrics_path                                  AS metrics_path,
-        count_tbl.stage_name                                    AS stage_name,
-        count_tbl.section_name                                  AS section_name,
-        count_tbl.group_name                                    AS group_name,
-        count_tbl.is_smau                                       AS is_smau,
-        count_tbl.is_gmau                                       AS is_gmau,
-        count_tbl.is_paid_gmau                                  AS is_paid_gmau,
-        count_tbl.is_umau                                       AS is_umau,
-        count_tbl.subscription_count                            AS reported_subscription_count,
-        count_tbl.seat_count                                    AS reported_seat_count,
-        sub_combo.total_licensed_users                          AS total_licensed_users,
-        sub_combo.total_subscriptions_count                     AS total_subscriptions_count,
-        total_subscriptions_count - reported_subscription_count AS no_reporting_subscription_count,
-        total_licensed_users - reported_seat_count              AS no_reporting_seat_count
-    FROM count_tbl
-        LEFT JOIN sub_combo
-    ON count_tbl.arr_month = sub_combo.arr_month
-        AND count_tbl.metrics_path = sub_combo.metrics_path
+),
+final as (
 
-), unioned_counts AS (
-
-  SELECT
-    reporting_month                         AS reporting_month,
-    metrics_path                            AS metrics_path,
-    stage_name                              AS stage_name,
-    section_name                            AS section_name,
-    group_name                              AS group_name,
-    is_smau                                 AS is_smau,
-    is_gmau                                 AS is_gmau,
-    is_paid_gmau                            AS is_paid_gmau,
-    is_umau                                 AS is_umau,
-    reported_subscription_count             AS reporting_count,
-    no_reporting_subscription_count         AS no_reporting_count,
-    total_subscriptions_count               AS total_count,
-    'subscription based estimation'         AS estimation_grain
-  FROM joined_counts
-
-  UNION ALL
-
-  SELECT
-    reporting_month                         AS reporting_month,
-    metrics_path                            AS metrics_path,
-    stage_name                              AS stage_name,
-    section_name                            AS section_name,
-    group_name                              AS group_name,
-    is_smau                                 AS is_smau,
-    is_gmau                                 AS is_gmau,
-    is_paid_gmau                            AS is_paid_gmau,
-    is_umau                                 AS is_umau,
-    reported_seat_count                     AS reporting_count,
-    no_reporting_seat_count                 AS no_reporting_count,
-    total_licensed_users                    AS total_count,
-    'seat based estimation'                 AS estimation_grain
-  FROM joined_counts
-
-), final AS (
-
-SELECT
-    {{ dbt_utils.surrogate_key(['reporting_month', 'metrics_path', 'estimation_grain']) }}          AS rpt_service_ping_instance_metric_adoption_monthly_id,
-    *,
-    {{ pct_w_counters('reporting_count', 'no_reporting_count') }}                                   AS percent_reporting
- FROM unioned_counts
+    select
+        {{
+            dbt_utils.surrogate_key(
+                ["reporting_month", "metrics_path", "estimation_grain"]
+            )
+        }} as rpt_service_ping_instance_metric_adoption_monthly_id,
+        *,
+        {{ pct_w_counters("reporting_count", "no_reporting_count") }}
+        as percent_reporting
+    from unioned_counts
 
 )
 
- {{ dbt_audit(
-     cte_ref="final",
-     created_by="@icooper-acp",
-     updated_by="@icooper-acp",
-     created_date="2022-04-07",
-     updated_date="2022-04-15"
- ) }}
+{{
+    dbt_audit(
+        cte_ref="final",
+        created_by="@icooper-acp",
+        updated_by="@icooper-acp",
+        created_date="2022-04-07",
+        updated_date="2022-04-15",
+    )
+}}

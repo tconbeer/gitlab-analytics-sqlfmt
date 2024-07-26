@@ -1,34 +1,31 @@
-WITH source AS (
+with
+    source as (select * from {{ source("marketo", "activity_click_email") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('marketo', 'activity_click_email') }}
+        select
 
-), renamed AS (
+            id::number as marketo_activity_click_email_id,
+            lead_id::number as lead_id,
+            activity_date::timestamp_tz as activity_date,
+            activity_type_id::number as activity_type_id,
+            campaign_id::number as campaign_id,
+            primary_attribute_value_id::number as primary_attribute_value_id,
+            primary_attribute_value::text as primary_attribute_value,
+            campaign_run_id::number as campaign_run_id,
+            platform::text as platform,
+            is_mobile_device::boolean as is_mobile_device,
+            step_id::number as step_id,
+            device::text as device,
+            choice_number::number as choice_number,
+            is_bot_activity::boolean as is_bot_activity,
+            user_agent::text as user_agent,
+            bot_activity_pattern::text as bot_activity_pattern,
+            link::text as link,
+            test_variant::number as test_variant
 
-    SELECT
+        from source
 
-      id::NUMBER                                  AS marketo_activity_click_email_id,
-      lead_id::NUMBER                             AS lead_id,
-      activity_date::TIMESTAMP_TZ                 AS activity_date,
-      activity_type_id::NUMBER                    AS activity_type_id,
-      campaign_id::NUMBER                         AS campaign_id,
-      primary_attribute_value_id::NUMBER          AS primary_attribute_value_id,
-      primary_attribute_value::TEXT               AS primary_attribute_value,
-      campaign_run_id::NUMBER                     AS campaign_run_id,
-      platform::TEXT                              AS platform,
-      is_mobile_device::BOOLEAN                   AS is_mobile_device,
-      step_id::NUMBER                             AS step_id,
-      device::TEXT                                AS device,
-      choice_number::NUMBER                       AS choice_number,
-      is_bot_activity::BOOLEAN                    AS is_bot_activity,
-      user_agent::TEXT                            AS user_agent,
-      bot_activity_pattern::TEXT                  AS bot_activity_pattern,
-      link::TEXT                                  AS link,
-      test_variant::NUMBER                        AS test_variant
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,26 +1,23 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "employments") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('greenhouse', 'employments') }}
+        select
+            -- key
+            candidate_id::number as candidate_id,
 
-), renamed as (
+            -- info
+            company_name::varchar as candidate_company_name,
+            title::varchar as candidate_employment_title,
+            "start"::date as candidate_employment_start_date,
+            end::date as candidate_employment_end_date,
+            latest::boolean as is_candidate_latest_employment,
+            created_at::timestamp as candidate_employement_created_at,
+            updated_at::timestamp as candidate_employement_updated_at
 
-    SELECT
-                --key
-                candidate_id::NUMBER        AS candidate_id,
+        from source
 
-                --info
-                company_name::varchar       AS candidate_company_name,
-                title::varchar              AS candidate_employment_title,
-                "start"::date               AS candidate_employment_start_date,
-                end::date                   AS candidate_employment_end_date,
-                latest::boolean             AS is_candidate_latest_employment,
-                created_at::timestamp       AS candidate_employement_created_at,
-                updated_at::timestamp       AS candidate_employement_updated_at
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

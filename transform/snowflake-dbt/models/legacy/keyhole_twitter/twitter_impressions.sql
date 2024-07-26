@@ -1,11 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("twitter_impressions_source") }})
 
-    SELECT *
-    FROM {{ ref('twitter_impressions_source') }}
-
-)
-
-
-SELECT *
-FROM source
-
+select *
+from source

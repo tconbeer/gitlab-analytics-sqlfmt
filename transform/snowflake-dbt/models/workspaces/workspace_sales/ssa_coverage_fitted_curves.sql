@@ -1,9 +1,4 @@
-WITH base AS (
+with base as (select * from {{ ref("driveload_ssa_coverage_fitted_curves_source") }})
 
-    SELECT *
-    FROM {{ ref('driveload_ssa_coverage_fitted_curves_source') }}
-
-)
-
-SELECT *
-FROM base
+select *
+from base

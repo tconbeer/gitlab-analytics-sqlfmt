@@ -1,24 +1,21 @@
-WITH namespaces AS (
+with
+    namespaces as (select * from {{ ref("gitlab_dotcom_namespaces_source") }}),
+    gitlab_subscriptions as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_namespaces_source') }}
+        select *
+        from {{ ref("gitlab_dotcom_gitlab_subscriptions") }}
+        where is_currently_valid = true
 
-), gitlab_subscriptions AS (
+    ),
+    joined as (
 
-    SELECT *
-    FROM {{ref('gitlab_dotcom_gitlab_subscriptions')}}
-    WHERE is_currently_valid = TRUE
+        select namespaces.*, coalesce(gitlab_subscriptions.plan_id, 34) as plan_id
+        from namespaces
+        left join
+            gitlab_subscriptions
+            on namespaces.namespace_id = gitlab_subscriptions.namespace_id
 
-), joined AS (
+    )
 
-  SELECT
-    namespaces.*,
-    COALESCE(gitlab_subscriptions.plan_id, 34) AS plan_id
-  FROM namespaces
-    LEFT JOIN gitlab_subscriptions
-      ON namespaces.namespace_id = gitlab_subscriptions.namespace_id
-
-)
-
-SELECT *
-FROM joined
+select *
+from joined

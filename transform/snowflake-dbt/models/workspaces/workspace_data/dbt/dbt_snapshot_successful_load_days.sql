@@ -1,19 +1,14 @@
-WITH source_status AS (
-    
-    SELECT *
-    FROM {{ ref('dbt_source_freshness') }}
+with
+    source_status as (select * from {{ ref("dbt_source_freshness") }}),
+    filtered_to_snapshots as (
 
-), filtered_to_snapshots AS (
+        select distinct
+            table_name, date_trunc('d', latest_load_at) as successful_load_at
+        from source_status
+        where lower(table_name) like '%snapshot%'
+        order by 2 desc
 
-    SELECT DISTINCT
-      table_name, 
-      DATE_TRUNC('d', latest_load_at) AS successful_load_at 
-    FROM source_status
-    WHERE LOWER(table_name) LIKE '%snapshot%'
-    ORDER BY 2 DESC
+    )
 
-)
-
-SELECT *
-FROM filtered_to_snapshots
-
+select *
+from filtered_to_snapshots

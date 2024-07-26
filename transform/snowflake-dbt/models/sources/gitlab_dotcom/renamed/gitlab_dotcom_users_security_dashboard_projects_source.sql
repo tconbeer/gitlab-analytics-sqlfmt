@@ -1,16 +1,15 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_users_security_dashboard_projects_dedupe_source') }}
+        select *
+        from {{ ref("gitlab_dotcom_users_security_dashboard_projects_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      user_id::NUMBER                     AS user_id,
-      project_id::VARCHAR                 AS project_id
-    FROM source
-    
-)
+        select user_id::number as user_id, project_id::varchar as project_id from source
 
-SELECT  *
-FROM renamed
+    )
+
+select *
+from renamed

@@ -1,89 +1,95 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT 
-      month_year                                                       AS month_date,
-      CASE WHEN department = 'People' AND month_year <='2019-08-31' 
-            THEN 'People Ops'
-           WHEN department = 'People' AND month_year>='2020-05-31' 
-             THEN 'People Success'
-           WHEN department = 'Brand and Digital Design' 
-             THEN 'Brand & Digital Design'
-           WHEN department= 'Outreach' AND month_year<'2020-02-29' 
-             THEN 'Community Relations'
-           ELSE department END                                          AS department,
-      plan                                                              AS headcount
-    FROM {{ ref ('sheetload_hire_plan') }}
-    WHERE month_year <='2020-05-31'
+        select
+            month_year as month_date,
+            case
+                when department = 'People' and month_year <= '2019-08-31'
+                then 'People Ops'
+                when department = 'People' and month_year >= '2020-05-31'
+                then 'People Success'
+                when department = 'Brand and Digital Design'
+                then 'Brand & Digital Design'
+                when department = 'Outreach' and month_year < '2020-02-29'
+                then 'Community Relations'
+                else department
+            end as department,
+            plan as headcount
+        from {{ ref("sheetload_hire_plan") }}
+        where month_year <= '2020-05-31'
 
-), employee_directory AS (
+    ),
+    employee_directory as (select * from {{ ref("employee_directory_analysis") }}),
+    department_division_mapping as (
 
-    SELECT *
-    FROM {{ ref ('employee_directory_analysis') }}
+        select distinct
+            department, department_modified, division_mapped_current as division
+        from {{ ref("bamboohr_job_info_current_division_base") }}
+        where department is not null
 
-), department_division_mapping AS (
+    ),
+    all_company as (
 
-    SELECT DISTINCT 
-      department, 
-      department_modified,
-      division_mapped_current AS division
-    FROM {{ ref ('bamboohr_job_info_current_division_base') }}   
-    WHERE department IS NOT NULL
-      
-), all_company AS (
+        select
+            source.month_date,
+            'all_company_breakout' as breakout_type,
+            'all_company_breakout' as department,
+            'all_company_breakout' as division,
+            sum(headcount) as planned_headcount,
+            planned_headcount
+            - lag(planned_headcount) over (order by month_date) as planned_hires
+        from source
+        group by 1, 2, 3
 
-    SELECT 
-      source.month_date,
-      'all_company_breakout'                                                AS breakout_type,
-      'all_company_breakout'                                                AS department,
-      'all_company_breakout'                                                AS division,
-      SUM(headcount)                                                        AS planned_headcount,
-      planned_headcount - lag(planned_headcount) OVER (ORDER BY month_date) AS planned_hires       
-    FROM source
-    GROUP BY 1,2,3
-  
-), division_level AS (
+    ),
+    division_level as (
 
-    SELECT 
-      source.month_date,
-      'division_breakout'                                                   AS breakout_type,
-      'division_breakout'                                                   AS department,
-      department_division_mapping.division,
-      SUM(headcount)                                                        AS planned_headcount,
-      planned_headcount - lag(planned_headcount) 
-        OVER (PARTITION BY department_division_mapping.division 
-              ORDER BY source.month_date)                                   AS planned_hires       
-    FROM source
-    LEFT JOIN department_division_mapping 
-      ON department_division_mapping.department = source.department
-    GROUP BY 1,2,3,4
+        select
+            source.month_date,
+            'division_breakout' as breakout_type,
+            'division_breakout' as department,
+            department_division_mapping.division,
+            sum(headcount) as planned_headcount,
+            planned_headcount - lag(planned_headcount) over (
+                partition by department_division_mapping.division
+                order by source.month_date
+            ) as planned_hires
+        from source
+        left join
+            department_division_mapping
+            on department_division_mapping.department = source.department
+        group by 1, 2, 3, 4
 
-), department_level AS (
+    ),
+    department_level as (
 
-    SELECT 
-      source.month_date,
-      'department_division_breakout'                                     AS breakout_type,
-      source.department                                                  AS department,
-      department_division_mapping.division,
-      SUM(headcount)                                                     AS planned_headcount,
-      planned_headcount - lag(planned_headcount) 
-        OVER (PARTITION BY department_division_mapping.division, source.department 
-              ORDER BY source.month_date)                                AS planned_hires       
-    FROM source
-    LEFT JOIN department_division_mapping 
-      ON department_division_mapping.department = source.department
-    GROUP BY 1,2,3,4
+        select
+            source.month_date,
+            'department_division_breakout' as breakout_type,
+            source.department as department,
+            department_division_mapping.division,
+            sum(headcount) as planned_headcount,
+            planned_headcount - lag(planned_headcount) over (
+                partition by department_division_mapping.division, source.department
+                order by source.month_date
+            ) as planned_hires
+        from source
+        left join
+            department_division_mapping
+            on department_division_mapping.department = source.department
+        group by 1, 2, 3, 4
 
-)
+    )
 
-SELECT *
-FROM all_company 
+select *
+from all_company
 
-UNION All
+union all
 
-SELECT * 
-FROM division_level
+select *
+from division_level
 
-UNION ALL 
+union all
 
-SELECT *
-FROM department_level
+select *
+from department_level

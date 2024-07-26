@@ -1,25 +1,22 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "attributes") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'attributes') }}
+        select
 
-), renamed as (
+            -- keys
+            id::number as attribute_id,
+            organization_id::number as organization_id,
 
-	SELECT
+            -- info
+            name::varchar as attribute_name,
+            category::varchar as attribute_category,
+            created_at::varchar::timestamp as attribute_created_at,
+            updated_at::varchar::timestamp as attribute_updated_at
 
-            --keys
-            id::NUMBER                          AS attribute_id,
-            organization_id::NUMBER             AS organization_id,
+        from source
 
-            --info
-            name::varchar                       AS attribute_name,
-            category::varchar                   AS attribute_category,
-            created_at::varchar::timestamp      AS attribute_created_at,
-            updated_at::varchar::timestamp      AS attribute_updated_at
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

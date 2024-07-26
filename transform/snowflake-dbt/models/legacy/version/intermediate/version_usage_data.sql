@@ -1,58 +1,64 @@
-{{ config({
-    "materialized": "table"
-    })
-}}
+{{ config({"materialized": "table"}) }}
 
-{%- set columns = adapter.get_columns_in_relation( ref('version_usage_data_source')) -%}
+{%- set columns = adapter.get_columns_in_relation(ref("version_usage_data_source")) -%}
 
-WITH source AS (
+with
+    source as (select * from {{ ref("version_usage_data_source") }}),
+    usage_data as (
 
-    SELECT *
-    FROM {{ ref('version_usage_data_source') }}
+        select
+            {{
+                dbt_utils.star(
+                    from=ref("version_usage_data_source"),
+                    except=["EDITION", "RAW_USAGE_DATA_PAYLOAD_RECONSTRUCTED"],
+                )
+            }},
+            iff(
+                license_expires_at >= created_at or license_expires_at is null,
+                edition,
+                'EE Free'
+            ) as cleaned_edition,
+            regexp_replace(nullif(version, ''), '[^0-9.]+') as cleaned_version,
+            iff(version ilike '%-pre', true, false) as version_is_prerelease,
+            split_part(cleaned_version, '.', 1)::number as major_version,
+            split_part(cleaned_version, '.', 2)::number as minor_version,
+            major_version || '.' || minor_version as major_minor_version,
+            raw_usage_data_payload_reconstructed
+        from source
+        where
+            uuid is not null
+            and version not like ('%VERSION%')  -- Messy data that's not worth parsing.
+            and hostname not in (  -- Staging data has no current use cases for analysis.
+                'staging.gitlab.com', 'dr.gitlab.com'
+            )
 
-), usage_data AS (
+    ),
+    raw_usage_data as (select * from {{ ref("version_raw_usage_data_source") }}),
+    joined as (
 
-    SELECT
-      {{ dbt_utils.star(from=ref('version_usage_data_source'), except=['EDITION', 'RAW_USAGE_DATA_PAYLOAD_RECONSTRUCTED']) }},
-      IFF(license_expires_at >= created_at OR license_expires_at IS NULL, edition, 'EE Free') AS cleaned_edition,
-      REGEXP_REPLACE(NULLIF(version, ''), '[^0-9.]+')                                         AS cleaned_version,
-      IFF(version ILIKE '%-pre', True, False)                                                 AS version_is_prerelease,
-      SPLIT_PART(cleaned_version, '.', 1)::NUMBER                                             AS major_version,
-      SPLIT_PART(cleaned_version, '.', 2)::NUMBER                                             AS minor_version,
-      major_version || '.' || minor_version                                                   AS major_minor_version,
-      raw_usage_data_payload_reconstructed
-    FROM source
-    WHERE uuid IS NOT NULL
-      AND version NOT LIKE ('%VERSION%') -- Messy data that's not worth parsing.
-      AND hostname NOT IN ( -- Staging data has no current use cases for analysis.
-        'staging.gitlab.com',
-        'dr.gitlab.com'
-      )
+        select
+            {{
+                dbt_utils.star(
+                    from=ref("version_usage_data_source"),
+                    relation_alias="usage_data",
+                    except=["EDITION"],
+                )
+            }},
+            cleaned_edition as edition,
+            cleaned_version,
+            version_is_prerelease,
+            major_version,
+            minor_version,
+            major_minor_version,
+            coalesce(
+                raw_usage_data.raw_usage_data_payload,
+                raw_usage_data_payload_reconstructed
+            ) as raw_usage_data_payload
+        from usage_data
+        left join
+            raw_usage_data
+            on usage_data.raw_usage_data_id = raw_usage_data.raw_usage_data_id
+    )
 
-)
-
-, raw_usage_data AS (
-
-    SELECT *
-    FROM {{ ref('version_raw_usage_data_source') }}
-
-)
-
-, joined AS (
-
-    SELECT 
-      {{ dbt_utils.star(from=ref('version_usage_data_source'), relation_alias='usage_data', except=['EDITION']) }},
-      cleaned_edition                                                                       AS edition,
-      cleaned_version,
-      version_is_prerelease,
-      major_version,
-      minor_version,
-      major_minor_version,
-      COALESCE(raw_usage_data.raw_usage_data_payload, raw_usage_data_payload_reconstructed) AS raw_usage_data_payload
-    FROM usage_data
-    LEFT JOIN raw_usage_data
-      ON usage_data.raw_usage_data_id = raw_usage_data.raw_usage_data_id
-)
-
-SELECT *
-FROM joined
+select *
+from joined
