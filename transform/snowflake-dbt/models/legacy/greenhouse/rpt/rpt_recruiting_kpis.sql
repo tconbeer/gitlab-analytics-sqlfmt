@@ -154,8 +154,7 @@ with
                 )
             ) as hires_excluding_transfers,
 
-            -- -note hired includes interal applicants whereas
-            -- hires_excluding_transfers
+            -- -note hired includes interal applicants whereas hires_excluding_transfers
             median(
                 iff(application_stage = 'Hired', time_to_offer, null)
             ) as time_to_offer_median,

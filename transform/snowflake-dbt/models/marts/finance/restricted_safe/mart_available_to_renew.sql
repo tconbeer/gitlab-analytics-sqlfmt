@@ -54,8 +54,7 @@ dim_subscription_source as (
         )
         -- test subscription
         and subscription_name != 'Test- New Subscription'
-        -- data quality, last term not entered with same pattern, sub_name =
-        -- A-S00022101
+        -- data quality, last term not entered with same pattern, sub_name = A-S00022101
         and dim_subscription_id != '2c92a00f7579c362017588a2de19174a'
         -- term dates do not align to the subscription term dates, sub_name =
         -- A-S00038937

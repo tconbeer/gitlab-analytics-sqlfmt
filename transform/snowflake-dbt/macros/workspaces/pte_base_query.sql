@@ -923,7 +923,8 @@
                 between date_trunc(
                     month,
                     dateadd(
-                        '{{ period_type }}', - '{{ delta_value }}',
+                        '{{ period_type }}',
+                        - '{{ delta_value }}',
                         cast('{{ end_date }}' as date)
                     )
                 ) and date_trunc(

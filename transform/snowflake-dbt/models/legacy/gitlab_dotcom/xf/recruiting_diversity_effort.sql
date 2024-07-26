@@ -97,8 +97,7 @@ with
             issue_closed_at,
             issue_closed_week,
             week_of,
-            -- -moved to using 1 issue per req and tracking weeks in issue on
-            -- 2020.11.01
+            -- -moved to using 1 issue per req and tracking weeks in issue on 2020.11.01
             is_issue_closed,
             issue_state,
             issue_description,

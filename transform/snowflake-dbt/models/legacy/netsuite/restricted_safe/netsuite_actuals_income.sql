@@ -88,7 +88,8 @@ with
             i.account_number || ' - ' || i.account_name as unique_account_name,
             i.account_number,
             i.parent_account_number,
-            i.unique_account_number, - (i.actual_amount) as actual_amount,
+            i.unique_account_number,
+            - (i.actual_amount) as actual_amount,
             case
                 when i.account_number between '4000' and '4999' then '1-income'
             end as income_statement_grouping,
