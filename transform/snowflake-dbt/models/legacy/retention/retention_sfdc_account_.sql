@@ -87,4 +87,3 @@ where
     retention_month <= dateadd(month, -1, current_date)
 
     --
-    

@@ -70,7 +70,7 @@ with
                 when email_id is null
                 then 'missing'
                 when
-                    rlike (
+                    rlike(
                         substring(
                             email_id,
                             charindex('@', email_id) + 1,

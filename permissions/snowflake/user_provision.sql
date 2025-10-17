@@ -9,12 +9,10 @@ use role securityadmin
 use warehouse admin
 ;
 
-set username
-= (select upper(left($email, charindex('@', $email) - 1)))
+set username = (select upper(left($email, charindex('@', $email) - 1)))
 ;
 
-set loginname
-= (select lower($email))
+set loginname = (select lower($email))
 ;
 
 CREATE USER identifier($username) 
@@ -34,11 +32,9 @@ to user identifier($username)
 ;
 
 -- IF GOING TO BE A DBT USER, run this to create the development databases
-set prod_db
-= (select $username || '_PROD')
+set prod_db = (select $username || '_PROD')
 ;
-set prep_db
-= (select $username || '_PREP')
+set prep_db = (select $username || '_PREP')
 ;
 
 use role sysadmin

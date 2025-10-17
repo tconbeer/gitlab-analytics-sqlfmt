@@ -72,5 +72,5 @@ select
 
 from {{ ref("mart_marketing_contact") }}
 where
-    rlike (email_address, '^[A-Z0-9.+_%-]+@[A-Z0-9.-]+\\.[A-Z]+$', 'i')
+    rlike(email_address, '^[A-Z0-9.+_%-]+@[A-Z0-9.-]+\\.[A-Z]+$', 'i')
     and (is_pql = true or (is_paid_tier = true and sfdc_record_id is not null))
