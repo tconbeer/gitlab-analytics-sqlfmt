@@ -1,18 +1,20 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_approval_project_rules_groups_dedupe_source') }}
-  
-), renamed AS (
+        select *
+        from {{ ref("gitlab_dotcom_approval_project_rules_groups_dedupe_source") }}
 
-  SELECT
-    id::NUMBER                          AS project_rules_groups_id,
-    approval_project_rule_id::NUMBER    AS approval_project_rule_id,
-    group_id::NUMBER                     AS group_id
+    ),
+    renamed as (
 
-  FROM source
+        select
+            id::number as project_rules_groups_id,
+            approval_project_rule_id::number as approval_project_rule_id,
+            group_id::number as group_id
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

@@ -1,16 +1,13 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("sfdc_contact_source") }}),
+    sfdc_contact_pii as (
 
-    SELECT *
-    FROM {{ ref('sfdc_contact_source') }}
+        select
+            contact_id,
+            {{ nohash_sensitive_columns("sfdc_contact_source", "contact_email") }}
+        from source
 
-), sfdc_contact_pii AS (
+    )
 
-    SELECT
-      contact_id,
-      {{ nohash_sensitive_columns('sfdc_contact_source','contact_email') }}
-    FROM source
-
-)
-
-SELECT *
-FROM sfdc_contact_pii
+select *
+from sfdc_contact_pii

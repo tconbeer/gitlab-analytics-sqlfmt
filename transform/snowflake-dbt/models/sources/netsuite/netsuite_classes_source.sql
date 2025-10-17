@@ -1,23 +1,20 @@
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "classes") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'classes') }}
+        select
+            -- Primary Key
+            class_id::float as class_id,
 
-), renamed AS (
+            -- Info
+            name::varchar as class_name,
+            full_name::varchar as class_full_name,
+            isinactive::boolean as is_inactive,
+            _fivetran_deleted::boolean as is_fivetran_deleted
 
-    SELECT
-      --Primary Key
-      class_id::FLOAT              AS class_id,
+        from source
 
-      --Info
-      name::VARCHAR                AS class_name,
-      full_name::VARCHAR           AS class_full_name,
-      isinactive::BOOLEAN          AS is_inactive,
-      _fivetran_deleted::BOOLEAN   AS is_fivetran_deleted
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

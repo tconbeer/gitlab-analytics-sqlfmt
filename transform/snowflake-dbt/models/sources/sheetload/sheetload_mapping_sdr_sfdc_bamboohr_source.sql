@@ -1,25 +1,22 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "mapping_sdr_sfdc_bamboohr") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'mapping_sdr_sfdc_bamboohr') }}
+        select
+            user_id::varchar as user_id,
+            first_name::varchar as first_name,
+            last_name::varchar as last_name,
+            username::varchar as username,
+            active::number as active,
+            profile::varchar as profile,
+            eeid::number as eeid,
+            sdr_segment::varchar as sdr_segment,
+            sdr_region::varchar as sdr_region,
+            sdr_order_type::varchar as sdr_order_type
 
-), renamed as (
+        from source
 
-    SELECT
-      user_id::VARCHAR                      AS user_id,
-      first_name::VARCHAR                   AS first_name,
-      last_name::VARCHAR                    AS last_name,
-      username::VARCHAR                     AS username,
-      active::NUMBER                        AS active,
-      profile::VARCHAR                      AS profile,
-      eeid::NUMBER                          AS eeid,
-      sdr_segment::VARCHAR                  AS sdr_segment,
-      sdr_region::VARCHAR                   AS sdr_region,
-      sdr_order_type::VARCHAR               AS sdr_order_type
-      
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

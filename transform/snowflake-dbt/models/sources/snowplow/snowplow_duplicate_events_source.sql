@@ -1,41 +1,39 @@
-{{config({
-    "materialized": "table",
-    "unique_key":"event_id",
-  })
+{{
+    config(
+        {
+            "materialized": "table",
+            "unique_key": "event_id",
+        }
+    )
 }}
 
-WITH fishtown AS (
-    
-    SELECT 
-        nullif(jsontext['event_id']::VARCHAR, '') AS event_id
-    FROM {{ ref('snowplow_fishtown_good_events_source') }}
+with
+    fishtown as (
 
-), gitlab AS (
+        select nullif(jsontext['event_id']::varchar, '') as event_id
+        from {{ ref("snowplow_fishtown_good_events_source") }}
 
-    SELECT 
-        event_id
-    FROM {{ ref('snowplow_gitlab_good_events_source') }}
+    ),
+    gitlab as (select event_id from {{ ref("snowplow_gitlab_good_events_source") }}),
+    unioned as (
 
-), unioned AS (
+        select event_id
+        from fishtown
 
-    SELECT event_id 
-    FROM fishtown
+        union all
 
-    UNION ALL
+        select event_id
+        from gitlab
 
-    SELECT event_id
-    FROM gitlab
+    ),
+    counts as (
 
-), counts AS (
+        select event_id, count(event_id) as event_count
+        from unioned
+        group by 1
+        having event_count > 1
 
-    SELECT 
-        event_id,
-        count(event_id) AS event_count
-    FROM unioned
-    GROUP BY 1
-    HAVING event_count > 1
+    )
 
-)
-
-SELECT *
-FROM counts
+select *
+from counts

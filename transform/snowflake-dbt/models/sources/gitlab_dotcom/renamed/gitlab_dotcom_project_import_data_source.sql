@@ -1,18 +1,18 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_project_import_data_dedupe_source') }}
-  
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_project_import_data_dedupe_source") }}
 
-    SELECT
+    ),
+    renamed as (
 
-      id::NUMBER                      AS project_import_relation_id,
-      project_id::NUMBER              AS project_id
+        select
 
-    FROM source
+            id::number as project_import_relation_id, project_id::number as project_id
 
-)
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

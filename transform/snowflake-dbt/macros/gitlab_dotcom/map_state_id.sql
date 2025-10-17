@@ -1,11 +1,15 @@
 {%- macro map_state_id(state_id) -%}
 
-    CASE
-      WHEN {{ state_id }}::NUMBER = 1 THEN 'opened'
-      WHEN {{ state_id }}::NUMBER = 2 THEN 'closed'
-      WHEN {{ state_id }}::NUMBER = 3 THEN 'merged'
-      WHEN {{ state_id }}::NUMBER = 4 THEN 'locked'
-      ELSE NULL
-    END             
+    case
+        when {{ state_id }}::number = 1
+        then 'opened'
+        when {{ state_id }}::number = 2
+        then 'closed'
+        when {{ state_id }}::number = 3
+        then 'merged'
+        when {{ state_id }}::number = 4
+        then 'locked'
+        else null
+    end
 
 {%- endmacro -%}

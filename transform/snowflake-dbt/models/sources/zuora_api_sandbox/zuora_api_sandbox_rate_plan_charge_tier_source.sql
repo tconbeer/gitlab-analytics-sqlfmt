@@ -1,18 +1,19 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('zuora_api_sandbox', 'rate_plan_charge_tier') }}
+        select * from {{ source("zuora_api_sandbox", "rate_plan_charge_tier") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT 
-      rateplanchargeid        AS rate_plan_charge_id,
-      productrateplanchargeid AS product_rate_plan_charge_id,
-      price,
-      currency
-    FROM source
-    
-)
+        select
+            rateplanchargeid as rate_plan_charge_id,
+            productrateplanchargeid as product_rate_plan_charge_id,
+            price,
+            currency
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

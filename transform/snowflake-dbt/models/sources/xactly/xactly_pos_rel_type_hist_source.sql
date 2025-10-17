@@ -1,30 +1,27 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_pos_rel_type_hist") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('xactly', 'xc_pos_rel_type_hist') }}
+        select
 
-), renamed AS (
+            created_by_id::float as created_by_id,
+            created_by_name::varchar as created_by_name,
+            created_date::varchar as created_date,
+            descr::varchar as descr,
+            effective_end_date::varchar as effective_end_date,
+            effective_start_date::varchar as effective_start_date,
+            is_active::varchar as is_active,
+            is_master::varchar as is_master,
+            modified_by_id::float as modified_by_id,
+            modified_by_name::varchar as modified_by_name,
+            modified_date::varchar as modified_date,
+            name::varchar as name,
+            object_id::float as object_id,
+            pos_rel_type_id::float as pos_rel_type_id
 
-    SELECT
+        from source
 
-      created_by_id::FLOAT                      AS created_by_id,
-      created_by_name::VARCHAR                  AS created_by_name,
-      created_date::VARCHAR                     AS created_date,
-      descr::VARCHAR                            AS descr,
-      effective_end_date::VARCHAR               AS effective_end_date,
-      effective_start_date::VARCHAR             AS effective_start_date,
-      is_active::VARCHAR                        AS is_active,
-      is_master::VARCHAR                        AS is_master,
-      modified_by_id::FLOAT                     AS modified_by_id,
-      modified_by_name::VARCHAR                 AS modified_by_name,
-      modified_date::VARCHAR                    AS modified_date,
-      name::VARCHAR                             AS name,
-      object_id::FLOAT                          AS object_id,
-      pos_rel_type_id::FLOAT                    AS pos_rel_type_id
+    )
 
-    FROM source
-    
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

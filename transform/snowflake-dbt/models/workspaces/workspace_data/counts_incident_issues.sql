@@ -1,6 +1,6 @@
-SELECT
-  'counts.incident_issues' AS counter_name,
-  COUNT(issues.id) AS counter_value,
-  TO_DATE(CURRENT_DATE) AS run_day
-FROM {{ref('gitlab_dotcom_issues_dedupe_source')}} AS issues 
-WHERE issues.issue_type = 1
+select
+    'counts.incident_issues' as counter_name,
+    count(issues.id) as counter_value,
+    to_date(current_date) as run_day
+from {{ ref("gitlab_dotcom_issues_dedupe_source") }} as issues
+where issues.issue_type = 1

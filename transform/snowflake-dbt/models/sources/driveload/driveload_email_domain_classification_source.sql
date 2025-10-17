@@ -1,11 +1,4 @@
-WITH source AS (
+with source as (select * from {{ source("driveload", "email_domain_classification") }})
 
-    SELECT *
-    FROM {{ source('driveload', 'email_domain_classification') }}
-
-)
-
-SELECT
-  domain::VARCHAR               AS domain,
-  classification::VARCHAR       AS classification
-FROM source
+select domain::varchar as domain, classification::varchar as classification
+from source

@@ -1,53 +1,49 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_ci_builds_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_builds_dedupe_source') }}
-  
-), renamed AS (
+        select
+            id::number as ci_build_id,
+            status::varchar as status,
+            finished_at::timestamp as finished_at,
+            trace::varchar as trace,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            started_at::timestamp as started_at,
+            runner_id::number as ci_build_runner_id,
+            coverage::varchar as coverage,
+            commit_id::number as ci_build_commit_id,
+            name::varchar as ci_build_name,
+            options::varchar as options,
+            allow_failure::varchar as allow_failure,
+            stage::varchar as stage,
+            trigger_request_id::number as ci_build_trigger_request_id,
+            stage_idx::number as stage_idx,
+            tag::varchar as tag,
+            ref::varchar as ref,
+            user_id::number as ci_build_user_id,
+            type::varchar as type,
+            target_url::varchar as target_url,
+            description::varchar as description,
+            project_id::number as ci_build_project_id,
+            erased_by_id::number as ci_build_erased_by_id,
+            erased_at::timestamp as ci_build_erased_at,
+            artifacts_expire_at::timestamp as ci_build_artifacts_expire_at,
+            environment::varchar as environment,
+            sha2(yaml_variables::varchar) as yaml_variables,
+            queued_at::timestamp as ci_build_queued_at,
+            lock_version::varchar as lock_version,
+            coverage_regex::varchar as coverage_regex,
+            auto_canceled_by_id::number as ci_build_auto_canceled_by_id,
+            retried::boolean as retried,
+            stage_id::number as ci_build_stage_id,
+            protected::boolean as protected,
+            failure_reason::varchar as failure_reason,
+            scheduled_at::timestamp as ci_build_scheduled_at,
+            upstream_pipeline_id::number as upstream_pipeline_id
+        from source
 
-  SELECT
-    id::NUMBER                        AS ci_build_id,
-    status::VARCHAR                   AS status,
-    finished_at::TIMESTAMP            AS finished_at,
-    trace::VARCHAR                    AS trace,
-    created_at::TIMESTAMP             AS created_at,
-    updated_at::TIMESTAMP             AS updated_at,
-    started_at::TIMESTAMP             AS started_at,
-    runner_id::NUMBER                 AS ci_build_runner_id,
-    coverage::VARCHAR                 AS coverage,
-    commit_id::NUMBER                 AS ci_build_commit_id,
-    name::VARCHAR                     AS ci_build_name,
-    options::VARCHAR                  AS options,
-    allow_failure::VARCHAR            AS allow_failure,
-    stage::VARCHAR                    AS stage,
-    trigger_request_id::NUMBER        AS ci_build_trigger_request_id,
-    stage_idx::NUMBER                 AS stage_idx,
-    tag::VARCHAR                      AS tag,
-    ref::VARCHAR                      AS ref,
-    user_id::NUMBER                   AS ci_build_user_id,
-    type::VARCHAR                     AS type,
-    target_url::VARCHAR               AS target_url,
-    description::VARCHAR              AS description,
-    project_id::NUMBER                AS ci_build_project_id,
-    erased_by_id::NUMBER              AS ci_build_erased_by_id,
-    erased_at::TIMESTAMP              AS ci_build_erased_at,
-    artifacts_expire_at::TIMESTAMP    AS ci_build_artifacts_expire_at,
-    environment::VARCHAR              AS environment,
-    SHA2(yaml_variables::VARCHAR)     AS yaml_variables,
-    queued_at::TIMESTAMP              AS ci_build_queued_at,
-    lock_version::VARCHAR             AS lock_version,
-    coverage_regex::VARCHAR           AS coverage_regex,
-    auto_canceled_by_id::NUMBER       AS ci_build_auto_canceled_by_id,
-    retried::BOOLEAN                  AS retried,
-    stage_id::NUMBER                  AS ci_build_stage_id,
-    protected::BOOLEAN                AS protected,
-    failure_reason::VARCHAR           AS failure_reason,
-    scheduled_at::TIMESTAMP           AS ci_build_scheduled_at,
-    upstream_pipeline_id::NUMBER      AS upstream_pipeline_id
-  FROM source
+    )
 
-)
-
-
-SELECT *
-FROM renamed
+select *
+from renamed

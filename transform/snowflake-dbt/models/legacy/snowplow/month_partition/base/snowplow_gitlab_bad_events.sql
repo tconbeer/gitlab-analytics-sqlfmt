@@ -1,33 +1,38 @@
-{% set year_value = var('year', run_started_at.strftime('%Y')) %}
-{% set month_value = var('month', run_started_at.strftime('%m')) %}
+{% set year_value = var("year", run_started_at.strftime("%Y")) %}
+{% set month_value = var("month", run_started_at.strftime("%m")) %}
 
-{{config({
-    "unique_key":"bad_event_surrogate"
-  })
-}}
+{{ config({"unique_key": "bad_event_surrogate"}) }}
 
-WITH base AS (
+with
+    base as (
 
-    SELECT *
-    FROM {{ ref('snowplow_gitlab_bad_events_source') }}
-    WHERE LENGTH(JSONTEXT['errors']) > 0
-      AND DATE_PART(month, JSONTEXT['failure_tstamp']::timestamp) = '{{ month_value }}'
-      AND DATE_PART(year, JSONTEXT['failure_tstamp']::timestamp) = '{{ year_value }}'
+        select *
+        from {{ ref("snowplow_gitlab_bad_events_source") }}
+        where
+            length(jsontext['errors']) > 0
+            and date_part(month, jsontext['failure_tstamp']::timestamp)
+            = '{{ month_value }}'
+            and date_part(year, jsontext['failure_tstamp']::timestamp)
+            = '{{ year_value }}'
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT 
-      DISTINCT JSONTEXT['line']::VARCHAR       AS base64_event,
-      TO_ARRAY(JSONTEXT['errors'])            AS error_array,
-      JSONTEXT[ 'failure_tstamp']::timestamp  AS failure_timestamp,
-      'GitLab'                                AS infra_source,
-      uploaded_at,
-      {{ dbt_utils.surrogate_key(['base64_event', 'failure_timestamp','error_array']) }} 
-                                              AS bad_event_surrogate
-    FROM base
+        select distinct
+            jsontext['line']::varchar as base64_event,
+            to_array(jsontext['errors']) as error_array,
+            jsontext['failure_tstamp']::timestamp as failure_timestamp,
+            'GitLab' as infra_source,
+            uploaded_at,
+            {{
+                dbt_utils.surrogate_key(
+                    ["base64_event", "failure_timestamp", "error_array"]
+                )
+            }} as bad_event_surrogate
+        from base
 
-)
+    )
 
-SELECT *
-FROM renamed
-ORDER BY failure_timestamp
+select *
+from renamed
+order by failure_timestamp

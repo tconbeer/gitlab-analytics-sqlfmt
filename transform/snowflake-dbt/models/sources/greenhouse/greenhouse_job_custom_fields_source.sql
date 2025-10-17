@@ -1,30 +1,27 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "job_custom_fields") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'job_custom_fields') }}
+        select
 
-), renamed as (
+            -- key
+            job_id::number as job_id,
+            user_id::number as user_id,
 
-	SELECT
+            -- info
+            custom_field::varchar as job_custom_field,
+            float_value::float as job_custom_field_float_value,
+            date_value::date as job_custom_field_date_value,
+            display_value::varchar as job_custom_field_display_value,
+            unit::varchar as job_custom_field_unit,
+            min_value::number as job_custom_field_min_value,
+            max_value::number as job_custom_field_max_value,
+            created_at::timestamp as job_custom_field_created_at,
+            updated_at::timestamp as job_custom_field_updated_at
 
-			--key
-   			job_id::NUMBER					      AS job_id,
-		   	user_id::NUMBER					      AS user_id,
+        from source
 
-   			--info
-   			custom_field::varchar			    AS job_custom_field,
-   			float_value::float	          AS job_custom_field_float_value,
-   			date_value::date 				      AS job_custom_field_date_value,
-   			display_value::varchar			  AS job_custom_field_display_value,
-   			unit::varchar					        AS job_custom_field_unit,
-   			min_value::NUMBER				    AS job_custom_field_min_value,
-   			max_value::NUMBER				    AS job_custom_field_max_value,
-   			created_at::timestamp 			  AS job_custom_field_created_at,
-   			updated_at::timestamp 			  AS job_custom_field_updated_at
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

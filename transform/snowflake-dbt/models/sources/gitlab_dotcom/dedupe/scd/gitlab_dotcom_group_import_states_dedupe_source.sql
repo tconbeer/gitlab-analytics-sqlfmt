@@ -1,8 +1,4 @@
-WITH base AS (
+with
+    base as (select * from {{ source("gitlab_dotcom", "group_import_states") }})
 
-    SELECT *
-    FROM {{ source('gitlab_dotcom', 'group_import_states') }}
-
-)
-
-{{ scd_latest_state(source='base', max_column='_task_instance') }}
+    {{ scd_latest_state(source="base", max_column="_task_instance") }}

@@ -1,15 +1,10 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "deleted_mrs") }}),
+    renamed as (
 
-	SELECT *
-	FROM {{ source('sheetload', 'deleted_mrs') }}
+        select deleted_merge_request_id::integer as deleted_merge_request_id from source
 
-), renamed AS (
+    )
 
-    SELECT 
-      deleted_merge_request_id::INTEGER AS deleted_merge_request_id
-    FROM source
-
-)
-
-SELECT * 
-FROM renamed
+select *
+from renamed

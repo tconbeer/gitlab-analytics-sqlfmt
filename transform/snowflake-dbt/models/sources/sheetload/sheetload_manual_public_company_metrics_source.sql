@@ -1,18 +1,19 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      month::DATE                     AS month,
-      quarter::VARCHAR                AS quarter,
-      year::VARCHAR                   AS year,
-      metric_name::VARCHAR            AS metric_name,
-      amount::FLOAT                   AS amount,
-      created_by::VARCHAR             AS created_by,
-      created_date::DATE              AS created_date,
-      updated_by::VARCHAR             AS updated_by,
-      updated_date::DATE              AS updated_date
-    FROM {{ source('sheetload','manual_public_company_metrics') }}
+        select
+            month::date as month,
+            quarter::varchar as quarter,
+            year::varchar as year,
+            metric_name::varchar as metric_name,
+            amount::float as amount,
+            created_by::varchar as created_by,
+            created_date::date as created_date,
+            updated_by::varchar as updated_by,
+            updated_date::date as updated_date
+        from {{ source("sheetload", "manual_public_company_metrics") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

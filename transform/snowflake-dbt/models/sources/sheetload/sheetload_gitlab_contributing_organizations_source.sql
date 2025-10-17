@@ -1,17 +1,18 @@
-WITH source AS (
-    
-    SELECT * 
-    FROM {{ source('sheetload','gitlab_contributing_organizations') }}
+with
+    source as (
 
-), renamed AS (
+        select * from {{ source("sheetload", "gitlab_contributing_organizations") }}
 
-    SELECT
-      contributor_organization::VARCHAR      AS contributor_organization,
-      contributor_usernames::VARCHAR         AS contributor_usernames,
-      sfdc_account_id::VARCHAR               AS sfdc_account_id
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            contributor_organization::varchar as contributor_organization,
+            contributor_usernames::varchar as contributor_usernames,
+            sfdc_account_id::varchar as sfdc_account_id
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

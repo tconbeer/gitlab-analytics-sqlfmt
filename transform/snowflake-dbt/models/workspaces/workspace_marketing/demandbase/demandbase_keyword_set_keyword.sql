@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("demandbase_keyword_set_keyword_source") }})
 
-    SELECT *
-    FROM {{ ref('demandbase_keyword_set_keyword_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

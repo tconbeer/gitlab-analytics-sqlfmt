@@ -1,56 +1,57 @@
-{{ config({
-    "schema": "sensitive",
-    "database": env_var('SNOWFLAKE_PREP_DATABASE'),
-    })
+{{
+    config(
+        {
+            "schema": "sensitive",
+            "database": env_var("SNOWFLAKE_PREP_DATABASE"),
+        }
+    )
 }}
-WITH qualtrics_mailing_contacts AS (
+with
+    qualtrics_mailing_contacts as (
 
-    SELECT *
-    FROM {{ ref('qualtrics_mailing_contacts') }}
+        select * from {{ ref("qualtrics_mailing_contacts") }}
 
-), qualtrics_distribution AS (
+    ),
+    qualtrics_distribution as (select * from {{ ref("qualtrics_distribution_xf") }}),
+    qualtrics_survey as (select * from {{ ref("qualtrics_survey") }}),
+    mailing_list_distinct_versions as (
 
-    SELECT *
-    FROM {{ ref('qualtrics_distribution_xf') }}
+        select distinct mailing_list_id, mailing_list_membership_observed_at
+        from qualtrics_mailing_contacts
 
-), qualtrics_survey AS (
+    ),
+    distribution_mailing_list_version as (
 
-    SELECT *
-    FROM {{ ref('qualtrics_survey') }}
-    
-), mailing_list_distinct_versions AS (
-    
-    SELECT DISTINCT 
-      mailing_list_id,
-      mailing_list_membership_observed_at
-    FROM qualtrics_mailing_contacts
+        select
+            dist.mailing_list_id as mailing_list_id,
+            dist.distribution_id as distribution_id,
+            dist.survey_id as survey_id,
+            dist.mailing_sent_at as mailing_sent_at,
+            min(
+                mailing_list_membership_observed_at
+            ) as mailing_list_membership_observed_at
+        from qualtrics_distribution dist
+        inner join
+            mailing_list_distinct_versions ml
+            on dist.mailing_sent_at < ml.mailing_list_membership_observed_at
+            {{ dbt_utils.group_by(n=4) }}
 
-), distribution_mailing_list_version AS (
+    ),
+    distribution_contacts_joined as (
 
-    SELECT
-      dist.mailing_list_id AS mailing_list_id,
-      dist.distribution_id AS distribution_id,
-      dist.survey_id       AS survey_id,
-      dist.mailing_sent_at AS mailing_sent_at,
-      min(mailing_list_membership_observed_at) AS mailing_list_membership_observed_at
-    FROM qualtrics_distribution dist
-    INNER JOIN mailing_list_distinct_versions ml
-      ON dist.mailing_sent_at < ml.mailing_list_membership_observed_at
-    {{ dbt_utils.group_by(n=4) }}
+        select
+            m.contact_email as contact_email,
+            d.mailing_sent_at as mailing_sent_at,
+            s.survey_name as survey_name
+        from distribution_mailing_list_version d
+        inner join
+            qualtrics_mailing_contacts m
+            on d.mailing_list_membership_observed_at
+            = m.mailing_list_membership_observed_at
+            and not m.is_unsubscribed
+        inner join qualtrics_survey s on d.survey_id = s.survey_id
 
-), distribution_contacts_joined AS (
+    )
 
-    SELECT 
-        m.contact_email     AS contact_email,
-        d.mailing_sent_at   AS mailing_sent_at,
-        s.survey_name       AS survey_name
-    FROM distribution_mailing_list_version d
-    INNER JOIN qualtrics_mailing_contacts m
-      ON d.mailing_list_membership_observed_at = m.mailing_list_membership_observed_at AND NOT m.is_unsubscribed
-    INNER JOIN qualtrics_survey s
-      ON d.survey_id = s.survey_id
-
-)
-
-SELECT *
-FROM distribution_contacts_joined
+select *
+from distribution_contacts_joined

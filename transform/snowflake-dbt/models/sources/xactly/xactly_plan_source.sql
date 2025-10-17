@@ -1,30 +1,26 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_plan") }}),
 
-  SELECT *
-  FROM {{ source('xactly', 'xc_plan') }}
+    renamed as (
 
-),
+        select
 
-renamed AS (
+            plan_id::float as plan_id,
+            version::float as version,
+            name::varchar as name,
+            description::varchar as description,
+            is_active::varchar as is_active,
+            created_date::varchar as created_date,
+            created_by_id::float as created_by_id,
+            created_by_name::varchar as created_by_name,
+            modified_date::varchar as modified_date,
+            modified_by_id::float as modified_by_id,
+            modified_by_name::varchar as modified_by_name,
+            period_id::float as period_id
 
-  SELECT
+        from source
 
-    plan_id::FLOAT AS plan_id,
-    version::FLOAT AS version,
-    name::VARCHAR AS name,
-    description::VARCHAR AS description,
-    is_active::VARCHAR AS is_active,
-    created_date::VARCHAR AS created_date,
-    created_by_id::FLOAT AS created_by_id,
-    created_by_name::VARCHAR AS created_by_name,
-    modified_date::VARCHAR AS modified_date,
-    modified_by_id::FLOAT AS modified_by_id,
-    modified_by_name::VARCHAR AS modified_by_name,
-    period_id::FLOAT AS period_id
+    )
 
-  FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

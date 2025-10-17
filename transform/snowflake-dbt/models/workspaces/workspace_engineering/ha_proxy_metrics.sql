@@ -1,33 +1,36 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("thanos_total_haproxy_bytes_out") }}),
 
-  SELECT *
-  FROM {{ ref('thanos_total_haproxy_bytes_out') }}
+    report as (
 
-),
+        select
+            metric_backend as backend,
+            metric_created_at as recorded_at,
+            case
+                when regexp_like(metric_backend, '.*https_git$')
+                then 'HTTPs Git Data Transfer'
+                when regexp_like(metric_backend, '.*registry$')
+                then 'Registry Data Transfer'
+                when regexp_like(metric_backend, '.*api$')
+                then 'API Data Transfer'
+                when regexp_like(metric_backend, '.*web$')
+                then 'Web Data Transfer'
+                when regexp_like(metric_backend, '.*pages_https?$')
+                then 'Pages Data Transfer'
+                when regexp_like(metric_backend, '.*websockets$')
+                then 'WebSockets Data Transfer'
+                when regexp_like(metric_backend, '.*ssh$')
+                then 'SSH Data Transfer'
+                else 'TBD'
+            end as backend_category,
+            metric_value as egress_bytes,
+            metric_value / (1000 * 1000 * 1000) as egress_gigabytes,
+            metric_value / (1024 * 1024 * 1024) as egress_gibibytes
+        from source
+        -- The first data loads did not include the backend aggregation.
+        where metric_backend is not null
 
-report AS (
+    )
 
-  SELECT
-    metric_backend AS backend,
-    metric_created_at AS recorded_at,
-    CASE
-      WHEN REGEXP_LIKE(metric_backend, '.*https_git$') THEN 'HTTPs Git Data Transfer'
-      WHEN REGEXP_LIKE(metric_backend, '.*registry$') THEN 'Registry Data Transfer'
-      WHEN REGEXP_LIKE(metric_backend, '.*api$') THEN 'API Data Transfer'
-      WHEN REGEXP_LIKE(metric_backend, '.*web$') THEN 'Web Data Transfer'
-      WHEN REGEXP_LIKE(metric_backend, '.*pages_https?$') THEN 'Pages Data Transfer'
-      WHEN REGEXP_LIKE(metric_backend, '.*websockets$') THEN 'WebSockets Data Transfer'
-      WHEN REGEXP_LIKE(metric_backend, '.*ssh$') THEN 'SSH Data Transfer'
-      ELSE 'TBD'
-    END AS backend_category,
-    metric_value AS egress_bytes,
-    metric_value / (1000 * 1000 * 1000) AS egress_gigabytes,
-    metric_value / (1024 * 1024 * 1024) AS egress_gibibytes
-  FROM source
-  -- The first data loads did not include the backend aggregation.
-  WHERE metric_backend IS NOT NULL
-
-)
-
-SELECT *
-FROM report
+select *
+from report

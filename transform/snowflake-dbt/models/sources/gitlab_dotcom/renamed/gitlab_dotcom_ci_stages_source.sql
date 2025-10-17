@@ -1,25 +1,27 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_stages_dedupe_source') }}
-  WHERE created_at IS NOT NULL
+        select *
+        from {{ ref("gitlab_dotcom_ci_stages_dedupe_source") }}
+        where created_at is not null
 
-), renamed AS (
-  
-  SELECT
-    id::NUMBER           AS ci_stage_id,
-    project_id::NUMBER   AS project_id,
-    pipeline_id::NUMBER  AS pipeline_id,
-    created_at::TIMESTAMP AS created_at,
-    updated_at::TIMESTAMP AS updated_at,
-    name::VARCHAR         AS ci_stage_name,
-    status::NUMBER       AS ci_stage_status,
-    lock_version::NUMBER AS lock_version,
-    position::NUMBER     AS position
-  FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as ci_stage_id,
+            project_id::number as project_id,
+            pipeline_id::number as pipeline_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            name::varchar as ci_stage_name,
+            status::number as ci_stage_status,
+            lock_version::number as lock_version,
+            position::number as position
+        from source
 
-SELECT *
-FROM renamed
-ORDER BY updated_at
+    )
+
+select *
+from renamed
+order by updated_at

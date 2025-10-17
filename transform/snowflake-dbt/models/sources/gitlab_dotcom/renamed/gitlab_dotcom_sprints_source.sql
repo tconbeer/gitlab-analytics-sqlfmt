@@ -1,28 +1,25 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_sprints_dedupe_source") }}),
+    parsed_columns as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_sprints_dedupe_source') }}
+        select
+            id::number as sprint_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            start_date::date as start_date,
+            due_date::date as due_date,
+            project_id::number as project_id,
+            group_id::number as group_id,
+            iid::number as sprint_iid,
+            cached_markdown_version::number as cached_markdown_version,
+            title::varchar as sprint_title,
+            title_html::varchar as sprint_title_html,
+            description::varchar as sprint_description,
+            description_html::varchar as sprint_description_html,
+            state_enum::number as sprint_state_enum
+        from source
 
-), parsed_columns AS (
+    )
 
-    SELECT
-      id::NUMBER                      AS sprint_id,
-      created_at::TIMESTAMP           AS created_at,
-      updated_at::TIMESTAMP           AS updated_at,
-      start_date::DATE                AS start_date,
-      due_date::DATE                  AS due_date,
-      project_id::NUMBER              AS project_id,
-      group_id::NUMBER                AS group_id,
-      iid::NUMBER                     AS sprint_iid,
-      cached_markdown_version::NUMBER AS cached_markdown_version,
-      title::VARCHAR                  AS sprint_title,
-      title_html::VARCHAR             AS sprint_title_html,
-      description::VARCHAR            AS sprint_description,
-      description_html::VARCHAR       AS sprint_description_html,
-      state_enum::NUMBER              AS sprint_state_enum
-    FROM source
-
-)
-
-SELECT *
-FROM parsed_columns
+select *
+from parsed_columns

@@ -1,8 +1,8 @@
-WITH source AS (
-    
-    SELECT * 
-    FROM {{ source('sheetload','engineering_infra_prod_console_access') }}
-)
+with
+    source as (
 
-SELECT *
-FROM source
+        select * from {{ source("sheetload", "engineering_infra_prod_console_access") }}
+    )
+
+select *
+from source

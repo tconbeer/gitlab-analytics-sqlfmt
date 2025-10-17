@@ -1,28 +1,30 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('bamboohr', 'custom_bonus') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
+        select *
+        from {{ source("bamboohr", "custom_bonus") }}
+        order by uploaded_at desc
+        limit 1
 
-), intermediate AS (
+    ),
+    intermediate as (
 
-      SELECT d.value as data_by_row
-      FROM source,
-      LATERAL FLATTEN(INPUT => parse_json(jsontext), outer => true) d
+        select d.value as data_by_row
+        from source, lateral flatten(input => parse_json(jsontext), outer => true) d
 
-), renamed AS (
+    ),
+    renamed as (
 
-      SELECT
-           data_by_row['id']::NUMBER                 AS bonus_id,
-           data_by_row['employeeId']::NUMBER         AS employee_id,
-           data_by_row['customBonustype']::varchar   AS bonus_type,
-           data_by_row['customBonusdate']::date      AS bonus_date,
-           data_by_row['customNominatedBy']::varchar AS bonus_nominator_type
-      FROM intermediate
-      WHERE bonus_date IS NOT NULL
+        select
+            data_by_row['id']::number as bonus_id,
+            data_by_row['employeeId']::number as employee_id,
+            data_by_row['customBonustype']::varchar as bonus_type,
+            data_by_row['customBonusdate']::date as bonus_date,
+            data_by_row['customNominatedBy']::varchar as bonus_nominator_type
+        from intermediate
+        where bonus_date is not null
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,31 +1,27 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zendesk_community_relations", "macros") }}),
 
-    SELECT *
-    FROM {{ source('zendesk_community_relations', 'macros') }}
+    renamed as (
 
-),
+        select
 
-renamed AS (
+            -- ids
+            id as macro_id,
 
-    SELECT
+            -- field
+            active as is_active,
+            url as macro_url,
+            description as macro_description,
+            position as macro_position,
+            title as macro_title,
 
-      --ids
-      id                                                  AS macro_id,
+            -- dates
+            created_at,
+            updated_at
 
-      --field
-      active                                              AS is_active,
-      url                                                 AS macro_url,
-      description                                         AS macro_description,
-      position                                            AS macro_position,
-      title                                               AS macro_title,
+        from source
 
-      --dates
-      created_at,
-      updated_at
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

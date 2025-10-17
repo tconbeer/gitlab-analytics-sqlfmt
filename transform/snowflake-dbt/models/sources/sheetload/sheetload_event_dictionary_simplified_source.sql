@@ -1,18 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "event_dictionary_simplified") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'event_dictionary_simplified') }}
+        select
+            "Metric_Name"::varchar as metric_name,
+            "Product_Owner"::varchar as product_owner,
+            "Product_Category"::varchar as product_category,
+            "Stage_Lookup"::varchar as stage_lookup
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      "Metric_Name"::VARCHAR      AS metric_name,
-      "Product_Owner"::VARCHAR    AS product_owner,
-      "Product_Category"::VARCHAR AS product_category,
-      "Stage_Lookup"::VARCHAR     AS stage_lookup
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

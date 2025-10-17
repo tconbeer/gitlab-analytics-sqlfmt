@@ -1,19 +1,22 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "procurement_cost_savings") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'procurement_cost_savings') }}
+        select
+            calendar_month::date as calendar_month,
+            try_to_decimal(replace(replace(savings, '$'), ','), 14, 2) as savings,
+            try_to_decimal(
+                replace(replace(rolling_12_month_savings_without_audit, '$'), ','),
+                14,
+                2
+            ) as rolling_12_month_savings_without_audit,
+            try_to_decimal(
+                replace(replace(rolling_12_month_savings_with_audit, '$'), ','), 14, 2
+            ) as rolling_12_month_savings_with_audit,
+            try_to_decimal(replace(replace(target, '$'), ','), 14, 2) as target
+        from source
 
-), renamed AS (
-  
-    SELECT
-      calendar_month::DATE                                                                          AS calendar_month,
-      TRY_TO_DECIMAL(REPLACE(REPLACE(savings,'$'),','), 14, 2)                                      AS savings,
-      TRY_TO_DECIMAL(REPLACE(REPLACE(rolling_12_month_savings_without_audit,'$'),','), 14, 2)       AS rolling_12_month_savings_without_audit,
-      TRY_TO_DECIMAL(REPLACE(REPLACE(rolling_12_month_savings_with_audit,'$'),','), 14, 2)          AS rolling_12_month_savings_with_audit,
-      TRY_TO_DECIMAL(REPLACE(REPLACE(target,'$'),','), 14, 2)                                       AS target
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

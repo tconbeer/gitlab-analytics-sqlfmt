@@ -1,24 +1,29 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'sales_funnel_partner_alliance_targets_matrix') }}
+        select *
+        from {{ source("sheetload", "sales_funnel_partner_alliance_targets_matrix") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      kpi_name::VARCHAR                                   AS kpi_name,
-      month::VARCHAR                                      AS month,
-      sales_qualified_source::VARCHAR                     AS sales_qualified_source,
-      IFF(sales_qualified_source::VARCHAR = 'Channel Generated', 'Partner Sourced', 'Co-sell')
-                                                          AS sqs_bucket_engagement,
-      alliance_partner::VARCHAR                           AS alliance_partner,
-      order_type::VARCHAR                                 AS order_type,
-      area::VARCHAR                                       AS area,
-      REPLACE(allocated_target, ',', '')::FLOAT           AS allocated_target,
-      TO_TIMESTAMP(TO_NUMERIC("_UPDATED_AT"))::TIMESTAMP  AS last_updated_at
-    FROM source
+        select
+            kpi_name::varchar as kpi_name,
+            month::varchar as month,
+            sales_qualified_source::varchar as sales_qualified_source,
+            iff(
+                sales_qualified_source::varchar = 'Channel Generated',
+                'Partner Sourced',
+                'Co-sell'
+            ) as sqs_bucket_engagement,
+            alliance_partner::varchar as alliance_partner,
+            order_type::varchar as order_type,
+            area::varchar as area,
+            replace(allocated_target, ',', '')::float as allocated_target,
+            to_timestamp(to_numeric("_UPDATED_AT"))::timestamp as last_updated_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

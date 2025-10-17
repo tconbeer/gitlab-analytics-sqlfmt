@@ -1,21 +1,18 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "stage_snapshots") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'stage_snapshots') }}
+        select
+            -- keys
+            stage_id::number as stage_snapshot_id,
+            job_id::number as job_id,
 
-), renamed as (
+            -- info
+            date::date as stage_snapshot_date,
+            active_count::number as stage_snapshot_active_count
+        from source
 
-	SELECT
-            --keys
-            stage_id::NUMBER    AS stage_snapshot_id,
-            job_id::NUMBER      AS job_id,
+    )
 
-            --info
-            date::date          AS stage_snapshot_date,
-            active_count::NUMBER   AS stage_snapshot_active_count
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,35 +1,32 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "approvals") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'approvals') }}
+        select
 
-), renamed as (
+            -- keys
+            offer_id::number as offer_id,
+            application_id::number as application_id,
+            job_id::number as job_id,
+            candidate_id::number as candidate_id,
+            approver_id::number as approver_id,
+            group_id::number as group_id,
 
-	SELECT
+            -- info
+            approval_type::varchar as approval_type,
+            status::varchar as approval_status,
+            version::number as approval_version,
+            final_version::number as approval_version_final,
+            group_order::number as group_order,
+            group_quorum::number as group_quorum,
+            assigned::timestamp as approval_assigned_at,
+            completed::timestamp as approval_completed_at,
+            created_at::timestamp as approval_created_at,
+            updated_at::timestamp as approval_updated_at
 
-            --keys
-            offer_id::NUMBER            AS offer_id,
-            application_id::NUMBER      AS application_id,
-            job_id::NUMBER              AS job_id,
-            candidate_id::NUMBER        AS candidate_id,
-            approver_id::NUMBER         AS approver_id,
-            group_id::NUMBER            AS group_id,
+        from source
 
-            --info
-            approval_type::varchar      AS approval_type,
-            status::varchar             AS approval_status,
-            version::NUMBER                AS approval_version,
-            final_version::NUMBER          AS approval_version_final,
-            group_order::NUMBER            AS group_order,
-            group_quorum::NUMBER           AS group_quorum,
-            assigned::timestamp         AS approval_assigned_at,
-            completed::timestamp        AS approval_completed_at,
-            created_at::timestamp       AS approval_created_at,
-            updated_at::timestamp       AS approval_updated_at
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

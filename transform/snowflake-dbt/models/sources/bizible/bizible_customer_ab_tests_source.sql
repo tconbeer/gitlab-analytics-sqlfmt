@@ -1,26 +1,26 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
+        select
 
-      visitor_id                AS visitor_id,
-      cookie_id                 AS cookie_id,
-      event_date                AS event_date,
-      modified_date             AS modified_date,
-      ip_address                AS ip_address,
-      experiment_id             AS experiment_id,
-      experiment_name           AS experiment_name,
-      variation_id              AS variation_id,
-      variation_name            AS variation_name,
-      abtest_user_id            AS abtest_user_id,
-      is_deleted                AS is_deleted,
-      _created_date             AS _created_date,
-      _modified_date            AS _modified_date,
-      _deleted_date             AS _deleted_date
+            visitor_id as visitor_id,
+            cookie_id as cookie_id,
+            event_date as event_date,
+            modified_date as modified_date,
+            ip_address as ip_address,
+            experiment_id as experiment_id,
+            experiment_name as experiment_name,
+            variation_id as variation_id,
+            variation_name as variation_name,
+            abtest_user_id as abtest_user_id,
+            is_deleted as is_deleted,
+            _created_date as _created_date,
+            _modified_date as _modified_date,
+            _deleted_date as _deleted_date
 
-    FROM {{ source('bizible', 'biz_customer_ab_tests') }}
- 
-)
+        from {{ source("bizible", "biz_customer_ab_tests") }}
 
-SELECT *
-FROM source
+    )
 
+select *
+from source

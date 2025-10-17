@@ -2,13 +2,13 @@
 
     {{
         config(
-          strategy='timestamp',
-          unique_key = 'department_id',
-          updated_at = 'date_last_modified'
+            strategy="timestamp",
+            unique_key="department_id",
+            updated_at="date_last_modified",
         )
     }}
 
-    SELECT *
-    FROM {{ source('netsuite', 'departments') }}
+    select *
+    from {{ source("netsuite", "departments") }}
 
 {% endsnapshot %}

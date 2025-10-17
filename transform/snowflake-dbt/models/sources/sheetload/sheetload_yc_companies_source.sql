@@ -1,18 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "yc_companies") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'yc_companies') }}
+        select
+            md5("Name"::varchar || "Batch"::varchar) as company_id,
+            "Name"::varchar as company_name,
+            "Batch"::varchar as yc_batch,
+            "Description"::varchar as company_description
+        from source
 
-), renamed as (
+    )
 
-    SELECT 
-      MD5("Name"::VARCHAR || "Batch"::VARCHAR) AS company_id,
-      "Name"::VARCHAR                          AS company_name,
-      "Batch"::VARCHAR                         AS yc_batch,
-      "Description"::VARCHAR                   AS company_description
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

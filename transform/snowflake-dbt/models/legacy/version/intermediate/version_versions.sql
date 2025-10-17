@@ -1,9 +1,1 @@
-WITH base AS (
-
-    SELECT *
-    FROM {{ ref('version_versions_source') }}
-
-)
-
-SELECT *
-FROM base
+with base as (select * from {{ ref("version_versions_source") }}) select * from base

@@ -1,45 +1,30 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-WITH merge_requests AS (
+with
+    merge_requests as (select * from {{ ref("gitlab_dotcom_merge_requests_xf") }}),
+    notes as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_merge_requests_xf') }}
+        select noteable_id, note_author_id, note
+        from {{ ref("gitlab_dotcom_notes_xf") }}
 
-), notes AS (
+    ),
+    users as (select user_id, user_name from {{ ref("gitlab_dotcom_users_xf") }}),
+    joined_to_mr as (
 
-    SELECT
-      noteable_id,
-      note_author_id,
-      note 
-    FROM {{ ref('gitlab_dotcom_notes_xf')}}
+        select
+            merge_requests.project_id,
+            merge_requests.namespace_id,
+            merge_requests.merge_request_iid,
+            merge_requests.merge_request_title,
+            merge_requests.merge_request_id,
+            notes.note_author_id,
+            users.user_name
+        from merge_requests
+        inner join notes on merge_requests.merge_request_id = notes.noteable_id
+        inner join users on notes.note_author_id = users.user_id
+        where notes.note = 'merged'
 
-), users AS (
+    )
 
-    SELECT 
-      user_id,
-      user_name
-    FROM {{ ref('gitlab_dotcom_users_xf')}}
-
-), joined_to_mr AS (
-
-    SELECT 
-      merge_requests.project_id,
-      merge_requests.namespace_id,
-      merge_requests.merge_request_iid,
-      merge_requests.merge_request_title,
-      merge_requests.merge_request_id,
-      notes.note_author_id,
-      users.user_name
-    FROM merge_requests
-    INNER JOIN notes
-      ON merge_requests.merge_request_id = notes.noteable_id
-    INNER JOIN users
-      ON notes.note_author_id = users.user_id
-    WHERE notes.note = 'merged'
-
-)
-
-SELECT *
-FROM joined_to_mr
+select *
+from joined_to_mr

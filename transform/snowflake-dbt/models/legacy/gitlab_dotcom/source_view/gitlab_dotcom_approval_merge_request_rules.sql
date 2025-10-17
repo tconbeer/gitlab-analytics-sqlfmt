@@ -1,9 +1,9 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_approval_merge_request_rules_source') }}
+        select * from {{ ref("gitlab_dotcom_approval_merge_request_rules_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

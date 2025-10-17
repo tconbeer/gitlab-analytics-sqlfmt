@@ -1,19 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_board_labels_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_board_labels_dedupe_source') }}
-  
-), renamed AS (
+        select
+            id::number as board_label_relation_id,
+            board_id::number as board_id,
+            label_id::number as label_id
 
-  SELECT
-    id::NUMBER        AS board_label_relation_id,
-    board_id::NUMBER  AS board_id,
-    label_id::NUMBER  AS label_id
+        from source
 
-  FROM source
+    )
 
-)
-
-
-SELECT *
-FROM renamed
+select *
+from renamed

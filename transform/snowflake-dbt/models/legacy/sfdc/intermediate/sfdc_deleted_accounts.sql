@@ -1,19 +1,15 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('sfdc_account_source') }}
-    WHERE account_id IS NOT NULL
-      AND is_deleted = TRUE
-)
+        select *
+        from {{ ref("sfdc_account_source") }}
+        where account_id is not null and is_deleted = true
+    )
 
-SELECT
-  a.account_id                                     AS sfdc_account_id,
-  COALESCE(b.master_record_id, a.master_record_id) AS sfdc_master_record_id
-FROM source a
-LEFT JOIN source b
-  ON a.master_record_id = b.account_id
-
+select
+    a.account_id as sfdc_account_id,
+    coalesce(b.master_record_id, a.master_record_id) as sfdc_master_record_id
+from source a
+left join source b on a.master_record_id = b.account_id

@@ -1,24 +1,22 @@
-{{ config({
-    "materialized": "table"
-    })
-}}
+{{ config({"materialized": "table"}) }}
 
-WITH base AS (
+with
+    base as (select * from {{ ref("gitlab_dotcom_audit_event_details") }}),
+    audit_event_pii as (
 
-    SELECT * 
-    FROM {{ ref('gitlab_dotcom_audit_event_details') }}
+        select
+            audit_event_id,
+            key_name,
+            {{
+                nohash_sensitive_columns(
+                    "gitlab_dotcom_audit_event_details", "key_value"
+                )
+            }},
+            created_at
+        from base
+        where key_name = 'target_details'
 
-), audit_event_pii AS (
+    )
 
-    SELECT
-      audit_event_id,
-      key_name,
-      {{ nohash_sensitive_columns('gitlab_dotcom_audit_event_details', 'key_value') }},
-      created_at
-    FROM base
-    WHERE key_name = 'target_details'
-
-)
-
-SELECT *
-FROM audit_event_pii
+select *
+from audit_event_pii

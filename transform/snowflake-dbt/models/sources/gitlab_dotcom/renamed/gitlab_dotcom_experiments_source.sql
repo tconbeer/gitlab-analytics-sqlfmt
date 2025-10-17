@@ -1,16 +1,10 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_experiments_dedupe_source") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_experiments_dedupe_source') }}
+        select id::number as experiment_id, name::varchar as experiment_name from source
 
-), renamed AS (
+    )
 
-    SELECT
-      id::NUMBER    AS experiment_id,
-      name::VARCHAR AS experiment_name
-    FROM source
-    
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

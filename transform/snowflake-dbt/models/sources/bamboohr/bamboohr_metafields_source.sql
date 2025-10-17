@@ -1,20 +1,23 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('bamboohr', 'meta_fields') }}
-    ORDER BY uploaded_at DESC
-    LIMIT 1
-  
-), renamed AS (
+        select *
+        from {{ source("bamboohr", "meta_fields") }}
+        order by uploaded_at desc
+        limit 1
 
-    SELECT
-      metafield.value['id']::INT               AS metafield_id,
-      metafield.value['name']::VARCHAR         AS metafield_name,
-      metafield.value['alias']::VARCHAR        AS metafield_alias_name
-    FROM source,
-    LATERAL FLATTEN(INPUT => parse_json(jsontext), OUTER => true) metafield
+    ),
+    renamed as (
 
-)
+        select
+            metafield.value['id']::int as metafield_id,
+            metafield.value['name']::varchar as metafield_name,
+            metafield.value['alias']::varchar as metafield_alias_name
+        from
+            source,
+            lateral flatten(input => parse_json(jsontext), outer => true) metafield
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

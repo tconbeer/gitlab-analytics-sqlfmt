@@ -1,19 +1,20 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_merge_request_blocks_dedupe_source') }}
+        select * from {{ ref("gitlab_dotcom_merge_request_blocks_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER                                  AS merge_request_blocks_id,
-      blocking_merge_request_id::NUMBER           AS blocking_merge_request_id,
-      blocked_merge_request_id::NUMBER            AS blocked_merge_request_id,
-      created_at::TIMESTAMP                       AS created_at,
-      updated_at::TIMESTAMP                       AS updated_at
-    FROM source
+        select
+            id::number as merge_request_blocks_id,
+            blocking_merge_request_id::number as blocking_merge_request_id,
+            blocked_merge_request_id::number as blocked_merge_request_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

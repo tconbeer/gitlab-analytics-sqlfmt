@@ -2,24 +2,27 @@
 
     {{
         config(
-          unique_key='id',
-          strategy='timestamp',
-          updated_at='updated_at',
+            unique_key="id",
+            strategy="timestamp",
+            updated_at="updated_at",
         )
     }}
-    
-    WITH source AS (
 
-      SELECT 
-        *, 
-        ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) AS customers_rank_in_key
-        
-      FROM {{ source('customers', 'customers_db_customers') }}
+    with
+        source as (
 
-    )
+            select
+                *,
+                row_number() over (
+                    partition by id order by updated_at desc
+                ) as customers_rank_in_key
 
-    SELECT *
-    FROM source
-    WHERE customers_rank_in_key = 1
-    
+            from {{ source("customers", "customers_db_customers") }}
+
+        )
+
+    select *
+    from source
+    where customers_rank_in_key = 1
+
 {% endsnapshot %}

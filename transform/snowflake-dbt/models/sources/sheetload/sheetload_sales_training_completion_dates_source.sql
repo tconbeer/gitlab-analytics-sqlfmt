@@ -1,18 +1,18 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'sales_training_completion_dates') }}
+        select * from {{ source("sheetload", "sales_training_completion_dates") }}
 
-)
+    )
 
-SELECT
-  email::VARCHAR                          AS email_address,
-  role::VARCHAR                           AS job_role,
-  job_title::VARCHAR                      AS job_title,
-  department::VARCHAR                     AS department,
-  reporting_to::VARCHAR                   AS reporting_to,
-  training::VARCHAR                       AS training_completed,
-  knowledge_check_complete::DATE          AS knowledge_check_complete,
-  application_exercise_complete::DATE     AS application_exercise_compled_date,
-  _updated_at::FLOAT                      AS last_updated_at
-FROM source
+select
+    email::varchar as email_address,
+    role::varchar as job_role,
+    job_title::varchar as job_title,
+    department::varchar as department,
+    reporting_to::varchar as reporting_to,
+    training::varchar as training_completed,
+    knowledge_check_complete::date as knowledge_check_complete,
+    application_exercise_complete::date as application_exercise_compled_date,
+    _updated_at::float as last_updated_at
+from source

@@ -1,27 +1,24 @@
-WITH source AS (
+with
+    source as (select * from {{ source("netsuite", "departments") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('netsuite', 'departments') }}
+        select
+            -- Primary Key
+            department_id::float as department_id,
 
-), renamed AS (
+            -- Foreign Key
+            parent_id::float as parent_department_id,
 
-    SELECT
-      --Primary Key
-      department_id::FLOAT       AS department_id,
+            -- Info
+            name::varchar as department_name,
+            full_name::varchar as department_full_name,
 
-      --Foreign Key
-      parent_id::FLOAT           AS parent_department_id,
+            -- Meta
+            isinactive::boolean as is_department_inactive
 
-      --Info
-      name::VARCHAR              AS department_name,
-      full_name::VARCHAR         AS department_full_name,
+        from source
 
-      --Meta
-      isinactive::BOOLEAN        AS is_department_inactive
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,12 +1,5 @@
-WITH source AS (
+with source as (select * from {{ ref("zengrc_assessment_source") }})
 
-    SELECT *
-    FROM {{ ref('zengrc_assessment_source') }}
-
-)
-
-SELECT
-  source.assessment_id,
-  assessors.value['id']::NUMBER    AS assessor_id
-FROM source
-INNER JOIN LATERAL FLATTEN(INPUT => TRY_PARSE_JSON(source.assessors)) assessors
+select source.assessment_id, assessors.value['id']::number as assessor_id
+from source
+inner join lateral flatten(input => try_parse_json(source.assessors)) assessors

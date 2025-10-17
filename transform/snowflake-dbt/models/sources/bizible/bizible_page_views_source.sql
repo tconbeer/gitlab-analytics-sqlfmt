@@ -1,36 +1,36 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      id                            AS page_view_id,
-      cookie_id                     AS cookie_id,
-      visitor_id                    AS visitor_id,
-      session_id                    AS session_id,
-      event_date                    AS event_date,
-      modified_date                 AS modified_date,
-      current_page                  AS current_page,
-      current_page_raw              AS current_page_raw,
-      ip_address                    AS ip_address,
-      type                          AS type,
-      user_agent_string             AS user_agent_string,
-      client_sequence               AS client_sequence,
-      client_random                 AS client_random,
-      is_duplicated                 AS is_duplicated,
-      is_processed                  AS is_processed,
-      referrer_page                 AS referrer_page,
-      referrer_page_raw             AS referrer_page_raw,
-      page_title                    AS page_title,
-      email                         AS email,
-      has_user_consent              AS has_user_consent,
-      row_key                       AS row_key,
-      current_page_key              AS current_page_key,
-      referrer_page_key             AS referrer_page_key,
-      _created_date                 AS _created_date,
-      _modified_date                AS _modified_date,
-      _deleted_date                 AS _deleted_date
-    FROM {{ source('bizible', 'biz_page_views') }}
- 
-)
+        select
+            id as page_view_id,
+            cookie_id as cookie_id,
+            visitor_id as visitor_id,
+            session_id as session_id,
+            event_date as event_date,
+            modified_date as modified_date,
+            current_page as current_page,
+            current_page_raw as current_page_raw,
+            ip_address as ip_address,
+            type as type,
+            user_agent_string as user_agent_string,
+            client_sequence as client_sequence,
+            client_random as client_random,
+            is_duplicated as is_duplicated,
+            is_processed as is_processed,
+            referrer_page as referrer_page,
+            referrer_page_raw as referrer_page_raw,
+            page_title as page_title,
+            email as email,
+            has_user_consent as has_user_consent,
+            row_key as row_key,
+            current_page_key as current_page_key,
+            referrer_page_key as referrer_page_key,
+            _created_date as _created_date,
+            _modified_date as _modified_date,
+            _deleted_date as _deleted_date
+        from {{ source("bizible", "biz_page_views") }}
 
-SELECT *
-FROM source
+    )
 
+select *
+from source

@@ -1,40 +1,65 @@
-WITH mapping as (
+with
+    mapping as (
 
-    SELECT *
-    FROM {{ref('bamboohr_id_employee_number_mapping')}}
-    --mapping on bamboohr_id_employee_number_mapping as this has accounted for all hired employees whereas bamboohr_directory_source has not
+        select * from {{ ref("bamboohr_id_employee_number_mapping") }}
+    -- mapping on bamboohr_id_employee_number_mapping as this has accounted for all
+    -- hired employees whereas bamboohr_directory_source has not
+    ),
+    bamboohr_directory as (
 
-), bamboohr_directory AS (
+        select *
+        from {{ ref("bamboohr_directory_source") }}
+        qualify
+            row_number() over (
+                partition by employee_id, date_trunc(day, uploaded_at)
+                order by uploaded_at desc
+            )
+            = 1
 
-    SELECT *
-    FROM {{ ref('bamboohr_directory_source') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY employee_id, DATE_TRUNC(day, uploaded_at) ORDER BY uploaded_at DESC) = 1
+    ),
+    intermediate as (
 
-), intermediate AS (
+        select
+            bamboohr_directory.*,
+            last_value(date_trunc(day, bamboohr_directory.uploaded_at)) over (
+                partition by bamboohr_directory.employee_id order by uploaded_at
+            ) as max_uploaded_date,
+            dense_rank() over (
+                partition by bamboohr_directory.employee_id order by uploaded_at desc
+            ) as rank_email_desc
+        from mapping
+        left join
+            bamboohr_directory on mapping.employee_id = bamboohr_directory.employee_id
+        qualify
+            row_number() over (
+                partition by bamboohr_directory.employee_id, work_email
+                order by uploaded_at
+            )
+            = 1
 
-    SELECT bamboohr_directory.*,
-      LAST_VALUE(DATE_TRUNC(DAY, bamboohr_directory.uploaded_at)) OVER 
-            (PARTITION BY bamboohr_directory.employee_id ORDER BY uploaded_at)                         AS max_uploaded_date,
-      DENSE_RANK() OVER (PARTITION BY bamboohr_directory.employee_id ORDER BY uploaded_at DESC)        AS rank_email_desc        
-    FROM mapping
-    LEFT JOIN bamboohr_directory
-      ON mapping.employee_id = bamboohr_directory.employee_id
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY bamboohr_directory.employee_id, work_email ORDER BY uploaded_at) = 1       
+    ),
+    final as (
 
-), final AS (
+        select
+            employee_id,
+            full_name,
+            work_email,
+            uploaded_at as valid_from_date,
+            iff(
+                max_uploaded_date < current_date() and rank_email_desc = 1,
+                max_uploaded_date,
+                coalesce(
+                    lead(dateadd(day, -1, uploaded_at)) over (
+                        partition by employee_id order by uploaded_at
+                    ),
+                    {{ max_date_in_bamboo_analyses() }}
+                )
+            ) as valid_to_date,
+            dense_rank() over (
+                partition by employee_id order by valid_from_date desc
+            ) as rank_email_desc
+        from intermediate
+    )
 
-    SELECT
-      employee_id,
-      full_name,
-      work_email,
-      uploaded_at                                                                     AS valid_from_date,
-      IFF(max_uploaded_date< CURRENT_DATE() AND rank_email_desc = 1, 
-        max_uploaded_date, 
-        COALESCE(LEAD(DATEADD(day,-1,uploaded_at)) OVER (PARTITION BY employee_id ORDER BY uploaded_at),
-                {{max_date_in_bamboo_analyses()}}))                                   AS valid_to_date,
-      DENSE_RANK() OVER (PARTITION BY employee_id ORDER BY valid_from_date DESC)      AS rank_email_desc
-    FROM intermediate
-)
-
-SELECT *
-FROM final
+select *
+from final

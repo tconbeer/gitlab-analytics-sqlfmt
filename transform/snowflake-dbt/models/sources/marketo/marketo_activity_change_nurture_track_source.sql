@@ -1,25 +1,22 @@
-WITH source AS (
+with
+    source as (select * from {{ source("marketo", "activity_change_nurture_track") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('marketo', 'activity_change_nurture_track') }}
+        select
 
-), renamed AS (
+            id::number as marketo_activity_change_nurture_track_id,
+            lead_id::number as lead_id,
+            activity_date::timestamp_tz as activity_date,
+            activity_type_id::number as activity_type_id,
+            campaign_id::number as campaign_id,
+            primary_attribute_value_id::number as primary_attribute_value_id,
+            primary_attribute_value::text as primary_attribute_value,
+            previous_track_id::number as previous_track_id,
+            new_track_id::number as new_track_id
 
-    SELECT
+        from source
 
-      id::NUMBER                                    AS marketo_activity_change_nurture_track_id,
-      lead_id::NUMBER                               AS lead_id,
-      activity_date::TIMESTAMP_TZ                   AS activity_date,
-      activity_type_id::NUMBER                      AS activity_type_id,
-      campaign_id::NUMBER                           AS campaign_id,
-      primary_attribute_value_id::NUMBER            AS primary_attribute_value_id,
-      primary_attribute_value::TEXT                 AS primary_attribute_value,
-      previous_track_id::NUMBER                     AS previous_track_id,
-      new_track_id::NUMBER                          AS new_track_id
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

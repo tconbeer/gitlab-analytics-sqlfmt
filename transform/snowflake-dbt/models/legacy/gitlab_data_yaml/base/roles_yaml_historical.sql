@@ -1,15 +1,6 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("roles_yaml_source") }}),
+    filtered as (select * from source where rank = 1)
 
-    SELECT *
-    FROM {{ ref('roles_yaml_source') }}
-
-), filtered as (
-
-    SELECT *
-    FROM source
-    WHERE rank = 1
-
-)
-
-SELECT *
-FROM filtered
+select *
+from filtered

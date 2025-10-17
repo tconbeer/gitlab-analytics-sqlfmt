@@ -1,64 +1,78 @@
-WITH employee_directory AS (
-  
-    SELECT *
-    FROM {{ ref('employee_directory_intermediate') }}
+with
+    employee_directory as (select * from {{ ref("employee_directory_intermediate") }}),
+    gitlab_mapping as (
 
-),  gitlab_mapping AS (
+        select * from {{ ref("map_team_member_bamboo_gitlab_dotcom_gitlab_ops") }}
 
-    SELECT *
-    FROM {{ ref('map_team_member_bamboo_gitlab_dotcom_gitlab_ops') }}
+    ),
+    sheetload_missing as (
 
-), sheetload_missing AS (
+        select * from {{ ref("sheetload_infrastructure_missing_employees") }}
 
-    SELECT *
-    FROM {{ ref('sheetload_infrastructure_missing_employees') }}
+    ),
+    intermediate as (
 
-), intermediate AS (
+        select distinct
+            date_trunc(month, date_actual) as month_date,
+            employee_directory.date_actual as valid_from,
+            employee_directory.employee_id,
+            employee_directory.full_name,
+            division,
+            department,
+            jobtitle_speciality,
+            job_role,
+            reports_to,
+            coalesce(
+                gitlab_mapping.gitlab_dotcom_user_id,
+                sheetload_missing.gitlab_dotcom_user_id
+            ) as gitlab_dotcom_user_id,
+            gitlab_ops_user_id
+        from employee_directory
+        left join
+            gitlab_mapping
+            on employee_directory.employee_id = gitlab_mapping.bamboohr_employee_id
+        left join
+            sheetload_missing
+            on employee_directory.employee_id = sheetload_missing.employee_id
+        qualify
+            row_number() over (
+                partition by
+                    date_trunc(month, date_actual),
+                    employee_directory.employee_id,
+                    employee_directory.division,
+                    employee_directory.department,
+                    jobtitle_speciality,
+                    job_role_modified,
+                    reports_to
+                order by employee_directory.date_actual
+            )
+            = 1
 
-    SELECT DISTINCT
-        DATE_TRUNC(month, date_actual) AS month_date,
-        employee_directory.date_actual AS valid_from,
-        employee_directory.employee_id,
-        employee_directory.full_name,
-        division,
-        department,
-        jobtitle_speciality,
-        job_role,
-        reports_to,
-        COALESCE(gitlab_mapping.gitlab_dotcom_user_id, sheetload_missing.gitlab_dotcom_user_id) AS gitlab_dotcom_user_id,
-        gitlab_ops_user_id
-    FROM employee_directory
-    LEFT JOIN gitlab_mapping
-      ON employee_directory.employee_id = gitlab_mapping.bamboohr_employee_id
-    LEFT JOIN sheetload_missing
-      ON employee_directory.employee_id = sheetload_missing.employee_id
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY
-                                DATE_TRUNC(month, date_actual), employee_directory.employee_id, 
-                                employee_directory.division, employee_directory.department, jobtitle_speciality, 
-                                job_role_modified, reports_to 
-                                ORDER BY employee_directory.date_actual) = 1
+    ),
+    final as (
 
-), final AS (
-
-    SELECT 
-      month_date,
-      valid_from,
-      COALESCE(LEAD(DATEADD(day, -1, valid_from)) OVER (PARTITION BY employee_id order by valid_from),
-               LAST_DAY(valid_from))                                                                    AS valid_to,
-      employee_id,
-      full_name,
-      division,
-      department,
-      jobtitle_speciality,
-      job_role,
-      reports_to,
-      gitlab_dotcom_user_id,
-      gitlab_ops_user_id,
-      DATEDIFF(day, valid_from, valid_to)      AS total_days
-    FROM intermediate
+        select
+            month_date,
+            valid_from,
+            coalesce(
+                lead(dateadd(day, -1, valid_from)) over (
+                    partition by employee_id order by valid_from
+                ),
+                last_day(valid_from)
+            ) as valid_to,
+            employee_id,
+            full_name,
+            division,
+            department,
+            jobtitle_speciality,
+            job_role,
+            reports_to,
+            gitlab_dotcom_user_id,
+            gitlab_ops_user_id,
+            datediff(day, valid_from, valid_to) as total_days
+        from intermediate
     -- need to account for terminations
+    )
 
-)
-
-SELECT *
-FROM final
+select *
+from final

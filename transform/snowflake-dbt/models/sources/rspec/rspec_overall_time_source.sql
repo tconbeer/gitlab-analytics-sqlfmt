@@ -1,23 +1,20 @@
-WITH source AS (
+with
+    source as (select * from {{ source("rspec", "overall_time") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('rspec', 'overall_time') }}
+        select
+            commit_hash::varchar as commit,
+            commit_time::timestamp_tz as commit_at_time,
+            total_time::float as total_time_taken_seconds,
+            number_of_tests::float as number_of_tests,
+            time_per_single_test::float as time_per_single_test_seconds,
+            total_queries::float as total_queries,
+            total_query_time::float as total_query_time_seconds,
+            total_requests::float as total_requests,
+            _updated_at::float as updated_at
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      commit_hash::VARCHAR                  AS commit,
-      commit_time::TIMESTAMP_TZ             AS commit_at_time,
-      total_time::FLOAT                     AS total_time_taken_seconds,
-      number_of_tests::FLOAT                AS number_of_tests,
-      time_per_single_test::FLOAT           AS time_per_single_test_seconds,
-      total_queries::FLOAT                  AS total_queries,
-      total_query_time::FLOAT               AS total_query_time_seconds,
-      total_requests::FLOAT                 AS total_requests,
-      _UPDATED_AT::FLOAT                    AS updated_at
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

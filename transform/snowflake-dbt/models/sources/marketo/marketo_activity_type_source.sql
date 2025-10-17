@@ -1,19 +1,16 @@
-WITH source AS (
+with
+    source as (select * from {{ source("marketo", "activity_type") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('marketo', 'activity_type') }}
+        select
 
-), renamed AS (
+            id::number as marketo_activity_type_id,
+            name::text as name,
+            description::text as description
 
-    SELECT
+        from source
 
-      id::NUMBER                AS marketo_activity_type_id,
-      name::TEXT                AS name,
-      description::TEXT         AS description
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

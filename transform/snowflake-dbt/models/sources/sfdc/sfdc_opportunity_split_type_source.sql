@@ -1,39 +1,38 @@
-{{config({
-    "materialized": "table",
-    "schema": "legacy",
-    "database": env_var('SNOWFLAKE_PROD_DATABASE'),
-  })
+{{
+    config(
+        {
+            "materialized": "table",
+            "schema": "legacy",
+            "database": env_var("SNOWFLAKE_PROD_DATABASE"),
+        }
+    )
 }}
 
-WITH source AS (
+with
+    source as (select * from {{ source("salesforce", "opportunity_split_type") }}),
+    renamed as (
 
-    SELECT
-      *
-    FROM {{ source('salesforce', 'opportunity_split_type') }}
+        select
 
-), renamed AS (
+            id::varchar as opportunity_split_type_id,
+            createdbyid::varchar as created_by_id,
+            createddate::timestamp as created_date,
+            lastmodifiedbyid::varchar as last_modified_by_id,
+            lastmodifieddate::timestamp as last_modified_date,
+            developername::varchar as developer_name,
+            description::varchar as description,
+            language::varchar as language,
+            masterlabel::varchar as master_label,
+            splitdatastatus::varchar as split_data_status,
+            splitentity::varchar as split_entity,
+            splitfield::varchar as split_field,
+            isactive::boolean as is_active,
+            istotalvalidated::boolean as is_total_validated,
+            isdeleted::boolean as is_deleted,
+            systemmodstamp::timestamp as system_mod_timestamp
 
-      SELECT
-        
-        id::VARCHAR                                                AS opportunity_split_type_id,
-        createdbyid::VARCHAR                                       AS created_by_id,
-        createddate::TIMESTAMP                                     AS created_date,
-        lastmodifiedbyid::VARCHAR                                  AS last_modified_by_id,
-        lastmodifieddate::TIMESTAMP                                AS last_modified_date,
-        developername::VARCHAR                                     AS developer_name,
-        description::VARCHAR                                       AS description,
-        language::VARCHAR                                          AS language,
-        masterlabel::VARCHAR                                       AS master_label,
-        splitdatastatus::VARCHAR                                   AS split_data_status,
-        splitentity::VARCHAR                                       AS split_entity,
-        splitfield::VARCHAR                                        AS split_field,
-        isactive::BOOLEAN                                          AS is_active,
-        istotalvalidated::BOOLEAN                                  AS is_total_validated,
-        isdeleted::BOOLEAN                                         AS is_deleted,
-        systemmodstamp::TIMESTAMP                                  AS system_mod_timestamp
+        from source
+    )
 
-      FROM source
-  )
-
-SELECT *
-FROM renamed
+select *
+from renamed

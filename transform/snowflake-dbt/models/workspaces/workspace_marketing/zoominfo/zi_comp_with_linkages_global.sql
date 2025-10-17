@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("zi_comp_with_linkages_global_source") }})
 
-    SELECT *
-    FROM {{ ref('zi_comp_with_linkages_global_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

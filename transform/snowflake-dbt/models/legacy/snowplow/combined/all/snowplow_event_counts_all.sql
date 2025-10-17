@@ -1,54 +1,45 @@
-WITH good_events AS (
+with
+    good_events as (select * from {{ ref("snowplow_unnested_events_all") }}),
 
-    SELECT *
-    FROM {{ ref('snowplow_unnested_events_all') }}
+    bad_events as (select * from {{ ref("snowplow_unnested_errors_all") }}),
 
-),
+    good_count as (
 
-bad_events AS (
+        select
+            date_trunc('day', derived_tstamp::timestamp)::date as event_day,
+            count(*) as good_event_count
+        from good_events
+        group by 1
 
-    SELECT *
-    FROM {{ ref('snowplow_unnested_errors_all') }}
+    ),
 
-),
+    bad_count as (
 
-good_count AS (
+        select
+            date_trunc('day', failure_timestamp::timestamp)::date as event_day,
+            count(*) as bad_event_count
+        from bad_events
+        group by 1
 
-    SELECT
-        date_trunc('day',derived_tstamp ::timestamp)::date  AS event_day,
-        count(*)                                            AS good_event_count
-    FROM good_events
-    GROUP BY 1
+    ),
 
-),
+    bad_unstruct_count as (
 
-bad_count AS (
+        select
+            date_trunc('day', derived_tstamp::timestamp)::date as event_day,
+            count(*) as bad_unstruct_event_count
+        from good_events
+        where is_bad_unstruct_event = true
+        group by 1
 
-    SELECT
-        date_trunc('day',failure_timestamp ::timestamp)::date   AS event_day,
-        count(*)                                                AS bad_event_count
-    FROM bad_events
-    GROUP BY 1
+    )
 
-),
-
-bad_unstruct_count AS (
-
-    SELECT
-        date_trunc('day',derived_tstamp ::timestamp)::date   AS event_day,
-        count(*)                                             AS bad_unstruct_event_count
-    FROM good_events
-    WHERE is_bad_unstruct_event = TRUE
-    GROUP BY 1
-
-)
-
-SELECT
+select
     good_count.event_day,
     good_count.good_event_count,
     bad_count.bad_event_count,
     bad_unstruct_count.bad_unstruct_event_count
-FROM good_count
-LEFT JOIN bad_count on good_count.event_day = bad_count.event_day
-LEFT JOIN bad_unstruct_count on good_count.event_day = bad_unstruct_count.event_day
-ORDER BY event_day
+from good_count
+left join bad_count on good_count.event_day = bad_count.event_day
+left join bad_unstruct_count on good_count.event_day = bad_unstruct_count.event_day
+order by event_day

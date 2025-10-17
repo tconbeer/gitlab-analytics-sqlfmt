@@ -1,88 +1,102 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "month_version_id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "month_version_id"}) }}
 
-WITH filtered_counters AS (
-  
-  SELECT *
-  FROM {{ ref('mart_usage_ping_counters_statistics') }}
-  WHERE metrics_path ILIKE 'counts.%' AND edition = 'CE'
-    AND first_major_version_with_counter BETWEEN 1 AND 12
+with
+    filtered_counters as (
 
-), monthly_usage_data AS (
+        select *
+        from {{ ref("mart_usage_ping_counters_statistics") }}
+        where
+            metrics_path ilike 'counts.%'
+            and edition = 'CE'
+            and first_major_version_with_counter between 1 and 12
 
-    SELECT *
-    FROM {{ ref('monthly_usage_data') }}
-    WHERE monthly_metric_value > 0
-      AND metrics_path ILIKE 'counts.%'
-      {% if is_incremental() %}
+    ),
+    monthly_usage_data as (
 
-      AND created_month >= (SELECT MAX(reporting_month) FROM {{this}})
+        select *
+        from {{ ref("monthly_usage_data") }}
+        where
+            monthly_metric_value > 0 and metrics_path ilike 'counts.%'
+            {% if is_incremental() %}
 
-      {% endif %}
-), dim_gitlab_releases AS (
+                and created_month >= (select max(reporting_month) from {{ this }})
 
-    SELECT *
-    FROM {{ ref('dim_gitlab_releases') }}
+            {% endif %}
+    ),
+    dim_gitlab_releases as (select * from {{ ref("dim_gitlab_releases") }}),
+    fct_usage_ping_payload as (select * from {{ ref("fct_usage_ping_payload") }}),
+    outlier_detection_formula as (
 
-), fct_usage_ping_payload AS (
+        select
+            created_month as reporting_month,
+            metrics_path,
+            (
+                approx_percentile(monthly_metric_value, 0.75)
+                - approx_percentile(monthly_metric_value, 0.25)
+            )
+            * 3
+            + approx_percentile(monthly_metric_value, 0.75) as outer_boundary
+        from monthly_usage_data
+        where
+            monthly_metric_value > 0
+            and metrics_path ilike 'counts.%'
+            and created_month >= '2020-01-01'
+        group by 1, 2
 
-    SELECT *
-    FROM {{ ref('fct_usage_ping_payload') }}
+    ),
+    joined as (
 
-), outlier_detection_formula AS (
+        select
+            product_usage.created_month as reporting_month,
+            fct_usage_ping_payload.major_minor_version,
+            datediff(
+                'month', date_trunc('month', release_date), product_usage.created_month
+            ) as months_since_release,
+            iff(
+                fct_usage_ping_payload.edition = 'CE',
+                'CE',
+                iff(product_tier = 'Core', 'EE - Core', 'EE - Paid')
+            ) as reworked_main_edition,
+            sum(monthly_metric_value) as total_counts
+        from monthly_usage_data as product_usage
+        left join
+            fct_usage_ping_payload
+            on product_usage.ping_id = fct_usage_ping_payload.dim_usage_ping_id
+        left join
+            dim_gitlab_releases as release
+            on fct_usage_ping_payload.major_minor_version = release.major_minor_version
+        inner join
+            filtered_counters
+            on product_usage.metrics_path = filtered_counters.metrics_path
+        inner join
+            outlier_detection_formula
+            on product_usage.metrics_path = outlier_detection_formula.metrics_path
+            and product_usage.created_month = outlier_detection_formula.reporting_month
+            and product_usage.monthly_metric_value <= outer_boundary
+        where
+            usage_ping_delivery_type = 'Self-Managed'
+            and product_usage.created_month > '2020-01-01'
+            and is_trial = false
+        group by 1, 2, 3, 4
 
-    SELECT 
-      created_month AS reporting_month,
-      metrics_path,
-      (APPROX_PERCENTILE(monthly_metric_value , 0.75 ) -
-      APPROX_PERCENTILE(monthly_metric_value , 0.25 )) * 3 + APPROX_PERCENTILE(monthly_metric_value , 0.75 ) AS outer_boundary
-    FROM monthly_usage_data
-    WHERE monthly_metric_value > 0
-      AND metrics_path ILIKE 'counts.%'
-      AND created_month >= '2020-01-01'
-    GROUP BY 1,2
-  
-), joined AS (
-  
-    SELECT 
-      product_usage.created_month                                                                                            AS reporting_month, 
-      fct_usage_ping_payload.major_minor_version,
-      DATEDIFF('month', DATE_TRUNC('month', release_date), product_usage.created_month)                                      AS months_since_release, 
-      IFF(fct_usage_ping_payload.edition = 'CE', 'CE', IFF(product_tier = 'Core', 'EE - Core', 'EE - Paid'))                                   AS reworked_main_edition, 
-      SUM(monthly_metric_value)                                                                                              AS total_counts
-    FROM monthly_usage_data AS product_usage
-    LEFT JOIN fct_usage_ping_payload
-      ON product_usage.ping_id = fct_usage_ping_payload.dim_usage_ping_id
-    LEFT JOIN dim_gitlab_releases AS release 
-      ON fct_usage_ping_payload.major_minor_version = release.major_minor_version
-    INNER JOIN filtered_counters 
-      ON product_usage.metrics_path = filtered_counters.metrics_path
-    INNER JOIN outlier_detection_formula 
-      ON product_usage.metrics_path = outlier_detection_formula.metrics_path 
-      AND product_usage.created_month = outlier_detection_formula.reporting_month
-      AND product_usage.monthly_metric_value <= outer_boundary
-    WHERE usage_ping_delivery_type = 'Self-Managed'
-      AND product_usage.created_month > '2020-01-01'
-      AND is_trial = False
-    GROUP BY 1,2,3,4
-  
-), data_with_unique_key AS (
+    ),
+    data_with_unique_key as (
 
-    SELECT
-      {{ dbt_utils.surrogate_key(['reporting_month', 
-                                  'major_minor_version', 
-                                  'reworked_main_edition']) }} AS month_version_id,
-      *
-    FROM joined
+        select
+            {{
+                dbt_utils.surrogate_key(
+                    [
+                        "reporting_month",
+                        "major_minor_version",
+                        "reworked_main_edition",
+                    ]
+                )
+            }} as month_version_id, *
+        from joined
 
-)
+    )
 
-SELECT *
-FROM data_with_unique_key
+select *
+from data_with_unique_key

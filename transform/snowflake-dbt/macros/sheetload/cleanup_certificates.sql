@@ -1,26 +1,27 @@
 {%- macro cleanup_certificates(certificate_name) -%}
 
-clean_score AS (
+    clean_score as (
 
-	SELECT
-		completed_date,
-		submitter_name,
-		TRIM(SPLIT_PART(score, '/', 1))::NUMBER AS correct_responses,
-		TRIM(SPLIT_PART(score, '/', 2))::NUMBER AS total_responses,
-    CASE WHEN LOWER(submitter_email) LIKE '%@gitlab.com%'
-      THEN True
-      ELSE False
-      END                                       AS is_team_member,
-    CASE WHEN LOWER(submitter_email) LIKE '%@gitlab.com%'
-      THEN TRIM(LOWER(submitter_email))
-      ELSE md5(submitter_email) END             AS submitter_email,
-    {{certificate_name}}                        AS certificate_name,
-		last_updated_at
-	FROM source
+        select
+            completed_date,
+            submitter_name,
+            trim(split_part(score, '/', 1))::number as correct_responses,
+            trim(split_part(score, '/', 2))::number as total_responses,
+            case
+                when lower(submitter_email) like '%@gitlab.com%' then true else false
+            end as is_team_member,
+            case
+                when lower(submitter_email) like '%@gitlab.com%'
+                then trim(lower(submitter_email))
+                else md5(submitter_email)
+            end as submitter_email,
+            {{ certificate_name }} as certificate_name,
+            last_updated_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM clean_score
+    select *
+    from clean_score
 
 {%- endmacro -%}

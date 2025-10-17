@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("customers_db_license_seat_links_source") }})
 
-    SELECT *
-    FROM {{ ref('customers_db_license_seat_links_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

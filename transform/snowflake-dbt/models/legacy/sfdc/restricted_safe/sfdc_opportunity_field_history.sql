@@ -1,9 +1,4 @@
-WITH base AS (
+with base as (select * from {{ ref("sfdc_opportunity_field_history_source") }})
 
-    SELECT *
-    FROM {{ ref('sfdc_opportunity_field_history_source') }}
-
-)
-
-SELECT *
-FROM base
+select *
+from base

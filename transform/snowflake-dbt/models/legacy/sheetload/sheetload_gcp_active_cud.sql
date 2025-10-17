@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("sheetload_gcp_active_cud_source") }})
 
-    SELECT *
-    FROM {{ ref('sheetload_gcp_active_cud_source') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

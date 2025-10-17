@@ -1,26 +1,27 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_merge_request_diffs_dedupe_source') }}
-  WHERE created_at IS NOT NULL
-    AND updated_at IS NOT NULL
+        select *
+        from {{ ref("gitlab_dotcom_merge_request_diffs_dedupe_source") }}
+        where created_at is not null and updated_at is not null
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER                                 AS merge_request_diff_id,
-      base_commit_sha,
-      head_commit_sha,
-      start_commit_sha,
-      state                                       AS merge_request_diff_status,
-      merge_request_id::NUMBER                   AS merge_request_id,
-      real_size                                   AS merge_request_real_size,
-      commits_count::NUMBER                      AS commits_count,
-      created_at::TIMESTAMP                       AS created_at,
-      updated_at::TIMESTAMP                       AS updated_at
-    FROM source
+        select
+            id::number as merge_request_diff_id,
+            base_commit_sha,
+            head_commit_sha,
+            start_commit_sha,
+            state as merge_request_diff_status,
+            merge_request_id::number as merge_request_id,
+            real_size as merge_request_real_size,
+            commits_count::number as commits_count,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

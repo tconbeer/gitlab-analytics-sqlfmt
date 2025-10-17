@@ -1,22 +1,23 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_project_repository_storage_moves_dedupe_source') }}
-  
-), renamed AS (
+        select *
+        from {{ ref("gitlab_dotcom_project_repository_storage_moves_dedupe_source") }}
 
-  SELECT
-    id::NUMBER                              AS project_repository_storage_move_id,
-    created_at::TIMESTAMP                   AS storage_move_created_at,
-    updated_at::TIMESTAMP                   AS storage_move_updated_at,
-    project_id::NUMBER                      AS project_id,
-    state::NUMBER                           AS state,
-    source_storage_name::VARCHAR            AS source_storage_name,
-    destination_storage_name::VARCHAR       AS destination_storage_name
-  FROM source
+    ),
+    renamed as (
 
-)
+        select
+            id::number as project_repository_storage_move_id,
+            created_at::timestamp as storage_move_created_at,
+            updated_at::timestamp as storage_move_updated_at,
+            project_id::number as project_id,
+            state::number as state,
+            source_storage_name::varchar as source_storage_name,
+            destination_storage_name::varchar as destination_storage_name
+        from source
 
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

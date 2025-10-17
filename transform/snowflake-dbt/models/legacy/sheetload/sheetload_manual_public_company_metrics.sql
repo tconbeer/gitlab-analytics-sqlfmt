@@ -1,9 +1,9 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('sheetload_manual_public_company_metrics_source') }}
+        select * from {{ ref("sheetload_manual_public_company_metrics_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

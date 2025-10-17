@@ -1,27 +1,24 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_attainment_measure_criteria") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('xactly', 'xc_attainment_measure_criteria') }}
+        select
 
-), renamed AS (
+            attainment_measure_criteria_id::varchar as attainment_measure_criteria_id,
+            attainment_measure_id::varchar as attainment_measure_id,
+            created_by_id::float as created_by_id,
+            created_date::varchar as created_date,
+            criteria_id::float as criteria_id,
+            history_uuid::varchar as history_uuid,
+            is_active::varchar as is_active,
+            modified_by_id::float as modified_by_id,
+            modified_date::varchar as modified_date,
+            name::varchar as name,
+            type::varchar as type
 
-    SELECT
+        from source
 
-      attainment_measure_criteria_id::VARCHAR               AS attainment_measure_criteria_id,
-      attainment_measure_id::VARCHAR                        AS attainment_measure_id,
-      created_by_id::FLOAT                                  AS created_by_id,
-      created_date::VARCHAR                                 AS created_date,
-      criteria_id::FLOAT                                    AS criteria_id,
-      history_uuid::VARCHAR                                 AS history_uuid,
-      is_active::VARCHAR                                    AS is_active,
-      modified_by_id::FLOAT                                 AS modified_by_id,
-      modified_date::VARCHAR                                AS modified_date,
-      name::VARCHAR                                         AS name,
-      type::VARCHAR                                         AS type
+    )
 
-    FROM source
-    
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,25 +1,26 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('snapshots', 'zuora_product_rate_plan_charge_tier_snapshots') }}
+        select *
+        from {{ source("snapshots", "zuora_product_rate_plan_charge_tier_snapshots") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT 
-      productrateplanchargeid AS product_rate_plan_charge_id,
-      currency                AS currency,
-      price                   AS price,
+        select
+            productrateplanchargeid as product_rate_plan_charge_id,
+            currency as currency,
+            price as price,
 
+            -- snapshot metadata
+            dbt_scd_id,
+            dbt_updated_at,
+            dbt_valid_from,
+            dbt_valid_to
 
-      -- snapshot metadata
-      dbt_scd_id,
-      dbt_updated_at,
-      dbt_valid_from,
-      dbt_valid_to
+        from source
 
-    FROM source
-    
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

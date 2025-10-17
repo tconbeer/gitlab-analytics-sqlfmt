@@ -1,10 +1,5 @@
-WITH source AS (
+with source as (select * from {{ ref("netsuite_consolidated_exchange_rates_source") }})
 
-    SELECT *
-    FROM {{ ref('netsuite_consolidated_exchange_rates_source') }}
-
-)
-
-SELECT *
-FROM source
-WHERE is_fivetran_deleted = FALSE
+select *
+from source
+where is_fivetran_deleted = false

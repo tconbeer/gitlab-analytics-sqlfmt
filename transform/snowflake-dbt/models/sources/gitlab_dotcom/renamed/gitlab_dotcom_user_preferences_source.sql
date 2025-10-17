@@ -1,38 +1,35 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_user_preferences_dedupe_source") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_user_preferences_dedupe_source') }}
+        select
+            user_id::number as user_id,
+            issue_notes_filter::varchar as issue_notes_filter,
+            merge_request_notes_filter::varchar as merge_request_notes_filter,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            epics_sort::varchar as epic_sort,
+            roadmap_epics_state::varchar as roadmap_epics_state,
+            epic_notes_filter::varchar as epic_notes_filter,
+            issues_sort::varchar as issues_sort,
+            merge_requests_sort::varchar as merge_requests_sort,
+            roadmaps_sort::varchar as roadmaps_sort,
+            first_day_of_week::varchar as first_day_of_week,
+            timezone::varchar as timezone,
+            time_display_relative::boolean as time_display_relative,
+            time_format_in_24h::boolean as time_format_in_24h,
+            projects_sort::varchar as projects_sort,
+            show_whitespace_in_diffs::boolean as show_whitespace_in_diffs,
+            sourcegraph_enabled::boolean as sourcegraph_enabled,
+            setup_for_company::boolean as setup_for_company,
+            render_whitespace_in_code::boolean as render_whitespace_in_code,
+            tab_width::varchar as tab_width,
+            experience_level::number as experience_level,
+            view_diffs_file_by_file::boolean as view_diffs_file_by_file
 
-), renamed AS (
+        from source
 
-    SELECT
-      user_id::NUMBER                     AS user_id,
-      issue_notes_filter::VARCHAR         AS issue_notes_filter,
-      merge_request_notes_filter::VARCHAR AS merge_request_notes_filter,
-      created_at::TIMESTAMP               AS created_at,
-      updated_at::TIMESTAMP               AS updated_at,
-      epics_sort::VARCHAR                 AS epic_sort,
-      roadmap_epics_state::VARCHAR        AS roadmap_epics_state,
-      epic_notes_filter::VARCHAR          AS epic_notes_filter,
-      issues_sort::VARCHAR                AS issues_sort,
-      merge_requests_sort::VARCHAR        AS merge_requests_sort,
-      roadmaps_sort::VARCHAR              AS roadmaps_sort,
-      first_day_of_week::VARCHAR          AS first_day_of_week,
-      timezone::VARCHAR                   AS timezone,
-      time_display_relative::BOOLEAN      AS time_display_relative,
-      time_format_in_24h::BOOLEAN         AS time_format_in_24h,
-      projects_sort::VARCHAR              AS projects_sort,
-      show_whitespace_in_diffs::BOOLEAN   AS show_whitespace_in_diffs,
-      sourcegraph_enabled::BOOLEAN        AS sourcegraph_enabled,
-      setup_for_company::BOOLEAN          AS setup_for_company,
-      render_whitespace_in_code::BOOLEAN  AS render_whitespace_in_code,
-      tab_width::VARCHAR                  AS tab_width,
-      experience_level::NUMBER            AS experience_level,
-      view_diffs_file_by_file::BOOLEAN    AS view_diffs_file_by_file
+    )
 
-    FROM source
-
-)
-
-SELECT  *
-FROM renamed
+select *
+from renamed

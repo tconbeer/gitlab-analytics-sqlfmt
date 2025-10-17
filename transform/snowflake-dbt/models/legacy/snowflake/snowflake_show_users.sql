@@ -1,15 +1,12 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("snowflake_show_users_source") }}),
+    max_select as (
 
-    SELECT *
-    FROM {{ ref('snowflake_show_users_source') }}
+        select *
+        from source
+        where snapshot_date = (select max(snapshot_date) from source)
 
-), max_select AS (
+    )
 
-    SELECT *
-    FROM source
-    WHERE snapshot_date = (SELECT MAX(snapshot_date) FROM source)
-
-)
-
-SELECT *
-FROM max_select
+select *
+from max_select

@@ -1,23 +1,23 @@
+with
+    source as (
 
-WITH source AS (
+        select * from {{ ref("gitlab_dotcom_packages_packages_dedupe_source") }}
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_packages_packages_dedupe_source') }}
+    ),
+    renamed as (
 
-), renamed AS (
+        select
+            id::number as packages_package_id,
+            name::varchar as package_name,
+            project_id::number as project_id,
+            creator_id::number as creator_id,
+            version::varchar as package_version,
+            package_type::varchar as package_type,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
+        from source
 
-    SELECT
-      id::NUMBER                 AS packages_package_id,
-      name::VARCHAR              AS package_name,
-      project_id::NUMBER         AS project_id,
-      creator_id::NUMBER         AS creator_id,
-      version::VARCHAR           AS package_version,
-      package_type::VARCHAR      AS package_type,
-      created_at::TIMESTAMP      AS created_at,
-      updated_at::TIMESTAMP      AS updated_at
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,22 +1,31 @@
-WITH netsuite_date AS (
+with
+    netsuite_date as (
 
-    {% set tables = ['accounting_books' , 'accounting_periods','accounts','classes','currencies','customers','departments','entity','subsidiaries','transaction_lines','vendors' ] %}	
-                                                          
-    {% for table in tables %} 
-    SELECT '{{table}}'                                                            AS table_name,
-        MAX(date_last_modified)                                                   AS max_date 
-    FROM {{source('netsuite', table)}}  
-  
-  
-    {% if not loop.last %}
-    UNION ALL
-    {% endif %}
+        {% set tables = [
+            "accounting_books",
+            "accounting_periods",
+            "accounts",
+            "classes",
+            "currencies",
+            "customers",
+            "departments",
+            "entity",
+            "subsidiaries",
+            "transaction_lines",
+            "vendors",
+        ] %}
 
-{% endfor %} 
-  
-)
+        {% for table in tables %}
+            select '{{table}}' as table_name, max(date_last_modified) as max_date
+            from {{ source("netsuite", table) }}
 
+            {% if not loop.last %}
+                union all
+            {% endif %}
 
-  SELECT *
-  FROM netsuite_date 
-  
+        {% endfor %}
+
+    )
+
+select *
+from netsuite_date

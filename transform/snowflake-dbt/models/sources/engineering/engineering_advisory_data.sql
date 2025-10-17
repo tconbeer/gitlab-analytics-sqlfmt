@@ -1,19 +1,16 @@
-WITH source AS (
+with
+    source as (select * from {{ source("engineering", "advisory_data") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('engineering', 'advisory_data') }}
+        select
+            "FILE"::varchar as filename,
+            pubdate::date as publish_date,
+            mergedate::date as merge_date,
+            delta::number,
+            packagetype::varchar as package_type
+        from source
 
-), renamed AS (
+    )
 
-    SELECT
-      "FILE"::VARCHAR         AS filename,
-      pubdate::DATE         AS publish_date,
-      mergedate::DATE       AS merge_date,
-      delta::NUMBER,
-      packagetype::VARCHAR  AS package_type
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,24 +1,21 @@
-WITH source as (
+with
+    source as (select * from {{ source("greenhouse", "interviews") }}),
+    renamed as (
 
-	SELECT *
-  	  FROM {{ source('greenhouse', 'interviews') }}
+        select
 
-), renamed as (
+            -- keys
+            id::number as interview_id,
+            organization_id::number as organization_id,
 
-	SELECT
+            -- info
+            name::varchar as interview_name,
+            created_at::varchar::timestamp as interview_created_at,
+            updated_at::varchar::timestamp as interview_updated_at
 
-			--keys
-    		id::NUMBER				              AS interview_id,
-    		organization_id::NUMBER         AS organization_id,
+        from source
 
-    		--info
-    		name::varchar			              AS interview_name,
-    		created_at::varchar::timestamp 	AS interview_created_at,
-    		updated_at::varchar::timestamp 	AS interview_updated_at
+    )
 
-	FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

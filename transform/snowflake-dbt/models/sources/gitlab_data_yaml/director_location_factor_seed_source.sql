@@ -1,20 +1,17 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("director_location_factors") }}),
+    formated as (
 
-    SELECT *
-    FROM {{ ref('director_location_factors') }}
+        select
+            country::varchar as country,
+            locality::varchar as locality,
+            factor::number(6, 3) as factor,
+            valid_from::date as valid_from,
+            coalesce(valid_to, {{ var("tomorrow") }})::date as valid_to,
+            is_current::boolean as is_current
+        from source
 
-), formated AS (
+    )
 
-    SELECT
-      country::VARCHAR                                   AS country, 
-      locality::VARCHAR                                  AS locality, 
-      factor::NUMBER(6, 3)                               AS factor, 
-      valid_from::DATE                                   AS valid_from, 
-      COALESCE(valid_to, {{ var('tomorrow') }})::DATE    AS valid_to, 
-      is_current::BOOLEAN                                AS is_current
-    FROM source
-
-)
-
-SELECT *
-FROM formated
+select *
+from formated

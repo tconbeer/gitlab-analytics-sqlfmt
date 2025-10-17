@@ -1,28 +1,28 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('zendesk_community_relations', 'organizations') }}
+        select * from {{ source("zendesk_community_relations", "organizations") }}
 
-),
+    ),
 
-renamed AS (
+    renamed as (
 
-    SELECT
+        select
 
-      --ids
-      id                                                  AS organization_id,
+            -- ids
+            id as organization_id,
 
-      --fields
-      name                                                AS organization_name,
-      tags                                                AS organization_tags,
+            -- fields
+            name as organization_name,
+            tags as organization_tags,
 
-      --dates
-      created_at,
-      updated_at
+            -- dates
+            created_at,
+            updated_at
 
-    FROM source
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

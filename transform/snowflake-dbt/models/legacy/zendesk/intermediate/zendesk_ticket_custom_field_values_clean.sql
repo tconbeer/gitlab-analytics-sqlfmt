@@ -1,20 +1,16 @@
-{{config({
-    "schema": "legacy"
-  })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH zendesk_custom_fields AS (
+with
+    zendesk_custom_fields as (
 
-    SELECT *
-    FROM {{ref('zendesk_ticket_custom_field_values_sensitive')}}
+        select * from {{ ref("zendesk_ticket_custom_field_values_sensitive") }}
 
-), filtered AS (
+    ),
+    filtered as (
 
-    SELECT *
-    FROM zendesk_custom_fields
-    WHERE ticket_custom_field_id = 360020421853 --Transactions Issue Type
+        select * from zendesk_custom_fields where ticket_custom_field_id = 360020421853  -- Transactions Issue Type
 
-)
+    )
 
-SELECT *
-FROM filtered
+select *
+from filtered

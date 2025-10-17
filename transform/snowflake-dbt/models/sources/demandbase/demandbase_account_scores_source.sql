@@ -1,23 +1,18 @@
-WITH source AS (
+with
+    source as (select * from {{ source("demandbase", "account_scores") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('demandbase', 'account_scores') }}
+        select
+            jsontext['account_domain']::varchar as account_domain,
+            jsontext['account_id']::number as account_id,
+            jsontext['score']::varchar as account_score,
+            jsontext['score_type']::varchar as score_type,
+            jsontext['partition_date']::date as partition_date
+        from source
+        where
+            partition_date = (select max(jsontext['partition_date']::date) from source)
 
-), renamed AS (
-
-    SELECT
-      jsontext['account_domain']::VARCHAR           AS account_domain,
-      jsontext['account_id']::NUMBER                AS account_id,
-      jsontext['score']::VARCHAR                    AS account_score,
-      jsontext['score_type']::VARCHAR               AS score_type,
-      jsontext['partition_date']::DATE              AS partition_date
-    FROM source
-    WHERE partition_date = (
-        SELECT MAX(jsontext['partition_date']::DATE) 
-        FROM source
     )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

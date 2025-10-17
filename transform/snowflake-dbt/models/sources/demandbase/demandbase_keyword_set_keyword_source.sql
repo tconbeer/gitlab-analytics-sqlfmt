@@ -1,21 +1,16 @@
-WITH source AS (
+with
+    source as (select * from {{ source("demandbase", "keyword_set_keyword") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('demandbase', 'keyword_set_keyword') }}
+        select
+            jsontext['keyword']::varchar as keyword,
+            jsontext['keyword_set_id']::number as keyword_set_id,
+            jsontext['partition_date']::date as partition_date
+        from source
+        where
+            partition_date = (select max(jsontext['partition_date']::date) from source)
 
-), renamed AS (
-
-    SELECT
-      jsontext['keyword']::VARCHAR                  AS keyword,
-      jsontext['keyword_set_id']::NUMBER            AS keyword_set_id,
-      jsontext['partition_date']::DATE              AS partition_date
-    FROM source
-    WHERE partition_date = (
-        SELECT MAX(jsontext['partition_date']::DATE) 
-        FROM source
     )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

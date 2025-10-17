@@ -1,29 +1,26 @@
-WITH source AS (
+with
+    source as (select * from {{ source("marketo", "activity_sfdc_activity") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('marketo', 'activity_sfdc_activity') }}
+        select
 
-), renamed AS (
+            id::number as marketo_activity_sfdc_activity_id,
+            lead_id::number as lead_id,
+            activity_date::timestamp_tz as activity_date,
+            activity_type_id::number as activity_type_id,
+            campaign_id::number as campaign_id,
+            primary_attribute_value_id::number as primary_attribute_value_id,
+            primary_attribute_value::text as primary_attribute_value,
+            status::text as status,
+            description::text as description,
+            is_task::boolean as is_task,
+            priority::text as priority,
+            activity_owner::text as activity_owner,
+            due_date::date as due_date
 
-    SELECT
+        from source
 
-      id::NUMBER                                AS marketo_activity_sfdc_activity_id,
-      lead_id::NUMBER                           AS lead_id,
-      activity_date::TIMESTAMP_TZ               AS activity_date,
-      activity_type_id::NUMBER                  AS activity_type_id,
-      campaign_id::NUMBER                       AS campaign_id,
-      primary_attribute_value_id::NUMBER        AS primary_attribute_value_id,
-      primary_attribute_value::TEXT             AS primary_attribute_value,
-      status::TEXT                              AS status,
-      description::TEXT                         AS description,
-      is_task::BOOLEAN                          AS is_task,
-      priority::TEXT                            AS priority,
-      activity_owner::TEXT                      AS activity_owner,
-      due_date::DATE                            AS due_date
+    )
 
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,10 +1,4 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("sheetload_ic_dib_comptency_source") }}),
 
-	SELECT *
-	FROM {{ ref('sheetload_ic_dib_comptency_source') }}
-
-),    
-
-{{cleanup_certificates("'ic_dib_comptency'")}}
-
-
+    {{ cleanup_certificates("'ic_dib_comptency'") }}

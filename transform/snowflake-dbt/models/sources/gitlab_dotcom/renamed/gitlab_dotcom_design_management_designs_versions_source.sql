@@ -1,18 +1,20 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_design_management_designs_versions_dedupe_source') }}
-    
-), renamed AS (
+        select *
+        from {{ ref("gitlab_dotcom_design_management_designs_versions_dedupe_source") }}
 
-    SELECT
-      MD5(id)                                     AS design_version_id,
-      design_id::VARCHAR                          AS design_id,
-      version_id::NUMBER                         AS version_id,
-      event::NUMBER                              AS event_type_id
-    FROM source
+    ),
+    renamed as (
 
-)
+        select
+            md5(id) as design_version_id,
+            design_id::varchar as design_id,
+            version_id::number as version_id,
+            event::number as event_type_id
+        from source
 
-SELECT *
-FROM renamed
+    )
+
+select *
+from renamed

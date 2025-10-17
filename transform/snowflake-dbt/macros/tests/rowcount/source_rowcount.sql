@@ -1,22 +1,17 @@
 {% macro source_rowcount(source_name, table, count, where_clause=None) %}
 
-WITH source AS (
+    with
+        source as (select * from {{ source(source_name, table) }}),
+        counts as (
 
-    SELECT *
-    FROM {{ source(source_name, table) }}
+            select count(*) as row_count
+            from source
+            {% if where_clause != None %} where {{ where_clause }} {% endif %}
 
-), counts AS (
+        )
 
-    SELECT count(*) AS row_count
-    FROM source
-    {% if where_clause != None %}
-    WHERE {{ where_clause }}
-    {% endif %}
-
-)
-
-SELECT row_count
-FROM counts
-WHERE row_count < {{ count }}
+    select row_count
+    from counts
+    where row_count < {{ count }}
 
 {% endmacro %}

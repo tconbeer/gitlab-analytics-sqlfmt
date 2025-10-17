@@ -1,5 +1,1 @@
-{% macro get_keyed_nulls(columns) %}
-
-  COALESCE({{columns}}, MD5(-1)) 
-
-{% endmacro %}
+{% macro get_keyed_nulls(columns) %} coalesce({{ columns }}, md5(-1)) {% endmacro %}

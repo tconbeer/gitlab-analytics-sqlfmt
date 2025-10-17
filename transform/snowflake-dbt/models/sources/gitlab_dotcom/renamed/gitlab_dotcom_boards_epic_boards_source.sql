@@ -1,20 +1,21 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_boards_epic_boards_dedupe_source') }}
+        select * from {{ ref("gitlab_dotcom_boards_epic_boards_dedupe_source") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      id::NUMBER                  as epic_board_id,
-      hide_backlog_list::BOOLEAN  as hide_backlog_list,
-      hide_closed_list::BOOLEAN   as hide_closed_list,
-      group_id::NUMBER            as group_id,
-      created_at::TIMESTAMP       as created_at,
-      updated_at::TIMESTAMP       as updated_at
-    FROM source
+        select
+            id::number as epic_board_id,
+            hide_backlog_list::boolean as hide_backlog_list,
+            hide_closed_list::boolean as hide_closed_list,
+            group_id::number as group_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

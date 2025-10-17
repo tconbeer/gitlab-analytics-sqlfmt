@@ -1,14 +1,11 @@
-{{ config({
-    "schema": "legacy"
-    })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_project_repository_storage_moves_source') }}
+        select * from {{ ref("gitlab_dotcom_project_repository_storage_moves_source") }}
 
-)
+    )
 
-SELECT *
-FROM source
+select *
+from source

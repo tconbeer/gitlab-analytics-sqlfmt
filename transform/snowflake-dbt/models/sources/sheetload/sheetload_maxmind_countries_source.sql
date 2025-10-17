@@ -1,21 +1,18 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "maxmind_countries") }}),
+    parsed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'maxmind_countries') }}
+        select
+            geoname_id::number as geoname_id,
+            locale_code::varchar as locale_code,
+            continent_code::varchar as continent_code,
+            continent_name::varchar as continent_name,
+            country_iso_code::varchar as country_iso_code,
+            country_name::varchar as country_name,
+            is_in_european_union::boolean as is_in_european_union
+        from source
 
-), parsed AS (
+    )
 
-    SELECT
-      geoname_id::NUMBER            AS geoname_id,
-      locale_code::VARCHAR          AS locale_code,
-      continent_code::VARCHAR       AS continent_code,
-      continent_name::VARCHAR       AS continent_name,
-      country_iso_code::VARCHAR     AS country_iso_code,
-      country_name::VARCHAR         AS country_name,
-      is_in_european_union::BOOLEAN AS is_in_european_union
-    FROM source
-
-)
-
-SELECT *
-FROM parsed
+select *
+from parsed

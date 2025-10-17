@@ -1,21 +1,18 @@
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_requirements_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_requirements_dedupe_source') }}
-  
-), renamed AS (
+        select
+            id::number as requirement_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            project_id::number as project_id,
+            author_id::number as author_id,
+            iid::number as requirement_iid,
+            state::varchar as requirement_state
+        from source
 
-    SELECT
-      id::NUMBER                                 AS requirement_id,
-      created_at::TIMESTAMP                       AS created_at,
-      updated_at::TIMESTAMP                       AS updated_at,
-      project_id::NUMBER                         AS project_id,
-      author_id::NUMBER                          AS author_id,
-      iid::NUMBER                                AS requirement_iid,
-      state::VARCHAR                              AS requirement_state
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

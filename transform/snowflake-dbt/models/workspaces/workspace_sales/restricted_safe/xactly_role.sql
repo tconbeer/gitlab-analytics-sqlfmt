@@ -1,9 +1,1 @@
-WITH source AS (
-
-    SELECT *
-    FROM {{ref('xactly_role_source')}}
-
-)
-
-SELECT *
-FROM source
+with source as (select * from {{ ref("xactly_role_source") }}) select * from source

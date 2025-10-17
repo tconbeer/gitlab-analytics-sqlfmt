@@ -1,37 +1,39 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('customers', 'customers_db_licenses') }}
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY UPDATED_AT DESC) = 1
+        select *
+        from {{ source("customers", "customers_db_licenses") }}
+        qualify row_number() over (partition by id order by updated_at desc) = 1
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT DISTINCT
-      id::NUMBER                                AS license_id,
-      name::VARCHAR                             AS name,
-      company::VARCHAR                          AS company,
-      email::VARCHAR                            AS email,
-      users_count::NUMBER                       AS license_user_count,
-      license_file::VARCHAR                     AS license_file,
-      expires_at::DATE                          AS license_expire_date,
-      created_at::TIMESTAMP                     AS created_at,
-      updated_at::TIMESTAMP                     AS updated_at,
-      plan_name::VARCHAR                        AS plan_name,
-      starts_at::DATE                           AS license_start_date,
-      zuora_subscription_id::VARCHAR            AS zuora_subscription_id,
-      notes::VARCHAR                            AS license_notes,
-      previous_users_count::NUMBER              AS previous_users_count,
-      trueup_quantity::NUMBER                   AS trueup_quantity,
-      trueup_from::DATE                         AS trueup_from_date,
-      trueup_to::DATE                           AS trueup_to_date,
-      plan_code::VARCHAR                        AS plan_code,
-      trial::BOOLEAN                            AS is_trial,
-      zuora_subscription_name::VARCHAR          AS zuora_subscription_name,
-      REPLACE(license_file_md5::VARCHAR, '-')   AS license_md5,
-      creator_id::NUMBER                        AS creator_id
-    FROM source
+        select distinct
+            id::number as license_id,
+            name::varchar as name,
+            company::varchar as company,
+            email::varchar as email,
+            users_count::number as license_user_count,
+            license_file::varchar as license_file,
+            expires_at::date as license_expire_date,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            plan_name::varchar as plan_name,
+            starts_at::date as license_start_date,
+            zuora_subscription_id::varchar as zuora_subscription_id,
+            notes::varchar as license_notes,
+            previous_users_count::number as previous_users_count,
+            trueup_quantity::number as trueup_quantity,
+            trueup_from::date as trueup_from_date,
+            trueup_to::date as trueup_to_date,
+            plan_code::varchar as plan_code,
+            trial::boolean as is_trial,
+            zuora_subscription_name::varchar as zuora_subscription_name,
+            replace(license_file_md5::varchar, '-') as license_md5,
+            creator_id::number as creator_id
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

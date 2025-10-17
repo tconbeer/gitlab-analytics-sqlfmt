@@ -1,16 +1,17 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'manual_downgrade_dotcom_tracking') }}
+        select * from {{ source("sheetload", "manual_downgrade_dotcom_tracking") }}
 
-), renamed AS (
+    ),
+    renamed as (
 
-    SELECT
-      namespace_id::NUMBER         AS namespace_id,
-      TRY_TO_DATE(downgraded_date) AS downgraded_date
-    FROM source  
+        select
+            namespace_id::number as namespace_id,
+            try_to_date(downgraded_date) as downgraded_date
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

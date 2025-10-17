@@ -1,19 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "headcount") }}),
+    renamed as (
 
-	SELECT *
-	FROM {{ source('sheetload', 'headcount') }}
+        select
+            uniquekey::number as primary_key,
+            month::date as month_of,
+            nullif(function, '') as function,
+            try_to_number(employee_cnt) as employee_count
+        from source
 
-), renamed AS (
+    )
 
-
-    SELECT 
-      uniquekey::NUMBER                 AS primary_key,
-      month::DATE                       AS month_of,
-      NULLIF(function, '')              AS function,
-      TRY_TO_NUMBER(employee_cnt)       AS employee_count
-    FROM source
-
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

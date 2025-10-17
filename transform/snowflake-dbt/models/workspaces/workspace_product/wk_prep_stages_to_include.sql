@@ -1,14 +1,13 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-WITH smau_only AS (
+with
+    smau_only as (
 
-    SELECT DISTINCT stage_name
-    FROM {{ ref('fct_monthly_usage_data') }}
-    WHERE is_smau = TRUE
+        select distinct stage_name
+        from {{ ref("fct_monthly_usage_data") }}
+        where is_smau = true
 
-)
+    )
 
-SELECT * 
-FROM smau_only
+select *
+from smau_only

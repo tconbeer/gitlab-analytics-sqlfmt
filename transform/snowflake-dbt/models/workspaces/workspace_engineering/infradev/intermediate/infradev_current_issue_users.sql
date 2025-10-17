@@ -1,27 +1,21 @@
-{{ config(
-    materialized='ephemeral'
-) }}
+{{ config(materialized="ephemeral") }}
 
-WITH issue_assignees AS (
-    
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_issue_assignees_source') }} 
+with
+    issue_assignees as (
 
-), users AS (
+        select * from {{ ref("gitlab_dotcom_issue_assignees_source") }}
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_users_dedupe_source') }} 
+    ),
+    users as (select * from {{ ref("gitlab_dotcom_users_dedupe_source") }}),
+    assigend_users as (
 
-), assigend_users AS (
-    
-    SELECT
-      issue_id                               AS dim_issue_id,
-      LISTAGG(DISTINCT users.username, ', ') AS assigned_usernames
-    FROM issue_assignees
-    LEFT JOIN users
-      ON issue_assignees.user_id = users.id
-    GROUP BY 1
-)
+        select
+            issue_id as dim_issue_id,
+            listagg(distinct users.username, ', ') as assigned_usernames
+        from issue_assignees
+        left join users on issue_assignees.user_id = users.id
+        group by 1
+    )
 
-  SELECT *
-  FROM assigend_users
+select *
+from assigend_users

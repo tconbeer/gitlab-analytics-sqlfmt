@@ -1,14 +1,10 @@
-{{ config({
-    "materialized": "incremental",
-    "unique_key": "id"
-    })
-}}
+{{ config({"materialized": "incremental", "unique_key": "id"}) }}
 
-SELECT *
-FROM {{ source('gitlab_dotcom', 'integrations') }}
+select *
+from {{ source("gitlab_dotcom", "integrations") }}
 {% if is_incremental() %}
 
-WHERE updated_at >= (SELECT MAX(updated_at) FROM {{this}})
+    where updated_at >= (select max(updated_at) from {{ this }})
 
 {% endif %}
-QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+qualify row_number() over (partition by id order by updated_at desc) = 1

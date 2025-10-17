@@ -1,22 +1,23 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_system_note_metadata_dedupe_source') }}
-    
-), renamed AS (
+        select * from {{ ref("gitlab_dotcom_system_note_metadata_dedupe_source") }}
 
-    SELECT
-      id::NUMBER                           AS system_note_metadata_id,
-      note_id::NUMBER                      AS note_id,
-      commit_count::NUMBER                 AS commit_count,
-      action::VARCHAR                       AS action_type,
-      description_version_id::NUMBER       AS description_version_id,
-      created_at::TIMESTAMP                 AS created_at,
-      updated_at::TIMESTAMP                 AS updated_at
+    ),
+    renamed as (
 
-    FROM source
+        select
+            id::number as system_note_metadata_id,
+            note_id::number as note_id,
+            commit_count::number as commit_count,
+            action::varchar as action_type,
+            description_version_id::number as description_version_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-)
+        from source
 
-SELECT  *
-FROM renamed
+    )
+
+select *
+from renamed

@@ -1,28 +1,24 @@
-    
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_milestones_dedupe_source") }}),
+    renamed as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_milestones_dedupe_source') }}
-  
-), renamed AS (
+        select
 
-    SELECT
+            id::number as milestone_id,
+            title::varchar as milestone_title,
+            description::varchar as milestone_description,
+            project_id::number as project_id,
+            group_id::number as group_id,
+            start_date::date as start_date,
+            due_date::date as due_date,
+            state::varchar as milestone_status,
 
-      id::NUMBER                           AS milestone_id,
-      title::VARCHAR                        AS milestone_title,
-      description::VARCHAR                  AS milestone_description,
-      project_id::NUMBER                   AS project_id,
-      group_id::NUMBER                     AS group_id,
-      start_date::DATE                      AS start_date,
-      due_date::DATE                        AS due_date,
-      state::VARCHAR                        AS milestone_status,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at
 
-      created_at::TIMESTAMP                 AS created_at,
-      updated_at::TIMESTAMP                 AS updated_at
+        from source
 
-    FROM source
+    )
 
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

@@ -1,49 +1,46 @@
-WITH source AS (
+with
+    source as (select * from {{ source("zuora_api_sandbox", "order_action") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('zuora_api_sandbox', 'order_action') }}
+        select
 
-), renamed AS(
+            id as dim_order_action_id,
 
-    SELECT
+            -- keys
+            orderid as dim_order_id,
+            subscriptionid as dim_subscription_id,
+            subscriptionversionamendmentid as dim_amendment_id,
 
-      id                                 AS dim_order_action_id,
+            -- account info
+            type as order_action_type,
+            sequence as order_action_sequence,
+            autorenew as is_auto_renew,
+            cancellationpolicy as cancellation_policy,
+            termtype as term_type,
 
-      -- keys
-      orderid                            AS dim_order_id,
-      subscriptionid                     AS dim_subscription_id,
-      subscriptionversionamendmentid     AS dim_amendment_id,
-  
-      -- account info
-      type                               AS order_action_type,
-      sequence                           AS order_action_sequence,
-      autorenew                          AS is_auto_renew,
-      cancellationpolicy                 AS cancellation_policy,
-      termtype                           AS term_type,
-  
-      customeracceptancedate::DATE       AS customer_acceptance_date,
-      contracteffectivedate::DATE        AS contract_effective_date,
-      serviceactivationdate::DATE        AS service_activation_date,
-      
-      currentterm                        AS current_term,
-      currenttermperiodtype              AS current_term_period_type,
-      
-      renewalterm                        AS renewal_term,
-      renewaltermperiodtype              AS renewal_term_period_type,
-      renewsetting                       AS renewal_setting,
-      
-      termstartdate::DATE                AS term_start_date,
+            customeracceptancedate::date as customer_acceptance_date,
+            contracteffectivedate::date as contract_effective_date,
+            serviceactivationdate::date as service_activation_date,
 
-      -- metadata
-      createddate::DATE                  AS order_action_created_date,
-      createdbyid                        AS order_action_created_by_id,
-      updateddate::DATE                  AS updated_date,
-      updatedbyid                        AS updated_by_id,
-      deleted                            AS is_deleted
+            currentterm as current_term,
+            currenttermperiodtype as current_term_period_type,
 
-    FROM source
+            renewalterm as renewal_term,
+            renewaltermperiodtype as renewal_term_period_type,
+            renewsetting as renewal_setting,
 
-)
+            termstartdate::date as term_start_date,
 
-SELECT *
-FROM renamed
+            -- metadata
+            createddate::date as order_action_created_date,
+            createdbyid as order_action_created_by_id,
+            updateddate::date as updated_date,
+            updatedbyid as updated_by_id,
+            deleted as is_deleted
+
+        from source
+
+    )
+
+select *
+from renamed

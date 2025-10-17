@@ -1,29 +1,26 @@
-WITH source AS (
+with
+    source as (select * from {{ source("xactly", "xc_credit_adjustment") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('xactly', 'xc_credit_adjustment') }}
+        select
 
-), renamed AS (
+            amount::float as amount,
+            amount_unit_type_id::float as amount_unit_type_id,
+            created_by_id::float as created_by_id,
+            created_by_name::varchar as created_by_name,
+            created_date::varchar as created_date,
+            credit_adjustment_id::float as credit_adjustment_id,
+            credit_id::float as credit_id,
+            is_active::varchar as is_active,
+            modified_by_id::float as modified_by_id,
+            modified_by_name::varchar as modified_by_name,
+            modified_date::varchar as modified_date,
+            period_id::float as period_id,
+            reason_id::float as reason_id
 
-    SELECT
+        from source
 
-      amount::FLOAT                         AS amount,
-      amount_unit_type_id::FLOAT            AS amount_unit_type_id,
-      created_by_id::FLOAT                  AS created_by_id,
-      created_by_name::VARCHAR              AS created_by_name,
-      created_date::VARCHAR                 AS created_date,
-      credit_adjustment_id::FLOAT           AS credit_adjustment_id,
-      credit_id::FLOAT                      AS credit_id,
-      is_active::VARCHAR                    AS is_active,
-      modified_by_id::FLOAT                 AS modified_by_id,
-      modified_by_name::VARCHAR             AS modified_by_name,
-      modified_date::VARCHAR                AS modified_date,
-      period_id::FLOAT                      AS period_id,
-      reason_id::FLOAT                      AS reason_id
+    )
 
-    FROM source
-    
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

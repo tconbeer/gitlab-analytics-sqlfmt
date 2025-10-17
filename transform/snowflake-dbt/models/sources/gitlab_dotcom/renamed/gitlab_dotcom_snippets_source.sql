@@ -1,23 +1,19 @@
-    
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_snippets_dedupe_source") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_snippets_dedupe_source') }}
-    
-), renamed AS (
-  
-    SELECT
-      id::NUMBER               AS snippet_id,
-      author_id::NUMBER        AS author_id,
-      project_id::NUMBER       AS project_id,
-      created_at::TIMESTAMP     AS created_at,
-      updated_at::TIMESTAMP     AS updated_at,
-      type::VARCHAR             AS snippet_type,
-      visibility_level::NUMBER AS visibility_level
-      
-    FROM source
-    
-)
+        select
+            id::number as snippet_id,
+            author_id::number as author_id,
+            project_id::number as project_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            type::varchar as snippet_type,
+            visibility_level::number as visibility_level
 
-SELECT * 
-FROM renamed
+        from source
+
+    )
+
+select *
+from renamed

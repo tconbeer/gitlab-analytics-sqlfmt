@@ -1,24 +1,19 @@
-{% set column_name = 'email_handle' %}
+{% set column_name = "email_handle" %}
 
-WITH source AS (
+with
+    source as (select * from {{ ref("gitlab_dotcom_emails_source") }}),
+    intermediate as (
 
-    SELECT *
-    FROM {{ ref('gitlab_dotcom_emails_source') }}
+        select *, split_part(email_address, '@', 0) as email_handle from source
 
-), intermediate AS (
+    ),
+    filtered as (
 
-    SELECT *,
-      SPLIT_PART(email_address,'@', 0)              AS email_handle
-    FROM source 
-     
-), filtered AS (
+        select *, {{ include_gitlab_email(column_name) }} as include_email_flg
+        from intermediate
+        where lower(email_address) like '%@gitlab.com'
 
-    SELECT *,
-      {{include_gitlab_email(column_name)}}         AS include_email_flg
-    FROM intermediate
-    WHERE LOWER(email_address) LIKE '%@gitlab.com'
+    )
 
-)
-
-SELECT *
-FROM filtered
+select *
+from filtered

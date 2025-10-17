@@ -1,37 +1,40 @@
-{{ config(
-    tags=["mnpi_exception"]
-) }}
+{{ config(tags=["mnpi_exception"]) }}
 
-WITH source_data AS (
+with
+    source_data as (
 
-    SELECT *
-    FROM {{ref('sfdc_opportunity_source')}}
-    WHERE sales_qualified_source IS NOT NULL
-      AND NOT is_deleted
+        select *
+        from {{ ref("sfdc_opportunity_source") }}
+        where sales_qualified_source is not null and not is_deleted
 
-), unioned AS (
+    ),
+    unioned as (
 
-    SELECT DISTINCT
-      MD5(CAST(COALESCE(CAST(sales_qualified_source AS varchar), '') AS varchar))  AS dim_sales_qualified_source_id,
-      sales_qualified_source                                                       AS sales_qualified_source_name,
-      sales_qualified_source_grouped                                               AS sales_qualified_source_grouped,
-      sqs_bucket_engagement
-    FROM source_data
+        select distinct
+            md5(
+                cast(coalesce(cast(sales_qualified_source as varchar), '') as varchar)
+            ) as dim_sales_qualified_source_id,
+            sales_qualified_source as sales_qualified_source_name,
+            sales_qualified_source_grouped as sales_qualified_source_grouped,
+            sqs_bucket_engagement
+        from source_data
 
-    UNION ALL
+        union all
 
-    SELECT
-      MD5('-1')                                                                    AS dim_sales_qualified_source_id,
-      'Missing sales_qualified_source_name'                                        AS sales_qualified_source_name,
-      'Web Direct Generated'                                                       AS sales_qualified_source_grouped,
-      'Co-sell'                                                                    AS sqs_bucket_engagement
+        select
+            md5('-1') as dim_sales_qualified_source_id,
+            'Missing sales_qualified_source_name' as sales_qualified_source_name,
+            'Web Direct Generated' as sales_qualified_source_grouped,
+            'Co-sell' as sqs_bucket_engagement
 
-)
+    )
 
-{{ dbt_audit(
-    cte_ref="unioned",
-    created_by="@mcooperDD",
-    updated_by="@jpeguero",
-    created_date="2020-10-26",
-    updated_date="2021-09-09"
-) }}
+    {{
+        dbt_audit(
+            cte_ref="unioned",
+            created_by="@mcooperDD",
+            updated_by="@jpeguero",
+            created_date="2020-10-26",
+            updated_date="2021-09-09",
+        )
+    }}

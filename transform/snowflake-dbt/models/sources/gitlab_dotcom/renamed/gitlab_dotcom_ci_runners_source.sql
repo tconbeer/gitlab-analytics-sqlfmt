@@ -1,34 +1,38 @@
-WITH source AS (
+with
+    source as (
 
-  SELECT *
-  FROM {{ ref('gitlab_dotcom_ci_runners_dedupe_source') }}
-  WHERE created_at IS NOT NULL
+        select *
+        from {{ ref("gitlab_dotcom_ci_runners_dedupe_source") }}
+        where created_at is not null
 
-), renamed AS (
+    ),
+    renamed as (
 
-  SELECT
-    id::NUMBER                                     AS runner_id,
-    created_at::TIMESTAMP                          AS created_at,
-    updated_at::TIMESTAMP                          AS updated_at,
-    description::VARCHAR                           AS description,
-    contacted_at::TIMESTAMP                        AS contacted_at,
-    active::BOOLEAN                                AS is_active,
-    name::VARCHAR                                  AS runner_name,
-    version::VARCHAR                               AS version,
-    revision::VARCHAR                              AS revision,
-    platform::VARCHAR                              AS platform,
-    architecture::VARCHAR                          AS architecture,
-    run_untagged::BOOLEAN                          AS is_untagged,
-    locked::BOOLEAN                                AS is_locked,
-    access_level::NUMBER                           AS access_level,
-    ip_address::VARCHAR                            AS ip_address,
-    maximum_timeout::NUMBER                        AS maximum_timeout,
-    runner_type::NUMBER                            AS runner_type,
-    public_projects_minutes_cost_factor::FLOAT     AS public_projects_minutes_cost_factor,
-    private_projects_minutes_cost_factor::FLOAT    AS private_projects_minutes_cost_factor
-  FROM source
+        select
+            id::number as runner_id,
+            created_at::timestamp as created_at,
+            updated_at::timestamp as updated_at,
+            description::varchar as description,
+            contacted_at::timestamp as contacted_at,
+            active::boolean as is_active,
+            name::varchar as runner_name,
+            version::varchar as version,
+            revision::varchar as revision,
+            platform::varchar as platform,
+            architecture::varchar as architecture,
+            run_untagged::boolean as is_untagged,
+            locked::boolean as is_locked,
+            access_level::number as access_level,
+            ip_address::varchar as ip_address,
+            maximum_timeout::number as maximum_timeout,
+            runner_type::number as runner_type,
+            public_projects_minutes_cost_factor::float
+            as public_projects_minutes_cost_factor,
+            private_projects_minutes_cost_factor::float
+            as private_projects_minutes_cost_factor
+        from source
 
-)
+    )
 
-SELECT *
-FROM renamed
+select *
+from renamed

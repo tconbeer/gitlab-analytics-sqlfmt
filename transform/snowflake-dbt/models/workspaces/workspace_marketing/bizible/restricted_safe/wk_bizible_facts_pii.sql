@@ -1,9 +1,4 @@
-WITH source AS (
+with source as (select * from {{ ref("bizible_facts_source_pii") }})
 
-    SELECT *
-    FROM {{ ref('bizible_facts_source_pii') }}
-
-)
-
-SELECT *
-FROM source
+select *
+from source

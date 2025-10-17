@@ -1,46 +1,42 @@
-{{config({
-    "schema": "legacy"
-  })
-}}
+{{ config({"schema": "legacy"}) }}
 
-WITH versions AS (
+with
+    versions as (select * from {{ ref("version_versions_source") }}),
+    calculated as (
 
-    SELECT *
-    FROM {{ ref('version_versions_source') }}
+        select
+            *,
+            split_part(version, '.', 1)::number as major_version,
+            split_part(version, '.', 2)::number as minor_version,
+            split_part(version, '.', 3)::number as patch_number,
+            iff(patch_number = 0, true, false) as is_monthly_release,
+            created_at::date as created_date,
+            updated_at::date as updated_date
+        from versions
 
-), calculated AS (
+    ),
+    renamed as (
 
-    SELECT
-      *,
-      SPLIT_PART(version, '.', 1)::NUMBER   AS major_version,
-      SPLIT_PART(version, '.', 2)::NUMBER   AS minor_version,
-      SPLIT_PART(version, '.', 3)::NUMBER   AS patch_number,
-      IFF(patch_number = 0, TRUE, FALSE)    AS is_monthly_release,
-      created_at::DATE                      AS created_date,
-      updated_at::DATE                      AS updated_date
-    FROM versions  
+        select
+            id as version_id,
+            version,
+            major_version,
+            minor_version,
+            patch_number,
+            is_monthly_release,
+            is_vulnerable,
+            created_date,
+            updated_date
+        from calculated
 
-), renamed AS (
+    )
 
-    SELECT
-      id AS version_id,
-      version,
-      major_version,
-      minor_version,
-      patch_number,
-      is_monthly_release,
-      is_vulnerable,
-      created_date,
-      updated_date
-    FROM calculated  
-
-)
-
-{{ dbt_audit(
-    cte_ref="renamed",
-    created_by="@derekatwood",
-    updated_by="@msendal",
-    created_date="2020-08-06",
-    updated_date="2020-09-17"
-) }}
-
+    {{
+        dbt_audit(
+            cte_ref="renamed",
+            created_by="@derekatwood",
+            updated_by="@msendal",
+            created_date="2020-08-06",
+            updated_date="2020-09-17",
+        )
+    }}

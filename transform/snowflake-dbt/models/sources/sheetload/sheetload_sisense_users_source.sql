@@ -1,18 +1,15 @@
-WITH source AS (
+with
+    source as (select * from {{ source("sheetload", "sisense_users") }}),
+    renamed as (
 
-    SELECT *
-    FROM {{ source('sheetload', 'sisense_users') }}
+        select
+            id::varchar as id,
+            first_name::varchar as first_name,
+            last_name::varchar as last_name,
+            email_address::varchar as email_address
 
-), renamed as (
+        from source
+    )
 
-    SELECT
-      id::VARCHAR                            AS id,
-      first_name::VARCHAR                    AS first_name,
-      last_name::VARCHAR                     AS last_name,
-      email_address::VARCHAR                 AS email_address
-      
-    FROM source
-)
-
-SELECT *
-FROM renamed
+select *
+from renamed

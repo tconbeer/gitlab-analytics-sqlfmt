@@ -1,24 +1,24 @@
-WITH source AS (
+with
+    source as (
 
-    SELECT
-      id                    AS currency_id,
-      is_corporate          AS is_corporate,
-      is_enabled            AS is_enabled,
-      modified_date         AS modified_date,
-      modified_date_crm     AS modified_date_crm,
-      created_date          AS created_date,
-      created_date_crm      AS created_date_crm,
-      iso_code              AS iso_code,
-      iso_numeric           AS iso_numeric,
-      exponent              AS exponent,
-      name                  AS name,
-      _created_date         AS _created_date,
-      _modified_date        AS _modified_date,
-      _deleted_date         AS _deleted_date
-    FROM {{ source('bizible', 'biz_currencies') }}
- 
-)
+        select
+            id as currency_id,
+            is_corporate as is_corporate,
+            is_enabled as is_enabled,
+            modified_date as modified_date,
+            modified_date_crm as modified_date_crm,
+            created_date as created_date,
+            created_date_crm as created_date_crm,
+            iso_code as iso_code,
+            iso_numeric as iso_numeric,
+            exponent as exponent,
+            name as name,
+            _created_date as _created_date,
+            _modified_date as _modified_date,
+            _deleted_date as _deleted_date
+        from {{ source("bizible", "biz_currencies") }}
 
-SELECT *
-FROM source
+    )
 
+select *
+from source
